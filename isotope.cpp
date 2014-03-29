@@ -3,35 +3,36 @@ void isotope::endfreadf2(char* filename){
   FILE *file;
   char line[ENDFLEN];
   resonance current_resonance;
-  /*========================================================================
-    New Name            |  Old Name | Page #
-    ZAID                |  ZA       | 49
-    atomic_weight_ratio |  AWR      | 49
-    E_low               |  EL       | 69
-    E_high              |  EH       | 69
-    number_channels     |  NC       | 52
-    target_spin         |  SPI      | 72
-    scattering_radius   |  AP       | 72
-    number_l            |  NLS      | 72
-    number_resonances   |  NRS      | 72
-    resonance_energy    |  ER       | 72
-    resonance_spin      |  AJ       | 72
-    neutron_width       |  GN       | 73
-    radiation_width     |  GG       | 73
-    fission_width_1     |  GF       | 73
-    fission_width_2
-    scattering_radiuses |  APL      | 74
-    flag_rcrs           | NASP      | 70
-    ========================================================================*/
   file = fopen(filename,"r");
   //Line 1 contains nothing relevant
   fgets(line, ENDFLEN, file);
+  
   //Line 2 contains only ZAID and AWR
   fgets(line, ENDFLEN, file);
+  ZAID = endfsci(line);
+  //  atomic_weight_ratio = endfsci(line+11);
   
+  //Line 3 contains nothing relevant
+  fgets(line, ENDFLEN, file);
+  
+  //Line 4 contains E_low, E_high and NAPS
+  fgets(line, ENDFLEN, file);
+  E_low = endfsci(line);
+  E_high = endfsci(line+11);
+  flag_rcrs = endfint(line+55);
+  
+  //Line 5 contains target spin and number of L states
+  fgets(line, ENDFLEN, file);
+  target_spin = endfsci(line);
+  //scattering_radius = endfsci(line+11);
+  number_l = endfint(line+44);
+  awrap = (double*)malloc(2*number_l*sizeof(double));
+
+  printf("%d\n",number_l);
+  fclose(file);
 }
 
-double endfsci(char number[11]){
+double endfsci(char *number){
   char sign = number[9];
   int i;
   int ten = number[10] - 48;
@@ -47,5 +48,18 @@ double endfsci(char number[11]){
   else
     for(i=1;i<=ten;i++)
       decimal *= 0.1;
+  if('-' == number[0])
+    decimal = 0.0 - decimal;
   return decimal;
+}
+
+unsigned endfint(char *number){
+  int weights[10]={1E9,1E8,1E7,1E6,1E5,1E4,1000,100,10,1};
+  int i, value=0;
+  for (i=0;i<10;i++){
+    if(' '!=number[i+1])
+      value += (number[i+1]-48)*weights[i];
+  }
+  return value;
+    
 }
