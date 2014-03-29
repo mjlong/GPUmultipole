@@ -1,1 +1,1 @@
-#define ENDFLEN 80
+#define ENDFLEN 83
