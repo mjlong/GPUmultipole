@@ -1,5 +1,25 @@
 #include "isotope.h"
 void isotope::endfreadf2(char* filename){
+  /*========================================================================
+    New Name            |  Old Name | Page #
+    ZAID                |  ZA       | 49
+    atomic_weight_ratio |  AWR      | 49
+    E_low               |  EL       | 69
+    E_high              |  EH       | 69
+    number_channels     |  NC       | 52
+    target_spin         |  SPI      | 72
+    scattering_radius   |  AP       | 72
+    number_l            |  NLS      | 72
+    number_resonances   |  NRS      | 72
+    resonance_energy    |  ER       | 72
+    resonance_spin      |  AJ       | 72
+    neutron_width       |  GN       | 73
+    radiation_width     |  GG       | 73
+    fission_width_1     |  GF       | 73
+    fission_width_2
+    scattering_radiuses |  APL      | 74
+    flag_rcrs           | NASP      | 70
+    ========================================================================*/
   int iL,iJ,iR;
   FILE *file;
   char line[ENDFLEN];
@@ -27,11 +47,25 @@ void isotope::endfreadf2(char* filename){
   target_spin = endfsci(line);
   //scattering_radius = endfsci(line+11);
   number_l = endfint(line+44);
-  awrap = (double*)malloc(2*number_l*sizeof(double));
+  for(iL=0;iL<number_l;iL++){
+    
+  }
   printf("%d\n",number_l);
   fclose(file);
 }
 
+void isotope::initialize_l(){
+  ljdegeneracy = (unsigned*)malloc(number_l*sizeof(unsigned)*2);
+  scattering_radius = (double*)malloc(number_l*sizeof(double));
+  atomic_weight_ratio = (double*)malloc(number_l*sizeof(double));
+  channel_radius = (double*)malloc(number_l*sizeof(double));
+  pseudo_k0 = (double*)malloc(number_l*sizeof(double));
+  pseudo_k0r = (double*)malloc(number_l*sizeof(double));
+  pseudo_k0r2 = (double*)malloc(number_l*sizeof(double));
+  factor = (double*)malloc(number_l*sizeof(double));
+  CONST = (double*)malloc(number_l*sizeof(double));
+  pseudo_lambdabar2 = (double*)malloc(number_l*sizeof(double));
+}
 void isotope::check_degeneracy(){
   //Note: all agular momentum numbers are doubled to integer here
   unsigned *l_jdeg = (unsigned*)malloc(2*sizeof(unsigned));

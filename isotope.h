@@ -70,42 +70,33 @@ struct resonance{
 };
 class isotope{
  private:
-  /*========================================================================
-    New Name            |  Old Name | Page #
-    ZAID                |  ZA       | 49
-    atomic_weight_ratio |  AWR      | 49
-    E_low               |  EL       | 69
-    E_high              |  EH       | 69
-    number_channels     |  NC       | 52
-    target_spin         |  SPI      | 72
-    scattering_radius   |  AP       | 72
-    number_l            |  NLS      | 72
-    number_resonances   |  NRS      | 72
-    resonance_energy    |  ER       | 72
-    resonance_spin      |  AJ       | 72
-    neutron_width       |  GN       | 73
-    radiation_width     |  GG       | 73
-    fission_width_1     |  GF       | 73
-    fission_width_2
-    scattering_radiuses |  APL      | 74
-    flag_rcrs           | NASP      | 70
-    ========================================================================*/
   unsigned    flag_rcrs, 
               number_l;
   double target_spin,         
          ZAID,                
          E_low,               
          E_high;
-  //awrap stores l-dependent float values: 
-  //atomic_weight_ratio and scattering radius
-  double *awrap; 
-  //degeneracy stores lj-dependent int values:
-  //jdegeneracy(l), jmin(l), number_resonances(l,j), number_channels(l,j)
+  //l-dependent values: 
+  unsigned *ljdegeneracy;
+  double *scattering_radius;
+  double *atomic_weight_ratio;
+  double *channel_radius;
+  double *pseudo_k0;
+  double *pseudo_k0r;
+  double *pseudo_k0r2;
+  double *factor;
+  double *CONST;
+  double *pseudo_lambdabar2;
+  // lj-dependent values:
+  //degeneracy stores jdegeneracy(l), jmin(l), number_resonances(l,j), number_channels(l,j)
   unsigned *degeneracy;
+  
+  //ljr-dependent values
   resonance *resonances;
  public:
   void endfreadf2(char* filename);
   void check_degeneracy();
+  void initialize_l();
 
 };
 
