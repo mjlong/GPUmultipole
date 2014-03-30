@@ -136,6 +136,7 @@ class isotope{
   void initialize_l(int iL);
   void allocate_lj(int sum);
   void initialize_lj(int iL, int iJ);
+  int index(int iL, int iJ);
 
 };
 

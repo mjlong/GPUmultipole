@@ -65,7 +65,12 @@ void isotope::endfreadf2(char* filename){
   printf("%d\n",number_l);
   fclose(file);
 }
-
+int isotope::index(int iL, int iJ){
+  int ind = iJ;
+  for(int i=0;i<iL;i++)
+    ind += l_jdeg[2*i];
+  return ind;
+}
 void isotope::allocate_l(){
   l_jdeg = (unsigned*)malloc(number_l*sizeof(unsigned)*2);
   scattering_radius = (double*)malloc(number_l*sizeof(double));
