@@ -76,30 +76,66 @@ class isotope{
          ZAID,                
          E_low,               
          E_high;
+  /*========================================================================
+    Calculated Values (Isotopic Only)
+    
+    factor - The ratio of the mass of the atom to the mass of the
+             system of both the neutron and the atom.
+    channel_radius - The calculated radius of the system.
+
+    k0^2=2*mn *E/hbar^2              
+    k ^2=2*mn'*E/hbar^2=k0^2*factor  (factor converts mn to reduced mass) 
+    rho=k*a            (a = channel radius or scattering radius 
+                             related with NAPS=1 or 0 in ENDF
+                             (end102 page #321) )
+    pseudo_k0    - k0 = pseuso_k0*sqrtE 
+                 - pseudo_k0=sqrt(2mn/hb^2)[/pcm./sqrt(ev)]*factor
+                 -          =0.0021968*factor[/pcm./sqrt(ev)]
+    pseudo_rho0  - =pseudo_k0*channel_radius
+    pseudo_rho02 - =pseudo_rho0^2
+     
+    pseudo_lambdabar2 = pi^2/k^2*E
+                      = pi^2*hb^2/(2mn)[b.ev]/factor^2
+                      = 1301954.389/factor^2[b.ev]
+    pseudo_twolambdabar2 = 2*pseudo_lambdabar2
+    ========================================================================*/
   //l-dependent values: 
   unsigned *l_jdeg;
   double *scattering_radius;
   double *atomic_weight_ratio;
   double *channel_radius;
   double *pseudo_k0;
-  double *pseudo_k0r;
-  double *pseudo_k0r2;
+  double *pseudo_rho0;
+  double *pseudo_rho02;
   double *factor;
-  double *CONST;
-  double *pseudo_lambdabar2;
+  double *pseudo_lambdabar2, *pseudo_twolambdabar2;
   // lj-dependent values:
-  //degeneracy stores jdegeneracy(l), jmin(l), number_resonances(l,j), number_channels(l,j)
   unsigned *number_channels, *number_resonances;
   double   *channel_spin, *gij;
-  
-  
   //ljr-dependent values
   resonance *resonances;
+  /*========================================================================
+    Calculated Values (Results)
+    
+    poles           - Positions of the poles in complex space
+    residue_total   - Residues at the poles of the total XS
+    residue_absorb  - Residues at the poles of the absorption XS
+    residue_fission - Residues at the poles of the fission XS
+    LJM             - TO-DO: Figure out exactly what this is.
+    ========================================================================*/
+    CComplex *poles,
+             *residue_total,   
+             *residue_absorb,  
+             *residue_fission, 
+             *LJM;
+
  public:
   void endfreadf2(char* filename);
   int check_degeneracy();
-  void initialize_l();
-  void initialize_lj(int sum);
+  void allocate_l();
+  void initialize_l(int iL);
+  void allocate_lj(int sum);
+  void initialize_lj(int iL, int iJ);
 
 };
 

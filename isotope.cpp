@@ -54,17 +54,30 @@ void isotope::endfreadf2(char* filename){
   fclose(file);
 }
 
-void isotope::initialize_l(){
+void isotope::allocate_l(){
   l_jdeg = (unsigned*)malloc(number_l*sizeof(unsigned)*2);
   scattering_radius = (double*)malloc(number_l*sizeof(double));
   atomic_weight_ratio = (double*)malloc(number_l*sizeof(double));
   channel_radius = (double*)malloc(number_l*sizeof(double));
   pseudo_k0 = (double*)malloc(number_l*sizeof(double));
-  pseudo_k0r = (double*)malloc(number_l*sizeof(double));
-  pseudo_k0r2 = (double*)malloc(number_l*sizeof(double));
+  pseudo_rho0 = (double*)malloc(number_l*sizeof(double));
+  pseudo_rho02 = (double*)malloc(number_l*sizeof(double));
   factor = (double*)malloc(number_l*sizeof(double));
-  CONST = (double*)malloc(number_l*sizeof(double));
   pseudo_lambdabar2 = (double*)malloc(number_l*sizeof(double));
+  pseudo_twolambdabar2 = (double*)malloc(number_l*sizeof(double));
+}
+
+void isotope::initialize_l(int iL){
+  factor[iL] = atomic_weight_ratio[iL]/(atomic_weight_ratio[iL]+1.0);
+  pseudo_lambdabar2[iL] = C2/factor[iL]/factor[iL];
+  pseudo_twolambdabar2[iL] = 2.0*pseudo_lambdabar2[iL];
+  pseudo_k0[iL] = C1*factor[iL];
+  if((0.0!=scattering_radius[iL])&&(1==flag_rcrs))
+    channel_radius[iL] = scattering_radius[iL];
+  else
+    channel_radius[iL] = (1.23*pow(atomic_weight_ratio[iL],ONETRD) + 0.8)*0.1;
+  pseudo_rho0[iL]  = pseudo_k0[iL]*channel_radius[iL];
+  pseudo_rho02[iL] = pseudo_rho0[iL] * pseudo_k0[iL];
 }
 
 int isotope::check_degeneracy(){
@@ -85,11 +98,16 @@ int isotope::check_degeneracy(){
   return sum;
 }
 
-void isotope::initialize_lj(int sum){
+void isotope::allocate_lj(int sum){
   number_resonances = (unsigned*)malloc(sum*sizeof(unsigned));
   number_channels   = (unsigned*)malloc(sum*sizeof(unsigned));
   channel_spin = (double*)malloc(sum*sizeof(double));
   gij          = (double*)malloc(sum*sizeof(double));
+}
+
+void isotope::initialize_lj(int iL, int iJ){
+
+
 }
 
 double endfsci(char *number){
