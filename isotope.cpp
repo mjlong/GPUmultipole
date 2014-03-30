@@ -1,5 +1,6 @@
 #include "isotope.h"
 void isotope::endfreadf2(char* filename){
+  int iL,iJ,iR;
   FILE *file;
   char line[ENDFLEN];
   resonance current_resonance;
@@ -27,11 +28,40 @@ void isotope::endfreadf2(char* filename){
   //scattering_radius = endfsci(line+11);
   number_l = endfint(line+44);
   awrap = (double*)malloc(2*number_l*sizeof(double));
-
   printf("%d\n",number_l);
   fclose(file);
 }
 
+void isotope::check_degeneracy(){
+  //Note: all agular momentum numbers are doubled to integer here
+  unsigned *l_jdeg = (unsigned*)malloc(2*sizeof(unsigned));
+  unsigned iL, iJ, offset=0;
+  unsigned nspin = 1;
+  unsigned tspin = (int)(2*target_spin);
+  unsigned j_min;
+  unsigned sum=0, deg;
+  for(iL=0;iL<number_l;iL++){
+    j_min = min(min(abs(2*iL+tspin-nspin),abs(2*iL-tspin+nspin)),abs(2*iL-tspin-nspin));
+    l_jdeg[2*iL+1] = j_min; //odd indexes store j_min
+    deg = iL + 0.5*nspin + target_spin - 0.5*j_min + 1; 
+                     //even index stores deneneracy
+    l_jdeg[2*iL] = deg;
+    sum += deg;
+  }
+  degeneracy = (unsigned*)malloc(2*(number_l+sum)*sizeof(unsigned));
+  //2*number_l  for each l, degeneracy and j_min are stored;
+  //2*sum for each (l,j), number of channels and resonances are stored;
+  degeneracy[iL]   = l_jdeg[2*iL];
+  degeneracy[iL+1] = l_jdeg[2*iL+1];
+  deg = l_jdeg[2*iL];
+  for(iL=1;iL<number_l;iL++){
+    offset += 2*deg+2;
+    deg = l_jdeg[2*iL];
+    degeneracy[offset]   = deg;
+    degeneracy[offset+1] = l_jdeg[2*iL+1];
+  }
+  free(l_jdeg);
+}
 double endfsci(char *number){
   char sign = number[9];
   int i;
@@ -61,5 +91,5 @@ unsigned endfint(char *number){
       value += (number[i+1]-48)*weights[i];
   }
   return value;
-    
 }
+

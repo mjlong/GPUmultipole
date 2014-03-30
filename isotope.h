@@ -96,11 +96,16 @@ class isotope{
          ZAID,                
          E_low,               
          E_high;
-  //awrap stores l-dependent values: atomic_weight_ratio and scattering radius
+  //awrap stores l-dependent float values: 
+  //atomic_weight_ratio and scattering radius
   double *awrap; 
+  //degeneracy stores lj-dependent int values:
+  //jdegeneracy(l), jmin(l), number_resonances(l,j), number_channels(l,j)
+  unsigned *degeneracy;
   resonance *resonances;
  public:
   void endfreadf2(char* filename);
+  void check_degeneracy();
 
 };
 
