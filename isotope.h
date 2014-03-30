@@ -68,6 +68,10 @@ struct resonance{
   CComplex *QC; 
   CComplex QPF;
 };
+
+
+
+
 class isotope{
  private:
   unsigned    flag_rcrs, 
@@ -98,6 +102,12 @@ class isotope{
                       = pi^2*hb^2/(2mn)[b.ev]/factor^2
                       = 1301954.389/factor^2[b.ev]
     pseudo_twolambdabar2 = 2*pseudo_lambdabar2
+    gij                  = (2J+1)/(2I+1)(2s+1) = 0.5*(2J+1)/(2I+1)
+                         where s=neutron_spin = 0.5;
+                         gij is statistic factor describing 
+			 (2J+1) states out of 
+			 (2l+1)(2I+1)(2s+1) states, 
+			 (2l+1) disappears due to Legendre Polynomial
     ========================================================================*/
   //l-dependent values: 
   unsigned *l_jdeg;
@@ -135,7 +145,7 @@ class isotope{
   void allocate_l();
   void initialize_l(int iL);
   void allocate_lj(int sum);
-  void initialize_lj(int iL, int iJ);
+  void initialize_lj(int iL, int iJ, int iLJ);
   int index(int iL, int iJ);
   int index(int iL, double j);
   void assign_resonance(int iL, resonance**res_l);

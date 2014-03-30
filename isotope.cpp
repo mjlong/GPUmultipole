@@ -52,6 +52,7 @@ void isotope::endfreadf2(char* filename){
   allocate_l();
   sum = check_degeneracy();
   allocate_lj(sum);
+
   //Read in all the data
   for(iL=0;iL<number_l;iL++){
     jdeg = l_jdeg[2*iL];
@@ -75,6 +76,8 @@ void isotope::endfreadf2(char* filename){
       current_j = endfsci(line+11);
       iJ  = current_j - jmin ;
       iLJ = index(iL, iJ);
+      initialize_lj(iL,iJ,iLJ);
+      //iLJ depends on iL,iJ, but why not using as given above
       current_resonance.neutron_width = endfsci(line+22);
       current_resonance.radiation_width = endfsci(line+33);
       current_resonance.fission_width_1 = endfsci(line+44);
@@ -191,9 +194,9 @@ void isotope::allocate_lj(int sum){
   resonances   = (resonance**)malloc(sum*sizeof(resonance*));
 }
 
-void isotope::initialize_lj(int iL, int iJ){
-
-
+void isotope::initialize_lj(int iL, int iJ, int iLJ){
+  channel_spin[iLJ] = 0.5*l_jdeg[2*iL+1] + iJ;
+  gij[iLJ] = 0.5 * (2.0 * channel_spin[iLJ] + 1.0) / (2.0*target_spin + 1.0);
 }
 
 double endfsci(char *number){
