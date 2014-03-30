@@ -21,7 +21,7 @@ void isotope::endfreadf2(char* filename){
     flag_rcrs           | NASP      | 70
     ========================================================================*/
   int iL,iJ,iLJ,iR,iJR,jdeg,sum,numr;
-  double current_j;
+  double current_j, jmin;
   FILE *file;
   char line[ENDFLEN];
   resonance current_resonance;
@@ -68,11 +68,12 @@ void isotope::endfreadf2(char* filename){
       number_resonances[iLJ] = 0;
     }//end for iJ
     //Read in resonances of iL
+    jmin = l_jdeg[2*iL+1]*0.5;
     for(iR=0;iR<numr;iR++){
       fgets(line, ENDFLEN, file);
       current_resonance.E = endfsci(line);
       current_j = endfsci(line+11);
-      iJ  = current_j - l_jdeg[2*iL+1]*0.5 ;
+      iJ  = current_j - jmin ;
       iLJ = index(iL, iJ);
       number_resonances[iLJ] += 1;
       current_resonance.neutron_width = endfsci(line+22);
@@ -97,7 +98,7 @@ void isotope::assign_resonance(int iL, resonance** res_l){
   int iJ=0,numr;
   for(int iLJ=ind0;iLJ<=ind1;iLJ++){
     //ind0 adds to ind1 while (iJ=)0 adds to jdeg-1
-    numr = number_channels[iLJ];
+    numr = number_resonances[iLJ];
     resonances[iLJ]=(resonance*)malloc(numr*sizeof(resonance));
     for(int iR=0;iR<numr;iR++){
       *(resonances[iLJ]+iR) = *(res_l[iJ]+iR);
@@ -111,7 +112,9 @@ void isotope::set_resonance(int iL, int iJ, int iR){
   resonance res;
   res = get_resonance(iL,iJ,iR);
   res.sqrtE = sqrt(abs(res.E));
-  if(0==iL && iR<10)
+  //  if(0==iL && iR<10)
+  //    printf("%g\n",res.E);
+  if(0==iL && 0==iJ && 0==iR)
     printf("%g\n",res.E);
   if(1==iL && 0==iJ && 0==iR)
     printf("%g\n",res.E);
