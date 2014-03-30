@@ -17,7 +17,6 @@ struct resonance{
              Fission Width #1
              Fission Width #2
   ======================================================================*/
-  
   double E, radiation_width, neutron_width, fission_width_1, fission_width_2;
   /*========================================================================
    Calculated Values (Multipole)
@@ -29,7 +28,7 @@ struct resonance{
            calculate it once and be done with it)
   
    penetration_factor - The penetration factor
-   sqtPF              - square root of the penetration factor
+   sqrtPF              - square root of the penetration factor
    shift_factor       - The shift factor.
    ER                 - E - HALFI*gamma
    neutron_width_0    - neutron_width/sqrtE, or the neutron width
@@ -48,7 +47,7 @@ struct resonance{
                rho6,               
                sqrtE,              
                penetration_factor, 
-               sqtPF,              
+               sqrtPF,              
                shift_factor,       
                fission_width,      
                total_width,        
@@ -62,7 +61,8 @@ struct resonance{
                   COEF2;
   //========================================================================
   //NUMIK( Numerator of the last term of eq D14 (I-K) from ENDF-102 )
-  double **numik;
+  //  double **numik;
+  //TODO: numik seems only applies to Reich-Moore
   //========================================================================
   // For f-wave resonances only, contains the energy dependence    
   CComplex *QC; 
@@ -74,6 +74,7 @@ struct resonance{
 
 class isotope{
  private:
+  bool NOSHIFT;
   unsigned    flag_rcrs, 
               number_l;
   double target_spin,         
@@ -138,19 +139,19 @@ class isotope{
              *residue_absorb,  
              *residue_fission, 
              *LJM;
-
  public:
-  void endfreadf2(char* filename);
-  int check_degeneracy();
-  void allocate_l();
-  void initialize_l(int iL);
-  void allocate_lj(int sum);
-  void initialize_lj(int iL, int iJ, int iLJ);
-  int index(int iL, int iJ);
-  int index(int iL, double j);
-  void assign_resonance(int iL, resonance**res_l);
-  void set_resonance(int iL, int iJ, int iR);
-  resonance & get_resonance(int iL, int iJ, int iR);
+    isotope(){NOSHIFT=false;};
+    void endfreadf2(char* filename);
+    int check_degeneracy();
+    void allocate_l();
+    void initialize_l(int iL);
+    void allocate_lj(int sum);
+    void initialize_lj(int iL, int iJ, int iLJ);
+    int index(int iL, int iJ);
+    int index(int iL, double j);
+    void assign_resonance(int iL, resonance**res_l);
+    void set_resonance(int iL, int iJ, int iR);
+    resonance & get_resonance(int iL, int iJ, int iR);
 };
 
 unsigned endfint(char *number);

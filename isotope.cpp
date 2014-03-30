@@ -123,7 +123,65 @@ void isotope::set_resonance(int iL, int iJ, int iR){
   res.total_width = res.fission_width + res.neutron_width + res.radiation_width;
   res.absorption_width = res.fission_width + res.radiation_width;
   res.neutron_width_0 = res.neutron_width / res.sqrtE;
-  //  res.B[0] = 
+  res.B[0] = sqrt(abs(res.neutron_width/res.sqrtE))*((int)res.neutron_width>>31);
+  res.B[1] = sqrt(abs(res.fission_width_1))*((int)res.fission_width_1>>31);
+  res.B[2] = sqrt(abs(res.fission_width_2))*((int)res.fission_width_2>>31);
+  //TODO:nomenclature
+  res.ER = res.E - HALFI*res.radiation_width;
+  res.EA = res.E - HALFI*res.total_width;
+  res.COE1 = 0.0 - HALFI*res.neutron_width/res.sqrtE;
+  res.COE2 = res.E - HALFI*res.absorption_width;
+  
+  double prho02 = pseudo_rho02[iL];
+  if(NOSHIFT){
+    switch(iL){
+    case 0:
+      res.penetration_factor = 1.0;
+      res.shift_factor = 0.0;
+      res.COEF2 = 0.0 - res.COE1;
+      break;
+    case 1:
+      res.penetration_factor = res.rho2/(1.0+res.rho2);
+      res.shift_factor = 0.0;
+      res.COEF2 = 0.0 - 0.5*ONEI*res.neutron_width_0*prho02/res.penetration_factor;
+    case 2:
+      res.penetration_factor = 1.0/(9.0+3.0*res.rho2+res.rho4)*res.rho4;
+      res.shift_factor = 0.0;
+      res.COEF2 = 0.0 - 0.5*ONEI*res.neutron_width_0*prho02*prho02/res.penetration_factor;
+    case 3:
+      res.penetration_factor = 1.0/(225.0+45.0*res.rho2+6.0*res.rho4 + res.rho6)*res.rho6;
+      res.shift_factor = 0.0;
+      res.COEF2 = 0.0 - 0.5*ONEI*res.neutron_width_0*pow(prho02,3)/res.penetration_factor;
+    default:
+      break;
+    }//end switch
+  }
+  else{
+    switch(iL){
+    case 0:
+      res.penetration_factor = 1.0;
+      res.shift_factor = 0.0;
+      res.COEF2 = 0.0 - res.COE1;
+      break;
+    case 1:
+      res.penetration_factor = res.rho2/(1.0+res.rho2);
+      res.shift_factor = 0.0 - 1.0/(1.0 + res.rho2);
+      res.COEF2 = 0.0 - 0.5*ONEI*res.neutron_width_0*prho02/res.penetration_factor;
+    case 2:
+      res.penetration_factor = 1.0/(9.0+3.0*res.rho2+res.rho4)*res.rho4;
+      res.shift_factor = 0.0 - 1.0/(9.0+3.0*res.rho2+res.rho4)*(18.0+3.0*res.rho2);
+      res.COEF2 = 0.0 - 0.5*ONEI*res.neutron_width_0*prho02*prho02*prho02/res.penetration_factor;
+    case 3:
+      res.penetration_factor = 1.0/(225.0+45.0*res.rho2+6.0*res.rho4+res.rho6)*res.rho6;
+      res.shift_factor = 0.0 - 1.0/(225.0+45.0*res.rho2+6.0*res.rho4+res.rho6)*(675.0+90.8*res.rho2+6.0*res.rho4);
+      res.COEF2 = 0.0 - 0.5*ONEI*res.neutron_width_0*pow(prho02,3)/res.penetration_factor;
+    default:
+      break;
+    }//end switch
+
+  }//end if else
+  res.sqrtPF = sqrt(res.penetration_factor);
+    
 }
 
 resonance &isotope::get_resonance(int iL, int iJ, int iR){
