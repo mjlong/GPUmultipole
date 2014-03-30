@@ -59,7 +59,6 @@ void isotope::endfreadf2(char* filename){
     atomic_weight_ratio[iL]=endfsci(line);
     scattering_radius[iL]  =endfsci(line+11);
     numr = endfint(line+55);
-    printf("%g,%g,%d\n",atomic_weight_ratio[iL],scattering_radius[iL],numr);
     initialize_l(iL);
     res_l=(resonance**)malloc(jdeg*sizeof(resonance*));
     for(iJ=0;iJ<l_jdeg[2*iL];iJ++){
@@ -73,7 +72,7 @@ void isotope::endfreadf2(char* filename){
       fgets(line, ENDFLEN, file);
       current_resonance.E = endfsci(line);
       current_j = endfsci(line+11);
-      iJ  = current_j - l_jdeg[2*iL+1] + 1;
+      iJ  = current_j - l_jdeg[2*iL+1]*0.5 ;
       iLJ = index(iL, iJ);
       number_resonances[iLJ] += 1;
       current_resonance.neutron_width = endfsci(line+22);
@@ -94,9 +93,9 @@ void isotope::endfreadf2(char* filename){
 void isotope::assign_resonance(int iL, resonance** res_l){
   int jdeg = l_jdeg[2*iL];
   int ind0 = index(iL,(int)0);
-  int ind1 = index(iL,jdeg);
+  int ind1 = index(iL,jdeg-1);
   int iJ=0,numr;
-  for(int iLJ=ind0;iLJ<ind1;iLJ++){
+  for(int iLJ=ind0;iLJ<=ind1;iLJ++){
     //ind0 adds to ind1 while (iJ=)0 adds to jdeg-1
     numr = number_channels[iLJ];
     resonances[iLJ]=(resonance*)malloc(numr*sizeof(resonance));
@@ -109,15 +108,23 @@ void isotope::assign_resonance(int iL, resonance** res_l){
 }
 
 void isotope::set_resonance(int iL, int iJ, int iR){
-
-
+  resonance res;
+  res = get_resonance(iL,iJ,iR);
+  res.sqrtE = sqrt(abs(res.E));
+  if(0==iL && iR<10)
+    printf("%g\n",res.E);
+  if(1==iL && 0==iJ && 0==iR)
+    printf("%g\n",res.E);
+  if(1==iL && 1==iJ && 0==iR)
+    printf("%g\n",res.E);
+  
 }
 
 resonance isotope::get_resonance(int iL, int iJ, int iR){
   return *(resonances[index(iL,iJ)]+iR);
 }
 int isotope::index(int iL, double j){
-  int iJ = j - l_jdeg[2*iL+1] + 1;
+  int iJ = j - l_jdeg[2*iL+1]*0.5 ;
   int ind = iJ;
   for(int i=0;i<iL;i++)
     ind += l_jdeg[2*i];
