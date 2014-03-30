@@ -111,14 +111,6 @@ void isotope::set_resonance(int iL, int iJ, int iR){
   resonance res;
   res = get_resonance(iL,iJ,iR);
   res.sqrtE = sqrt(abs(res.E));
-  //  if(0==iL && iR<10)
-  //    printf("%g\n",res.E);
-  if(0==iL && 0==iJ && 1==iR)
-    printf("%g\n",res.E);
-  if(1==iL && 0==iJ && 1==iR)
-    printf("%g\n",res.E);
-  if(1==iL && 1==iJ && 1==iR)
-    printf("%g\n",res.E);
   
 }
 
