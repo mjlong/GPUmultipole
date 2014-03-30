@@ -111,10 +111,10 @@ void isotope::set_resonance(int iL, int iJ, int iR){
   resonance res;
   res = get_resonance(iL,iJ,iR);
   res.sqrtE = sqrt(abs(res.E));
-  
+  //  res.
 }
 
-resonance isotope::get_resonance(int iL, int iJ, int iR){
+resonance &isotope::get_resonance(int iL, int iJ, int iR){
   return *(resonances[index(iL,iJ)]+iR);
 }
 int isotope::index(int iL, double j){
