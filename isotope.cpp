@@ -55,7 +55,7 @@ void isotope::endfreadf2(char* filename){
 }
 
 void isotope::initialize_l(){
-  ljdegeneracy = (unsigned*)malloc(number_l*sizeof(unsigned)*2);
+  l_jdeg = (unsigned*)malloc(number_l*sizeof(unsigned)*2);
   scattering_radius = (double*)malloc(number_l*sizeof(double));
   atomic_weight_ratio = (double*)malloc(number_l*sizeof(double));
   channel_radius = (double*)malloc(number_l*sizeof(double));
@@ -66,9 +66,9 @@ void isotope::initialize_l(){
   CONST = (double*)malloc(number_l*sizeof(double));
   pseudo_lambdabar2 = (double*)malloc(number_l*sizeof(double));
 }
-void isotope::check_degeneracy(){
+
+int isotope::check_degeneracy(){
   //Note: all agular momentum numbers are doubled to integer here
-  unsigned *l_jdeg = (unsigned*)malloc(2*sizeof(unsigned));
   unsigned iL, iJ, offset=0;
   unsigned nspin = 1;
   unsigned tspin = (int)(2*target_spin);
@@ -82,20 +82,16 @@ void isotope::check_degeneracy(){
     l_jdeg[2*iL] = deg;
     sum += deg;
   }
-  degeneracy = (unsigned*)malloc(2*(number_l+sum)*sizeof(unsigned));
-  //2*number_l  for each l, degeneracy and j_min are stored;
-  //2*sum for each (l,j), number of channels and resonances are stored;
-  degeneracy[iL]   = l_jdeg[2*iL];
-  degeneracy[iL+1] = l_jdeg[2*iL+1];
-  deg = l_jdeg[2*iL];
-  for(iL=1;iL<number_l;iL++){
-    offset += 2*deg+2;
-    deg = l_jdeg[2*iL];
-    degeneracy[offset]   = deg;
-    degeneracy[offset+1] = l_jdeg[2*iL+1];
-  }
-  free(l_jdeg);
+  return sum;
 }
+
+void isotope::initialize_lj(int sum){
+  number_resonances = (unsigned*)malloc(sum*sizeof(unsigned));
+  number_channels   = (unsigned*)malloc(sum*sizeof(unsigned));
+  channel_spin = (double*)malloc(sum*sizeof(double));
+  gij          = (double*)malloc(sum*sizeof(double));
+}
+
 double endfsci(char *number){
   char sign = number[9];
   int i;

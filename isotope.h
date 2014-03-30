@@ -77,7 +77,7 @@ class isotope{
          E_low,               
          E_high;
   //l-dependent values: 
-  unsigned *ljdegeneracy;
+  unsigned *l_jdeg;
   double *scattering_radius;
   double *atomic_weight_ratio;
   double *channel_radius;
@@ -89,14 +89,17 @@ class isotope{
   double *pseudo_lambdabar2;
   // lj-dependent values:
   //degeneracy stores jdegeneracy(l), jmin(l), number_resonances(l,j), number_channels(l,j)
-  unsigned *degeneracy;
+  unsigned *number_channels, *number_resonances;
+  double   *channel_spin, *gij;
+  
   
   //ljr-dependent values
   resonance *resonances;
  public:
   void endfreadf2(char* filename);
-  void check_degeneracy();
+  int check_degeneracy();
   void initialize_l();
+  void initialize_lj(int sum);
 
 };
 
