@@ -75,14 +75,13 @@ void isotope::endfreadf2(char* filename){
       current_j = endfsci(line+11);
       iJ  = current_j - jmin ;
       iLJ = index(iL, iJ);
-      number_resonances[iLJ] += 1;
       current_resonance.neutron_width = endfsci(line+22);
       current_resonance.radiation_width = endfsci(line+33);
       current_resonance.fission_width_1 = endfsci(line+44);
       current_resonance.fission_width_2 = endfsci(line+55);
       number_channels[iLJ] += ((0!=current_resonance.fission_width_1) +
 			       (0!=current_resonance.fission_width_2));
-      *(res_l[iJ]+iR) = current_resonance;
+      *(res_l[iJ]+number_resonances[iLJ]++) = current_resonance;
     }//end reading numr resonances of iL
     assign_resonance(iL, res_l);//res_l elements are freed
     free(res_l);                //res_l itself is freed
@@ -114,11 +113,11 @@ void isotope::set_resonance(int iL, int iJ, int iR){
   res.sqrtE = sqrt(abs(res.E));
   //  if(0==iL && iR<10)
   //    printf("%g\n",res.E);
-  if(0==iL && 0==iJ && 0==iR)
+  if(0==iL && 0==iJ && 1==iR)
     printf("%g\n",res.E);
-  if(1==iL && 0==iJ && 0==iR)
+  if(1==iL && 0==iJ && 1==iR)
     printf("%g\n",res.E);
-  if(1==iL && 1==iJ && 0==iR)
+  if(1==iL && 1==iJ && 1==iR)
     printf("%g\n",res.E);
   
 }
