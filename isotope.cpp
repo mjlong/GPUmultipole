@@ -111,7 +111,16 @@ void isotope::set_resonance(int iL, int iJ, int iR){
   resonance res;
   res = get_resonance(iL,iJ,iR);
   res.sqrtE = sqrt(abs(res.E));
-  //  res.
+  res.rho = pseudo_k0[iL]*res.sqrtE*channel_radius[iL];
+  res.rho2= res.rho * res.rho;
+  res.rho4= res.rho2* res.rho2;
+  res.rho6= res.rho2* res.rho4;
+  //Set channel widths
+  res.fission_width = abs(res.fission_width_1) + abs(res.fission_width_2);
+  res.total_width = res.fission_width + res.neutron_width + res.radiation_width;
+  res.absorption_width = res.fission_width + res.radiation_width;
+  res.neutron_width_0 = res.neutron_width / res.sqrtE;
+  //  res.B[0] = 
 }
 
 resonance &isotope::get_resonance(int iL, int iJ, int iR){
