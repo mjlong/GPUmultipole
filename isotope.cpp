@@ -20,7 +20,7 @@ void isotope::endfreadf2(char* filename){
     scattering_radiuses |  APL      | 74
     flag_rcrs           | NASP      | 70
     ========================================================================*/
-  int iL,iJ,iR;
+  int iL,iJ,iR,sum,num_r;
   FILE *file;
   char line[ENDFLEN];
   resonance current_resonance;
@@ -47,9 +47,21 @@ void isotope::endfreadf2(char* filename){
   target_spin = endfsci(line);
   //scattering_radius = endfsci(line+11);
   number_l = endfint(line+44);
+  allocate_l();
+  sum = check_degeneracy();
+  allocate_lj(sum);
+  //Read in all the data
   for(iL=0;iL<number_l;iL++){
+    fgets(line, ENDFLEN, file);
+    atomic_weight_ratio[iL]=endfsci(line);
+    scattering_radius[iL]  =endfsci(line+11);
+    num_r = endfint(line+55);
+    printf("%g,%g,%d\n",atomic_weight_ratio[iL],scattering_radius[iL],num_r);
+    initialize_l(iL);
     
   }
+
+
   printf("%d\n",number_l);
   fclose(file);
 }
@@ -103,6 +115,7 @@ void isotope::allocate_lj(int sum){
   number_channels   = (unsigned*)malloc(sum*sizeof(unsigned));
   channel_spin = (double*)malloc(sum*sizeof(double));
   gij          = (double*)malloc(sum*sizeof(double));
+  resonances   = (resonance**)malloc(sum*sizeof(resonance*));
 }
 
 void isotope::initialize_lj(int iL, int iJ){

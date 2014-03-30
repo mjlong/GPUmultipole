@@ -113,7 +113,7 @@ class isotope{
   unsigned *number_channels, *number_resonances;
   double   *channel_spin, *gij;
   //ljr-dependent values
-  resonance *resonances;
+  resonance **resonances;
   /*========================================================================
     Calculated Values (Results)
     
