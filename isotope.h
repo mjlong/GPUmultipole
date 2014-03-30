@@ -137,7 +137,10 @@ class isotope{
   void allocate_lj(int sum);
   void initialize_lj(int iL, int iJ);
   int index(int iL, int iJ);
-
+  int index(int iL, double j);
+  void assign_resonance(int iL, resonance**res_l);
+  void set_resonance(int iL, int iJ, int iR);
+  resonance get_resonance(int iL, int iJ, int iR);
 };
 
 unsigned endfint(char *number);

@@ -20,10 +20,12 @@ void isotope::endfreadf2(char* filename){
     scattering_radiuses |  APL      | 74
     flag_rcrs           | NASP      | 70
     ========================================================================*/
-  int iL,iJ,iR,sum,num_r;
+  int iL,iJ,iLJ,iR,iJR,jdeg,sum,numr;
+  double current_j;
   FILE *file;
   char line[ENDFLEN];
   resonance current_resonance;
+  resonance **res_l;
   file = fopen(filename,"r");
   //Line 1 contains nothing relevant
   fgets(line, ENDFLEN, file);
@@ -52,18 +54,74 @@ void isotope::endfreadf2(char* filename){
   allocate_lj(sum);
   //Read in all the data
   for(iL=0;iL<number_l;iL++){
+    jdeg = l_jdeg[2*iL];
     fgets(line, ENDFLEN, file);
     atomic_weight_ratio[iL]=endfsci(line);
     scattering_radius[iL]  =endfsci(line+11);
-    num_r = endfint(line+55);
-    printf("%g,%g,%d\n",atomic_weight_ratio[iL],scattering_radius[iL],num_r);
+    numr = endfint(line+55);
+    printf("%g,%g,%d\n",atomic_weight_ratio[iL],scattering_radius[iL],numr);
     initialize_l(iL);
-    
-  }
+    res_l=(resonance**)malloc(jdeg*sizeof(resonance*));
+    for(iJ=0;iJ<l_jdeg[2*iL];iJ++){
+      iLJ = index(iL,iJ);
+      res_l[iJ]=(resonance*)malloc(numr*sizeof(resonance));
+      number_channels[iLJ] = 1;
+      number_resonances[iLJ] = 0;
+    }//end for iJ
+    //Read in resonances of iL
+    for(iR=0;iR<numr;iR++){
+      fgets(line, ENDFLEN, file);
+      current_resonance.E = endfsci(line);
+      current_j = endfsci(line+11);
+      iJ  = current_j - l_jdeg[2*iL+1] + 1;
+      iLJ = index(iL, iJ);
+      number_resonances[iLJ] += 1;
+      current_resonance.neutron_width = endfsci(line+22);
+      current_resonance.radiation_width = endfsci(line+33);
+      current_resonance.fission_width_1 = endfsci(line+44);
+      current_resonance.fission_width_2 = endfsci(line+55);
+      number_channels[iLJ] += ((0!=current_resonance.fission_width_1) +
+			       (0!=current_resonance.fission_width_2));
+      *(res_l[iJ]+iR) = current_resonance;
+    }//end reading numr resonances of iL
+    assign_resonance(iL, res_l);//res_l elements are freed
+    free(res_l);                //res_l itself is freed
+  }//end for iL
+ 
 
-
-  printf("%d\n",number_l);
   fclose(file);
+}
+void isotope::assign_resonance(int iL, resonance** res_l){
+  int jdeg = l_jdeg[2*iL];
+  int ind0 = index(iL,(int)0);
+  int ind1 = index(iL,jdeg);
+  int iJ=0,numr;
+  for(int iLJ=ind0;iLJ<ind1;iLJ++){
+    //ind0 adds to ind1 while (iJ=)0 adds to jdeg-1
+    numr = number_channels[iLJ];
+    resonances[iLJ]=(resonance*)malloc(numr*sizeof(resonance));
+    for(int iR=0;iR<numr;iR++){
+      *(resonances[iLJ]+iR) = *(res_l[iJ]+iR);
+      set_resonance(iL, iJ, iR);
+    }
+    free(res_l[iJ++]);
+  }
+}
+
+void isotope::set_resonance(int iL, int iJ, int iR){
+
+
+}
+
+resonance isotope::get_resonance(int iL, int iJ, int iR){
+  return *(resonances[index(iL,iJ)]+iR);
+}
+int isotope::index(int iL, double j){
+  int iJ = j - l_jdeg[2*iL+1] + 1;
+  int ind = iJ;
+  for(int i=0;i<iL;i++)
+    ind += l_jdeg[2*i];
+  return ind;
 }
 int isotope::index(int iL, int iJ){
   int ind = iJ;
