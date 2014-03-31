@@ -131,7 +131,9 @@ void isotope::set_resonance(int iL, int iJ, int iR){
   res.EA = res.E - HALFI*res.total_width;
   res.COE1 = 0.0 - HALFI*res.neutron_width/res.sqrtE;
   res.COE2 = res.E - HALFI*res.absorption_width;
-  
+
+  //rho rhohat treatment has been completed in initialize_l(),
+  //channel_radius() now stores rho=kAP or ka
   double prho2 = pseudo_rho2[iL];
   if(NOSHIFT){
     switch(iL){
