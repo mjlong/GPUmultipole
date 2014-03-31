@@ -19,7 +19,7 @@ class multipole{
   double   **gij;        //g statistic factor
   
  public:
-
+  void calculate_poles(isotope iso_data);
 
 };
 
