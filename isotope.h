@@ -152,6 +152,7 @@ class isotope{
     void assign_resonance(int iL, resonance**res_l);
     void set_resonance(int iL, int iJ, int iR);
     resonance & get_resonance(int iL, int iJ, int iR);
+    void penetration_shift_factor(int iL, resonance &res);
 };
 
 unsigned endfint(char *number);

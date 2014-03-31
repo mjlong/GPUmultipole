@@ -131,10 +131,15 @@ void isotope::set_resonance(int iL, int iJ, int iR){
   res.EA = res.E - HALFI*res.total_width;
   res.COE1 = 0.0 - HALFI*res.neutron_width/res.sqrtE;
   res.COE2 = res.E - HALFI*res.absorption_width;
+  penetration_shift_factor(iL, res);
+    
+}
 
+void isotope::penetration_shift_factor(int iL, resonance &res){
   //rho rhohat treatment has been completed in initialize_l(),
   //channel_radius() now stores rho=kAP or ka
   double prho2 = pseudo_rho2[iL];
+  double denominator;
   if(NOSHIFT){
     switch(iL){
     case 0:
@@ -166,16 +171,19 @@ void isotope::set_resonance(int iL, int iJ, int iR){
       res.COEF2 = 0.0 - res.COE1;
       break;
     case 1:
-      res.penetration_factor = res.rho2/(1.0+res.rho2);
-      res.shift_factor = 0.0 - 1.0/(1.0 + res.rho2);
+      denominator = 1.0+res.rho2;
+      res.penetration_factor = res.rho2/denominator;
+      res.shift_factor = 0.0 - 1.0/denominator;
       res.COEF2 = 0.0 - 0.5*ONEI*res.neutron_width_0*prho2/res.penetration_factor;
     case 2:
-      res.penetration_factor = 1.0/(9.0+3.0*res.rho2+res.rho4)*res.rho4;
-      res.shift_factor = 0.0 - 1.0/(9.0+3.0*res.rho2+res.rho4)*(18.0+3.0*res.rho2);
+      denominator = 9.0+3.0*res.rho2+res.rho4;
+      res.penetration_factor = 1.0/denominator*res.rho4;
+      res.shift_factor = 0.0 - 1.0/denominator*(18.0+3.0*res.rho2);
       res.COEF2 = 0.0 - 0.5*ONEI*res.neutron_width_0*prho2*prho2/res.penetration_factor;
     case 3:
-      res.penetration_factor = 1.0/(225.0+45.0*res.rho2+6.0*res.rho4+res.rho6)*res.rho6;
-      res.shift_factor = 0.0 - 1.0/(225.0+45.0*res.rho2+6.0*res.rho4+res.rho6)*(675.0+90.8*res.rho2+6.0*res.rho4);
+      denominator = 225.0+45.0*res.rho2+6.0*res.rho4+res.rho6;
+      res.penetration_factor = 1.0/denominator*res.rho6;
+      res.shift_factor = 0.0 - 1.0/denominator*(675.0+90.8*res.rho2+6.0*res.rho4);
       res.COEF2 = 0.0 - 0.5*ONEI*res.neutron_width_0*pow(prho2,3)/res.penetration_factor;
     default:
       break;
@@ -183,7 +191,6 @@ void isotope::set_resonance(int iL, int iJ, int iR){
 
   }//end if else
   res.sqrtPF = sqrt(res.penetration_factor);
-    
 }
 
 resonance &isotope::get_resonance(int iL, int iJ, int iR){
