@@ -2,6 +2,29 @@
 isotope::isotope(char *filename){
   endfreadf2(filename);
 }
+isotope::~isotope(){
+  int lastindex = index(number_l-1, (int)l_jdeg[2*(number_l-1)-1]);
+  for(int iLJ=0;iLJ<=lastindex;iLJ++)
+    free(resonances[iLJ]);
+  free(resonances);
+  free(l_jdeg);
+  free(scattering_radius);
+  free(atomic_weight_ratio);
+  free(channel_radius);
+  free(pseudo_k);
+  free(pseudo_rho);
+  free(pseudo_rho2);
+  free(factor);
+  free(pseudo_lambdabar2);
+  free(pseudo_twolambdabar2);
+  free(number_channels);
+  free(number_resonances);
+  free(channel_spin);
+  free( gij);
+  
+  //  resonance **resonances;
+
+}
 void isotope::endfreadf2(char* filename){
   /*========================================================================
     New Name            |  Old Name | Page #

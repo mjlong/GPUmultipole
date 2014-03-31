@@ -142,6 +142,7 @@ class isotope{
  public:
     isotope(){NOSHIFT=false;};
     isotope(char *filename);
+    ~isotope();
     void endfreadf2(char* filename);
     int check_degeneracy();
     void allocate_l();
