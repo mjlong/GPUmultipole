@@ -1,4 +1,7 @@
 #include "isotope.h"
+isotope::isotope(char *filename){
+  endfreadf2(filename);
+}
 void isotope::endfreadf2(char* filename){
   /*========================================================================
     New Name            |  Old Name | Page #

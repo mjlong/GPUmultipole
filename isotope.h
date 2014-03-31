@@ -141,6 +141,7 @@ class isotope{
              *LJM;
  public:
     isotope(){NOSHIFT=false;};
+    isotope(char *filename);
     void endfreadf2(char* filename);
     int check_degeneracy();
     void allocate_l();
