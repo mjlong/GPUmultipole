@@ -114,7 +114,7 @@ void isotope::set_resonance(int iL, int iJ, int iR){
   resonance res;
   res = get_resonance(iL,iJ,iR);
   res.sqrtE = sqrt(abs(res.E));
-  res.rho = pseudo_k0[iL]*res.sqrtE*channel_radius[iL];
+  res.rho = pseudo_k[iL]*res.sqrtE*channel_radius[iL];
   res.rho2= res.rho * res.rho;
   res.rho4= res.rho2* res.rho2;
   res.rho6= res.rho2* res.rho4;
@@ -132,7 +132,7 @@ void isotope::set_resonance(int iL, int iJ, int iR){
   res.COE1 = 0.0 - HALFI*res.neutron_width/res.sqrtE;
   res.COE2 = res.E - HALFI*res.absorption_width;
   
-  double prho02 = pseudo_rho02[iL];
+  double prho2 = pseudo_rho2[iL];
   if(NOSHIFT){
     switch(iL){
     case 0:
@@ -143,15 +143,15 @@ void isotope::set_resonance(int iL, int iJ, int iR){
     case 1:
       res.penetration_factor = res.rho2/(1.0+res.rho2);
       res.shift_factor = 0.0;
-      res.COEF2 = 0.0 - 0.5*ONEI*res.neutron_width_0*prho02/res.penetration_factor;
+      res.COEF2 = 0.0 - 0.5*ONEI*res.neutron_width_0*prho2/res.penetration_factor;
     case 2:
       res.penetration_factor = 1.0/(9.0+3.0*res.rho2+res.rho4)*res.rho4;
       res.shift_factor = 0.0;
-      res.COEF2 = 0.0 - 0.5*ONEI*res.neutron_width_0*prho02*prho02/res.penetration_factor;
+      res.COEF2 = 0.0 - 0.5*ONEI*res.neutron_width_0*prho2*prho2/res.penetration_factor;
     case 3:
       res.penetration_factor = 1.0/(225.0+45.0*res.rho2+6.0*res.rho4 + res.rho6)*res.rho6;
       res.shift_factor = 0.0;
-      res.COEF2 = 0.0 - 0.5*ONEI*res.neutron_width_0*pow(prho02,3)/res.penetration_factor;
+      res.COEF2 = 0.0 - 0.5*ONEI*res.neutron_width_0*pow(prho2,3)/res.penetration_factor;
     default:
       break;
     }//end switch
@@ -166,15 +166,15 @@ void isotope::set_resonance(int iL, int iJ, int iR){
     case 1:
       res.penetration_factor = res.rho2/(1.0+res.rho2);
       res.shift_factor = 0.0 - 1.0/(1.0 + res.rho2);
-      res.COEF2 = 0.0 - 0.5*ONEI*res.neutron_width_0*prho02/res.penetration_factor;
+      res.COEF2 = 0.0 - 0.5*ONEI*res.neutron_width_0*prho2/res.penetration_factor;
     case 2:
       res.penetration_factor = 1.0/(9.0+3.0*res.rho2+res.rho4)*res.rho4;
       res.shift_factor = 0.0 - 1.0/(9.0+3.0*res.rho2+res.rho4)*(18.0+3.0*res.rho2);
-      res.COEF2 = 0.0 - 0.5*ONEI*res.neutron_width_0*prho02*prho02*prho02/res.penetration_factor;
+      res.COEF2 = 0.0 - 0.5*ONEI*res.neutron_width_0*prho2*prho2/res.penetration_factor;
     case 3:
       res.penetration_factor = 1.0/(225.0+45.0*res.rho2+6.0*res.rho4+res.rho6)*res.rho6;
       res.shift_factor = 0.0 - 1.0/(225.0+45.0*res.rho2+6.0*res.rho4+res.rho6)*(675.0+90.8*res.rho2+6.0*res.rho4);
-      res.COEF2 = 0.0 - 0.5*ONEI*res.neutron_width_0*pow(prho02,3)/res.penetration_factor;
+      res.COEF2 = 0.0 - 0.5*ONEI*res.neutron_width_0*pow(prho2,3)/res.penetration_factor;
     default:
       break;
     }//end switch
@@ -205,9 +205,9 @@ void isotope::allocate_l(){
   scattering_radius = (double*)malloc(number_l*sizeof(double));
   atomic_weight_ratio = (double*)malloc(number_l*sizeof(double));
   channel_radius = (double*)malloc(number_l*sizeof(double));
-  pseudo_k0 = (double*)malloc(number_l*sizeof(double));
-  pseudo_rho0 = (double*)malloc(number_l*sizeof(double));
-  pseudo_rho02 = (double*)malloc(number_l*sizeof(double));
+  pseudo_k = (double*)malloc(number_l*sizeof(double));
+  pseudo_rho = (double*)malloc(number_l*sizeof(double));
+  pseudo_rho2 = (double*)malloc(number_l*sizeof(double));
   factor = (double*)malloc(number_l*sizeof(double));
   pseudo_lambdabar2 = (double*)malloc(number_l*sizeof(double));
   pseudo_twolambdabar2 = (double*)malloc(number_l*sizeof(double));
@@ -217,13 +217,13 @@ void isotope::initialize_l(int iL){
   factor[iL] = atomic_weight_ratio[iL]/(atomic_weight_ratio[iL]+1.0);
   pseudo_lambdabar2[iL] = C2/factor[iL]/factor[iL];
   pseudo_twolambdabar2[iL] = 2.0*pseudo_lambdabar2[iL];
-  pseudo_k0[iL] = C1*factor[iL];
+  pseudo_k[iL] = C1*factor[iL];
   if((0.0!=scattering_radius[iL])&&(1==flag_rcrs))
     channel_radius[iL] = scattering_radius[iL];
   else
     channel_radius[iL] = (1.23*pow(atomic_weight_ratio[iL],ONETRD) + 0.8)*0.1;
-  pseudo_rho0[iL]  = pseudo_k0[iL]*channel_radius[iL];
-  pseudo_rho02[iL] = pseudo_rho0[iL] * pseudo_k0[iL];
+  pseudo_rho[iL]  = pseudo_k[iL]*channel_radius[iL];
+  pseudo_rho2[iL] = pseudo_rho[iL] * pseudo_rho[iL];
 }
 
 int isotope::check_degeneracy(){

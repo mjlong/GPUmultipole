@@ -115,9 +115,9 @@ class isotope{
   double *scattering_radius;
   double *atomic_weight_ratio;
   double *channel_radius;
-  double *pseudo_k0;
-  double *pseudo_rho0;
-  double *pseudo_rho02;
+  double *pseudo_k;
+  double *pseudo_rho;
+  double *pseudo_rho2;
   double *factor;
   double *pseudo_lambdabar2, *pseudo_twolambdabar2;
   // lj-dependent values:
