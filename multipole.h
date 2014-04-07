@@ -32,6 +32,7 @@ class multipole{
   //spacing = sqrt(multipole_w%endE - multipole_w%startE)/multipole_w%windows 
   //Mode = 2 (log)
   //spacing = log(multipole_w%endE - multipole_w%startE)/multipole_w%windows
+  double sqrtKT;
   int *w_start;// Contains the index of the pole at the start of the window
   int *w_end;  // Contains the index of the pole at the end of the window
   double *fit;
