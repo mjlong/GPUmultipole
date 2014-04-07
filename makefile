@@ -2,22 +2,20 @@ CC=g++
 H5CC = h5cc
 CFLAGS=-c -g -Iinclude 
 HFLAGS=-c -lstdc++ 
-LDFLAGS=  
+LDFLAGS=-lstdc++  
 includes = $(wildcard include/*.h)
 SOURCES=\
-#CPUComplex.cpp\
-#isotope.cpp\
-#multipole.cpp\
-testmain.cpp
+multipole.cpp\
+main.cpp
 OBJECTS=$(SOURCES:.cpp=.o)
-HSOURCES=h5_rdwt.cpp
+HSOURCES=h5_rdwt.cxx
 HOBJECTS=h5_rdwt.o
 EXECUTABLE=testmain
 all: $(EXECUTABLE)
 	@echo "make clean if .h file updated"
 
-$(EXECUTABLE): $(OBJECTS)
-	$(CC) $(LDFLAGS) $^ -o $@
+$(EXECUTABLE): $(OBJECTS) $(HOBJECTS)
+	$(H5CC) $(LDFLAGS) $^ -o $@
 
 %.o : %.cpp ${includes}
 	$(CC) $(CFLAGS) $^ -o $@
