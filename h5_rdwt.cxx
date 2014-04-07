@@ -10,8 +10,7 @@ int h5read() {
     fitorder[1], dset_data[1], length[1];
   int * l_value;
   double *fit;
-  double *mpole;
-  double **mpoles;
+
 
   file_id = H5Fopen(FILE, H5F_ACC_RDONLY, H5P_DEFAULT);
 
