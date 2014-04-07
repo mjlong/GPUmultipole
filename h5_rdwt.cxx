@@ -1,7 +1,8 @@
 #include "h5_rdwt.h"
 
 void h5read(multipole pole, char filename[]) {
-  tuple *complex;
+  //  tuple *complext;
+  complex<double> z;
   hid_t file_id, 
     dataset_id, 
     complex_id, complex_array_id, 
@@ -9,8 +10,7 @@ void h5read(multipole pole, char filename[]) {
   hsize_t dims[2], datasize_1d[1];
   herr_t status;
 
-  int i, j, k, rank, ndims,
-    dset_data[1];
+  int i, j, k, ndims;
   int ivalue[1];
   double dvalue[1];
 
@@ -101,21 +101,17 @@ void h5read(multipole pole, char filename[]) {
   status = H5Dclose(dataset_id);
 
   dataset_id = H5Dopen(file_id, "/isotop/mpdata", H5P_DEFAULT);
-  
   space_id = H5Dget_space(dataset_id);
   ndims = H5Sget_simple_extent_dims(space_id, dims, NULL);
   printf("number of dims:%d, length of dim1:%d,of dim2:%d\n",(int)ndims,(int)dims[0],(int)dims[1]);
-  //  dims[0] = 4;
-  //  dims[1] = length[0];
-  rank = 1; 
   datasize_1d[0]=2;
-  complex_array_id = H5Tarray_create(H5T_NATIVE_DOUBLE, rank, datasize_1d);
-  complex_id = H5Tcreate(H5T_COMPOUND, sizeof(tuple));
+  complex_array_id = H5Tarray_create(H5T_NATIVE_DOUBLE, 1, datasize_1d);
+  complex_id = H5Tcreate(H5T_COMPOUND, sizeof(double)*2);
   status = H5Tinsert(complex_id, "point", HOFFSET(tuple, complex), complex_array_id);
-  complex = (tuple*)malloc(dims[0]*dims[1]*sizeof(tuple));
-  status = H5Dread(dataset_id, complex_id, H5S_ALL, H5S_ALL, H5P_DEFAULT, complex);
-  printf("%g+%gi\n",complex[4].complex[0],complex[4].complex[1]);
-  
+  pole.mpdata = (complex<double>*)malloc(dims[0]*dims[1]*sizeof(complex<double>));
+  status = H5Dread(dataset_id, complex_id, H5S_ALL, H5S_ALL, H5P_DEFAULT, pole.mpdata);
+  printf("%g+%gi\n",real(pole.mpdata[4]),imag(pole.mpdata[4]));
   status = H5Fclose(file_id);
 }
+
 

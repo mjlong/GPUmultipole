@@ -11,7 +11,7 @@ using namespace std;
 class multipole{
  private:
   int fissionable;
-  complex<double> **mpdata; //All residues
+  complex<double> *mpdata; //All residues
   unsigned      length;
   unsigned *l_value, *j_value; // l and j index of the pole
   int      w_function; //Which W function to use
