@@ -46,7 +46,7 @@ class multipole{
  public:
   multipole();
   multipole(char filename[]);
-  double xs_eval_fast(double E, double sqrtKT, 
+  void xs_eval_fast(double E, double sqrtKT, 
 	       double *sigT, double *sigA, double *sigF);
 
 };
