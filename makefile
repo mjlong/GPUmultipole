@@ -1,7 +1,7 @@
 CC=g++
 H5CC = h5cc
 CFLAGS=-c -g -Iinclude 
-HFLAGS=-c -lstdc++ 
+HFLAGS=-c -g 
 LDFLAGS=-lstdc++  
 includes = $(wildcard include/*.h)
 SOURCES=\
@@ -20,7 +20,7 @@ $(EXECUTABLE): $(OBJECTS) $(HOBJECTS)
 %.o : %.cpp ${includes}
 	$(CC) $(CFLAGS) $^ -o $@
 %.o : %.cxx
-	$(H5CC) $(HFLAGS) $^ -o $@
+	$(CC) $(HFLAGS) $^ -o $@
 remove :
 	rm -rf *.o  *~
 clean :  
