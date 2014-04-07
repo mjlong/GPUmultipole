@@ -4,6 +4,7 @@ multipole::multipole(){
 }
 
 multipole::multipole(char filename[]){
+  
 
 }
 
