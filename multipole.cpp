@@ -3,10 +3,11 @@ multipole::multipole(){
 
 }
 
-multipole::multipole(isotope iso_data){
+multipole::multipole(char filename[]){
 
 }
 
-void multipole::calculate_poles(isotope iso_data){
+double multipole::xs_eval_fast(double E, double sqrtKT, 
+			double *sigT, double *sigA, double *sigF){
 
 }
