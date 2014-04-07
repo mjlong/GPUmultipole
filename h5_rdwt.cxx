@@ -1,41 +1,103 @@
 #include "h5_rdwt.h"
 
-int h5read() {
+void h5read(multipole pole, char filename[]) {
   tuple *complex;
-  hid_t file_id, dataset_id, complex_id, complex_array_id, space_id;  /* identifiers */
+  hid_t file_id, 
+    dataset_id, 
+    complex_id, complex_array_id, 
+    space_id;  
   hsize_t dims[2], datasize_1d[1];
   herr_t status;
 
   int i, j, k, rank, ndims,
-    fitorder[1], dset_data[1], length[1];
-  int * l_value;
-  double *fit;
+    dset_data[1];
+  int ivalue[1];
+  double dvalue[1];
 
+  file_id = H5Fopen(filename, H5F_ACC_RDONLY, H5P_DEFAULT);
 
-  file_id = H5Fopen(FILE, H5F_ACC_RDONLY, H5P_DEFAULT);
+  dataset_id = H5Dopen(file_id, "/isotop/fissionable", H5P_DEFAULT);
+  status = H5Dread(dataset_id, H5T_NATIVE_INT, H5S_ALL, H5S_ALL, H5P_DEFAULT,ivalue);
+  pole.fissionable = ivalue[0];
+  printf("fissionable:%2d\n", pole.fissionable);
+  status = H5Dclose(dataset_id);
+
+  dataset_id = H5Dopen(file_id, "/isotop/mode", H5P_DEFAULT);
+  status = H5Dread(dataset_id, H5T_NATIVE_INT, H5S_ALL, H5S_ALL, H5P_DEFAULT,ivalue);
+  pole.mode = ivalue[0];
+  printf("mode:%2d\n", pole.mode);
+  status = H5Dclose(dataset_id);
+
+  dataset_id = H5Dopen(file_id, "/isotop/windows", H5P_DEFAULT);
+  status = H5Dread(dataset_id, H5T_NATIVE_INT, H5S_ALL, H5S_ALL, H5P_DEFAULT,ivalue);
+  pole.windows = ivalue[0];
+  printf("windows:%2d\n", pole.windows);
+  status = H5Dclose(dataset_id);
+
+  dataset_id = H5Dopen(file_id, "/isotop/startE", H5P_DEFAULT);
+  status = H5Dread(dataset_id, H5T_NATIVE_DOUBLE, H5S_ALL, H5S_ALL, H5P_DEFAULT,dvalue);
+  pole.startE = dvalue[0];
+  printf("startE:%g\n", pole.startE);
+  status = H5Dclose(dataset_id);
+
+  dataset_id = H5Dopen(file_id, "/isotop/endE", H5P_DEFAULT);
+  status = H5Dread(dataset_id, H5T_NATIVE_DOUBLE, H5S_ALL, H5S_ALL, H5P_DEFAULT,dvalue);
+  pole.endE = dvalue[0];
+  printf("endE:%g\n", pole.endE);
+  status = H5Dclose(dataset_id);
+
+  dataset_id = H5Dopen(file_id, "/isotop/spacing", H5P_DEFAULT);
+  status = H5Dread(dataset_id, H5T_NATIVE_DOUBLE, H5S_ALL, H5S_ALL, H5P_DEFAULT,dvalue);
+  pole.spacing = dvalue[0];
+  printf("spacing:%g\n", pole.spacing);
+  status = H5Dclose(dataset_id);
 
   dataset_id = H5Dopen(file_id, "/isotop/fitorder", H5P_DEFAULT);
-  status = H5Dread(dataset_id, H5T_NATIVE_INT, H5S_ALL, H5S_ALL, H5P_DEFAULT,fitorder);
-  printf("fitorder:%2d\n", fitorder[0]);
+  status = H5Dread(dataset_id, H5T_NATIVE_INT, H5S_ALL, H5S_ALL, H5P_DEFAULT,ivalue);
+  pole.fitorder = ivalue[0];
+  printf("fitorder:%2d\n", pole.fitorder);
   status = H5Dclose(dataset_id);
 
   dataset_id = H5Dopen(file_id, "/isotop/length", H5P_DEFAULT);
-  status = H5Dread(dataset_id, H5T_NATIVE_INT, H5S_ALL, H5S_ALL, H5P_DEFAULT,length);
-  printf("length:%2d\n", length[0]);
+  status = H5Dread(dataset_id, H5T_NATIVE_INT, H5S_ALL, H5S_ALL, H5P_DEFAULT,ivalue);
+  pole.length = ivalue[0];
+  printf("length:%2d\n", pole.length);
   status = H5Dclose(dataset_id);
 
-  l_value = (int*)malloc(length[0]*sizeof(int));
+  dataset_id = H5Dopen(file_id, "/isotop/numL", H5P_DEFAULT);
+  status = H5Dread(dataset_id, H5T_NATIVE_INT, H5S_ALL, H5S_ALL, H5P_DEFAULT,ivalue);
+  pole.numL = ivalue[0];
+  printf("numL:%2d\n", pole.numL);
+  status = H5Dclose(dataset_id);
+
+  pole.pseudo_rho = (double*)malloc(pole.numL*sizeof(double));
+  dataset_id = H5Dopen(file_id, "/isotop/pK0RS", H5P_DEFAULT);
+  status = H5Dread(dataset_id, H5T_NATIVE_DOUBLE, H5S_ALL, H5S_ALL, H5P_DEFAULT, pole.pseudo_rho);
+  printf("pK0RS:%g,%g\n", pole.pseudo_rho[0],pole.pseudo_rho[1]);
+  status = H5Dclose(dataset_id);
+
+  pole.l_value = (unsigned*)malloc(pole.length*sizeof(unsigned));
   dataset_id = H5Dopen(file_id, "/isotop/l_value", H5P_DEFAULT);
-  status = H5Dread(dataset_id, H5T_NATIVE_INT, H5S_ALL, H5S_ALL, H5P_DEFAULT,l_value);
-  printf("1st l value:%d\n", l_value[0]);
-  free(l_value);
+  status = H5Dread(dataset_id, H5T_NATIVE_INT, H5S_ALL, H5S_ALL, H5P_DEFAULT,pole.l_value);
+  printf("4th l value:%d\n", pole.l_value[3]);
   status = H5Dclose(dataset_id);
   
-  fit = (double*)malloc(3*2000*(fitorder[0]+1)*sizeof(double));
+  pole.fit = (double*)malloc(3*pole.windows*(pole.fitorder+1)*sizeof(double));
   dataset_id = H5Dopen(file_id, "/isotop/fit", H5P_DEFAULT);
-  status = H5Dread(dataset_id, H5T_NATIVE_DOUBLE, H5S_ALL, H5S_ALL, H5P_DEFAULT, fit);
-  printf("fit[0][0][0]:%g\n", fit[11]);
-  free(fit);
+  status = H5Dread(dataset_id, H5T_NATIVE_DOUBLE, H5S_ALL, H5S_ALL, H5P_DEFAULT, pole.fit);
+  printf("fit[0][0][0]:%g\n", pole.fit[11]);
+  status = H5Dclose(dataset_id);
+
+  pole.w_start = (int*)malloc(pole.windows*sizeof(int));
+  dataset_id = H5Dopen(file_id, "/isotop/wstart", H5P_DEFAULT);
+  status = H5Dread(dataset_id, H5T_NATIVE_INT, H5S_ALL, H5S_ALL, H5P_DEFAULT, pole.w_start);
+  printf("w_start:%2d\n", pole.w_start[11]);
+  status = H5Dclose(dataset_id);
+
+  pole.w_end = (int*)malloc(pole.windows*sizeof(int));
+  dataset_id = H5Dopen(file_id, "/isotop/wend", H5P_DEFAULT);
+  status = H5Dread(dataset_id, H5T_NATIVE_INT, H5S_ALL, H5S_ALL, H5P_DEFAULT, pole.w_end);
+  printf("w_end:%2d\n", pole.w_end[11]);
   status = H5Dclose(dataset_id);
 
   dataset_id = H5Dopen(file_id, "/isotop/mpdata", H5P_DEFAULT);
