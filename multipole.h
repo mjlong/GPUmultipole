@@ -10,22 +10,22 @@ using namespace std;
 
 class multipole{
  private:
-  int fissionable[1];
+  int fissionable;
   complex<double> **mpdata; //All residues
-  unsigned      length[1];
+  unsigned      length;
   unsigned *l_value, *j_value; // l and j index of the pole
   int      w_function; //Which W function to use
   double   atomic_weight_ratio; 
   double   *pseudo_rho;  //inherit nomenclature from isotope.h
   double   **gij;        //g statistic factor
   // Mode, set to 0 for linear, 1 for momentum, 2 for logarithmic.
-  int mode[1];                        // Spacing mode
-  int windows[1];                     // Number of windows
-  int fitorder[1];                    // Order of the fit. 1 linear, 2 quadratic, etc.
-  int numL[1];                        // Number of l values
-  double startE[1];                      // Start energy for the windows
-  double endE[1];                        // End energy for the windows
-  double spacing[1];                     // The actual spacing in the mode of choice.
+  int mode;                        // Spacing mode
+  int windows;                     // Number of windows
+  int fitorder;                    // Order of the fit. 1 linear, 2 quadratic, etc.
+  int numL;                        // Number of l values
+  double startE;                      // Start energy for the windows
+  double endE;                        // End energy for the windows
+  double spacing;                     // The actual spacing in the mode of choice.
   //Mode = 0 (linear)
   //spacing = inner
   //Mode = 1 (sqrt)
