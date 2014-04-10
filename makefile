@@ -1,7 +1,7 @@
 CC=g++
 H5CC = h5cc
 CFLAGS=-c -g -Iinclude 
-HFLAGS=-c -g 
+HFLAGS=-c -g -lstdc++ 
 LDFLAGS=-lstdc++  
 includes = $(wildcard include/*.h)
 SOURCES=\
