@@ -27,7 +27,7 @@ class multipole{
   unsigned *l_value, *j_value; // l and j index of the pole
   int      w_function; //Which W function to use
   double   *pseudo_rho;  //inherit nomenclature from isotope.h
-  double *twophi;
+
   complex<double> *sigT_factor;
   // Mode, set to 0 for linear, 1 for momentum, 2 for logarithmic.
   int mode;                        // Spacing mode
