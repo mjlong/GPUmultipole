@@ -73,6 +73,8 @@ void h5read(multipole pole, char filename[]) {
   dataset_id = H5Dopen(file_id, "/isotop/numL", H5P_DEFAULT);
   status = H5Dread(dataset_id, H5T_NATIVE_INT, H5S_ALL, H5S_ALL, H5P_DEFAULT,ivalue);
   pole.numL = ivalue[0];
+  pole.twophi = (double*)malloc(sizeof(double)*ivalue[0]);
+  pole.sigT_factor = (double*)malloc(sizeof(double)*ivalue[0]);
   //printf("numL:%2d\n", pole.numL);
   status = H5Dclose(dataset_id);
 
