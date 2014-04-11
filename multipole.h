@@ -5,6 +5,7 @@
 #define MP_RT 1
 #define MP_RA 2
 #define MP_RF 3
+#define MP_FISS 1
 #define FIT_T 0
 #define FIT_A 1
 #define FIT_F 2
@@ -13,8 +14,10 @@
 #include <stdio.h>
 #include <complex>
 #include <iostream>
+#include "Faddeeva.hh"
 #include "tinytope.h"
 using namespace std;
+using namespace Faddeeva;
 
 class multipole{
  private:
@@ -54,7 +57,7 @@ class multipole{
  public:
   multipole();
   multipole(char filename[]);
-  void isotopeinfo(isotope );
+  //  void isotopeinfo(isotope );
   void xs_eval_fast(double E, double sqrtKT, 
 	       double &sigT, double &sigA, double &sigF);
   void fill_factors(double sqrtE);

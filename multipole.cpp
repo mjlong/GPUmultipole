@@ -4,6 +4,7 @@ multipole::multipole(){
 }
 
 //TODO: this doesn't work
+/*
 multipole::multipole(char filename[]){
   isotope iso(filename);
   isotopeinfo(iso);
@@ -16,14 +17,26 @@ void multipole::isotopeinfo(isotope iso){
   for(int i=0;i<iso.number_l;i++)
     pseudo_rho[i]=iso.pseudo_rho[i];
 }
+*/
 
 void multipole::xs_eval_fast(double E, double sqrtKT, 
 			double &sigT, double &sigA, double &sigF){
-  int    iP, iC, iW, startW, endW;
+  int    iP, iC, iW, startW, endW, cnt,maxwindow=0;
   double *twophi;
   double sqrtE = sqrt(E);
-  double power;
+  double power, DOPP, DOPP_ECOEF;
+  complex<double> PSIIKI, CDUM1, w_val;
+  complex<double> *Z_array, *W_array;
+
   twophi = (double*)malloc(sizeof(double)*numL);
+  for(iW=0;iW<windows;iW++){
+    cnt = w_end[iW]-w_start[iW] + 1;
+    if(cnt > maxwindow)
+      maxwindow = cnt;
+  }
+  Z_array = (complex<double>*)malloc(sizeof(complex<double>)*maxwindow);
+  W_array = (complex<double>*)malloc(sizeof(complex<double>)*maxwindow);
+  
   if(1==mode)
     iW = (int)(sqrtE - sqrt(startE))/spacing;
   else if(2==mode)
@@ -42,11 +55,23 @@ void multipole::xs_eval_fast(double E, double sqrtKT,
     power = pow(E,iC);
     sigT += fit[findex(FIT_T, iC, iW)]*power;
     sigA += fit[findex(FIT_A, iC, iW)]*power;
-    if(true == fissionable)
+    if(MP_FISS == fissionable)
       sigF += fit[findex(FIT_F, iC, iW)]*power;
   }
-  
+  DOPP = sqrt(atomic_weight_ratio)/sqrtKT;
+  DOPP_ECOEF = DOPP/sqrt(PI);
+  for(iP=startW;iP<=endW;iP++){
+    Z_array[iP-startW] = (sqrtE - mpdata[pindex(MP_EA,iP)])*DOPP;
+    W_array[iP-startW] = w(Z_array[iP-startW])*DOPP_ECOEF;
+  }
 
+    
+  for(iP=startW;iP<=endW;iP++){
+    sigT += real(mpdata[pindex(MP_RT,iP)]*sigT_factor[l_value[iP]-1]*W_array[iP-startW]);
+    sigA += real(mpdata[pindex(MP_RA,iP)]*W_array[iP-startW]);
+    if(MP_FISS == fissionable)
+      sigF += real(mpdata[pindex(MP_RF,iP)]*W_array[iP-startW]);
+  }
 }
 
 int multipole::findex(int type, int iC, int iW){
