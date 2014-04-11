@@ -59,7 +59,7 @@ void multipole::xs_eval_fast(double E, double sqrtKT,
       sigF += fit[findex(FIT_F, iC, iW)]*power;
   }
   //Faddeeva evaluation in advance
-  DOPP = sqrt(atomic_weight_ratio)/sqrtKT;
+  DOPP = sqrtAWR/sqrtKT;
   DOPP_ECOEF = DOPP/sqrt(PI);
   for(iP=startW;iP<=endW;iP++){
     Z_array[iP-startW] = (sqrtE - mpdata[pindex(MP_EA,iP)])*DOPP;

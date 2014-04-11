@@ -16,8 +16,6 @@ void h5read(multipole& pole, char filename[]) {
 
   file_id = H5Fopen(filename, H5F_ACC_RDONLY, H5P_DEFAULT);
 
-  pole.atomic_weight_ratio = 238.0;
-  
   dataset_id = H5Dopen(file_id, "/isotop/fissionable", H5P_DEFAULT);
   status = H5Dread(dataset_id, H5T_NATIVE_INT, H5S_ALL, H5S_ALL, H5P_DEFAULT,ivalue);
   pole.fissionable = ivalue[0];
@@ -38,8 +36,8 @@ void h5read(multipole& pole, char filename[]) {
 
   dataset_id = H5Dopen(file_id, "/isotop/sqr", H5P_DEFAULT);
   status = H5Dread(dataset_id, H5T_NATIVE_DOUBLE, H5S_ALL, H5S_ALL, H5P_DEFAULT,dvalue);
-  pole.sqrtKT = dvalue[0];
-  //printf("sqrtKT:%g\n", pole.sqrtKT);
+  pole.sqrtAWR = dvalue[0];
+  //printf("sqrtAWR:%g\n", pole.sqrtAWR);
   status = H5Dclose(dataset_id);
 
   dataset_id = H5Dopen(file_id, "/isotop/startE", H5P_DEFAULT);

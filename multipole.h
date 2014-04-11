@@ -26,7 +26,6 @@ class multipole{
   unsigned      length;
   unsigned *l_value, *j_value; // l and j index of the pole
   int      w_function; //Which W function to use
-  double   atomic_weight_ratio; 
   double   *pseudo_rho;  //inherit nomenclature from isotope.h
   double *twophi;
   complex<double> *sigT_factor;
@@ -44,7 +43,7 @@ class multipole{
   //spacing = sqrt(multipole_w%endE - multipole_w%startE)/multipole_w%windows 
   //Mode = 2 (log)
   //spacing = log(multipole_w%endE - multipole_w%startE)/multipole_w%windows
-  double sqrtKT;
+  double sqrtAWR;
   int *w_start;// Contains the index of the pole at the start of the window
   int *w_end;  // Contains the index of the pole at the end of the window
   double *fit;
@@ -59,6 +58,8 @@ class multipole{
   multipole(char filename[]);
   //  void isotopeinfo(isotope );
   void xs_eval_fast(double E, double sqrtKT, 
+	       double &sigT, double &sigA, double &sigF);
+  void xs_eval_fast(double E, 
 	       double &sigT, double &sigA, double &sigF);
   void fill_factors(double sqrtE);
   int findex(int, int, int);
