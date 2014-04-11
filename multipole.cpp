@@ -58,6 +58,7 @@ void multipole::xs_eval_fast(double E, double sqrtKT,
     if(MP_FISS == fissionable)
       sigF += fit[findex(FIT_F, iC, iW)]*power;
   }
+  //Faddeeva evaluation in advance
   DOPP = sqrt(atomic_weight_ratio)/sqrtKT;
   DOPP_ECOEF = DOPP/sqrt(PI);
   for(iP=startW;iP<=endW;iP++){
@@ -65,7 +66,7 @@ void multipole::xs_eval_fast(double E, double sqrtKT,
     W_array[iP-startW] = w(Z_array[iP-startW])*DOPP_ECOEF;
   }
 
-    
+  //evaluating
   for(iP=startW;iP<=endW;iP++){
     sigT += real(mpdata[pindex(MP_RT,iP)]*sigT_factor[l_value[iP]-1]*W_array[iP-startW]);
     sigA += real(mpdata[pindex(MP_RA,iP)]*W_array[iP-startW]);
