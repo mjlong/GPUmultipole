@@ -1,5 +1,6 @@
 #include "CPUComplex.h"
 
+#define KB (8.617342E-5)
 #define C1 0.002196771 
 #define C2 1301997.933
 #define ONETRD  1.0/3.0
