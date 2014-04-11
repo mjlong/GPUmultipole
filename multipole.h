@@ -2,12 +2,17 @@
 #define __MULTIPOLE_H__
 
 #include <stdlib.h>
+#include <stdio.h>
 #include <complex>
+#include <iostream>
 using namespace std;
-#define MP_EA 1
-#define MP_RT 2
-#define MP_RA 3
-#define MP_RF 4
+#define MP_EA 0
+#define MP_RT 1
+#define MP_RA 2
+#define MP_RF 3
+#define FIT_T 0
+#define FIT_A 1
+#define FIT_F 2
 
 class multipole{
  private:
@@ -49,9 +54,11 @@ class multipole{
   multipole();
   multipole(char filename[]);
   void xs_eval_fast(double E, double sqrtKT, 
-	       double *sigT, double *sigA, double *sigF);
+	       double &sigT, double &sigA, double &sigF);
   void fill_factors(double sqrtE);
-  friend void h5read(multipole, char filename[]);
+  int findex(int, int, int);
+  int pindex(int, int);
+  friend void h5read(multipole&, char filename[]);
 };
 
 #endif
