@@ -48,7 +48,7 @@ class multipole{
   int *w_end;  // Contains the index of the pole at the end of the window
   double *fit;
   //Contains the fitting function.  (reaction type, coeff index, window index)
-    
+  complex<double> *Z_array, *W_array;
   //=========================================================================
 
 

@@ -21,21 +21,13 @@ void multipole::isotopeinfo(isotope iso){
 
 void multipole::xs_eval_fast(double E, double sqrtKT, 
 			double &sigT, double &sigA, double &sigF){
-  int    iP, iC, iW, startW, endW, cnt,maxwindow=0;
+  int    iP, iC, iW, startW, endW;
   double *twophi;
   double sqrtE = sqrt(E);
   double power, DOPP, DOPP_ECOEF;
   complex<double> PSIIKI, CDUM1, w_val;
-  complex<double> *Z_array, *W_array;
 
   twophi = (double*)malloc(sizeof(double)*numL);
-  for(iW=0;iW<windows;iW++){
-    cnt = w_end[iW]-w_start[iW] + 1;
-    if(cnt > maxwindow)
-      maxwindow = cnt;
-  }
-  Z_array = (complex<double>*)malloc(sizeof(complex<double>)*maxwindow);
-  W_array = (complex<double>*)malloc(sizeof(complex<double>)*maxwindow);
   
   if(1==mode)
     iW = (int)(sqrtE - sqrt(startE))/spacing;
@@ -51,7 +43,7 @@ void multipole::xs_eval_fast(double E, double sqrtKT,
   sigA = 0.0;
   sigF = 0.0;
   //polynomial fitting
-  for (iC=0;iC<fitorder;iC++){
+  for (iC=0;iC<=fitorder;iC++){
     power = pow(E,iC);
     sigT += fit[findex(FIT_T, iC, iW)]*power;
     sigA += fit[findex(FIT_A, iC, iW)]*power;

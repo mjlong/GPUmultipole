@@ -10,7 +10,8 @@ void h5read(multipole& pole, char filename[]) {
   hsize_t dims[2], datasize_1d[1];
   herr_t status;
 
-  int i, j, k, ndims;
+  int i, j, k, ndims,
+    iW, cnt,maxwindow=0;
   int ivalue[1];
   double dvalue[1];
 
@@ -107,6 +108,15 @@ void h5read(multipole& pole, char filename[]) {
   status = H5Dread(dataset_id, H5T_NATIVE_INT, H5S_ALL, H5S_ALL, H5P_DEFAULT, pole.w_end);
   //printf("w_end:%2d\n", pole.w_end[11]);
   status = H5Dclose(dataset_id);
+
+  for(iW=0;iW<pole.windows;iW++){
+    cnt = pole.w_end[iW]-pole.w_start[iW] + 1;
+    if(cnt > maxwindow)
+      maxwindow = cnt;
+  }
+  pole.Z_array = (complex<double>*)malloc(sizeof(complex<double>)*maxwindow);
+  pole.W_array = (complex<double>*)malloc(sizeof(complex<double>)*maxwindow);
+
 
   dataset_id = H5Dopen(file_id, "/isotop/mpdata", H5P_DEFAULT);
   space_id = H5Dget_space(dataset_id);
