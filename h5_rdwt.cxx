@@ -16,6 +16,8 @@ void h5read(multipole& pole, char filename[]) {
 
   file_id = H5Fopen(filename, H5F_ACC_RDONLY, H5P_DEFAULT);
 
+  pole.atomic_weight_ratio = 238.0;
+  
   dataset_id = H5Dopen(file_id, "/isotop/fissionable", H5P_DEFAULT);
   status = H5Dread(dataset_id, H5T_NATIVE_INT, H5S_ALL, H5S_ALL, H5P_DEFAULT,ivalue);
   pole.fissionable = ivalue[0];
