@@ -3,21 +3,6 @@ multipole::multipole(){
 
 }
 
-//TODO: this doesn't work
-/*
-multipole::multipole(char filename[]){
-  isotope iso(filename);
-  isotopeinfo(iso);
-
-}
-
-void multipole::isotopeinfo(isotope iso){
-  atomic_weight_ratio = iso.awr;
-  pseudo_rho = (double*)malloc(sizeof(double)*iso.number_l);
-  for(int i=0;i<iso.number_l;i++)
-    pseudo_rho[i]=iso.pseudo_rho[i];
-}
-*/
 
 void multipole::xs_eval_fast(double E, double sqrtKT, 
 			double &sigT, double &sigA, double &sigF){
@@ -65,6 +50,7 @@ void multipole::xs_eval_fast(double E, double sqrtKT,
     if(MP_FISS == fissionable)
       sigF += real(mpdata[pindex(MP_RF,iP)]*W_array[iP-startW]);
   }
+  free(twophi);
 }
 
 int multipole::findex(int type, int iC, int iW){
