@@ -10,7 +10,7 @@ void multipole::xs_eval_fast(double E, double sqrtKT,
   double *twophi;
   double sqrtE = sqrt(E);
   double power, DOPP, DOPP_ECOEF;
-  complex<double> PSIIKI, CDUM1, w_val;
+  complex<double>  w_val;
 
   twophi = (double*)malloc(sizeof(double)*numL);
   
@@ -52,6 +52,52 @@ void multipole::xs_eval_fast(double E, double sqrtKT,
   }
   free(twophi);
 }
+
+void multipole::xs_eval_fast(double E,  
+			double &sigT, double &sigA, double &sigF){
+  int    iP, iC, iW, startW, endW;
+  double *twophi;
+  double sqrtE = sqrt(E);
+  double power;
+  complex<double> PSIIKI, CDUM1, w_val;
+
+  twophi = (double*)malloc(sizeof(double)*numL);
+  
+  if(1==mode)
+    iW = (int)(sqrtE - sqrt(startE))/spacing;
+  else if(2==mode)
+    iW = (int)(log(E) - log(startE))/spacing;
+  else
+    iW = (int)( E - startE )/spacing;
+  startW = w_start[iW];
+  endW   = w_end[iW];
+  if(startW <= endW)
+    fill_factors(sqrtE,twophi);
+  sigT = 0.0;
+  sigA = 0.0;
+  sigF = 0.0;
+  //polynomial fitting
+  for (iC=0;iC<=fitorder;iC++){
+    power = pow(E,iC);
+    sigT += fit[findex(FIT_T, iC, iW)]*power;
+    sigA += fit[findex(FIT_A, iC, iW)]*power;
+    if(MP_FISS == fissionable)
+      sigF += fit[findex(FIT_F, iC, iW)]*power;
+  }
+  //Faddeeva evaluation in advance
+
+  //evaluating
+  for(iP=startW;iP<=endW;iP++){
+    PSIIKI = -ONEI/(mpdata[pindex(MP_EA,iP)] - sqrtE);
+    CDUM1  = PSIIKI / E;
+    sigT += real(mpdata[pindex(MP_RT,iP)]*CDUM1*sigT_factor[l_value[iP]-1]);
+    sigA += real(mpdata[pindex(MP_RA,iP)]*CDUM1);
+    if(MP_FISS == fissionable)
+      sigF += real(mpdata[pindex(MP_RF,iP)]*CDUM1);
+  }
+  free(twophi);
+}
+
 
 int multipole::findex(int type, int iC, int iW){
   return windows*(fitorder+1)*type+windows*iC+iW;
