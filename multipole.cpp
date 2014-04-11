@@ -23,7 +23,7 @@ void multipole::xs_eval_fast(double E, double sqrtKT,
   startW = w_start[iW];
   endW   = w_end[iW];
   if(startW <= endW)
-    fill_factors(sqrtE);
+    fill_factors(sqrtE,twophi);
   sigT = 0.0;
   sigA = 0.0;
   sigF = 0.0;
@@ -61,7 +61,7 @@ int multipole::pindex(int type, int iP){
   return length*type + iP;
 }
 
-void multipole::fill_factors(double sqrtE){
+void multipole::fill_factors(double sqrtE, double *twophi){
   int iL;
   double arg;
   for(iL = 0; iL<numL; iL++){

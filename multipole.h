@@ -61,7 +61,7 @@ class multipole{
 	       double &sigT, double &sigA, double &sigF);
   void xs_eval_fast(double E, 
 	       double &sigT, double &sigA, double &sigF);
-  void fill_factors(double sqrtE);
+  void fill_factors(double sqrtE, double *twophi);
   int findex(int, int, int);
   int pindex(int, int);
   friend void h5read(multipole&, char filename[]);
