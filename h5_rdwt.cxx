@@ -1,6 +1,6 @@
 #include "h5_rdwt.h"
 
-void h5read(multipole pole, char filename[]) {
+void h5read(multipole& pole, char filename[]) {
   //  tuple *complext;
   complex<double> z;
   hid_t file_id, 

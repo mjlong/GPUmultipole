@@ -13,6 +13,6 @@ typedef struct{
 }tuple;
 
 
-void h5read(multipole pole, char filename[]); 
+void h5read(multipole & pole, char filename[]); 
 
 #endif
