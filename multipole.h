@@ -1,11 +1,6 @@
 #ifndef __MULTIPOLE_H__
 #define __MULTIPOLE_H__
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <complex>
-#include <iostream>
-using namespace std;
 #define MP_EA 0
 #define MP_RT 1
 #define MP_RA 2
@@ -13,6 +8,13 @@ using namespace std;
 #define FIT_T 0
 #define FIT_A 1
 #define FIT_F 2
+
+#include <stdlib.h>
+#include <stdio.h>
+#include <complex>
+#include <iostream>
+#include "tinytope.h"
+using namespace std;
 
 class multipole{
  private:
@@ -23,7 +25,6 @@ class multipole{
   int      w_function; //Which W function to use
   double   atomic_weight_ratio; 
   double   *pseudo_rho;  //inherit nomenclature from isotope.h
-  double   **gij;        //g statistic factor
   double *twophi;
   complex<double> *sigT_factor;
   // Mode, set to 0 for linear, 1 for momentum, 2 for logarithmic.
@@ -53,6 +54,7 @@ class multipole{
  public:
   multipole();
   multipole(char filename[]);
+  void isotopeinfo(isotope );
   void xs_eval_fast(double E, double sqrtKT, 
 	       double &sigT, double &sigA, double &sigF);
   void fill_factors(double sqrtE);
