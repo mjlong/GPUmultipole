@@ -9,10 +9,11 @@ multipole::multipole(char filename[]){
 }
 
 void multipole::xs_eval_fast(double E, double sqrtKT, 
-			double *sigT, double *sigA, double *sigF){
+			double &sigT, double &sigA, double &sigF){
   int    iP, iC, iW, startW, endW;
   double *twophi;
   double sqrtE = sqrt(E);
+  double power;
   twophi = (double*)malloc(sizeof(double)*numL);
   if(1==mode)
     iW = (int)(sqrtE - sqrt(startE))/spacing;
@@ -24,6 +25,25 @@ void multipole::xs_eval_fast(double E, double sqrtKT,
   endW   = w_end[iW];
   if(startW <= endW)
     fill_factors(sqrtE);
+  sigT = 0.0;
+  sigA = 0.0;
+  sigF = 0.0;
+  //polynomial fitting
+  for (iC=0;iC<fitorder;iC++){
+    power = pow(E,iC);
+    sigT += fit[findex(FIT_T, iC, iW)]*power;
+    sigA += fit[findex(FIT_A, iC, iW)]*power;
+    if(true == fissionable)
+      sigF += fit[findex(FIT_F, iC, iW)]*power;
+  }
+}
+
+int multipole::findex(int type, int iC, int iW){
+  return windows*(fitorder+1)*type+windows*iC+iW;
+}
+
+int multipole::pindex(int type, int iP){
+  return length*type + iP;
 }
 
 void multipole::fill_factors(double sqrtE){
