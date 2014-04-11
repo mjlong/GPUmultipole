@@ -1,6 +1,7 @@
 #ifndef __MULTIPOLE_H__
 #define __MULTIPOLE_H__
 
+#include <stdlib.h>
 #include <complex>
 using namespace std;
 #define MP_EA 1
@@ -18,6 +19,8 @@ class multipole{
   double   atomic_weight_ratio; 
   double   *pseudo_rho;  //inherit nomenclature from isotope.h
   double   **gij;        //g statistic factor
+  double *twophi;
+  complex<double> *sigT_factor;
   // Mode, set to 0 for linear, 1 for momentum, 2 for logarithmic.
   int mode;                        // Spacing mode
   int windows;                     // Number of windows
@@ -39,10 +42,7 @@ class multipole{
   //Contains the fitting function.  (reaction type, coeff index, window index)
     
   //=========================================================================
-  // Storage Helpers
-  int maxW;
-  int ram;                         // RAM required for all 3 XS
-  int ram_nofis;                   // RAM required for just 2
+
 
 
  public:
@@ -50,6 +50,7 @@ class multipole{
   multipole(char filename[]);
   void xs_eval_fast(double E, double sqrtKT, 
 	       double *sigT, double *sigA, double *sigF);
+  void fill_factors(double sqrtE);
   friend void h5read(multipole, char filename[]);
 };
 
