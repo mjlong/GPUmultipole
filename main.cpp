@@ -16,7 +16,7 @@ int main(){
   for(int i=0;i<NUM;i++){
     //    rnd = rand()/(double)RAND_MAX;
     //    energy = e0 + rnd*(e1-e0);
-    energy = (i+1.0)*1.0;
+    energy = (i+1.0)*1.63;
     U238.xs_eval_fast(energy,sqrt(KB*T),sigT,sigA,sigF);
     U238.xs_eval_fast(energy           ,sibT,sibA,sibF);
     fprintf(file, "%8.5e %8.5e %8.5e %8.5e %8.5e %8.5e %8.5e\n", 
