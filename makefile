@@ -3,7 +3,7 @@ H5CC = h5cc
 CFLAGS=-c -g -Iinclude 
 HFLAGS=-c -g -lstdc++ 
 LDFLAGS=-lstdc++  
-includes = $(wildcard include/*.h)
+#includes = $(wildcard include/*.h)
 SOURCES=\
 Faddeeva.cc\
 multipole.cpp\
@@ -18,7 +18,7 @@ all: $(EXECUTABLE)
 $(EXECUTABLE): $(OBJECTS) $(HOBJECTS)
 	$(H5CC) $(LDFLAGS) $^ -o $@
 
-%.o : %.cpp ${includes}
+%.o : %.cpp #${includes}
 	$(CC) $(CFLAGS) $^ -o $@
 %.o : %.cxx
 	$(CC) $(HFLAGS) $^ -o $@
