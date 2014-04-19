@@ -19,7 +19,7 @@ int main(){
     energy = (i+1.0)*1.63;
     U238.xs_eval_fast(energy,sqrt(KB*T),sigT,sigA,sigF);
     U238.xs_eval_fast(energy           ,sibT,sibA,sibF);
-    fprintf(file, "%8.5e %8.5e %8.5e %8.5e %8.5e %8.5e %8.5e\n", 
+    fprintf(file, "%8.4f %8.5e %8.5e %8.5e %8.5e %8.5e %8.5e\n", 
 	    energy, sigT, sibT, sigA, sibA, sigF, sibF);
   }
   fclose(file);
