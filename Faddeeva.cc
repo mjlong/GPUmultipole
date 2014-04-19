@@ -1,163 +1,4 @@
-//  -*- mode:c++; tab-width:2; indent-tabs-mode:nil;  -*-
-
-/* Copyright (c) 2012 Massachusetts Institute of Technology
- * 
- * Permission is hereby granted, free of charge, to any person obtaining
- * a copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, sublicense, and/or sell copies of the Software, and to
- * permit persons to whom the Software is furnished to do so, subject to
- * the following conditions:
- * 
- * The above copyright notice and this permission notice shall be
- * included in all copies or substantial portions of the Software.
- * 
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
- * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
- * LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
- * OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
- * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
- */
-
-/* (Note that this file can be compiled with either C++, in which
-    case it uses C++ std::complex<double>, or C, in which case it
-    uses C99 double complex.) */
-
-/* Available at: http://ab-initio.mit.edu/Faddeeva
-
-   Computes various error functions (erf, erfc, erfi, erfcx), 
-   including the Dawson integral, in the complex plane, based
-   on algorithms for the computation of the Faddeeva function 
-              w(z) = exp(-z^2) * erfc(-i*z).
-   Given w(z), the error functions are mostly straightforward
-   to compute, except for certain regions where we have to
-   switch to Taylor expansions to avoid cancellation errors
-   [e.g. near the origin for erf(z)].
-
-   To compute the Faddeeva function, we use a combination of two
-   algorithms:
-
-   For sufficiently large |z|, we use a continued-fraction expansion
-   for w(z) similar to those described in:
-
-      Walter Gautschi, "Efficient computation of the complex error
-      function," SIAM J. Numer. Anal. 7(1), pp. 187-198 (1970)
-
-      G. P. M. Poppe and C. M. J. Wijers, "More efficient computation
-      of the complex error function," ACM Trans. Math. Soft. 16(1),
-      pp. 38-46 (1990).
-
-   Unlike those papers, however, we switch to a completely different
-   algorithm for smaller |z|:
-
-      Mofreh R. Zaghloul and Ahmed N. Ali, "Algorithm 916: Computing the
-      Faddeyeva and Voigt Functions," ACM Trans. Math. Soft. 38(2), 15
-      (2011).
-
-   (I initially used this algorithm for all z, but it turned out to be
-    significantly slower than the continued-fraction expansion for
-    larger |z|.  On the other hand, it is competitive for smaller |z|, 
-    and is significantly more accurate than the Poppe & Wijers code
-    in some regions, e.g. in the vicinity of z=1+1i.)
-
-   Note that this is an INDEPENDENT RE-IMPLEMENTATION of these algorithms,
-   based on the description in the papers ONLY.  In particular, I did
-   not refer to the authors' Fortran or Matlab implementations, respectively,
-   (which are under restrictive ACM copyright terms and therefore unusable
-    in free/open-source software).
-
-   Steven G. Johnson, Massachusetts Institute of Technology
-   http://math.mit.edu/~stevenj
-   October 2012.
-
-    -- Note that Algorithm 916 assumes that the erfc(x) function, 
-       or rather the scaled function erfcx(x) = exp(x*x)*erfc(x),
-       is supplied for REAL arguments x.   I originally used an
-       erfcx routine derived from DERFC in SLATEC, but I have
-       since replaced it with a much faster routine written by
-       me which uses a combination of continued-fraction expansions
-       and a lookup table of Chebyshev polynomials.  For speed,
-       I implemented a similar algorithm for Im[w(x)] of real x,
-       since this comes up frequently in the other error functions.
-
-   A small test program is included the end, which checks
-   the w(z) etc. results against several known values.  To compile
-   the test function, compile with -DTEST_FADDEEVA (that is,
-   #define TEST_FADDEEVA).
-
-   If HAVE_CONFIG_H is #defined (e.g. by compiling with -DHAVE_CONFIG_H),
-   then we #include "config.h", which is assumed to be a GNU autoconf-style
-   header defining HAVE_* macros to indicate the presence of features. In
-   particular, if HAVE_ISNAN and HAVE_ISINF are #defined, we use those
-   functions in math.h instead of defining our own, and if HAVE_ERF and/or
-   HAVE_ERFC are defined we use those functions from <cmath> for erf and
-   erfc of real arguments, respectively, instead of defining our own.
-
-   REVISION HISTORY:
-       4 October 2012: Initial public release (SGJ)
-       5 October 2012: Revised (SGJ) to fix spelling error,
-                       start summation for large x at round(x/a) (> 1)
-                       rather than ceil(x/a) as in the original
-                       paper, which should slightly improve performance
-                       (and, apparently, slightly improves accuracy)
-      19 October 2012: Revised (SGJ) to fix bugs for large x, large -y,
-                       and 15<x<26. Performance improvements. Prototype
-                       now supplies default value for relerr.
-      24 October 2012: Switch to continued-fraction expansion for
-                       sufficiently large z, for performance reasons.
-                       Also, avoid spurious overflow for |z| > 1e154.
-                       Set relerr argument to min(relerr,0.1).
-      27 October 2012: Enhance accuracy in Re[w(z)] taken by itself,
-                       by switching to Alg. 916 in a region near
-                       the real-z axis where continued fractions
-                       have poor relative accuracy in Re[w(z)].  Thanks
-                       to M. Zaghloul for the tip.
-      29 October 2012: Replace SLATEC-derived erfcx routine with
-                       completely rewritten code by me, using a very
-                       different algorithm which is much faster.
-      30 October 2012: Implemented special-case code for real z
-                       (where real part is exp(-x^2) and imag part is
-                        Dawson integral), using algorithm similar to erfx.
-                       Export ImFaddeeva_w function to make Dawson's
-                       integral directly accessible.
-      3 November 2012: Provide implementations of erf, erfc, erfcx,
-                       and Dawson functions in Faddeeva:: namespace,
-                       in addition to Faddeeva::w.  Provide header
-                       file Faddeeva.hh.
-      4 November 2012: Slightly faster erf for real arguments.
-                       Updated MATLAB and Octave plugins.
-     27 November 2012: Support compilation with either C++ or
-                       plain C (using C99 complex numbers).
-                       For real x, use standard-library erf(x)
-                       and erfc(x) if available (for C99 or C++11).
-                       #include "config.h" if HAVE_CONFIG_H is #defined.
-     15 December 2012: Portability fixes (copysign, Inf/NaN creation),
-                       use CMPLX/__builtin_complex if available in C,
-                       slight accuracy improvements to erf and dawson
-                       functions near the origin.  Use gnulib functions
-                       if GNULIB_NAMESPACE is defined.
-     18 December 2012: Slight tweaks (remove recomputation of x*x in Dawson)
-*/
-
-/////////////////////////////////////////////////////////////////////////
-/* If this file is compiled as a part of a larger project,
-   support using an autoconf-style config.h header file
-   (with various "HAVE_*" #defines to indicate features)
-   if HAVE_CONFIG_H is #defined (in GNU autotools style). */
-
-#ifdef HAVE_CONFIG_H
-#  include "config.h"
-#endif
-
-/////////////////////////////////////////////////////////////////////////
-// macros to allow us to use either C++ or C (with C99 features)
-
 #ifdef __cplusplus
-
-#  include "Faddeeva.hh"
 
 #  include <cfloat>
 #  include <cmath>
@@ -168,8 +9,8 @@ using namespace std;
 #  define Inf numeric_limits<double>::infinity()
 #  define NaN numeric_limits<double>::quiet_NaN()
 
-typedef complex<double> cmplx;
-
+//typedef complex<double> cmplx;
+typedef CComplex cmplx
 // Use C-like complex syntax, since the C syntax is more restrictive
 #  define cexp(z) exp(z)
 #  define creal(z) real(z)
@@ -203,68 +44,10 @@ static inline double my_copysign(double x, double y) { return y<0 ? -x : x; }
 #    define copysign my_copysign
 #  endif
 
-// If we are using the gnulib <cmath> (e.g. in the GNU Octave sources),
-// gnulib generates a link warning if we use ::floor instead of gnulib::floor.
-// This warning is completely innocuous because the only difference between
-// gnulib::floor and the system ::floor (and only on ancient OSF systems)
-// has to do with floor(-0), which doesn't occur in the usage below, but
-// the Octave developers prefer that we silence the warning.
 #  ifdef GNULIB_NAMESPACE
 #    define floor GNULIB_NAMESPACE::floor
 #  endif
 
-#else // !__cplusplus, i.e. pure C (requires C99 features)
-
-#  include "Faddeeva.h"
-
-#  define _GNU_SOURCE // enable GNU libc NAN extension if possible
-
-#  include <float.h>
-#  include <math.h>
-
-typedef double complex cmplx;
-
-#  define FADDEEVA(name) Faddeeva_ ## name
-#  define FADDEEVA_RE(name) Faddeeva_ ## name ## _re
-
-/* Constructing complex numbers like 0+i*NaN is problematic in C99
-   without the C11 CMPLX macro, because 0.+I*NAN may give NaN+i*NAN if
-   I is a complex (rather than imaginary) constant.  For some reason,
-   however, it works fine in (pre-4.7) gcc if I define Inf and NaN as
-   1/0 and 0/0 (and only if I compile with optimization -O1 or more),
-   but not if I use the INFINITY or NAN macros. */
-
-/* __builtin_complex was introduced in gcc 4.7, but the C11 CMPLX macro
-   may not be defined unless we are using a recent (2012) version of
-   glibc and compile with -std=c11... note that icc lies about being
-   gcc and probably doesn't have this builtin(?), so exclude icc explicitly */
-#  if !defined(CMPLX) && (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 7)) && !(defined(__ICC) || defined(__INTEL_COMPILER))
-#    define CMPLX(a,b) __builtin_complex((double) (a), (double) (b))
-#  endif
-
-#  ifdef CMPLX // C11
-#    define C(a,b) CMPLX(a,b)
-#    define Inf INFINITY // C99 infinity
-#    ifdef NAN // GNU libc extension
-#      define NaN NAN
-#    else
-#      define NaN (0./0.) // NaN
-#    endif
-#  else
-#    define C(a,b) ((a) + I*(b))
-#    define Inf (1./0.) 
-#    define NaN (0./0.) 
-#  endif
-
-static inline cmplx cpolar(double r, double t)
-{
-  if (r == 0.0 && !isnan(t))
-    return 0.0;
-  else
-    return C(r * cos(t), r * sin(t));
-}
-
-#endif // !__cplusplus, i.e. pure C (requires C99 features)
 
 /////////////////////////////////////////////////////////////////////////
 // Auxiliary routines to compute other special functions based on w(z)
