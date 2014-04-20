@@ -5,7 +5,7 @@ HFLAGS=-c -g -lstdc++
 LDFLAGS=-lstdc++  
 #includes = $(wildcard include/*.h)
 SOURCES=\
-Faddeeva.cc\
+Faddeeva.cpp\
 multipole.cpp\
 main.cpp
 OBJECTS=$(SOURCES:.cpp=.o)
