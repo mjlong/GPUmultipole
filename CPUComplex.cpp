@@ -12,45 +12,54 @@ History****:*Date*******************Author**************************************
   cuda host and device; 
   no complex division needed;
   transfer norm and arg use to Norm(), Arg() functions.
+*****Sat Apr 19 22:07:11 2014 -0400 Jilang Miao 缪佶朗 <jlmiao@mit.edu>
+  Tailor to be compatible with general functions:
+  real(complex),imag(complex),exp(complex);
+  overload negative and minus operator simultaneously
 ================================================================================
 */
 #include "CPUComplex.h"
-  CComplex::CComplex(double real, double imag){
+CComplex::CComplex(double real, double imag){
   m_real=real;
   m_imag=imag;
 }
 
 
-  CComplex::CComplex(NormArg NA){
+CComplex::CComplex(NormArg NA){
   m_real= NA.norm * cos(NA.arg);
   m_imag=NA.norm * sin(NA.arg);
 }
 
- double CComplex::Re(){
+double CComplex::Re(){
   return m_real;
 }
 
- double CComplex::Re(CComplex c){
-  return c.m_real;
+
+double real(CComplex c){
+  return c.Re();
 }
 
- double CComplex::Im(){
+double CComplex::Im(){
   return m_imag;
 }
 
- double CComplex::Im(CComplex c){
-  return c.m_imag;
+
+
+double imag(CComplex c){
+  return c.Im();
 }
 
- double CComplex::Norm(){
+double CComplex::Norm(){
   return sqrt( m_real*m_real + m_imag*m_imag);
 }
 
- double CComplex::Norm(CComplex c){
-  return sqrt( c.m_real*c.m_real + c.m_imag*c.m_imag);
+double Norm(CComplex c){
+  double x = c.Re();
+  double y = c.Im();
+  return sqrt( x*x + y*y);
 }
 
- double CComplex::Arg(){
+double CComplex::Arg(){
   if ( 0== m_real){
     if( m_imag>0) return PI*0.5;
     else if (m_imag<0) return PI*1.5;
@@ -68,29 +77,37 @@ History****:*Date*******************Author**************************************
 }
 
 
- double CComplex::Arg(CComplex c){
-  if ( 0 == c.m_real){
-    if( c.m_imag>0) return PI*0.5;
-    else if (c.m_imag<0) return PI*1.5;
+double Arg(CComplex c){
+  double x = c.Re();
+  double y = c.Im();
+  if ( 0 == x){
+    if( y>0) return PI*0.5;
+    else if (y<0) return PI*1.5;
     else return 0.0;
   }
   else{
-    if(0==c.m_imag){
-      return c.m_real>0 ? 0.0 : PI;
+    if(0==y){
+      return x>0 ? 0.0 : PI;
     }
     else{
-      if ( c.m_real <0) return atan(c.m_imag/c.m_real )+PI;
-      else return c.m_imag>0 ? atan(c.m_imag/c.m_real) : atan(c.m_imag/c.m_real) +2.0*PI;
+      if ( x <0) return atan(y/x )+PI;
+      else return y>0 ? atan(y/x) : atan(y/x) +2.0*PI;
     }
   }
 }
 
- CComplex CComplex::Conjugate(){
+CComplex CComplex::Conjugate(){
   return CComplex(m_real, 0.0 - m_imag);
 }
 
- CComplex CComplex::Conjugate(CComplex c){
-  return CComplex(c.m_real, 0.0 - c.m_real);
+CComplex Conjugate(CComplex c){
+  return CComplex(c.Re(), 0.0 - c.Im());
+}
+
+
+CComplex exp(CComplex c){
+  double y = c.Im();
+  return exp(c.Re())*(cos(y)*sin(y));
 }
 
 void CComplex::output(){
@@ -107,16 +124,16 @@ void CComplex::output(){
   }
 }
 
-void CComplex::output(CComplex c){
-  if(0==c.m_real){
-    if(0==c.m_imag) cout<<c.m_real<<endl;
-    else cout<<c.m_imag<<"i"<<endl;
+void output(CComplex c){
+  if(0==c.Re()){
+    if(0==c.Im()) cout<<c.Re()<<endl;
+    else cout<<c.Im()<<"i"<<endl;
   }
   else{
-    if(0==c.m_imag) cout<<c.m_real<<endl;
+    if(0==c.Im()) cout<<c.Re()<<endl;
     else{
-      if(c.m_imag>0)   cout<<c.m_real<<"+"<<c.m_imag<<"i"<<endl;
-      else cout<<c.m_real<<"-"<<0-c.m_imag<<"i"<<endl;
+      if(c.Im()>0)   cout<<c.Re()<<"+"<<c.Im()<<"i"<<endl;
+      else cout<<c.Re()<<"-"<<0-c.Im()<<"i"<<endl;
     }
   }
 }
@@ -128,32 +145,28 @@ void CComplex::display(){
   else cout<<norm<<"*Exp("<<arg<<")"<<endl;
 }
 
-void CComplex::display(CComplex c){
+void display(CComplex c){
   double norm = c.Norm();
   double arg  = c.Arg();
   if(0==norm) cout<<norm<<endl;
   else cout<<norm<<"*Exp("<<arg<<")"<<endl;
 }
 
- CComplex CComplex::operator +(CComplex c){
-  return CComplex( m_real+c.m_real, m_imag+c.m_imag);
+CComplex CComplex::operator +(CComplex c){
+   return CComplex( m_real+c.Re(), m_imag+c.Im());
 }
 
- CComplex CComplex::operator +(double d){
+CComplex CComplex::operator +(double d){
   return CComplex(m_real+d, m_imag);
 }
 
- CComplex CComplex::operator - (CComplex c){
-  return CComplex(m_real-c.m_real, m_imag-c.m_imag);
-}
-
- CComplex CComplex::operator - (double d) {
+CComplex CComplex::operator - (double d) {
   return CComplex(m_real-d, m_imag);
 }
 
  CComplex CComplex ::operator * (CComplex c) {
-  double real=m_real*c.m_real-m_imag*c.m_imag;
-  double imag=c.m_real*m_imag+m_real*c.m_imag;
+   double real=m_real*c.Re()-m_imag*c.Im();
+   double imag=c.Re()*m_imag+m_real*c.Im();
   return CComplex(real, imag);
 }
 
@@ -169,7 +182,7 @@ void CComplex::display(CComplex c){
  CComplex CComplex ::operator /(CComplex c) {
   double r=c.Norm() * c.Norm();
   CComplex c1(m_real, m_imag);
-  CComplex c2(c.m_real, 0.0 - c.m_imag);
+  CComplex c2(c.Re(), 0.0 - c.Im());
   CComplex c3=c1*c2;
   return c3/r;
 
@@ -193,15 +206,24 @@ CComplex & CComplex ::operator =(const CComplex &c_right){
 
 
 
- CComplex operator + (double d, CComplex c){
+CComplex operator + (double d, CComplex c){
   return CComplex( d+c.Re(), c.Im());
 }
 
- CComplex operator - (double d, CComplex c) {
+CComplex operator - (double d, CComplex c) {
   return CComplex (d-c.Re(), c.Im());
 }
 
- CComplex operator * (double d, CComplex c){
+CComplex operator - (CComplex c1, CComplex c2) {
+  return CComplex (c1.Re()-c2.Re(), c1.Im()-c2.Im());
+}
+
+CComplex operator - (CComplex c){
+  return CComplex(-c.Re(), -c.Im());
+}
+
+
+CComplex operator * (double d, CComplex c){
   return CComplex (d*c.Re(), d*c.Im());
 }
 

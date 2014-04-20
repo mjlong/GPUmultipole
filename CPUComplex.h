@@ -12,6 +12,10 @@ History****:*Date*******************Author**************************************
   cuda host and device; 
   no complex division needed;
   transfer norm and arg use to Norm(), Arg() functions.
+*****Sat Apr 19 22:07:11 2014 -0400 Jilang Miao 缪佶朗 <jlmiao@mit.edu>
+  Tailor to be compatible with general functions:
+  real(complex),imag(complex),exp(complex);
+  overload negative and minus operator simultaneously
 ================================================================================
 */
 #ifndef __CCOMPLEX_H__
@@ -38,25 +42,17 @@ public:
    CComplex(double m_real=0.0, double m_imag=0.0f);
    CComplex(NormArg m_NA );
    double Re();
-   double Re(CComplex);
    double Im();
-   double Im(CComplex);
    double Norm();
-   double Norm(CComplex);
    double Arg();
-   double Arg(CComplex);
    CComplex Conjugate();
-   CComplex Conjugate(CComplex);
-  //display() in form of norm*Exp(phi)
-  void display();
-  void display(CComplex);
-  //output()  in form of real+(-)imag(*)i
-  void output();
-  void output(CComplex);
+   //display() in form of norm*Exp(phi)
+   void display();
+   //output()  in form of real+(-)imag(*)i
+   void output();
    ~CComplex();
    CComplex operator + (CComplex);
    CComplex operator + (double);
-   CComplex operator -  (CComplex);
    CComplex operator -  (double);
    CComplex operator *  (CComplex);
    CComplex operator *  (double);
@@ -68,10 +64,22 @@ public:
 
 };
 
- CComplex operator + (double d, CComplex c);
- CComplex operator - (double d, CComplex c);
- CComplex operator * (double d, CComplex c);
- CComplex operator / (double d, CComplex c);
+void output(CComplex);
+void display(CComplex);
+CComplex Conjugate(CComplex);
+double Norm(CComplex);
+double Arg(CComplex);
+double real(CComplex);
+double imag(CComplex);
+CComplex exp(CComplex);
+
+CComplex operator + (double d, CComplex c);
+CComplex operator - (double d, CComplex c);
+CComplex operator -  (CComplex);
+//It should be noted that the '-' here is negative sign
+CComplex operator - (CComplex c1, CComplex c2);
+CComplex operator * (double d, CComplex c);
+CComplex operator / (double d, CComplex c);
 
 
 #endif
