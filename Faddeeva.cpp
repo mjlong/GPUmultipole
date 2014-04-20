@@ -1,3 +1,4 @@
+#include "Faddeeva.h"
 #ifdef __cplusplus
 
 #  include <cfloat>
@@ -9,15 +10,10 @@ using namespace std;
 #  define Inf numeric_limits<double>::infinity()
 #  define NaN numeric_limits<double>::quiet_NaN()
 
-//typedef complex<double> cmplx;
-typedef CComplex cmplx
 // Use C-like complex syntax, since the C syntax is more restrictive
-#  define cexp(z) exp(z)
-#  define creal(z) real(z)
-#  define cimag(z) imag(z)
 #  define cpolar(r,t) polar(r,t)
 
-#  define C(a,b) cmplx(a,b)
+#  define C(a,b) CComplex(a,b)
 
 #  define FADDEEVA(name) Faddeeva::name
 #  define FADDEEVA_RE(name) Faddeeva::name
@@ -48,14 +44,15 @@ static inline double my_copysign(double x, double y) { return y<0 ? -x : x; }
 #    define floor GNULIB_NAMESPACE::floor
 #  endif
 
+#endif // !__cplusplus, i.e. pure C (requires C99 features)
 
 /////////////////////////////////////////////////////////////////////////
 // Auxiliary routines to compute other special functions based on w(z)
 
 // compute erfcx(z) = exp(z^2) erfz(z)
-cmplx FADDEEVA(erfcx)(cmplx z, double relerr)
+CComplex FADDEEVA(erfcx)(CComplex z, double relerr)
 {
-  return FADDEEVA(w)(C(-cimag(z), creal(z)), relerr);
+  return FADDEEVA(w)(C(-imag(z), real(z)), relerr);
 }
 
 // compute the error function erf(x)
@@ -91,9 +88,9 @@ double FADDEEVA_RE(erf)(double x)
 }
 
 // compute the error function erf(z)
-cmplx FADDEEVA(erf)(cmplx z, double relerr)
+CComplex FADDEEVA(erf)(CComplex z, double relerr)
 {
-  double x = creal(z), y = cimag(z);
+  double x = real(z), y = imag(z);
 
   if (y == 0)
     return C(FADDEEVA_RE(erf)(x),
@@ -147,7 +144,7 @@ cmplx FADDEEVA(erf)(cmplx z, double relerr)
   //   erf(z) = 2/sqrt(pi) * z * (1 - z^2/3 + z^4/10 - z^6/42 + z^8/216 + ...)
  taylor:
   {
-    cmplx mz2 = C(mRe_z2, mIm_z2); // -z^2
+    CComplex mz2 = C(mRe_z2, mIm_z2); // -z^2
     return z * (1.1283791670955125739
                 + mz2 * (0.37612638903183752464
                          + mz2 * (0.11283791670955125739
@@ -183,10 +180,10 @@ cmplx FADDEEVA(erf)(cmplx z, double relerr)
 }
 
 // erfi(z) = -i erf(iz)
-cmplx FADDEEVA(erfi)(cmplx z, double relerr)
+CComplex FADDEEVA(erfi)(CComplex z, double relerr)
 {
-  cmplx e = FADDEEVA(erf)(C(-cimag(z),creal(z)), relerr);
-  return C(cimag(e), -creal(e));
+  CComplex e = FADDEEVA(erf)(C(-imag(z),real(z)), relerr);
+  return C(imag(e), -real(e));
 }
 
 // erfi(x) = -i erf(ix)
@@ -212,9 +209,9 @@ double FADDEEVA_RE(erfc)(double x)
 }
 
 // erfc(z) = 1 - erf(z)
-cmplx FADDEEVA(erfc)(cmplx z, double relerr)
+CComplex FADDEEVA(erfc)(CComplex z, double relerr)
 {
-  double x = creal(z), y = cimag(z);
+  double x = real(z), y = imag(z);
 
   if (x == 0.)
     return C(1,
@@ -238,10 +235,10 @@ cmplx FADDEEVA(erfc)(cmplx z, double relerr)
     return (x >= 0 ? 0.0 : 2.0);
 
   if (x >= 0)
-    return cexp(C(mRe_z2, mIm_z2))
+    return exp(C(mRe_z2, mIm_z2))
       * FADDEEVA(w)(C(-y,x), relerr);
   else
-    return 2.0 - cexp(C(mRe_z2, mIm_z2))
+    return 2.0 - exp(C(mRe_z2, mIm_z2))
       * FADDEEVA(w)(C(y,-x), relerr);
 }
 
@@ -253,10 +250,10 @@ double FADDEEVA_RE(Dawson)(double x)
 }
 
 // compute Dawson(z) = sqrt(pi)/2  *  exp(-z^2) * erfi(z)
-cmplx FADDEEVA(Dawson)(cmplx z, double relerr)
+CComplex FADDEEVA(Dawson)(CComplex z, double relerr)
 {
   const double spi2 = 0.8862269254527580136490837416705725913990; // sqrt(pi)/2
-  double x = creal(z), y = cimag(z);
+  double x = real(z), y = imag(z);
 
   // handle axes separately for speed & proper handling of x or y = Inf or NaN
   if (y == 0)
@@ -278,7 +275,7 @@ cmplx FADDEEVA(Dawson)(cmplx z, double relerr)
 
   double mRe_z2 = (y - x) * (x + y); // Re(-z^2), being careful of overflow
   double mIm_z2 = -2*x*y; // Im(-z^2)
-  cmplx mz2 = C(mRe_z2, mIm_z2); // -z^2
+  CComplex mz2 = C(mRe_z2, mIm_z2); // -z^2
 
   /* Handle positive and negative x via different formulas,
      using the mirror symmetries of w, to avoid overflow/underflow
@@ -290,8 +287,8 @@ cmplx FADDEEVA(Dawson)(cmplx z, double relerr)
       else if (fabs(mIm_z2) < 5e-3)
         goto taylor_realaxis;
     }
-    cmplx res = cexp(mz2) - FADDEEVA(w)(z, relerr);
-    return spi2 * C(-cimag(res), creal(res));
+    CComplex res = exp(mz2) - FADDEEVA(w)(z, relerr);
+    return spi2 * C(-imag(res), real(res));
   }
   else { // y < 0
     if (y > -5e-3) { // duplicate from above to avoid fabs(x) call
@@ -302,8 +299,8 @@ cmplx FADDEEVA(Dawson)(cmplx z, double relerr)
     }
     else if (isnan(y))
       return C(x == 0 ? 0 : NaN, NaN);
-    cmplx res = FADDEEVA(w)(-z, relerr) - cexp(mz2);
-    return spi2 * C(-cimag(res), creal(res));
+    CComplex res = FADDEEVA(w)(-z, relerr) - exp(mz2);
+    return spi2 * C(-imag(res), real(res));
   }
 
   // Use Taylor series for small |z|, to avoid cancellation inaccuracy
@@ -459,14 +456,14 @@ static const double expa2n2[] = {
 
 /////////////////////////////////////////////////////////////////////////
 
-cmplx FADDEEVA(w)(cmplx z, double relerr)
+CComplex FADDEEVA(w)(CComplex z, double relerr)
 {
-  if (creal(z) == 0.0)
-    return C(FADDEEVA_RE(erfcx)(cimag(z)), 
-             creal(z)); // give correct sign of 0 in cimag(w)
-  else if (cimag(z) == 0)
-    return C(exp(-sqr(creal(z))),
-             FADDEEVA(w_im)(creal(z)));
+  if (real(z) == 0.0)
+    return C(FADDEEVA_RE(erfcx)(imag(z)), 
+             real(z)); // give correct sign of 0 in imag(w)
+  else if (imag(z) == 0)
+    return C(exp(-sqr(real(z))),
+             FADDEEVA(w_im)(real(z)));
 
   double a, a2, c;
   if (relerr <= DBL_EPSILON) {
@@ -482,10 +479,10 @@ cmplx FADDEEVA(w)(cmplx z, double relerr)
     c = (2/pi)*a;
     a2 = a*a;
   }
-  const double x = fabs(creal(z));
-  const double y = cimag(z), ya = fabs(y);
+  const double x = fabs(real(z));
+  const double y = imag(z), ya = fabs(y);
 
-  cmplx ret = 0.; // return value
+  CComplex ret = 0.; // return value
 
   double sum1 = 0, sum2 = 0, sum3 = 0, sum4 = 0, sum5 = 0;
 
@@ -510,7 +507,7 @@ cmplx FADDEEVA(w)(cmplx z, double relerr)
        that the estimated nu be >= minimum nu to attain machine precision.
        I also separate the regions where nu == 2 and nu == 1. */
     const double ispi = 0.56418958354775628694807945156; // 1 / sqrt(pi)
-    double xs = y < 0 ? -creal(z) : creal(z); // compute for -z if y < 0
+    double xs = y < 0 ? -real(z) : real(z); // compute for -z if y < 0
     if (x + ya > 4000) { // nu <= 2
       if (x + ya > 1e7) { // nu == 1, w(z) = i/sqrt(pi) / z
         // scale to avoid overflow
@@ -553,7 +550,7 @@ cmplx FADDEEVA(w)(cmplx z, double relerr)
       // use w(z) = 2.0*exp(-z*z) - w(-z), 
       // but be careful of overflow in exp(-z*z) 
       //                                = exp(-(xs*xs-ya*ya) -2*i*xs*ya) 
-      return 2.0*cexp(C((ya-xs)*(xs+ya), 2*xs*y)) - ret;
+      return 2.0*exp(C((ya-xs)*(xs+ya), 2*xs*y)) - ret;
     }
     else
       return ret;
@@ -561,7 +558,7 @@ cmplx FADDEEVA(w)(cmplx z, double relerr)
 #else // !USE_CONTINUED_FRACTION
   if (x + ya > 1e7) { // w(z) = i/sqrt(pi) / z, to machine precision
     const double ispi = 0.56418958354775628694807945156; // 1 / sqrt(pi)
-    double xs = y < 0 ? -creal(z) : creal(z); // compute for -z if y < 0
+    double xs = y < 0 ? -real(z) : real(z); // compute for -z if y < 0
     // scale to avoid overflow
     if (x > ya) {
       double yax = ya / xs; 
@@ -577,7 +574,7 @@ cmplx FADDEEVA(w)(cmplx z, double relerr)
       // use w(z) = 2.0*exp(-z*z) - w(-z), 
       // but be careful of overflow in exp(-z*z) 
       //                                = exp(-(xs*xs-ya*ya) -2*i*xs*ya) 
-      return 2.0*cexp(C((ya-xs)*(xs+ya), 2*xs*y)) - ret;
+      return 2.0*exp(C((ya-xs)*(xs+ya), 2*xs*y)) - ret;
     }
     else
       return ret;
@@ -694,7 +691,7 @@ cmplx FADDEEVA(w)(cmplx z, double relerr)
         + (c*x*expx2) * sinxy * sinc(x*y, sinxy);
     }
     else {
-      double xs = creal(z);
+      double xs = real(z);
       const double sinxy = sin(xs*y);
       const double sin2xy = sin(2*xs*y), cos2xy = cos(2*xs*y);
       const double coef1 = expx2erfcxy - c*y*sum1;
@@ -718,7 +715,7 @@ cmplx FADDEEVA(w)(cmplx z, double relerr)
          if y*y - x*x > -36 or so.  So, compute this term just in case.
          We also need the -exp(-x*x) term to compute Re[w] accurately
          in the case where y is very small. */
-      ret = cpolar(2*exp(y*y-x*x) - exp(-x*x), -2*creal(z)*y);
+      ret = cpolar(2*exp(y*y-x*x) - exp(-x*x), -2*real(z)*y);
     }
     else
       ret = exp(-x*x); // not negligible in real part if y very small
@@ -750,7 +747,7 @@ cmplx FADDEEVA(w)(cmplx z, double relerr)
   }
  finish:
   return ret + C((0.5*c)*y*(sum2+sum3), 
-                 (0.5*c)*copysign(sum5-sum4, creal(z)));
+                 (0.5*c)*copysign(sum5-sum4, real(z)));
 }
 
 /////////////////////////////////////////////////////////////////////////
@@ -1700,7 +1697,7 @@ int main(void) {
   {
     printf("############# w(z) tests #############\n");
 #define NTST 57 // define instead of const for C compatibility
-    cmplx z[NTST] = {
+    CComplex z[NTST] = {
       C(624.2,-0.26123),
       C(-0.4,3.),
       C(0.6,2.),
@@ -1759,7 +1756,7 @@ int main(void) {
       C(NaN,Inf),
       C(Inf,NaN)
     };
-    cmplx w[NTST] = { /* w(z), computed with WolframAlpha
+    CComplex w[NTST] = { /* w(z), computed with WolframAlpha
                                    ... note that WolframAlpha is problematic
                                    some of the above inputs, so I had to
                                    use the continued-fraction expansion
@@ -1871,11 +1868,11 @@ int main(void) {
     };
     double errmax = 0;
     for (int i = 0; i < NTST; ++i) {
-      cmplx fw = FADDEEVA(w)(z[i],0.);
-      double re_err = relerr(creal(w[i]), creal(fw));
-      double im_err = relerr(cimag(w[i]), cimag(fw));
+      CComplex fw = FADDEEVA(w)(z[i],0.);
+      double re_err = relerr(real(w[i]), real(fw));
+      double im_err = relerr(imag(w[i]), imag(fw));
       printf("w(%g%+gi) = %g%+gi (vs. %g%+gi), re/im rel. err. = %0.2g/%0.2g)\n",
-             creal(z[i]),cimag(z[i]), creal(fw),cimag(fw), creal(w[i]),cimag(w[i]),
+             real(z[i]),imag(z[i]), real(fw),imag(fw), real(w[i]),imag(w[i]),
              re_err, im_err);
       if (re_err > errmax) errmax = re_err;
       if (im_err > errmax) errmax = im_err;
@@ -1890,7 +1887,7 @@ int main(void) {
   {
 #undef NTST
 #define NTST 41 // define instead of const for C compatibility
-    cmplx z[NTST] = {
+    CComplex z[NTST] = {
       C(1,2),
       C(-1,2),
       C(1,-2),
@@ -1933,7 +1930,7 @@ int main(void) {
       C(7e-2,0.9e-2),
       C(7e-2,1.1e-2)
     };
-    cmplx w[NTST] = { // erf(z[i]), evaluated with Maple
+    CComplex w[NTST] = { // erf(z[i]), evaluated with Maple
       C(-0.5366435657785650339917955593141927494421,
         -5.049143703447034669543036958614140565553),
       C(0.5366435657785650339917955593141927494421,
@@ -2007,11 +2004,11 @@ int main(void) {
     printf("############# " #f "(z) tests #############\n");            \
     double errmax = 0;                                                  \
     for (int i = 0; i < NTST; ++i) {                                    \
-      cmplx fw = FADDEEVA(f)(z[i],0.);                  \
-      double re_err = relerr(creal(w[i]), creal(fw));                   \
-      double im_err = relerr(cimag(w[i]), cimag(fw));                   \
+      CComplex fw = FADDEEVA(f)(z[i],0.);                  \
+      double re_err = relerr(real(w[i]), real(fw));                   \
+      double im_err = relerr(imag(w[i]), imag(fw));                   \
       printf(#f "(%g%+gi) = %g%+gi (vs. %g%+gi), re/im rel. err. = %0.2g/%0.2g)\n", \
-             creal(z[i]),cimag(z[i]), creal(fw),cimag(fw), creal(w[i]),cimag(w[i]), \
+             real(z[i]),imag(z[i]), real(fw),imag(fw), real(w[i]),imag(w[i]), \
              re_err, im_err);                                           \
       if (re_err > errmax) errmax = re_err;                             \
       if (im_err > errmax) errmax = im_err;                             \
@@ -2024,21 +2021,21 @@ int main(void) {
     for (int i = 0; i < 10000; ++i) {                                   \
       double x = pow(10., -300. + i * 600. / (10000 - 1));              \
       double re_err = relerr(FADDEEVA_RE(f)(x),                         \
-                             creal(FADDEEVA(f)(C(x,x*isc),0.)));        \
+                             real(FADDEEVA(f)(C(x,x*isc),0.)));        \
       if (re_err > errmax) errmax = re_err;                             \
       re_err = relerr(FADDEEVA_RE(f)(-x),                               \
-                      creal(FADDEEVA(f)(C(-x,x*isc),0.)));              \
+                      real(FADDEEVA(f)(C(-x,x*isc),0.)));              \
       if (re_err > errmax) errmax = re_err;                             \
     }                                                                   \
     {                                                                   \
       double re_err = relerr(FADDEEVA_RE(f)(Inf),                       \
-                             creal(FADDEEVA(f)(C(Inf,0.),0.))); \
+                             real(FADDEEVA(f)(C(Inf,0.),0.))); \
       if (re_err > errmax) errmax = re_err;                             \
       re_err = relerr(FADDEEVA_RE(f)(-Inf),                             \
-                      creal(FADDEEVA(f)(C(-Inf,0.),0.)));               \
+                      real(FADDEEVA(f)(C(-Inf,0.),0.)));               \
       if (re_err > errmax) errmax = re_err;                             \
       re_err = relerr(FADDEEVA_RE(f)(NaN),                              \
-                      creal(FADDEEVA(f)(C(NaN,0.),0.)));                \
+                      real(FADDEEVA(f)(C(NaN,0.),0.)));                \
       if (re_err > errmax) errmax = re_err;                             \
     }                                                                   \
     if (errmax > 1e-13) {                                               \
@@ -2055,8 +2052,8 @@ int main(void) {
     // be sufficient to make sure I didn't screw up the signs or something
 #undef NTST
 #define NTST 1 // define instead of const for C compatibility
-    cmplx z[NTST] = { C(1.234,0.5678) };
-    cmplx w[NTST] = { // erfi(z[i]), computed with Maple
+    CComplex z[NTST] = { C(1.234,0.5678) };
+    CComplex w[NTST] = { // erfi(z[i]), computed with Maple
       C(1.081032284405373149432716643834106923212,
         1.926775520840916645838949402886591180834)
     };
@@ -2067,8 +2064,8 @@ int main(void) {
     // be sufficient to make sure I didn't screw up the signs or something
 #undef NTST
 #define NTST 1 // define instead of const for C compatibility
-    cmplx z[NTST] = { C(1.234,0.5678) };
-    cmplx w[NTST] = { // erfcx(z[i]), computed with Maple
+    CComplex z[NTST] = { C(1.234,0.5678) };
+    CComplex w[NTST] = { // erfcx(z[i]), computed with Maple
       C(0.3382187479799972294747793561190487832579,
         -0.1116077470811648467464927471872945833154)
     };
@@ -2077,7 +2074,7 @@ int main(void) {
   {
 #undef NTST
 #define NTST 30 // define instead of const for C compatibility
-    cmplx z[NTST] = {
+    CComplex z[NTST] = {
       C(1,2),
       C(-1,2),
       C(1,-2),
@@ -2109,7 +2106,7 @@ int main(void) {
       C(Inf,NaN),
       C(88,0)
     };
-    cmplx w[NTST] = { // erfc(z[i]), evaluated with Maple
+    CComplex w[NTST] = { // erfc(z[i]), evaluated with Maple
       C(1.536643565778565033991795559314192749442,
         5.049143703447034669543036958614140565553),
       C(0.4633564342214349660082044406858072505579,
@@ -2160,7 +2157,7 @@ int main(void) {
   {
 #undef NTST
 #define NTST 48 // define instead of const for C compatibility
-    cmplx z[NTST] = {
+    CComplex z[NTST] = {
       C(2,1),
       C(-2,1),
       C(2,-1),
@@ -2210,7 +2207,7 @@ int main(void) {
       C(1e13, 2.4e-16),
       C(1e300, 2.4e-303)
     };
-    cmplx w[NTST] = { // dawson(z[i]), evaluated with Maple
+    CComplex w[NTST] = { // dawson(z[i]), evaluated with Maple
       C(0.1635394094345355614904345232875688576839,
         -0.1531245755371229803585918112683241066853),
       C(-0.1635394094345355614904345232875688576839,
