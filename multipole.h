@@ -12,7 +12,7 @@
 
 #include <stdlib.h>
 #include <stdio.h>
-#include <complex>
+#include "CPUComplex.h"
 #include <iostream>
 #include "Faddeeva.h"
 #include "tinytope.h"
@@ -22,13 +22,13 @@ using namespace Faddeeva;
 class multipole{
  private:
   int fissionable;
-  complex<double> *mpdata; //All residues
+  CComplex *mpdata;
   unsigned      length;
   unsigned *l_value, *j_value; // l and j index of the pole
   int      w_function; //Which W function to use
   double   *pseudo_rho;  //inherit nomenclature from isotope.h
 
-  complex<double> *sigT_factor;
+  CComplex *sigT_factor;
   // Mode, set to 0 for linear, 1 for momentum, 2 for logarithmic.
   int mode;                        // Spacing mode
   int windows;                     // Number of windows
@@ -48,7 +48,7 @@ class multipole{
   int *w_end;  // Contains the index of the pole at the end of the window
   double *fit;
   //Contains the fitting function.  (reaction type, coeff index, window index)
-  complex<double> *Z_array, *W_array;
+  CComplex *Z_array, *W_array;
   //=========================================================================
 
 

@@ -1,6 +1,6 @@
 #ifndef __H5_READ_H__
 #define __H5_READ_H__
-#include <complex>
+#include "CPUComplex.h"
 #include <iostream>
 #include "stdio.h"
 #include "stdlib.h"

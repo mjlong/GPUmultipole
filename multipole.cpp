@@ -10,7 +10,7 @@ void multipole::xs_eval_fast(double E, double sqrtKT,
   double *twophi;
   double sqrtE = sqrt(E);
   double power, DOPP, DOPP_ECOEF;
-  complex<double>  w_val;
+  CComplex w_val;
 
   twophi = (double*)malloc(sizeof(double)*numL);
   
@@ -59,10 +59,10 @@ void multipole::xs_eval_fast(double E,
   double *twophi;
   double sqrtE = sqrt(E);
   double power;
-  complex<double> PSIIKI, CDUM1, w_val;
+  CComplex PSIIKI, CDUM1, w_val;
 
   twophi = (double*)malloc(sizeof(double)*numL);
-  
+ 
   if(1==mode)
     iW = (int)(sqrtE - sqrt(startE))/spacing;
   else if(2==mode)
@@ -123,7 +123,7 @@ void multipole::fill_factors(double sqrtE, double *twophi){
       twophi[iL] -= atan(arg);
     }
     twophi[iL] *= 2.0;
-    sigT_factor[iL] = complex<double>(cos(twophi[iL]),-sin(twophi[iL]));
+    sigT_factor[iL] = CComplex(cos(twophi[iL]), -sin(twophi[iL]));
   }
 
 }

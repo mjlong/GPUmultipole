@@ -2,7 +2,7 @@
 
 void h5read(multipole& pole, char filename[]) {
   //  tuple *complext;
-  complex<double> z;
+  CComplex z;
   hid_t file_id, 
     dataset_id, 
     complex_id, complex_array_id, 
@@ -75,7 +75,7 @@ void h5read(multipole& pole, char filename[]) {
   status = H5Dread(dataset_id, H5T_NATIVE_INT, H5S_ALL, H5S_ALL, H5P_DEFAULT,ivalue);
   pole.numL = ivalue[0];
   //  pole.twophi = (double*)malloc(sizeof(double)*ivalue[0]);
-  pole.sigT_factor = (complex<double>*)malloc(sizeof(complex<double>)*ivalue[0]);
+  pole.sigT_factor = (CComplex*)malloc(sizeof(CComplex)*ivalue[0]);
   //printf("numL:%2d\n", pole.numL);
   status = H5Dclose(dataset_id);
 
@@ -114,8 +114,9 @@ void h5read(multipole& pole, char filename[]) {
     if(cnt > maxwindow)
       maxwindow = cnt;
   }
-  pole.Z_array = (complex<double>*)malloc(sizeof(complex<double>)*maxwindow);
-  pole.W_array = (complex<double>*)malloc(sizeof(complex<double>)*maxwindow);
+
+  pole.Z_array = (CComplex*)malloc(sizeof(CComplex)*maxwindow);
+  pole.W_array = (CComplex*)malloc(sizeof(CComplex)*maxwindow);
 
 
   dataset_id = H5Dopen(file_id, "/isotop/mpdata", H5P_DEFAULT);
@@ -126,7 +127,7 @@ void h5read(multipole& pole, char filename[]) {
   complex_array_id = H5Tarray_create(H5T_NATIVE_DOUBLE, 1, datasize_1d);
   complex_id = H5Tcreate(H5T_COMPOUND, sizeof(double)*2);
   status = H5Tinsert(complex_id, "point", HOFFSET(tuple, complex), complex_array_id);
-  pole.mpdata = (complex<double>*)malloc(dims[0]*dims[1]*sizeof(complex<double>));
+  pole.mpdata = (CComplex*)malloc(dims[0]*dims[1]*sizeof(CComplex));
   status = H5Dread(dataset_id, complex_id, H5S_ALL, H5S_ALL, H5P_DEFAULT, pole.mpdata);
   //printf("%g+%gi\n",real(pole.mpdata[4]),imag(pole.mpdata[4]));
   status = H5Fclose(file_id);
