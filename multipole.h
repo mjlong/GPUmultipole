@@ -14,7 +14,7 @@
 #include <stdio.h>
 #include <complex>
 #include <iostream>
-#include "Faddeeva.hh"
+#include "Faddeeva.h"
 #include "tinytope.h"
 using namespace std;
 using namespace Faddeeva;
