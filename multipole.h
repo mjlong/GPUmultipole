@@ -15,7 +15,7 @@
 #include <complex>
 #include <iostream>
 #include "Faddeeva.hh"
-#include "tinytope.h"
+#include "global.h"
 using namespace std;
 using namespace Faddeeva;
 
