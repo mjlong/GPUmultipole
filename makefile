@@ -5,7 +5,6 @@ CFLAGS +=-I/opt/hdf5/1.8.10-gnu/include/
 CFLAGS +=-I/opt/hdf5/hdf5-1.8.10/src/
 HFLAGS=-c -g -lstdc++ 
 LDFLAGS=-lstdc++  
-includes = 
 SOURCES=\
 CPUComplex.cpp\
 Faddeeva.cpp\

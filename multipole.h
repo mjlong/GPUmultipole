@@ -14,8 +14,8 @@
 #include <stdio.h>
 #include "CPUComplex.h"
 #include <iostream>
-#include "Faddeeva.h"
-#include "tinytope.h"
+#include "Faddeeva.hh"
+#include "global.h"
 using namespace std;
 using namespace Faddeeva;
 
