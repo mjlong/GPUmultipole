@@ -1,10 +1,10 @@
 #include "multipole.h"
-multipole::multipole(){
+__host__ __device__  multipole::multipole(){
 
 }
 
 
-void multipole::xs_eval_fast(double E, double sqrtKT, 
+__host__ __device__  void multipole::xs_eval_fast(double E, double sqrtKT, 
 			double &sigT, double &sigA, double &sigF){
   int    iP, iC, iW, startW, endW;
   double *twophi;
@@ -53,7 +53,7 @@ void multipole::xs_eval_fast(double E, double sqrtKT,
   free(twophi);
 }
 
-void multipole::xs_eval_fast(double E,  
+__host__ __device__  void multipole::xs_eval_fast(double E,  
 			double &sigT, double &sigA, double &sigF){
   int    iP, iC, iW, startW, endW;
   double *twophi;
@@ -99,15 +99,15 @@ void multipole::xs_eval_fast(double E,
 }
 
 
-int multipole::findex(int type, int iC, int iW){
+__host__ __device__  int multipole::findex(int type, int iC, int iW){
   return windows*(fitorder+1)*type+windows*iC+iW;
 }
 
-int multipole::pindex(int type, int iP){
+__host__ __device__  int multipole::pindex(int type, int iP){
   return length*type + iP;
 }
 
-void multipole::fill_factors(double sqrtE, double *twophi){
+__host__ __device__  void multipole::fill_factors(double sqrtE, double *twophi){
   int iL;
   double arg;
   for(iL = 0; iL<numL; iL++){
