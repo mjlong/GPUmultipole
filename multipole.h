@@ -13,9 +13,9 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include "CPUComplex.h"
+#include "global.h"
 #include <iostream>
 #include "Faddeeva.h"
-#include "tinytope.h"
 using namespace std;
 using namespace Faddeeva;
 
