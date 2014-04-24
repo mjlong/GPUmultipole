@@ -1,9 +1,11 @@
 CC=g++
 H5CC = h5cc
-CFLAGS=-c -g -Iinclude 
+CFLAGS=-c -g 
+CFLAGS +=-I/opt/hdf5/1.8.10-gnu/include/
+CFLAGS +=-I/opt/hdf5/hdf5-1.8.10/src/
 HFLAGS=-c -g -lstdc++ 
 LDFLAGS=-lstdc++  
-#includes = $(wildcard include/*.h)
+includes = 
 SOURCES=\
 CPUComplex.cpp\
 Faddeeva.cpp\
@@ -19,10 +21,10 @@ all: $(EXECUTABLE)
 $(EXECUTABLE): $(OBJECTS) $(HOBJECTS)
 	$(H5CC) $(LDFLAGS) $^ -o $@
 
-%.o : %.cpp #${includes}
+%.o : %.cpp 
 	$(CC) $(CFLAGS) $^ -o $@
 %.o : %.cxx
-	$(CC) $(HFLAGS) $^ -o $@
+	$(CC) $(CFLAGS) $^ -o $@
 remove :
 	rm -rf *.o  *~
 clean :  
