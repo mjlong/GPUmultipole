@@ -54,16 +54,16 @@ class multipole{
 
 
  public:
-  multipole();
-  multipole(char filename[]);
+  __host__ __device__  multipole();
+  __host__ __device__  multipole(char filename[]);
   //  void isotopeinfo(isotope );
-  void xs_eval_fast(double E, double sqrtAWR, 
-	       double &sigT, double &sigA, double &sigF);
-  void xs_eval_fast(double E, 
-	       double &sigT, double &sigA, double &sigF);
-  void fill_factors(double sqrtE, double *twophi);
-  int findex(int, int, int);
-  int pindex(int, int);
+  __host__ __device__  void xs_eval_fast(double E, double sqrtAWR, 
+					 double &sigT, double &sigA, double &sigF);
+  __host__ __device__  void xs_eval_fast(double E, 
+					 double &sigT, double &sigA, double &sigF);
+  __host__ __device__  void fill_factors(double sqrtE, double *twophi);
+  __host__ __device__  int findex(int, int, int);
+  __host__ __device__  int pindex(int, int);
   friend void h5read(multipole&, char filename[]);
 };
 
