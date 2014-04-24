@@ -11,7 +11,7 @@ multipole.cpp\
 main.cpp
 OBJECTS=$(SOURCES:.cpp=.o)
 HSOURCES=h5_rdwt.cxx
-HOBJECTS=h5_rdwt.o
+HOBJECTS=$(HSOURCES:.cxx=.o)  
 EXECUTABLE=testmain
 all: $(EXECUTABLE)
 	@echo "make clean if .h file updated"
