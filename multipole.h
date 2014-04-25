@@ -19,17 +19,17 @@
 using namespace std;
 using namespace Faddeeva;
 
-class multipole{
- private:
+typedef struct{
+  double complex[2];
+}tuple;
+
+struct multipoledata{
   int fissionable;
-  CComplex *mpdata;
+  tuple *mpdata;
   unsigned      length;
   unsigned *l_value, *j_value; // l and j index of the pole
-  int      w_function; //Which W function to use
   double   *pseudo_rho;  //inherit nomenclature from isotope.h
 
-  CComplex *sigT_factor;
-  // Mode, set to 0 for linear, 1 for momentum, 2 for logarithmic.
   int mode;                        // Spacing mode
   int windows;                     // Number of windows
   int fitorder;                    // Order of the fit. 1 linear, 2 quadratic, etc.
@@ -48,23 +48,7 @@ class multipole{
   int *w_end;  // Contains the index of the pole at the end of the window
   double *fit;
   //Contains the fitting function.  (reaction type, coeff index, window index)
-  CComplex *Z_array, *W_array;
   //=========================================================================
-
-
-
- public:
-  multipole();
-  multipole(char filename[]);
-  //  void isotopeinfo(isotope );
-  void xs_eval_fast(double E, double sqrtAWR, 
-	       double &sigT, double &sigA, double &sigF);
-  void xs_eval_fast(double E, 
-	       double &sigT, double &sigA, double &sigF);
-  void fill_factors(double sqrtE, double *twophi);
-  int findex(int, int, int);
-  int pindex(int, int);
-  friend void h5read(multipole&, char filename[]);
 };
 
 #endif
