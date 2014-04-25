@@ -1,24 +1,6 @@
 #ifndef __MULTIPOLE_H__
 #define __MULTIPOLE_H__
 
-#define MP_EA 0
-#define MP_RT 1
-#define MP_RA 2
-#define MP_RF 3
-#define MP_FISS 1
-#define FIT_T 0
-#define FIT_A 1
-#define FIT_F 2
-
-#include <stdlib.h>
-#include <stdio.h>
-#include "CPUComplex.h"
-#include "global.h"
-#include <iostream>
-#include "Faddeeva.h"
-using namespace std;
-using namespace Faddeeva;
-
 typedef struct{
   double complex[2];
 }tuple;
