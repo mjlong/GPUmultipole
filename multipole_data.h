@@ -1,5 +1,5 @@
-#ifndef __MULTIPOLE_H__
-#define __MULTIPOLE_H__
+#ifndef __MULTIPOLEDATA_H__
+#define __MULTIPOLEDATA_H__
 
 typedef struct{
   double complex[2];
