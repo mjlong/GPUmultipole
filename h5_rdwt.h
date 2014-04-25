@@ -8,9 +8,6 @@
 #include "multipole.h"
 using namespace std;
 
-typedef struct{
-  double complex[2];
-}tuple;
 
 
 void h5read(multipole & pole, char filename[]); 
