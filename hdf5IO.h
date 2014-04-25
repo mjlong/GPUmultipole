@@ -1,15 +1,10 @@
 #ifndef __H5_READ_H__
 #define __H5_READ_H__
-#include "CPUComplex.h"
-#include <iostream>
 #include "stdio.h"
 #include "stdlib.h"
 #include "hdf5.h"
-#include "multipole.h"
-using namespace std;
+#include "multipole_data.h"
 
-
-
-void h5read(multipole & pole, char filename[]); 
+void h5read(struct multipoledata & pole, char filename[]); 
 
 #endif
