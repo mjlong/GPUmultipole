@@ -1,6 +1,6 @@
 CC=g++
 CFLAGS=-c -g 
-LDFLAGS=-L/usr/lib/ -L. -lhdf5IO -lhdf5
+LDFLAGS=-L/usr/lib/ -lhdf5
 SOURCES=\
 hdf5IO.cc\
 main.cc
