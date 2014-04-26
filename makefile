@@ -1,20 +1,34 @@
 CC=g++
-CFLAGS=-c -g -I/opt/hdf5/1.8.10-gnu/include
-LDFLAGS=-L/opt/hdf5/1.8.10-gnu/lib/ -lhdf5 
-SOURCES=\
+NVCC = nvcc
+NCFLAGS=-dc -arch=sm_20
+CCFLAGS=-c -g -I/opt/hdf5/1.8.10-gnu/include
+LINKLAG=-arch=sm_20 -dlink
+LDFLAGS=-L/opt/hdf5/1.8.10-gnu/lib/ -L/usr/local/cuda/lib64 -lcudart -lhdf5 
+CSOURCES=\
+CPUComplex.cc\
 hdf5IO.cc\
 main.cc
-OBJECTS=$(SOURCES:.cc=.o)
+GSOURCES=\
+CComplex.cu\
+Faddeeva.cu\
+multipole.cu\
+main.cu
+COBJECTS=$(CSOURCES:.cc=.obj)
+GOBJECTS=$(GSOURCES:.cu=.o)
+LINKJECT=dlink.o
 EXECUTABLE=tiny
 all: $(EXECUTABLE)
 
-$(EXECUTABLE): $(OBJECTS) 
+$(EXECUTABLE): $(COBJECTS) $(GOBJECTS) $(LINKJECT)
 	$(CC)  $^ $(LDFLAGS) -o $@
 
-%.o : %.cc
-	$(CC) $(CFLAGS) $^ -o $@
-
+%.obj : %.cc
+	$(CC)   $(CCFLAGS) $^ -o $@
+%.o : %.cu
+	$(NVCC) $(NCFLAGS) $^ -o $@
+$(LINKJECT) : $(GOBJECTS)
+	$(NVCC) $(LINKLAG) $^ -o $@
 remove :
-	rm -rf *.o  *~
+	rm -rf *.o  *.obj *~
 clean :  
-	rm -rf *.o  *~ $(EXECUTABLE)
+	rm -rf *.o  *.obj *~ $(EXECUTABLE)
