@@ -22,7 +22,7 @@ using namespace std;
 //using namespace Faddeeva;
 
 class multipole{
- private:
+public:
   int fissionable;
   CComplex *mpdata;
   unsigned      length;
@@ -59,9 +59,9 @@ class multipole{
   __host__ __device__  multipole(struct multipoledata data);
   __host__ __device__  multipole(char filename[]);
   //  void isotopeinfo(isotope );
-  __host__ __device__  void xs_eval_fast(double E, double sqrtAWR, 
+  __device__  void xs_eval_fast(double E, double sqrtAWR, 
 					 double &sigT, double &sigA, double &sigF);
-  __host__ __device__  void xs_eval_fast(double E, 
+  __device__  void xs_eval_fast(double E, 
 					 double &sigT, double &sigA, double &sigF);
   __host__ __device__  void fill_factors(double sqrtE, double *twophi);
   __host__ __device__  int findex(int, int, int);
