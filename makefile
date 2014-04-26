@@ -1,30 +1,19 @@
 CC=g++
-H5CC = h5cc
-CFLAGS=-c -g 
-CFLAGS +=-I/opt/hdf5/1.8.10-gnu/include/
-CFLAGS +=-I/opt/hdf5/hdf5-1.8.10/src/
-HFLAGS=-c -g -lstdc++ 
-LDFLAGS=-lstdc++  
-includes = 
+CFLAGS=-c -g -I/opt/hdf5/1.8.10-gnu/include
+LDFLAGS=-L/opt/hdf5/1.8.10-gnu/lib/ -lhdf5 
 SOURCES=\
-CPUComplex.cpp\
-Faddeeva.cpp\
-multipole.cpp\
-main.cpp
-OBJECTS=$(SOURCES:.cpp=.o)
-HSOURCES=h5_rdwt.cxx
-HOBJECTS=$(HSOURCES:.cxx=.o)  
-EXECUTABLE=testmain
+hdf5IO.cc\
+main.cc
+OBJECTS=$(SOURCES:.cc=.o)
+EXECUTABLE=tiny
 all: $(EXECUTABLE)
-	@echo "make clean if .h file updated"
 
-$(EXECUTABLE): $(OBJECTS) $(HOBJECTS)
-	$(H5CC) $(LDFLAGS) $^ -o $@
+$(EXECUTABLE): $(OBJECTS) 
+	$(CC)  $^ $(LDFLAGS) -o $@
 
-%.o : %.cpp 
+%.o : %.cc
 	$(CC) $(CFLAGS) $^ -o $@
-%.o : %.cxx
-	$(CC) $(CFLAGS) $^ -o $@
+
 remove :
 	rm -rf *.o  *~
 clean :  
