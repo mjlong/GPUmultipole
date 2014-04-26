@@ -1,13 +1,11 @@
 #ifndef __MULTIPOLEDATA_H__
 #define __MULTIPOLEDATA_H__
 
-typedef struct{
-  double complex[2];
-}tuple;
+#include "CPUComplex.h"
 
 struct multipoledata{
   int fissionable;
-  tuple *mpdata;
+  CPUComplex *mpdata;
   unsigned      length;
   unsigned *l_value, *j_value; // l and j index of the pole
   double   *pseudo_rho;  //inherit nomenclature from isotope.h

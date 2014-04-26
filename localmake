@@ -2,6 +2,7 @@ CC=g++
 CFLAGS=-c -g 
 LDFLAGS=-L/usr/lib/ -lhdf5
 SOURCES=\
+CPUComplex.cc\
 hdf5IO.cc\
 main.cc
 OBJECTS=$(SOURCES:.cc=.o)

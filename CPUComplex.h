@@ -18,8 +18,8 @@ History****:*Date*******************Author**************************************
   overload negative and minus operator simultaneously
 ================================================================================
 */
-#ifndef __CCOMPLEX_H__
-#define __CCOMPLEX_H__
+#ifndef __CPUCOMPLEX_H__
+#define __CPUCOMPLEX_H__
 #include <iostream>
 #include <math.h>
 using namespace std;
@@ -32,54 +32,54 @@ struct NormArg{
   double arg;
 };
 
-class CComplex{
+class CPUComplex{
 private:
   double m_real;
   double m_imag;
   //  NormArg m_NA;
 
 public:
-   CComplex(double m_real=0.0, double m_imag=0.0f);
-   CComplex(NormArg m_NA );
+   CPUComplex(double m_real=0.0, double m_imag=0.0f);
+   CPUComplex(NormArg m_NA );
    double Re();
    double Im();
    double Norm();
    double Arg();
-   CComplex Conjugate();
+   CPUComplex Conjugate();
    //display() in form of norm*Exp(phi)
    void display();
    //output()  in form of real+(-)imag(*)i
    void output();
-   ~CComplex();
-   CComplex operator + (CComplex);
-   CComplex operator + (double);
-   CComplex operator -  (double);
-   CComplex operator *  (CComplex);
-   CComplex operator *  (double);
+   ~CPUComplex();
+   CPUComplex operator + (CPUComplex);
+   CPUComplex operator + (double);
+   CPUComplex operator -  (double);
+   CPUComplex operator *  (CPUComplex);
+   CPUComplex operator *  (double);
   //division operator has been simplified by ignoring 0 divisor
   //in case of being devided by double, it is suggested to multiply by 1/double
-   CComplex operator /   (CComplex);
-   CComplex operator /   (double);
-  //	CComplex & operator =  (const CComplex & c);
+   CPUComplex operator /   (CPUComplex);
+   CPUComplex operator /   (double);
+  //	CPUComplex & operator =  (const CPUComplex & c);
 
 };
 
-void output(CComplex);
-void display(CComplex);
-CComplex Conjugate(CComplex);
-double Norm(CComplex);
-double Arg(CComplex);
-double real(CComplex);
-double imag(CComplex);
-CComplex exp(CComplex);
+void output(CPUComplex);
+void display(CPUComplex);
+CPUComplex Conjugate(CPUComplex);
+double Norm(CPUComplex);
+double Arg(CPUComplex);
+double real(CPUComplex);
+double imag(CPUComplex);
+CPUComplex exp(CPUComplex);
 
-CComplex operator + (double d, CComplex c);
-CComplex operator - (double d, CComplex c);
-CComplex operator -  (CComplex);
+CPUComplex operator + (double d, CPUComplex c);
+CPUComplex operator - (double d, CPUComplex c);
+CPUComplex operator -  (CPUComplex);
 //It should be noted that the '-' here is negative sign
-CComplex operator - (CComplex c1, CComplex c2);
-CComplex operator * (double d, CComplex c);
-CComplex operator / (double d, CComplex c);
+CPUComplex operator - (CPUComplex c1, CPUComplex c2);
+CPUComplex operator * (double d, CPUComplex c);
+CPUComplex operator / (double d, CPUComplex c);
 
 
 #endif

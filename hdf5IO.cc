@@ -115,7 +115,7 @@ void h5read(struct multipoledata & pole, char filename[]) {
   complex_array_id = H5Tarray_create(H5T_NATIVE_DOUBLE, 1, datasize_1d);
   complex_id = H5Tcreate(H5T_COMPOUND, sizeof(double)*2);
   status = H5Tinsert(complex_id, "point", HOFFSET(tuple, complex), complex_array_id);
-  pole.mpdata = (tuple*)malloc(dims[0]*dims[1]*sizeof(tuple));
+  pole.mpdata = (CPUComplex*)malloc(dims[0]*dims[1]*sizeof(tuple));
   status = H5Dread(dataset_id, complex_id, H5S_ALL, H5S_ALL, H5P_DEFAULT, pole.mpdata);
   //printf("%g+%gi\n",real(pole.mpdata[4]),imag(pole.mpdata[4]));
   status = H5Fclose(file_id);
