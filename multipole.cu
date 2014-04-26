@@ -1,10 +1,30 @@
 #include "multipole.h"
 __host__ __device__  multipole::multipole(struct multipoledata data){
+  /*
+    TODO:overload = deserves trying; 
+    currently, hdf5 is read into multipoledata struct and then
+    initialized to multipole object here.
+    It is impossible to read hdf5 file directly into this class to be executed on GPU. Maybe make a multipoledata struct in multipole class and overloading = would be faster
+  */
+  int i;
   fissionable = data.fissionable;
+  mode        = data.mode;
+  windows     = data.windows;
+  sqrtAWR     = data.sqrtAWR;
+  startE      = data.startE;
+  endE        = data.endE;
+  spacing     = data.spacing;
+  fitorder    = data.fitorder;
+  length      = data.length;
+  numL        = data.numL;
+  /*  pseudo_rho  = (double*)malloc(numL*sizeof(double));
+  for(i=0;i<numL;i++)
+    pseudo_rho[i] = data.pseudo_rho[i];
+  */
 }
 
 
-__host__ __device__  void multipole::xs_eval_fast(double E, double sqrtKT, 
+__device__  void multipole::xs_eval_fast(double E, double sqrtKT, 
 			double &sigT, double &sigA, double &sigF){
   int    iP, iC, iW, startW, endW;
   double *twophi;
@@ -53,7 +73,7 @@ __host__ __device__  void multipole::xs_eval_fast(double E, double sqrtKT,
   free(twophi);
 }
 
-__host__ __device__  void multipole::xs_eval_fast(double E,  
+__device__  void multipole::xs_eval_fast(double E,  
 			double &sigT, double &sigA, double &sigF){
   int    iP, iC, iW, startW, endW;
   double *twophi;
