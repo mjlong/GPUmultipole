@@ -50,7 +50,6 @@ public:
   int      w_function; //Which W function to use
   double   *pseudo_rho;  //inherit nomenclature from isotope.h
 
-  CComplex *sigT_factor;
   int *w_start;// Contains the index of the pole at the start of the window
   int *w_end;  // Contains the index of the pole at the end of the window
   double *fit;
