@@ -65,7 +65,7 @@ public:
 					 double &sigT, double &sigA, double &sigF);
   __device__  void xs_eval_fast(double E, 
 					 double &sigT, double &sigA, double &sigF);
-  void fill_factors(double sqrtE, double *twophi, CComplex *sigT_factor);
+  __device__ void fill_factors(double sqrtE, double *twophi, CComplex *sigT_factor);
   __host__ __device__  int findex(int, int, int);
   __host__ __device__  int pindex(int, int);
 

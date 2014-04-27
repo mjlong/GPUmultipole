@@ -45,13 +45,11 @@ multipole::multipole(struct multipoledata data){
   cudaMalloc((void**)&w_end, size);
   cudaMemcpy(w_end, data.w_end, size, cudaMemcpyHostToDevice);
 
+  size = (FIT_F+data.fissionable)*(data.fitorder+1)*data.windows*sizeof(double);
+  cudaMalloc((void**)&fit, size);
+  cudaMemcpy(fit, data.fit, size, cudaMemcpyHostToDevice);
 
-  cudaMalloc((void**)&fit, (FIT_F+data.fissionable)*(data.fitorder+1)*data.windows*sizeof(double));
 
-  /*  pseudo_rho  = (double*)malloc(numL*sizeof(double));
-  for(i=0;i<numL;i++)
-    pseudo_rho[i] = data.pseudo_rho[i];
-  */
 }
 
 
