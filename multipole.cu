@@ -1,11 +1,5 @@
 #include "multipole.h"
 multipole::multipole(struct multipoledata data){
-  /*
-    TODO:overload = deserves trying; 
-    currently, hdf5 is read into multipoledata struct and then
-    initialized to multipole object here.
-    It is impossible to read hdf5 file directly into this class to be executed on GPU. Maybe make a multipoledata struct in multipole class and overloading = would be faster
-  */
   int i;
   cudaMalloc((void**)&dev_integers, 6*sizeof(int));
   cudaMalloc((void**)&dev_doubles,  4*sizeof(double));
