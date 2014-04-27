@@ -39,9 +39,13 @@ multipole::multipole(struct multipoledata data){
   cudaMemcpy(pseudo_rho, data.pseudo_rho, size, cudaMemcpyHostToDevice);
 
 
+  size = data.windows*sizeof(int);
+  cudaMalloc((void**)&w_start, size);
+  cudaMemcpy(w_start, data.w_start, size, cudaMemcpyHostToDevice);
+  cudaMalloc((void**)&w_end, size);
+  cudaMemcpy(w_end, data.w_end, size, cudaMemcpyHostToDevice);
 
-  cudaMalloc((void**)&w_start, data.windows*sizeof(int));
-  cudaMalloc((void**)&w_end,   data.windows*sizeof(int));
+
   cudaMalloc((void**)&fit, (FIT_F+data.fissionable)*(data.fitorder+1)*data.windows*sizeof(double));
 
   /*  pseudo_rho  = (double*)malloc(numL*sizeof(double));
@@ -158,11 +162,11 @@ __host__ __device__  int multipole::pindex(int type, int iP){
   return 0;
 }
 
-__device__ void multipole::fill_factors(double sqrtE, double *twophi){
+__device__ void multipole::fill_factors(double sqrtE, double *twophi, CComplex *sigT_factor){
   int iL;
   double arg;
 
-  for(iL = 0; iL<numL; iL++){
+  for(iL = 0; iL<dev_integers[NUML]; iL++){
     twophi[iL] = pseudo_rho[iL] * sqrtE; 
     if(2==iL)
       twophi[iL] -= atan(twophi[iL]);
