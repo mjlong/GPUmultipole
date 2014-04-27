@@ -54,13 +54,14 @@ public:
   int *w_end;  // Contains the index of the pole at the end of the window
   double *fit;
   //Contains the fitting function.  (reaction type, coeff index, window index)
-  CComplex *Z_array, *W_array;
+  //  CComplex *Z_array, *W_array;
   //=========================================================================
 
 
 
  public:
   multipole(struct multipoledata data);
+  ~multipole();
   __device__  void xs_eval_fast(double E, double sqrtAWR, 
 					 double &sigT, double &sigA, double &sigF);
   __device__  void xs_eval_fast(double E, 

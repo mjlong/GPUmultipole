@@ -53,6 +53,16 @@ multipole::multipole(struct multipoledata data){
 }
 
 
+multipole::~multipole(){
+  cudaFree(dev_integers);
+  cudaFree(dev_doubles);
+  cudaFree(mpdata);
+  cudaFree(l_value);
+  cudaFree(pseudo_rho);
+  cudaFree(w_start);
+  cudaFree(w_end);
+  cudaFree(fit);
+}
 __device__  void multipole::xs_eval_fast(double E, double sqrtKT, 
 			double &sigT, double &sigA, double &sigF){
   int    iP, iC, iW, startW, endW;
