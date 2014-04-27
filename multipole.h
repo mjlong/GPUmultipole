@@ -10,6 +10,26 @@
 #define FIT_A 1
 #define FIT_F 2
 
+#define MODE     0
+#define WINDOWS  1
+#define FITORDER 2
+#define NUML     3
+#define FISSION  4
+#define LENGTH   5
+#define STARTE   0
+#define ENDE     1
+#define SPACING  2
+#define SQRTAWR  3
+/*
+  Mode, set to 0 for linear, 1 for momentum, 2 for logarithmic.
+  Mode = 0 (linear)
+  spacing = inner
+  Mode = 1 (sqrt)
+  spacing = sqrt(multipole_w%endE - multipole_w%startE)/multipole_w%windows 
+  Mode = 2 (log)
+  spacing = log(multipole_w%endE - multipole_w%startE)/multipole_w%windows
+*/
+
 #include <stdlib.h>
 #include <stdio.h>
 #include "CPUComplex.h"
@@ -23,29 +43,14 @@ using namespace std;
 
 class multipole{
 public:
-  int fissionable;
+  int *dev_integers;
+  double *dev_doubles;
   CComplex *mpdata;
-  unsigned      length;
   unsigned *l_value; // l and j index of the pole
   int      w_function; //Which W function to use
   double   *pseudo_rho;  //inherit nomenclature from isotope.h
 
   CComplex *sigT_factor;
-  // Mode, set to 0 for linear, 1 for momentum, 2 for logarithmic.
-  int mode;                        // Spacing mode
-  int windows;                     // Number of windows
-  int fitorder;                    // Order of the fit. 1 linear, 2 quadratic, etc.
-  int numL;                        // Number of l values
-  double startE;                      // Start energy for the windows
-  double endE;                        // End energy for the windows
-  double spacing;                     // The actual spacing in the mode of choice.
-  //Mode = 0 (linear)
-  //spacing = inner
-  //Mode = 1 (sqrt)
-  //spacing = sqrt(multipole_w%endE - multipole_w%startE)/multipole_w%windows 
-  //Mode = 2 (log)
-  //spacing = log(multipole_w%endE - multipole_w%startE)/multipole_w%windows
-  double sqrtAWR;
   int *w_start;// Contains the index of the pole at the start of the window
   int *w_end;  // Contains the index of the pole at the end of the window
   double *fit;
@@ -56,17 +61,15 @@ public:
 
 
  public:
-  __host__ __device__  multipole(struct multipoledata data);
-  __host__ __device__  multipole(char filename[]);
-  //  void isotopeinfo(isotope );
+  multipole(struct multipoledata data);
   __device__  void xs_eval_fast(double E, double sqrtAWR, 
 					 double &sigT, double &sigA, double &sigF);
   __device__  void xs_eval_fast(double E, 
 					 double &sigT, double &sigA, double &sigF);
-  __host__ __device__  void fill_factors(double sqrtE, double *twophi);
+  void fill_factors(double sqrtE, double *twophi);
   __host__ __device__  int findex(int, int, int);
   __host__ __device__  int pindex(int, int);
-  friend void h5read(multipole&, char filename[]);
+
 };
 
 #endif

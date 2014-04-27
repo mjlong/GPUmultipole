@@ -1,5 +1,5 @@
 #include "multipole.h"
-__host__ __device__  multipole::multipole(struct multipoledata data){
+multipole::multipole(struct multipoledata data){
   /*
     TODO:overload = deserves trying; 
     currently, hdf5 is read into multipoledata struct and then
@@ -7,16 +7,29 @@ __host__ __device__  multipole::multipole(struct multipoledata data){
     It is impossible to read hdf5 file directly into this class to be executed on GPU. Maybe make a multipoledata struct in multipole class and overloading = would be faster
   */
   int i;
-  fissionable = data.fissionable;
-  mode        = data.mode;
-  windows     = data.windows;
-  sqrtAWR     = data.sqrtAWR;
-  startE      = data.startE;
-  endE        = data.endE;
-  spacing     = data.spacing;
-  fitorder    = data.fitorder;
-  length      = data.length;
-  numL        = data.numL;
+  cudaMalloc((void**)&dev_integers, 6*sizeof(int));
+  cudaMalloc((void**)&dev_doubles,  4*sizeof(double));
+
+  cudaMemcpy(dev_integers+MODE,    &(data.mode), sizeof(int), cudaMemcpyHostToDevice);
+  cudaMemcpy(dev_integers+WINDOWS, &(data.windows), sizeof(int), cudaMemcpyHostToDevice);
+  cudaMemcpy(dev_integers+FITORDER, &(data.fitorder), sizeof(int), cudaMemcpyHostToDevice);
+  cudaMemcpy(dev_integers+NUML, &(data.numL), sizeof(int), cudaMemcpyHostToDevice);
+  cudaMemcpy(dev_integers+FISSION, &(data.fissionable), sizeof(int), cudaMemcpyHostToDevice);
+  cudaMemcpy(dev_integers+LENGTH, &(data.length), sizeof(int), cudaMemcpyHostToDevice);
+
+  cudaMemcpy(dev_doubles+STARTE, &(data.startE), sizeof(double), cudaMemcpyHostToDevice);
+  cudaMemcpy(dev_doubles+ENDE,   &(data.endE), sizeof(double), cudaMemcpyHostToDevice);
+  cudaMemcpy(dev_doubles+SPACING,&(data.spacing), sizeof(double), cudaMemcpyHostToDevice);
+  cudaMemcpy(dev_doubles+SQRTAWR, &(data.sqrtAWR), sizeof(double), cudaMemcpyHostToDevice);
+
+  cudaMalloc((void**)&mpdata, data.length*(MP_RF+data.fissionable)*2*sizeof(double));
+  cudaMalloc((void**)&l_value, data.length*sizeof(double));
+  cudaMalloc((void**)&pseudo_rho, data.numL*sizeof(double));
+  cudaMalloc((void**)&sigT_factor, data.numL*2*sizeof(double));
+  cudaMalloc((void**)&w_start, data.windows*sizeof(int));
+  cudaMalloc((void**)&w_end,   data.windows*sizeof(int));
+  cudaMalloc((void**)&fit, (FIT_F+data.fissionable)*(data.fitorder+1)*data.windows*sizeof(double));
+
   /*  pseudo_rho  = (double*)malloc(numL*sizeof(double));
   for(i=0;i<numL;i++)
     pseudo_rho[i] = data.pseudo_rho[i];
@@ -31,7 +44,7 @@ __device__  void multipole::xs_eval_fast(double E, double sqrtKT,
   double sqrtE = sqrt(E);
   double power, DOPP, DOPP_ECOEF;
   CComplex w_val;
-
+  /*
   twophi = (double*)malloc(sizeof(double)*numL);
   
   if(1==mode)
@@ -71,6 +84,7 @@ __device__  void multipole::xs_eval_fast(double E, double sqrtKT,
       sigF += real(mpdata[pindex(MP_RF,iP)]*W_array[iP-startW]);
   }
   free(twophi);
+  */
 }
 
 __device__  void multipole::xs_eval_fast(double E,  
@@ -80,7 +94,7 @@ __device__  void multipole::xs_eval_fast(double E,
   double sqrtE = sqrt(E);
   double power;
   CComplex PSIIKI, CDUM1, w_val;
-
+  /*
   twophi = (double*)malloc(sizeof(double)*numL);
  
   if(1==mode)
@@ -116,20 +130,24 @@ __device__  void multipole::xs_eval_fast(double E,
       sigF += real(mpdata[pindex(MP_RF,iP)]*CDUM1);
   }
   free(twophi);
+  */
 }
 
 
 __host__ __device__  int multipole::findex(int type, int iC, int iW){
-  return windows*(fitorder+1)*type+windows*iC+iW;
+  //  return windows*(fitorder+1)*type+windows*iC+iW;
+  return 0;
 }
 
 __host__ __device__  int multipole::pindex(int type, int iP){
-  return length*type + iP;
+  //  return length*type + iP;
+  return 0;
 }
 
-__host__ __device__  void multipole::fill_factors(double sqrtE, double *twophi){
+void multipole::fill_factors(double sqrtE, double *twophi){
   int iL;
   double arg;
+  /*
   for(iL = 0; iL<numL; iL++){
     twophi[iL] = pseudo_rho[iL] * sqrtE; 
     if(2==iL)
@@ -145,5 +163,5 @@ __host__ __device__  void multipole::fill_factors(double sqrtE, double *twophi){
     twophi[iL] *= 2.0;
     sigT_factor[iL] = CComplex(cos(twophi[iL]), -sin(twophi[iL]));
   }
-
+  */
 }

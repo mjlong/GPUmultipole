@@ -7,10 +7,10 @@ int main(){
   char h5filename[] = "092238.h5";
   struct multipoledata U238data;
   int l;
-  double *ptr;
+  double d;
   h5read(U238data, h5filename);
-  anyvalue(U238data,&l,ptr);
+  anyvalue(U238data,&l,&d);
   printf("numL=%d\n",l);
-  //  printf("pseudo_rhos\%g,%g\n",ptr[0],ptr[1]);
+  printf("double=\%g\n",d);
   return 0;
 }
