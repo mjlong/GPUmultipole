@@ -12,7 +12,7 @@ void anyvalue(struct multipoledata data, int *value, double *d1, double *d2){
   CPUComplex z;
   cudaMemcpy(value, U238.w_end+467, sizeof(int), cudaMemcpyDeviceToHost);
   cudaMemcpy(&z  , U238.mpdata+10, 2*sizeof(double), cudaMemcpyDeviceToHost);
-  cudaMemcpy(d2, U238.pseudo_rho+1, sizeof(double), cudaMemcpyDeviceToHost);
+  cudaMemcpy(d2, U238.fit+1, sizeof(double), cudaMemcpyDeviceToHost);
   *d1 = imag(z);
 
   dim3 dimBlock(1);
