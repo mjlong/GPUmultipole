@@ -71,8 +71,6 @@ __device__  void multipole::xs_eval_fast(double E, double sqrtKT,
   double power, DOPP, DOPP_ECOEF;
   CComplex w_val;
   /*
-  twophi = (double*)malloc(sizeof(double)*numL);
-  
   if(1==mode)
     iW = (int)(sqrtE - sqrt(startE))/spacing;
   else if(2==mode)
@@ -109,8 +107,8 @@ __device__  void multipole::xs_eval_fast(double E, double sqrtKT,
     if(MP_FISS == fissionable)
       sigF += real(mpdata[pindex(MP_RF,iP)]*W_array[iP-startW]);
   }
-  free(twophi);
   */
+
 }
 
 __device__  void multipole::xs_eval_fast(double E,  
