@@ -33,8 +33,11 @@ multipole::multipole(struct multipoledata data){
   size = data.length*sizeof(unsigned);
   cudaMalloc((void**)&l_value, size);
   cudaMemcpy(l_value, data.l_value, size, cudaMemcpyHostToDevice);
-  
-  cudaMalloc((void**)&pseudo_rho, data.numL*sizeof(double));
+
+  size = data.numL*sizeof(double);
+  cudaMalloc((void**)&pseudo_rho, size);
+  cudaMemcpy(pseudo_rho, data.pseudo_rho, size, cudaMemcpyHostToDevice);
+
   cudaMalloc((void**)&sigT_factor, data.numL*2*sizeof(double));
   cudaMalloc((void**)&w_start, data.windows*sizeof(int));
   cudaMalloc((void**)&w_end,   data.windows*sizeof(int));
