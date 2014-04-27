@@ -1,31 +1,39 @@
 #include "multipole.h"
 multipole::multipole(struct multipoledata data){
-  int i;
+  size_t size;
   /*
     allocate and assign integers
   */
-  cudaMalloc((void**)&dev_integers, 6*sizeof(int));
-  cudaMemcpy(dev_integers+MODE,    &(data.mode), sizeof(int), cudaMemcpyHostToDevice);
-  cudaMemcpy(dev_integers+WINDOWS, &(data.windows), sizeof(int), cudaMemcpyHostToDevice);
-  cudaMemcpy(dev_integers+FITORDER, &(data.fitorder), sizeof(int), cudaMemcpyHostToDevice);
-  cudaMemcpy(dev_integers+NUML, &(data.numL), sizeof(int), cudaMemcpyHostToDevice);
-  cudaMemcpy(dev_integers+FISSION, &(data.fissionable), sizeof(int), cudaMemcpyHostToDevice);
-  cudaMemcpy(dev_integers+LENGTH, &(data.length), sizeof(int), cudaMemcpyHostToDevice);
+  size = sizeof(int);
+  cudaMalloc((void**)&dev_integers, 6*size);
+  cudaMemcpy(dev_integers+MODE,    &(data.mode), size, cudaMemcpyHostToDevice);
+  cudaMemcpy(dev_integers+WINDOWS, &(data.windows), size, cudaMemcpyHostToDevice);
+  cudaMemcpy(dev_integers+FITORDER, &(data.fitorder), size, cudaMemcpyHostToDevice);
+  cudaMemcpy(dev_integers+NUML, &(data.numL), size, cudaMemcpyHostToDevice);
+  cudaMemcpy(dev_integers+FISSION, &(data.fissionable), size, cudaMemcpyHostToDevice);
+  cudaMemcpy(dev_integers+LENGTH, &(data.length), size, cudaMemcpyHostToDevice);
 
   /*
     allocate and assign doubles
   */
-  cudaMalloc((void**)&dev_doubles,  4*sizeof(double));
-  cudaMemcpy(dev_doubles+STARTE, &(data.startE), sizeof(double), cudaMemcpyHostToDevice);
-  cudaMemcpy(dev_doubles+ENDE,   &(data.endE), sizeof(double), cudaMemcpyHostToDevice);
-  cudaMemcpy(dev_doubles+SPACING,&(data.spacing), sizeof(double), cudaMemcpyHostToDevice);
-  cudaMemcpy(dev_doubles+SQRTAWR, &(data.sqrtAWR), sizeof(double), cudaMemcpyHostToDevice);
+  size = sizeof(double);
+  cudaMalloc((void**)&dev_doubles,  4*size);
+  cudaMemcpy(dev_doubles+STARTE, &(data.startE), size, cudaMemcpyHostToDevice);
+  cudaMemcpy(dev_doubles+ENDE,   &(data.endE), size, cudaMemcpyHostToDevice);
+  cudaMemcpy(dev_doubles+SPACING,&(data.spacing), size, cudaMemcpyHostToDevice);
+  cudaMemcpy(dev_doubles+SQRTAWR, &(data.sqrtAWR), size, cudaMemcpyHostToDevice);
 
   /*
     allocate and assign arrays
   */
-  cudaMalloc((void**)&mpdata, data.length*(MP_RF+data.fissionable)*2*sizeof(double));
-  cudaMalloc((void**)&l_value, data.length*sizeof(double));
+  size = data.length*(MP_RF+data.fissionable)*2*sizeof(double);
+  cudaMalloc((void**)&mpdata, size);
+  cudaMemcpy(mpdata, data.mpdata, size, cudaMemcpyHostToDevice);
+
+  size = data.length*sizeof(unsigned);
+  cudaMalloc((void**)&l_value, size);
+  cudaMemcpy(l_value, data.l_value, size, cudaMemcpyHostToDevice);
+  
   cudaMalloc((void**)&pseudo_rho, data.numL*sizeof(double));
   cudaMalloc((void**)&sigT_factor, data.numL*2*sizeof(double));
   cudaMalloc((void**)&w_start, data.windows*sizeof(int));

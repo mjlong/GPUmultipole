@@ -12,7 +12,7 @@ void anyvalue(struct multipoledata data, int *value, double *ptr){
   CComplex  *psigTfactor, *pmpdata;
   struct multipoledata *pdata;
   multipole U238(data);
-  cudaMemcpy(value, U238.dev_integers+LENGTH, sizeof(int), cudaMemcpyDeviceToHost);
+  cudaMemcpy(value, U238.l_value+25, sizeof(int), cudaMemcpyDeviceToHost);
   cudaMemcpy(ptr  , U238.dev_doubles+SQRTAWR, sizeof(double), cudaMemcpyDeviceToHost);
   //  ptr = U238.pseudo_rho;
   dim3 dimBlock(1);
