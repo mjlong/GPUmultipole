@@ -162,6 +162,7 @@ __host__ __device__  int multipole::pindex(int type, int iP){
   return 0;
 }
 
+//TODO: here just continue the initilization scheme, it deserves trying make some values shared
 __device__ void multipole::fill_factors(double sqrtE, double *twophi, CComplex *sigT_factor){
   int iL;
   double arg;
