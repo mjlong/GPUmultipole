@@ -34,6 +34,8 @@ void anyvalue(struct multipoledata data, int *value, double *d1, double *d2){
 
 
 __global__ void history(curandState *rndStates, unsigned *devicearray){
+  //TODO:this is one scheme to match threads to 1D array, 
+  //try others when real simulation structure becomes clear
   int id = 
     (blockDim.x*blockDim.y*blockDim.z)*
     (blockIdx.y*gridDim.x+blockIdx.x)+
