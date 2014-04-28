@@ -81,6 +81,8 @@ __device__  void multipole::xs_eval_fast(double E, double sqrtKT,
   int mode        = dev_integers[MODE];
   int fitorder    = dev_integers[FITORDER];
   int fissionable = dev_integers[FISSIONABLE];
+  int length      = dev_integers[LENGTH];
+  int windows     = dev_integers[WINDOWS];
 
   double spacing = dev_doubles[SPACING];
   double startE  = dev_doubles[STARTE];
@@ -111,26 +113,26 @@ __device__  void multipole::xs_eval_fast(double E, double sqrtKT,
   //polynomial fitting
   for (iC=0;iC<=fitorder;iC++){
     power = pow(E,iC);
-    sigT += fit[findex(FIT_T, iC, iW)]*power;
-    sigA += fit[findex(FIT_A, iC, iW)]*power;
+    sigT += fit[findex(FIT_T, iC, iW,fitorder,windows)]*power;
+    sigA += fit[findex(FIT_A, iC, iW,fitorder,windows)]*power;
     if(MP_FISS == fissionable)
-      sigF += fit[findex(FIT_F, iC, iW)]*power;
+      sigF += fit[findex(FIT_F, iC, iW,fitorder,windows)]*power;
   }
   //Faddeeva evaluation in advance
   //TODO: Test whether in advance evaluation is faster
   DOPP = sqrtAWR/sqrtKT;
   DOPP_ECOEF = DOPP/sqrt(PI);
   for(iP=startW;iP<=endW;iP++){
-    Z_array[iP-startW] = (sqrtE - mpdata[pindex(MP_EA,iP)])*DOPP;
+    Z_array[iP-startW] = (sqrtE - mpdata[pindex(MP_EA,iP,length)])*DOPP;
     W_array[iP-startW] = Faddeeva::w(Z_array[iP-startW])*DOPP_ECOEF;
   }
 
   //evaluating
   for(iP=startW;iP<=endW;iP++){
-    sigT += real(mpdata[pindex(MP_RT,iP)]*sigT_factor[l_value[iP]-1]*W_array[iP-startW]);
-    sigA += real(mpdata[pindex(MP_RA,iP)]*W_array[iP-startW]);
+    sigT += real(mpdata[pindex(MP_RT,iP,length)]*sigT_factor[l_value[iP]-1]*W_array[iP-startW]);
+    sigA += real(mpdata[pindex(MP_RA,iP,length)]*W_array[iP-startW]);
     if(MP_FISS == fissionable)
-      sigF += real(mpdata[pindex(MP_RF,iP)]*W_array[iP-startW]);
+      sigF += real(mpdata[pindex(MP_RF,iP,length)]*W_array[iP-startW]);
   }
 
 
@@ -142,6 +144,8 @@ __device__  void multipole::xs_eval_fast(double E,
   int mode        = dev_integers[MODE];
   int fitorder    = dev_integers[FITORDER];
   int fissionable = dev_integers[FISSIONABLE];
+  int length      = dev_integers[LENGTH];
+  int windows     = dev_integers[WINDOWS];
 
   double spacing = dev_doubles[SPACING];
   double startE  = dev_doubles[STARTE];
@@ -172,35 +176,33 @@ __device__  void multipole::xs_eval_fast(double E,
   //polynomial fitting
   for (iC=0;iC<=fitorder;iC++){
     power = pow(E,iC);
-    sigT += fit[findex(FIT_T, iC, iW)]*power;
-    sigA += fit[findex(FIT_A, iC, iW)]*power;
+    sigT += fit[findex(FIT_T, iC, iW,fitorder,windows)]*power;
+    sigA += fit[findex(FIT_A, iC, iW,fitorder,windows)]*power;
     if(MP_FISS == fissionable)
-      sigF += fit[findex(FIT_F, iC, iW)]*power;
+      sigF += fit[findex(FIT_F, iC, iW,fitorder,windows)]*power;
   }
   //Faddeeva evaluation in advance
 
   //evaluating
   for(iP=startW;iP<=endW;iP++){
-    PSIIKI = -ONEI/(mpdata[pindex(MP_EA,iP)] - sqrtE);
+    PSIIKI = -ONEI/(mpdata[pindex(MP_EA,iP,length)] - sqrtE);
     CDUM1  = PSIIKI / E;
-    sigT += real(mpdata[pindex(MP_RT,iP)]*CDUM1*sigT_factor[l_value[iP]-1]);
-    sigA += real(mpdata[pindex(MP_RA,iP)]*CDUM1);
+    sigT += real(mpdata[pindex(MP_RT,iP,length)]*CDUM1*sigT_factor[l_value[iP]-1]);
+    sigA += real(mpdata[pindex(MP_RA,iP,length)]*CDUM1);
     if(MP_FISS == fissionable)
-      sigF += real(mpdata[pindex(MP_RF,iP)]*CDUM1);
+      sigF += real(mpdata[pindex(MP_RF,iP,length)]*CDUM1);
   }
   free(twophi);
   
 }
 
 
-__host__ __device__  int multipole::findex(int type, int iC, int iW){
-  //  return windows*(fitorder+1)*type+windows*iC+iW;
-  return 0;
+__host__ __device__  int multipole::findex(int type, int iC, int iW, int fitorder, int windows){
+  return windows*(fitorder+1)*type+windows*iC+iW;
 }
 
-__host__ __device__  int multipole::pindex(int type, int iP){
-  //  return length*type + iP;
-  return 0;
+__host__ __device__  int multipole::pindex(int type, int iP, int length){
+  return length*type + iP;
 }
 
 //TODO: here just continue the initilization scheme, it deserves trying make some values shared
