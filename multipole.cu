@@ -10,7 +10,7 @@ multipole::multipole(struct multipoledata data){
   cudaMemcpy(dev_integers+WINDOWS, &(data.windows), size, cudaMemcpyHostToDevice);
   cudaMemcpy(dev_integers+FITORDER, &(data.fitorder), size, cudaMemcpyHostToDevice);
   cudaMemcpy(dev_integers+NUML, &(data.numL), size, cudaMemcpyHostToDevice);
-  cudaMemcpy(dev_integers+FISSION, &(data.fissionable), size, cudaMemcpyHostToDevice);
+  cudaMemcpy(dev_integers+FISSIONABLE, &(data.fissionable), size, cudaMemcpyHostToDevice);
   cudaMemcpy(dev_integers+LENGTH, &(data.length), size, cudaMemcpyHostToDevice);
 
   /*
@@ -49,7 +49,19 @@ multipole::multipole(struct multipoledata data){
   cudaMalloc((void**)&fit, size);
   cudaMemcpy(fit, data.fit, size, cudaMemcpyHostToDevice);
 
-
+  /*
+    Following lines allocate Z_array, W_array for the "in advance" scheme
+  */
+  int maxwindow=0;
+  int cnt;
+  for(int iW=0;iW<dev_integers[WINDOWS];iW++){
+    cnt = w_end[iW]-w_start[iW]+1;
+    if(cnt>maxwindow)
+      maxwindow = cnt;
+  }
+  size = maxwindow*2*sizeof(double);
+  cudaMalloc((void**)&Z_array, size);
+  cudaMalloc((void**)&W_array, size);
 }
 
 
@@ -65,12 +77,25 @@ multipole::~multipole(){
 }
 __device__  void multipole::xs_eval_fast(double E, double sqrtKT, 
 			double &sigT, double &sigA, double &sigF){
+  /* Copy variables to local memory for efficiency */ 
+  int mode        = dev_integers[MODE];
+  int fitorder    = dev_integers[FITORDER];
+  int fissionable = dev_integers[FISSIONABLE];
+
+  double spacing = dev_doubles[SPACING];
+  double startE  = dev_doubles[STARTE];
+  double endE    = dev_doubles[ENDE];
+  double sqrtAWR = dev_doubles[SQRTAWR];
+
   int    iP, iC, iW, startW, endW;
-  double *twophi;
+  //TODO:I've not found wat to allocate for a thread
+  // 5 = maximum numL, consistent with max 4==iL in fill_factors()
+  double twophi[5];
+  CComplex sigT_factor[5];
   double sqrtE = sqrt(E);
   double power, DOPP, DOPP_ECOEF;
   CComplex w_val;
-  /*
+
   if(1==mode)
     iW = (int)(sqrtE - sqrt(startE))/spacing;
   else if(2==mode)
@@ -80,7 +105,7 @@ __device__  void multipole::xs_eval_fast(double E, double sqrtKT,
   startW = w_start[iW];
   endW   = w_end[iW];
   if(startW <= endW)
-    fill_factors(sqrtE,twophi);
+    fill_factors(sqrtE,twophi,sigT_factor);
   sigT = 0.0;
   sigA = 0.0;
   sigF = 0.0;
@@ -93,6 +118,7 @@ __device__  void multipole::xs_eval_fast(double E, double sqrtKT,
       sigF += fit[findex(FIT_F, iC, iW)]*power;
   }
   //Faddeeva evaluation in advance
+  //TODO: Test whether in advance evaluation is faster
   DOPP = sqrtAWR/sqrtKT;
   DOPP_ECOEF = DOPP/sqrt(PI);
   for(iP=startW;iP<=endW;iP++){
@@ -107,20 +133,32 @@ __device__  void multipole::xs_eval_fast(double E, double sqrtKT,
     if(MP_FISS == fissionable)
       sigF += real(mpdata[pindex(MP_RF,iP)]*W_array[iP-startW]);
   }
-  */
+
 
 }
 
 __device__  void multipole::xs_eval_fast(double E,  
 			double &sigT, double &sigA, double &sigF){
+  /* Copy variables to local memory for efficiency */ 
+  int mode        = dev_integers[MODE];
+  int fitorder    = dev_integers[FITORDER];
+  int fissionable = dev_integers[FISSIONABLE];
+
+  double spacing = dev_doubles[SPACING];
+  double startE  = dev_doubles[STARTE];
+  double endE    = dev_doubles[ENDE];
+  double sqrtAWR = dev_doubles[SQRTAWR];
+  
   int    iP, iC, iW, startW, endW;
-  double *twophi;
+  //TODO:I've not found wat to allocate for a thread
+  // 5 = maximum numL, consistent with max 4==iL in fill_factors()
+  double twophi[5];
+  CComplex sigT_factor[5];
+
   double sqrtE = sqrt(E);
   double power;
   CComplex PSIIKI, CDUM1, w_val;
-  /*
-  twophi = (double*)malloc(sizeof(double)*numL);
- 
+
   if(1==mode)
     iW = (int)(sqrtE - sqrt(startE))/spacing;
   else if(2==mode)
@@ -130,7 +168,7 @@ __device__  void multipole::xs_eval_fast(double E,
   startW = w_start[iW];
   endW   = w_end[iW];
   if(startW <= endW)
-    fill_factors(sqrtE,twophi);
+    fill_factors(sqrtE,twophi,sigT_factor);
   sigT = 0.0;
   sigA = 0.0;
   sigF = 0.0;
@@ -154,7 +192,7 @@ __device__  void multipole::xs_eval_fast(double E,
       sigF += real(mpdata[pindex(MP_RF,iP)]*CDUM1);
   }
   free(twophi);
-  */
+  
 }
 
 

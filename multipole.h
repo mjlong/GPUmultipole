@@ -14,7 +14,7 @@
 #define WINDOWS  1
 #define FITORDER 2
 #define NUML     3
-#define FISSION  4
+#define FISSIONABLE  4
 #define LENGTH   5
 #define STARTE   0
 #define ENDE     1
@@ -54,7 +54,7 @@ public:
   int *w_end;  // Contains the index of the pole at the end of the window
   double *fit;
   //Contains the fitting function.  (reaction type, coeff index, window index)
-  //  CComplex *Z_array, *W_array;
+  CComplex *Z_array, *W_array;
   //=========================================================================
 
 
