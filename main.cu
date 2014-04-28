@@ -14,28 +14,31 @@ void anyvalue(struct multipoledata data, int *value, double *d1, double *d2){
   curandState *rndState;
   unsigned gridx, gridy, blockx, blocky, blockz, gridsize;
   double *hostarray, *devicearray;
-  gridx = 40;
-  gridy = 40;
-  blockx = 5;
-  blocky = 5;
-  blockz = 5;
+  gridx = 5;
+  gridy = 4;
+  blockx = 1;
+  blocky = 1;
+  blockz = 1;
   dim3 dimBlock(gridx, gridy);
   dim3 dimGrid(blockx, blocky, blockz);
   gridsize = gridx*gridy*blockx*blocky*blockz;
   cudaMalloc((void**)&rndState, gridsize*sizeof(curandState));
-  cudaMalloc((void**)&devicearray, 4*gridsize*sizeof(double));
-  hostarray = (double*)malloc(4*gridsize*sizeof(double));
+  cudaMalloc((void**)&devicearray, 7*gridsize*sizeof(double));
+  hostarray = (double*)malloc(7*gridsize*sizeof(double));
   multipole U238(data); //host multipoledata to device
   history<<<dimBlock, dimGrid>>>(U238, rndState, devicearray);
-  cudaMemcpy(hostarray, devicearray, 4*gridsize*sizeof(double), cudaMemcpyDeviceToHost);
+  cudaMemcpy(hostarray, devicearray, 7*gridsize*sizeof(double), cudaMemcpyDeviceToHost);
 
 
   for(int i=0;i<gridsize;i++){
-    printf("%9.3e,  %10.6e, %10.6e, %10.6e\n",
-	   hostarray[4*i],
-	   hostarray[4*i+1],
-	   hostarray[4*i+2],
-	   hostarray[4*i+3]);
+    printf("%8.4f %8.5e %8.5e %8.5e %8.5e %8.5e %8.5e\n",
+	   hostarray[7*i],
+	   hostarray[7*i+1],
+	   hostarray[7*i+2],
+	   hostarray[7*i+3],
+	   hostarray[7*i+4],
+	   hostarray[7*i+5],
+	   hostarray[7*i+6]);
   }
 
   return;
@@ -58,23 +61,25 @@ __global__ void history(multipole U238, curandState *rndState, double *devicearr
   bool live=true;
   double energy = 1000.0;
   double rnd;
-  double sigT, sigA, sigF;
+  double sigT, sigA, sigF, sibT, sibA, sibF;
   while(live){
     rnd = curand_uniform(&localState);
     energy = energy * rnd;
-
-    sigT = energy*1.2;
-    sigA = energy*0.8;
-    sigF = energy*0.02;
+    //for test
+    energy = (1+id)*1.63;
     U238.xs_eval_fast(energy, sigT, sigA, sigF);
+    U238.xs_eval_fast(energy, sqrt(900*KB), sibT, sibA, sibF);
 
-    live = (energy>50.0);
+    live = false;//(energy>50.0);
   }
 
-  devicearray[4*id]=energy;//id*1.0;//energy;
-  devicearray[4*id+1]=sigT;//U238.dev_doubles[SPACING];
-  devicearray[4*id+2]=sigA;//U238.dev_doubles[STARTE];
-  devicearray[4*id+3]=sigF;//U238.dev_doubles[SQRTAWR];
+  devicearray[4*id]=energy;
+  devicearray[4*id+1]=sibT;
+  devicearray[4*id+2]=sigT;
+  devicearray[4*id+3]=sibA;
+  devicearray[4*id+4]=sigA;
+  devicearray[4*id+5]=sibF;
+  devicearray[4*id+6]=sigF;
 
   /* Copy state back to global memory */ 
   rndState[id] = localState; 
