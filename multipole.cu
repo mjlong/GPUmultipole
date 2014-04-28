@@ -84,7 +84,6 @@ __device__  void multipole::xs_eval_fast(double E, double sqrtKT,
 
   double spacing = dev_doubles[SPACING];
   double startE  = dev_doubles[STARTE];
-  double endE    = dev_doubles[ENDE];
   double sqrtAWR = dev_doubles[SQRTAWR];
 
   int    iP, iC, iW, startW, endW;
@@ -146,8 +145,6 @@ __device__  void multipole::xs_eval_fast(double E,
 
   double spacing = dev_doubles[SPACING];
   double startE  = dev_doubles[STARTE];
-  double endE    = dev_doubles[ENDE];
-  double sqrtAWR = dev_doubles[SQRTAWR];
   
   int    iP, iC, iW, startW, endW;
   //TODO:I've not found wat to allocate for a thread
