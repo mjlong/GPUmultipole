@@ -28,6 +28,7 @@ void anyvalue(struct multipoledata data, int *value, double *d1, double *d2){
   history<<<dimBlock, dimGrid>>>(rndState, devicearray);
   cudaMemcpy(hostarray, devicearray, gridsize*sizeof(double), cudaMemcpyDeviceToHost);
   double x, s1=0.0, s2=0.0;
+  /*
   for(int i=0;i<gridsize;i++){
     x = hostarray[i];
     printf("%5d  %10.6e\n",i,x);
@@ -38,6 +39,7 @@ void anyvalue(struct multipoledata data, int *value, double *d1, double *d2){
 	 s1/gridsize, 
 	 (s2-s1/gridsize*s1)/(gridsize-1.0)*12.0,
 	 (s2/gridsize - s1*s1/gridsize/gridsize)*12.0);
+  */
   return;
 }
 
@@ -53,12 +55,11 @@ __global__ void history(curandState *rndState, double *devicearray){
     threadIdx.x;
   /* Each thread gets same seed, a different sequence number, no offset */
   curand_init(1234, id, 0, &rndState[id]);
+  /* Copy state to local memory for efficiency */ 
   curandState localState = rndState[id];
   bool live=true;
   double energy = 1.0;
   double rnd;
-  rnd = curand_uniform(&localState);
-  devicearray[id] = rnd;
   while(live){
     rnd = curand_uniform(&localState);
     energy = energy * rnd;
