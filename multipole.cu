@@ -52,16 +52,19 @@ multipole::multipole(struct multipoledata data){
   /*
     Following lines allocate Z_array, W_array for the "in advance" scheme
   */
+
   int maxwindow=0;
   int cnt;
-  for(int iW=0;iW<dev_integers[WINDOWS];iW++){
-    cnt = w_end[iW]-w_start[iW]+1;
+  int iW;
+  for(iW=0;iW<data.windows;iW++){
+    cnt = data.w_end[iW]-data.w_start[iW]+1;
     if(cnt>maxwindow)
       maxwindow = cnt;
   }
   size = maxwindow*2*sizeof(double);
   cudaMalloc((void**)&Z_array, size);
   cudaMalloc((void**)&W_array, size);
+
 }
 
 
