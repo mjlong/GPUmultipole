@@ -149,15 +149,16 @@ __device__  void multipole::xs_eval_fast(double E,
   int fissionable = dev_integers[FISSIONABLE];
   int length      = dev_integers[LENGTH];
   int windows     = dev_integers[WINDOWS];
-
+  int numL        = dev_integers[NUML];
+  size_t size;
   double spacing = dev_doubles[SPACING];
   double startE  = dev_doubles[STARTE];
   
   int    iP, iC, iW, startW, endW;
   //TODO:I've not found wat to allocate for a thread
   // 5 = maximum numL, consistent with max 4==iL in fill_factors()
-  double twophi[5];
-  CComplex sigT_factor[5];
+  double *twophi;
+  CComplex *sigT_factor;
 
   double sqrtE = sqrt(E);
   double power;
@@ -171,6 +172,9 @@ __device__  void multipole::xs_eval_fast(double E,
     iW = (int)( E - startE )/spacing;
   startW = w_start[iW];
   endW   = w_end[iW];
+  size = numL*sizeof(double);
+  twophi = (double*)malloc(size);
+  sigT_factor = (CComplex*)malloc(2*size);
   if(startW <= endW)
     fill_factors(sqrtE,twophi,sigT_factor);
   sigT = 0.0;
