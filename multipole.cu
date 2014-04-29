@@ -126,16 +126,16 @@ __device__  void multipole::xs_eval_fast(double E, double sqrtKT,
   DOPP = sqrtAWR/sqrtKT;
   DOPP_ECOEF = DOPP/sqrt(PI);
   for(iP=startW;iP<=endW;iP++){
-    Z_array[iP-startW] = (sqrtE - mpdata[pindex(MP_EA,iP,length)])*DOPP;
+    Z_array[iP-startW] = (sqrtE - mpdata[pindex(MP_EA,iP-1,length)])*DOPP;
     W_array[iP-startW] = Faddeeva::w(Z_array[iP-startW])*DOPP_ECOEF;
   }
 
   //evaluating
   for(iP=startW;iP<=endW;iP++){
-    sigT += real(mpdata[pindex(MP_RT,iP,length)]*sigT_factor[l_value[iP]-1]*W_array[iP-startW]);
-    sigA += real(mpdata[pindex(MP_RA,iP,length)]*W_array[iP-startW]);
+    sigT += real(mpdata[pindex(MP_RT,iP-1,length)]*sigT_factor[l_value[iP-1]-1]*W_array[iP-startW]);
+    sigA += real(mpdata[pindex(MP_RA,iP-1,length)]*W_array[iP-startW]);
     if(MP_FISS == fissionable)
-      sigF += real(mpdata[pindex(MP_RF,iP,length)]*W_array[iP-startW]);
+      sigF += real(mpdata[pindex(MP_RF,iP-1,length)]*W_array[iP-startW]);
   }
 
 
@@ -188,12 +188,12 @@ __device__  void multipole::xs_eval_fast(double E,
 
   //evaluating
   for(iP=startW;iP<=endW;iP++){
-    PSIIKI = -ONEI/(mpdata[pindex(MP_EA,iP,length)] - sqrtE);
+    PSIIKI = -ONEI/(mpdata[pindex(MP_EA,iP-1,length)] - sqrtE);
     CDUM1  = PSIIKI / E;
-    sigT += real(mpdata[pindex(MP_RT,iP,length)]*CDUM1*sigT_factor[l_value[iP]-1]);
-    sigA += real(mpdata[pindex(MP_RA,iP,length)]*CDUM1);
+    sigT += real(mpdata[pindex(MP_RT,iP-1,length)]*CDUM1*sigT_factor[l_value[iP-1]-1]);
+    sigA += real(mpdata[pindex(MP_RA,iP-1,length)]*CDUM1);
     if(MP_FISS == fissionable)
-      sigF += real(mpdata[pindex(MP_RF,iP,length)]*CDUM1);
+      sigF += real(mpdata[pindex(MP_RF,iP-1,length)]*CDUM1);
   }
   free(twophi);
   

@@ -15,7 +15,7 @@ void anyvalue(struct multipoledata data, int *value, double *d1, double *d2){
   unsigned gridx, gridy, blockx, blocky, blockz, gridsize;
   double *hostarray, *devicearray;
   gridx = 5;
-  gridy = 4;
+  gridy = 2;
   blockx = 1;
   blocky = 1;
   blockz = 1;
@@ -73,13 +73,13 @@ __global__ void history(multipole U238, curandState *rndState, double *devicearr
     live = false;//(energy>50.0);
   }
 
-  devicearray[4*id]=energy;
-  devicearray[4*id+1]=sibT;
-  devicearray[4*id+2]=sigT;
-  devicearray[4*id+3]=sibA;
-  devicearray[4*id+4]=sigA;
-  devicearray[4*id+5]=sibF;
-  devicearray[4*id+6]=sigF;
+  devicearray[7*id]=energy;
+  devicearray[7*id+1]=sibT;
+  devicearray[7*id+2]=sigT;
+  devicearray[7*id+3]=sibA;
+  devicearray[7*id+4]=sigA;
+  devicearray[7*id+5]=sibF;
+  devicearray[7*id+6]=sigF;
 
   /* Copy state back to global memory */ 
   rndState[id] = localState; 
