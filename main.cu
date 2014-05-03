@@ -8,15 +8,14 @@
 
 
 __global__ void history(multipole, curandState *rndState, double *, double *);
-
+void printdevice();
 
 void anyvalue(struct multipoledata data, int *value, double *d1, double *d2){
   curandState *rndState;
   unsigned gridx, gridy, blockx, blocky, blockz, blocknum, gridsize;
+  unsigned ints=0, floats=0, doubles=0, sharedmem;
   double *hostarray, *devicearray, *tally, *dev_tally;
-  cudaDeviceProp prop; 
-  int count;
-  cudaGetDeviceCount(&count);
+  printdevice();
   gridx = 4;
   gridy = 4;
   blockx = 32;
@@ -32,7 +31,15 @@ void anyvalue(struct multipoledata data, int *value, double *d1, double *d2){
   hostarray = (double*)malloc(7*gridsize*sizeof(double));
   tally     = (double*)malloc(blocknum*sizeof(double));
   multipole U238(data); //host multipoledata to device
-  history<<<dimBlock, dimGrid, blockx*blocky*blockz*sizeof(double)>>>(U238, rndState, devicearray, dev_tally);
+  
+  /*
+    Note: shared memory size is in unit of Bybe
+    And the address can be referred in form of p = pshared + offset
+  */
+  doubles = blockx*blocky*blockz;
+  sharedmem = doubles*sizeof(double)+floats*sizeof(float)+ints*sizeof(int);
+  history<<<dimBlock, dimGrid, sharedmem>>>(U238, rndState, devicearray, dev_tally);
+  
   //history<<<dimBlock, dimGrid>>>(U238, rndState, devicearray, dev_tally);
   cudaMemcpy(hostarray, devicearray, 7*gridsize*sizeof(double), cudaMemcpyDeviceToHost);
   cudaMemcpy(tally, dev_tally, blocknum*sizeof(double), cudaMemcpyDeviceToHost);
@@ -50,45 +57,6 @@ void anyvalue(struct multipoledata data, int *value, double *d1, double *d2){
   for (int i=0;i<blocknum;i++)
     printf("%2.1f\n",tally[i]);
 
-  for (int i=0; i<count; i++){
-    cudaGetDeviceProperties( &prop, i );
-    printf( "   --- General Information for device %d ---\n", i );
-    printf( "Name:  %s\n", prop.name );
-    printf( "Compute capability:  %d.%d\n", prop.major, prop.minor );
-    printf( "Clock rate:  %d\n", prop.clockRate );
-    printf( "Device copy overlap:  " );
-    if (prop.deviceOverlap)
-      printf( "Enabled\n" );
-    else
-      printf( "Disabled\n");
-    printf( "Kernel execution timeout :  " );
-    if (prop.kernelExecTimeoutEnabled)
-      printf( "Enabled\n" );
-    else
-      printf( "Disabled\n" );
-    
-    printf( "   --- Memory Information for device %d ---\n", i );
-    printf( "Total global mem:  %ld\n", prop.totalGlobalMem );
-    printf( "Total constant Mem:  %ld\n", prop.totalConstMem );
-    printf( "Max mem pitch:  %ld\n", prop.memPitch );
-    printf( "Texture Alignment:  %ld\n", prop.textureAlignment );
-    
-    printf( "   --- MP Information for device %d ---\n", i );
-    printf( "Multiprocessor count:  %d\n",
-	    prop.multiProcessorCount );
-    printf( "Shared mem per mp:  %ld\n", prop.sharedMemPerBlock );
-    printf( "Registers per mp:  %d\n", prop.regsPerBlock );
-    printf( "Threads in warp:  %d\n", prop.warpSize );
-    printf( "Max threads per block:  %d\n",
-	    prop.maxThreadsPerBlock );
-    printf( "Max thread dimensions:  (%d, %d, %d)\n",
-	    prop.maxThreadsDim[0], prop.maxThreadsDim[1],
-	    prop.maxThreadsDim[2] );
-    printf( "Max grid dimensions:  (%d, %d, %d)\n",
-	    prop.maxGridSize[0], prop.maxGridSize[1],
-	    prop.maxGridSize[2] );
-    printf( "\n" );
-  }
 
   return;
 }
@@ -167,5 +135,53 @@ __global__ void history(multipole U238, curandState *rndState, double *devicearr
   }
   if(0==idl)
     dev_tally[idb] = tally[0]/blocksize;
+
+}
+
+
+void printdevice(){
+  cudaDeviceProp prop; 
+  int count;
+  cudaGetDeviceCount(&count);
+  for (int i=0; i<count; i++){
+    cudaGetDeviceProperties( &prop, i );
+    printf( "   --- General Information for device %d ---\n", i );
+    printf( "Name:  %s\n", prop.name );
+    printf( "Compute capability:  %d.%d\n", prop.major, prop.minor );
+    printf( "Clock rate:  %d\n", prop.clockRate );
+    printf( "Device copy overlap:  " );
+    if (prop.deviceOverlap)
+      printf( "Enabled\n" );
+    else
+      printf( "Disabled\n");
+    printf( "Kernel execution timeout :  " );
+    if (prop.kernelExecTimeoutEnabled)
+      printf( "Enabled\n" );
+    else
+      printf( "Disabled\n" );
+    
+    printf( "   --- Memory Information for device %d ---\n", i );
+    printf( "Total global mem:  %ld\n", prop.totalGlobalMem );
+    printf( "Total constant Mem:  %ld\n", prop.totalConstMem );
+    printf( "Max mem pitch:  %ld\n", prop.memPitch );
+    printf( "Texture Alignment:  %ld\n", prop.textureAlignment );
+    
+    printf( "   --- MP Information for device %d ---\n", i );
+    printf( "Multiprocessor count:  %d\n",
+	    prop.multiProcessorCount );
+    printf( "Shared mem per mp:  %ld\n", prop.sharedMemPerBlock );
+    printf( "Registers per mp:  %d\n", prop.regsPerBlock );
+    printf( "Threads in warp:  %d\n", prop.warpSize );
+    printf( "Max threads per block:  %d\n",
+	    prop.maxThreadsPerBlock );
+    printf( "Max thread dimensions:  (%d, %d, %d)\n",
+	    prop.maxThreadsDim[0], prop.maxThreadsDim[1],
+	    prop.maxThreadsDim[2] );
+    printf( "Max grid dimensions:  (%d, %d, %d)\n",
+	    prop.maxGridSize[0], prop.maxGridSize[1],
+	    prop.maxGridSize[2] );
+    printf( "\n" );
+  }
+
 
 }
