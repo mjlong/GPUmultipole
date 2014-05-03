@@ -5,7 +5,11 @@
 #include <cuda.h>
 #include <curand_kernel.h>
 
-
+/*
+  To compile host and device codes separately, 
+  this "main" file works as interface 
+  allocating device memory, transfering data and partitioning computation sources
+*/
 
 __global__ void history(multipole, curandState *rndState, double *, double *);
 void printdevice();
@@ -40,7 +44,6 @@ void anyvalue(struct multipoledata data, int *value, double *d1, double *d2){
   sharedmem = doubles*sizeof(double)+floats*sizeof(float)+ints*sizeof(int);
   history<<<dimBlock, dimGrid, sharedmem>>>(U238, rndState, devicearray, dev_tally);
   
-  //history<<<dimBlock, dimGrid>>>(U238, rndState, devicearray, dev_tally);
   cudaMemcpy(hostarray, devicearray, 7*gridsize*sizeof(double), cudaMemcpyDeviceToHost);
   cudaMemcpy(tally, dev_tally, blocknum*sizeof(double), cudaMemcpyDeviceToHost);
 
