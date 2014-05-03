@@ -1,8 +1,8 @@
 CC=g++
 NVCC = nvcc
-NCFLAGS=-g -G -dc -arch=sm_20
+NCFLAGS=-g -G -dc -arch=sm_21
 CCFLAGS=-c -g -I/opt/hdf5/1.8.10-gnu/include
-LINKLAG=-arch=sm_20 -dlink
+LINKLAG=-arch=sm_21 -dlink
 LDFLAGS=-g  -L/opt/hdf5/1.8.10-gnu/lib/ -L/usr/local/cuda/lib64 -lcudart -lhdf5 
 CSOURCES=\
 CPUComplex.cc\
