@@ -5,18 +5,51 @@
 #include <cuda.h>
 #include <curand_kernel.h>
 
-__global__ void history(multipole, curandState *rndState, double *);
 
 
+__global__ void history(multipole, curandState *rndState, double *, double *);
 
 
 void anyvalue(struct multipoledata data, int *value, double *d1, double *d2){
   curandState *rndState;
-  unsigned gridx, gridy, blockx, blocky, blockz, gridsize;
-  double *hostarray, *devicearray;
+  unsigned gridx, gridy, blockx, blocky, blockz, blocknum, gridsize;
+  double *hostarray, *devicearray, *tally, *dev_tally;
   cudaDeviceProp prop; 
   int count;
   cudaGetDeviceCount(&count);
+  gridx = 4;
+  gridy = 4;
+  blockx = 32;
+  blocky = 1;
+  blockz = 1;
+  dim3 dimBlock(gridx, gridy);
+  dim3 dimGrid(blockx, blocky, blockz);
+  blocknum = gridx*gridy; 
+  gridsize = gridx*gridy*blockx*blocky*blockz;
+  cudaMalloc((void**)&rndState, gridsize*sizeof(curandState));
+  cudaMalloc((void**)&devicearray, 7*gridsize*sizeof(double));
+  cudaMalloc((void**)&dev_tally, blocknum*sizeof(double));
+  hostarray = (double*)malloc(7*gridsize*sizeof(double));
+  tally     = (double*)malloc(blocknum*sizeof(double));
+  multipole U238(data); //host multipoledata to device
+  history<<<dimBlock, dimGrid, blockx*blocky*blockz*sizeof(double)>>>(U238, rndState, devicearray, dev_tally);
+  //history<<<dimBlock, dimGrid>>>(U238, rndState, devicearray, dev_tally);
+  cudaMemcpy(hostarray, devicearray, 7*gridsize*sizeof(double), cudaMemcpyDeviceToHost);
+  cudaMemcpy(tally, dev_tally, blocknum*sizeof(double), cudaMemcpyDeviceToHost);
+
+  for(int i=0;i<gridsize;i++){
+    printf("%8.4f %8.5e %8.5e %8.5e %8.5e %8.5e %8.5e\n",
+	   hostarray[7*i],
+	   hostarray[7*i+1],
+	   hostarray[7*i+2],
+	   hostarray[7*i+3],
+	   hostarray[7*i+4],
+	   hostarray[7*i+5],
+	   hostarray[7*i+6]);
+  }
+  for (int i=0;i<blocknum;i++)
+    printf("%2.1f\n",tally[i]);
+
   for (int i=0; i<count; i++){
     cudaGetDeviceProperties( &prop, i );
     printf( "   --- General Information for device %d ---\n", i );
@@ -56,38 +89,29 @@ void anyvalue(struct multipoledata data, int *value, double *d1, double *d2){
 	    prop.maxGridSize[2] );
     printf( "\n" );
   }
-  gridx = 5;
-  gridy = 2;
-  blockx = 1;
-  blocky = 1;
-  blockz = 1;
-  dim3 dimBlock(gridx, gridy);
-  dim3 dimGrid(blockx, blocky, blockz);
-  gridsize = gridx*gridy*blockx*blocky*blockz;
-  cudaMalloc((void**)&rndState, gridsize*sizeof(curandState));
-  cudaMalloc((void**)&devicearray, 7*gridsize*sizeof(double));
-  hostarray = (double*)malloc(7*gridsize*sizeof(double));
-  multipole U238(data); //host multipoledata to device
-  history<<<dimBlock, dimGrid>>>(U238, rndState, devicearray);
-  cudaMemcpy(hostarray, devicearray, 7*gridsize*sizeof(double), cudaMemcpyDeviceToHost);
-
-
-  for(int i=0;i<gridsize;i++){
-    printf("%8.4f %8.5e %8.5e %8.5e %8.5e %8.5e %8.5e\n",
-	   hostarray[7*i],
-	   hostarray[7*i+1],
-	   hostarray[7*i+2],
-	   hostarray[7*i+3],
-	   hostarray[7*i+4],
-	   hostarray[7*i+5],
-	   hostarray[7*i+6]);
-  }
 
   return;
 }
 
 
-__global__ void history(multipole U238, curandState *rndState, double *devicearray){
+__global__ void history(multipole U238, curandState *rndState, double *devicearray, double *dev_tally){
+  int blocksize = blockDim.x * blockDim.y * blockDim.z;
+  
+  //size of shared[] is given as 3rd parameter while launching the kernel
+  extern __shared__ double shared[];
+  
+  double *tally = &shared[0];
+
+  int i;
+
+  int idl = 
+    (blockDim.x*blockDim.y)*threadIdx.z+
+    blockDim.x*threadIdx.y+
+    threadIdx.x;
+
+  int idb = 
+    blockIdx.y*gridDim.x+blockIdx.x;
+
   //TODO:this is one scheme to match threads to 1D array, 
   //try others when real simulation structure becomes clear
   int id = 
@@ -96,6 +120,10 @@ __global__ void history(multipole U238, curandState *rndState, double *devicearr
     (blockDim.x*blockDim.y)*threadIdx.z+
     blockDim.x*threadIdx.y+
     threadIdx.x;
+
+
+
+  
   /* Each thread gets same seed, a different sequence number, no offset */
   curand_init(1234, id, 0, &rndState[id]);
   /* Copy state to local memory for efficiency */ 
@@ -114,7 +142,7 @@ __global__ void history(multipole U238, curandState *rndState, double *devicearr
 
     live = false;//(energy>50.0);
   }
-
+  
   devicearray[7*id]=energy;
   devicearray[7*id+1]=sibT;
   devicearray[7*id+2]=sigT;
@@ -125,5 +153,19 @@ __global__ void history(multipole U238, curandState *rndState, double *devicearr
 
   /* Copy state back to global memory */ 
   rndState[id] = localState; 
+
+  /*reduce tally*/
+
+  tally[idl] = (double)(rnd<0.5);
+  __syncthreads();
+  i = blocksize>>2;
+  while(0!=i){
+    if(idl<i)
+      tally[idl] += tally[idl+i];
+    __syncthreads();
+    i=i>>1;
+  }
+  if(0==idl)
+    dev_tally[idb] = tally[0]/blocksize;
 
 }
