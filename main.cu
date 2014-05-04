@@ -16,8 +16,13 @@ void printdevice();
 void anyvalue(struct multipoledata data, int *value, double *d1, double *d2){
   unsigned gridx, gridy, blockx, blocky, blockz, blocknum, gridsize;
   unsigned ints=0, floats=0, doubles=0, sharedmem;
+  float timems;
   double *hostarray, *devicearray, *tally;
   struct neutronInfo Info;
+  cudaEvent_t start, stop;
+  cudaEventCreate(&start);
+  cudaEventCreate(&stop);
+  cudaEventRecord(start, 0);
   //  printdevice();
   gridx = 4;
   gridy = 1;
@@ -64,11 +69,19 @@ void anyvalue(struct multipoledata data, int *value, double *d1, double *d2){
   }
   for (int i=0;i<blocknum;i++)
     printf("%2.1f\n",tally[i]);
-  
+
+  cudaEventRecord(stop, 0);
+  cudaEventSynchronize(stop);
+  cudaEventElapsedTime(&timems, start, stop);
+
+  printf("time elapsed:%3.1f ms\n", timems);
+  cudaEventDestroy(start);
+  cudaEventDestroy(stop);
+
   cudaFree(devicearray);
   cudaFree(Info.energy);
   cudaFree(Info.tally);
-  cudaFree(Info.curandState);
+  cudaFree(Info.rndState);
 
   return;
 }
