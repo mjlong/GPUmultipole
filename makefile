@@ -11,6 +11,7 @@ main.cc
 GSOURCES=\
 CComplex.cu\
 Faddeeva.cu\
+simulation.cu\
 multipole.cu\
 main.cu
 COBJECTS=$(CSOURCES:.cc=.obj)
