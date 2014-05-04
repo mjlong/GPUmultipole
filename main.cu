@@ -64,7 +64,11 @@ void anyvalue(struct multipoledata data, int *value, double *d1, double *d2){
   }
   for (int i=0;i<blocknum;i++)
     printf("%2.1f\n",tally[i]);
-
+  
+  cudaFree(devicearray);
+  cudaFree(Info.energy);
+  cudaFree(Info.tally);
+  cudaFree(Info.curandState);
 
   return;
 }

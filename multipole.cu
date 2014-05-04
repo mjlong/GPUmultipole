@@ -77,6 +77,8 @@ multipole::~multipole(){
   cudaFree(w_start);
   cudaFree(w_end);
   cudaFree(fit);
+  cudaFree(Z_array);
+  cudaFree(W_array);
 }
 __device__  void multipole::xs_eval_fast(double E, double sqrtKT, 
 			double &sigT, double &sigA, double &sigF){
