@@ -16,13 +16,13 @@ void printdevice();
 void anyvalue(struct multipoledata data, int *value, double *d1, double *d2){
   unsigned gridx, gridy, blockx, blocky, blockz, blocknum, gridsize;
   unsigned ints=0, floats=0, doubles=0, sharedmem;
-  float timems;
+  float timems = 0.0;
   double *hostarray, *devicearray, *tally;
   struct neutronInfo Info;
-  cudaEvent_t start, stop;
-  cudaEventCreate(&start);
-  cudaEventCreate(&stop);
- //  printdevice();
+  //cudaEvent_t start, stop;
+  //cudaEventCreate(&start);
+  //cudaEventCreate(&stop);
+  // printdevice();
   gridx = 4;
   gridy = 1;
   blockx = 256;
@@ -51,12 +51,12 @@ void anyvalue(struct multipoledata data, int *value, double *d1, double *d2){
   */
   doubles = blockx*blocky*blockz;
   sharedmem = doubles*sizeof(double)+floats*sizeof(float)+ints*sizeof(int);
-  cudaEventRecord(start, 0);
+  //cudaEventRecord(start, 0);
   history<<<dimBlock, dimGrid, sharedmem>>>(U238, devicearray, Info);
 
-  cudaEventRecord(stop, 0);
-  cudaEventSynchronize(stop);
-  cudaEventElapsedTime(&timems, start, stop);
+  //cudaEventRecord(stop, 0);
+  //cudaEventSynchronize(stop);
+  //cudaEventElapsedTime(&timems, start, stop);
 
   printf("time elapsed:%3.1f ms\n", timems);
  
@@ -76,13 +76,13 @@ void anyvalue(struct multipoledata data, int *value, double *d1, double *d2){
   for (int i=0;i<blocknum;i++)
     printf("%2.1f\n",tally[i]);
 
-  cudaEventRecord(stop, 0);
-  cudaEventSynchronize(stop);
-  cudaEventElapsedTime(&timems, start, stop);
+  //cudaEventRecord(stop, 0);
+  //cudaEventSynchronize(stop);
+  //cudaEventElapsedTime(&timems, start, stop);
 
   printf("time elapsed:%3.1f ms\n", timems);
-  cudaEventDestroy(start);
-  cudaEventDestroy(stop);
+  //cudaEventDestroy(start);
+  //cudaEventDestroy(stop);
 
   cudaFree(devicearray);
   cudaFree(Info.energy);
