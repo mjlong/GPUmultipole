@@ -22,11 +22,10 @@ void anyvalue(struct multipoledata data, int *value, double *d1, double *d2){
   cudaEvent_t start, stop;
   cudaEventCreate(&start);
   cudaEventCreate(&stop);
-  cudaEventRecord(start, 0);
-  //  printdevice();
+ //  printdevice();
   gridx = 4;
   gridy = 1;
-  blockx = 16;
+  blockx = 256;
   blocky = 1;
   blockz = 1;
   dim3 dimBlock(gridx, gridy);
@@ -52,8 +51,15 @@ void anyvalue(struct multipoledata data, int *value, double *d1, double *d2){
   */
   doubles = blockx*blocky*blockz;
   sharedmem = doubles*sizeof(double)+floats*sizeof(float)+ints*sizeof(int);
+  cudaEventRecord(start, 0);
   history<<<dimBlock, dimGrid, sharedmem>>>(U238, devicearray, Info);
 
+  cudaEventRecord(stop, 0);
+  cudaEventSynchronize(stop);
+  cudaEventElapsedTime(&timems, start, stop);
+
+  printf("time elapsed:%3.1f ms\n", timems);
+ 
   cudaMemcpy(hostarray, devicearray, 7*gridsize*sizeof(double), cudaMemcpyDeviceToHost);
   cudaMemcpy(tally, Info.tally, blocknum*sizeof(double), cudaMemcpyDeviceToHost);
 
