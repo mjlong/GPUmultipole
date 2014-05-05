@@ -1,4 +1,4 @@
-#include "CPUComplex.h"
+#include "CComplex.h"
 
 #define KB (8.617342E-5)
 #define C1 0.002196771 
