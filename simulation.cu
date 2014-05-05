@@ -44,17 +44,16 @@ __global__ void history(multipole U238, double *devicearray, struct neutronInfo 
     U238.xs_eval_fast(energy, sigT, sigA, sigF);
     U238.xs_eval_fast(energy, sqrt(900*KB), sibT, sibA, sibF);
     energy = energy * rnd;
-
     live = false;
   }
-  
+   
   devicearray[7*id+1]=sibT;
   devicearray[7*id+2]=sigT;
   devicearray[7*id+3]=sibA;
   devicearray[7*id+4]=sigA;
   devicearray[7*id+5]=sibF;
   devicearray[7*id+6]=sigF;
-
+  
   /* Copy state back to global memory */ 
   Info.rndState[id] = localState; 
 
