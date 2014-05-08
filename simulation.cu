@@ -2,7 +2,7 @@
 
 __global__ void initialize(neutronInfo Info, double energy){
   int id = ((blockDim.x*blockDim.y*blockDim.z)*(blockIdx.y*gridDim.x+blockIdx.x)+(blockDim.x*blockDim.y)*threadIdx.z+blockDim.x*threadIdx.y+threadIdx.x);//THREADID;
-  Info.energy[id] = energy;//(id + 1)*1.63*energy*0.001;
+  Info.energy[id] = energy;//(id + 1)*1.63*energy*0.001;// 
 
 }
 
@@ -23,7 +23,7 @@ __global__ void history(multipole U238, double *devicearray, struct neutronInfo 
   int blocksize = blockDim.x * blockDim.y * blockDim.z;
 
   bool live=true;
-  double energy;
+  double localenergy;
   double rnd;
   double sigT, sigA, sigF;
   extern __shared__ double shared[];
@@ -36,13 +36,14 @@ __global__ void history(multipole U238, double *devicearray, struct neutronInfo 
   /* Copy state to local memory for efficiency */ 
   curandState localState = Info.rndState[id];
 
-  energy = Info.energy[id];
-  devicearray[4*id]=energy;
+  localenergy = Info.energy[id];
+  devicearray[4*id]=localenergy;
   while(live){
     rnd = curand_uniform(&localState);
-    U238.xs_eval_fast(energy, sqrt(300.0*KB), sigT, sigA, sigF);
-    energy = energy * rnd;
-    live = (energy>1.0);
+    U238.xs_eval_fast(localenergy, sqrt(300.0*KB), sigT, sigA, sigF);
+    localenergy = localenergy * rnd;
+    live = (localenergy>1.0);
+    live = false;
   }
    
   devicearray[4*id+1]=sigT;
