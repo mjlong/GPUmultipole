@@ -13,7 +13,7 @@ CComplex.cu\
 Faddeeva.cu\
 simulation.cu\
 multipole.cu\
-main.cu
+devicemain.cu
 COBJECTS=$(CSOURCES:.cc=.obj)
 GOBJECTS=$(GSOURCES:.cu=.o)
 LINKJECT=dlink.o
