@@ -2,7 +2,7 @@
 
 __global__ void initialize(neutronInfo Info, double energy){
   int id = ((blockDim.x*blockDim.y*blockDim.z)*(blockIdx.y*gridDim.x+blockIdx.x)+(blockDim.x*blockDim.y)*threadIdx.z+blockDim.x*threadIdx.y+threadIdx.x);//THREADID;
-  Info.energy[id] = (id + 1)*1.63*energy*0.001;
+  Info.energy[id] = energy;//(id + 1)*1.63*energy*0.001;
 
 }
 
@@ -22,9 +22,12 @@ __global__ void history(multipole U238, double *devicearray, struct neutronInfo 
     blockIdx.y*gridDim.x+blockIdx.x;
   int blocksize = blockDim.x * blockDim.y * blockDim.z;
 
-  //size of shared[] is given as 3rd parameter while launching the kernel
+  bool live=true;
+  double energy;
+  double rnd;
+  double sigT, sigA, sigF;
   extern __shared__ double shared[];
-  
+  //size of shared[] is given as 3rd parameter while launching the kernel
   double *tally = &shared[0];
 
   /* Each thread gets same seed, a different sequence number, no offset */
@@ -33,26 +36,18 @@ __global__ void history(multipole U238, double *devicearray, struct neutronInfo 
   /* Copy state to local memory for efficiency */ 
   curandState localState = Info.rndState[id];
 
-  bool live=true;
-  double energy = Info.energy[id];
-  devicearray[7*id]=energy;
-  double rnd;
-  double sigT, sigA, sigF, sibT, sibA, sibF;
+  energy = Info.energy[id];
+  devicearray[4*id]=energy;
   while(live){
     rnd = curand_uniform(&localState);
-    //for test
-    U238.xs_eval_fast(energy, sigT, sigA, sigF);
-    U238.xs_eval_fast(energy, sqrt(900*KB), sibT, sibA, sibF);
+    U238.xs_eval_fast(energy, sqrt(300.0*KB), sigT, sigA, sigF);
     energy = energy * rnd;
-    live = false;
+    live = (energy>1.0);
   }
    
-  devicearray[7*id+1]=sibT;
-  devicearray[7*id+2]=sigT;
-  devicearray[7*id+3]=sibA;
-  devicearray[7*id+4]=sigA;
-  devicearray[7*id+5]=sibF;
-  devicearray[7*id+6]=sigF;
+  devicearray[4*id+1]=sigT;
+  devicearray[4*id+2]=sigA;
+  devicearray[4*id+3]=sigF;
   
   /* Copy state back to global memory */ 
   Info.rndState[id] = localState; 
