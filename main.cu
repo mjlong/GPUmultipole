@@ -25,24 +25,24 @@ void anyvalue(struct multipoledata data, int *value, double *d1, double *d2){
   // printdevice();
   gridx = 4;
   gridy = 1;
-  blockx = 256;
+  blockx = 128;
   blocky = 1;
   blockz = 1;
   dim3 dimBlock(gridx, gridy);
   dim3 dimGrid(blockx, blocky, blockz);
   blocknum = gridx*gridy; 
   gridsize = gridx*gridy*blockx*blocky*blockz;
-  cudaMalloc((void**)&devicearray, 7*gridsize*sizeof(double));
+  cudaMalloc((void**)&devicearray, 4*gridsize*sizeof(double));
   cudaMalloc((void**)&(Info.rndState), gridsize*sizeof(curandState));
   cudaMalloc((void**)&(Info.energy), gridsize*sizeof(double));
   cudaMalloc((void**)&(Info.tally), blocknum*sizeof(double));
-  hostarray = (double*)malloc(7*gridsize*sizeof(double));
+  hostarray = (double*)malloc(4*gridsize*sizeof(double));
   tally     = (double*)malloc(blocknum*sizeof(double));
 
   multipole U238(data); //host multipoledata to device
 
 
-  initialize<<<dimBlock, dimGrid>>>(Info, 1000.0);
+  initialize<<<dimBlock, dimGrid>>>(Info, 20000.0);
   //  cudaDeviceSynchronize();
 
   /*
@@ -60,18 +60,15 @@ void anyvalue(struct multipoledata data, int *value, double *d1, double *d2){
 
   printf("time elapsed:%3.1f ms\n", timems);
  
-  cudaMemcpy(hostarray, devicearray, 7*gridsize*sizeof(double), cudaMemcpyDeviceToHost);
+  cudaMemcpy(hostarray, devicearray, 4*gridsize*sizeof(double), cudaMemcpyDeviceToHost);
   cudaMemcpy(tally, Info.tally, blocknum*sizeof(double), cudaMemcpyDeviceToHost);
 
   for(int i=0;i<gridsize;i++){
-    printf("%8.4f %8.5e %8.5e %8.5e %8.5e %8.5e %8.5e\n",
-	   hostarray[7*i],
-	   hostarray[7*i+1],
-	   hostarray[7*i+2],
-	   hostarray[7*i+3],
-	   hostarray[7*i+4],
-	   hostarray[7*i+5],
-	   hostarray[7*i+6]);
+    printf("%8.4f %8.5e %8.5e %8.5e\n",
+	   hostarray[4*i],
+	   hostarray[4*i+1],
+	   hostarray[4*i+2],
+	   hostarray[4*i+3]);
   }
   for (int i=0;i<blocknum;i++)
     printf("%2.1f\n",tally[i]);
