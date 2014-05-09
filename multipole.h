@@ -58,7 +58,7 @@ class multipole{
   multipole(char filename[]);
   //  void isotopeinfo(isotope );
   void xs_eval_fast(double E, double sqrtAWR, 
-	       double &sigT, double &sigA, double &sigF);
+		    double &sigT, double &sigA, double &sigF,unsigned *, unsigned);
   void xs_eval_fast(double E, 
 	       double &sigT, double &sigA, double &sigF);
   void fill_factors(double sqrtE, double *twophi);
