@@ -19,6 +19,7 @@ int main(){
   srand(0);
   energy = e1;
   for(i=0;i<100;i++){
+  energy = e1;
   while(energy>=e0){
     rnd = rand()/(double)RAND_MAX;
     //energy = 20000.0; //(i+1.0)*1.63;//20000.0;//
