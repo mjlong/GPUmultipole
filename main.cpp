@@ -17,21 +17,23 @@ int main(){
       counts[i]=0;
   h5read(U238, h5filename);
   srand(0);
+  e1 = 1.95093e4;
   energy = e1;
-  for(i=0;i<100;i++){
-  energy = e1;
+  e0 = e1;//note: this extra line disables all loops
   while(energy>=e0){
     rnd = rand()/(double)RAND_MAX;
     //energy = 20000.0; //(i+1.0)*1.63;//20000.0;//
     U238.xs_eval_fast(energy,sqrt(KB*T),sigT,sigA,sigF,counts,2*N);
+    printf("xs:%g,%g,%g\n",sigT,sigA,sigF);
     energy = energy*rnd;
   }
-  }
-  for(i=0;i<2*N;i++){
+
+  /*  for(i=0;i<2*N;i++){
     for(j=0;j<2*N;j++)
       fprintf(file,"%4d",counts[i*2*N+j]);
     fprintf(file,"\n");
-  }
+    }*/
+  free(counts);
   fclose(file);
   return 0;
 }
