@@ -12,7 +12,7 @@ main.cpp
 OBJECTS=$(SOURCES:.cpp=.o)
 HSOURCES=h5_rdwt.cxx
 HOBJECTS=h5_rdwt.o
-EXECUTABLE=testmain
+EXECUTABLE=W5MINI
 all: $(EXECUTABLE)
 	@echo "make clean if .h file updated"
 
