@@ -206,12 +206,18 @@ __device__  void multipole::xs_eval_fast(double E,
 }
 
 
-__host__ __device__  int multipole::findex(int type, int iC, int iW, int fitorder, int windows){
-  return windows*(fitorder+1)*type+windows*iC+iW;
+//__host__ __device__  int multipole::findex(int type, int iC, int iW, int fitorder, int windows){
+//  return windows*(fitorder+1)*type+windows*iC+iW;
+//}
+__host__ __device__ int multipole::findex(int iW, int iC, int type, int orders, int types){
+  return iW*(fitorder+1)*types + iC*types + type; 
 }
 
-__host__ __device__  int multipole::pindex(int type, int iP, int length){
-  return length*type + iP;
+//__host__ __device__  int multipole::pindex(int type, int iP, int length){
+//  return length*type + iP;
+//}
+__host__ __device__ int multipole::pindex(int iP, int type, int types){
+  return iP*types + type;
 }
 
 //TODO: here just continue the initilization scheme, it deserves trying make some values shared
