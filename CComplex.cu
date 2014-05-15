@@ -207,7 +207,7 @@ __host__ __device__ CComplex operator + (double d, CComplex c){
 }
 
 __host__ __device__ CComplex operator - (double d, CComplex c) {
-  return CComplex (d-c.Re(), c.Im());
+  return CComplex (d-c.Re(), -c.Im());
 }
 
 __host__ __device__ CComplex operator - (CComplex c1, CComplex c2) {

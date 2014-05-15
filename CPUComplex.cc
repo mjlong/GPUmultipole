@@ -211,7 +211,7 @@ CPUComplex operator + (double d, CPUComplex c){
 }
 
 CPUComplex operator - (double d, CPUComplex c) {
-  return CPUComplex (d-c.Re(), c.Im());
+  return CPUComplex (d-c.Re(), -c.Im());
 }
 
 CPUComplex operator - (CPUComplex c1, CPUComplex c2) {
