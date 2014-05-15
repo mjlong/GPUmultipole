@@ -372,23 +372,22 @@ __device__  CComplex FADDEEVA(Dawson)(CComplex z, double relerr)
 
 // return sinc(x) = sin(x)/x, given both x and sin(x) 
 // [since we only use this in cases where sin(x) has already been computed]
-__device__  static inline double sinc(double x, double sinx) { 
+__device__  static  double sinc(double x, double sinx) { 
   return fabs(x) < 1e-4 ? 1 - (0.1666666666666666666667)*x*x : sinx / x; 
 }
 
 // sinh(x) via Taylor series, accurate to machine precision for |x| < 1e-2
-__device__  static inline double sinh_taylor(double x) {
+__device__  static  double sinh_taylor(double x) {
   return x * (1 + (x*x) * (0.1666666666666666666667
                            + 0.00833333333333333333333 * (x*x)));
 }
 
-__device__  static inline double sqr(double x) { return x*x; }
+__device__  static  double sqr(double x) { return x*x; }
 
 // precomputed table of expa2n2[n-1] = exp(-a2*n*n)
 // for double-precision a2 = 0.26865... in FADDEEVA(w), below.
 //static const double expa2n2[] = {
-__device__  __constant__ double expa2n2[] = {
-//double expa2n2[52]={
+static __device__  __constant__ double expa2n2[] = {
   7.64405281671221563e-01,
   3.41424527166548425e-01,
   8.91072646929412548e-02,
