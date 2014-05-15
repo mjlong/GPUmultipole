@@ -28,10 +28,10 @@ __global__ void history(multipole U238, double *devicearray, struct neutronInfo 
   while(live){
     rnd = curand_uniform(&localState);
     U238.xs_eval_fast(localenergy, sqrt(300.0*KB), sigT, sigA, sigF);
-    localenergy = localenergy * rnd;
+    //localenergy = localenergy * rnd;
     live = (localenergy>1.0);
     cnt = cnt + 1;
-//    live = false;
+    live = false;
   }
    
   devicearray[4*id]=localenergy;
