@@ -23,7 +23,7 @@ using namespace std;
 #  elif defined(GNULIB_NAMESPACE) // we are using using gnulib <cmath>
 #    define copysign GNULIB_NAMESPACE::copysign
 #  elif (__cplusplus < 201103L) && !defined(HAVE_COPYSIGN) && !defined(__linux__) && !(defined(__APPLE__) && defined(__MACH__)) && !defined(_AIX)
-static inline double my_copysign(double x, double y) { return y<0 ? -x : x; }
+static  double my_copysign(double x, double y) { return y<0 ? -x : x; }
 #    define copysign my_copysign
 #  endif
 
