@@ -95,9 +95,9 @@ __device__  void multipole::xs_eval_fast(double E, double sqrtKT,
 
   int    iP, iC, iW, startW, endW;
   //TODO:I've not found wat to allocate for a thread
-  // 5 = maximum numL, consistent with max 4==iL in fill_factors()
-  double twophi[5];
-  CComplex sigT_factor[5];
+  // 4 = maximum numL, consistent with max 3==iL in fill_factors()
+  double twophi[4];
+  CComplex sigT_factor[4];
   double sqrtE = sqrt(E);
   double power, DOPP, DOPP_ECOEF;
   CComplex w_val;
@@ -158,25 +158,23 @@ __device__  void multipole::xs_eval_fast(double E,
   
   int    iP, iC, iW, startW, endW;
   //TODO:I've not found wat to allocate for a thread
-  // 5 = maximum numL, consistent with max 4==iL in fill_factors()
-  double *twophi;
-  CComplex *sigT_factor;
+  // 4 = maximum numL, consistent with max 3==iL in fill_factors()
+  double twophi[4];
+  CComplex sigT_factor[4];
 
   double sqrtE = sqrt(E);
   double power;
   CComplex PSIIKI, CDUM1, w_val;
 
   if(1==mode)
-    iW = (int)(sqrtE - sqrt(startE))/spacing;
+    iW = (int)((sqrtE - sqrt(startE))/spacing);
   else if(2==mode)
-    iW = (int)(log(E) - log(startE))/spacing;
+    iW = (int)((log(E) - log(startE))/spacing);
   else
-    iW = (int)( E - startE )/spacing;
+    iW = (int)(( E - startE )/spacing);
   startW = w_start[iW];
   endW   = w_end[iW];
   size = numL*sizeof(double);
-  twophi = (double*)malloc(size);
-  sigT_factor = (CComplex*)malloc(2*size);
   if(startW <= endW)
     fill_factors(sqrtE,twophi,sigT_factor);
   sigT = 0.0;
