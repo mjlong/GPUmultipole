@@ -103,11 +103,11 @@ __device__  void multipole::xs_eval_fast(double E, double sqrtKT,
   CComplex w_val;
 
   if(1==mode)
-    iW = (int)(sqrtE - sqrt(startE))/spacing;
+    iW = (int)((sqrtE - sqrt(startE))/spacing);
   else if(2==mode)
-    iW = (int)(log(E) - log(startE))/spacing;
+    iW = (int)((log(E) - log(startE))/spacing);
   else
-    iW = (int)( E - startE )/spacing;
+    iW = (int)(( E - startE )/spacing);
   startW = w_start[iW];
   endW   = w_end[iW];
   if(startW <= endW)
@@ -117,7 +117,7 @@ __device__  void multipole::xs_eval_fast(double E, double sqrtKT,
   sigF = 0.0;
   //polynomial fitting
   for (iC=0;iC<=fitorder;iC++){
-    power = pow(E,iC);
+    power = pow(E,iC*0.5-1.0);
     sigT += fit[findex(FIT_T, iC, iW,fitorder,windows)]*power;
     sigA += fit[findex(FIT_A, iC, iW,fitorder,windows)]*power;
     if(MP_FISS == fissionable)
