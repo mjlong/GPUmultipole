@@ -85,9 +85,12 @@ __device__  void multipole::xs_eval_fast(double E, double sqrtKT,
   /* Copy variables to local memory for efficiency */ 
   int mode        = dev_integers[MODE];
   int fitorder    = dev_integers[FITORDER];
+  int numL        = dev_integers[NUML];
   int fissionable = dev_integers[FISSIONABLE];
-  int length      = dev_integers[LENGTH];
-  int windows     = dev_integers[WINDOWS];
+  //int length      = dev_integers[LENGTH];
+  //int windows     = dev_integers[WINDOWS];
+
+  //TODO:if length,windows are really not needed, remove them from dev_integers[] array
 
   double spacing = dev_doubles[SPACING];
   double startE  = dev_doubles[STARTE];
@@ -111,7 +114,7 @@ __device__  void multipole::xs_eval_fast(double E, double sqrtKT,
   startW = w_start[iW];
   endW   = w_end[iW];
   if(startW <= endW)
-    fill_factors(sqrtE,twophi,sigT_factor);
+    fill_factors(sqrtE,twophi,numL,sigT_factor);
   sigT = 0.0;
   sigA = 0.0;
   sigF = 0.0;
@@ -149,10 +152,10 @@ __device__  void multipole::xs_eval_fast(double E,
   int mode        = dev_integers[MODE];
   int fitorder    = dev_integers[FITORDER];
   int fissionable = dev_integers[FISSIONABLE];
-  int length      = dev_integers[LENGTH];
-  int windows     = dev_integers[WINDOWS];
+  //int length      = dev_integers[LENGTH];
+  //int windows     = dev_integers[WINDOWS];
   int numL        = dev_integers[NUML];
-  size_t size;
+  //size_t size;
   double spacing = dev_doubles[SPACING];
   double startE  = dev_doubles[STARTE];
   
@@ -174,9 +177,8 @@ __device__  void multipole::xs_eval_fast(double E,
     iW = (int)(( E - startE )/spacing);
   startW = w_start[iW];
   endW   = w_end[iW];
-  size = numL*sizeof(double);
   if(startW <= endW)
-    fill_factors(sqrtE,twophi,sigT_factor);
+    fill_factors(sqrtE,twophi,numL,sigT_factor);
   sigT = 0.0;
   sigA = 0.0;
   sigF = 0.0;
@@ -214,11 +216,11 @@ __host__ __device__ int multipole::pindex(int iP, int type){
 }
 
 //TODO: here just continue the initilization scheme, it deserves trying make some values shared
-__device__ void multipole::fill_factors(double sqrtE, double *twophi, CComplex *sigT_factor){
+__device__ void multipole::fill_factors(double sqrtE, double *twophi, int numL, CComplex *sigT_factor){
   int iL;
   double arg;
 
-  for(iL = 0; iL<dev_integers[NUML]; iL++){
+  for(iL = 0; iL<numL; iL++){
     twophi[iL] = pseudo_rho[iL] * sqrtE; 
     if(1==iL)
       twophi[iL] -= atan(twophi[iL]);
