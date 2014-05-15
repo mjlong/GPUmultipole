@@ -118,26 +118,26 @@ __device__  void multipole::xs_eval_fast(double E, double sqrtKT,
   //polynomial fitting
   for (iC=0;iC<=fitorder;iC++){
     power = pow(E,iC*0.5-1.0);
-    sigT += fit[findex(FIT_T, iC, iW,fitorder,windows)]*power;
-    sigA += fit[findex(FIT_A, iC, iW,fitorder,windows)]*power;
+    sigT += fit[findex(iW,iC,FIT_T,fitorder+1,2+fissionable)]*power;
+    sigA += fit[findex(iW,iC,FIT_A,fitorder+1,2+fissionable)]*power;
     if(MP_FISS == fissionable)
-      sigF += fit[findex(FIT_F, iC, iW,fitorder,windows)]*power;
+      sigF += fit[findex(iW,iC,FIT_F,fitorder+1,2+fissionable)]*power;
   }
   //Faddeeva evaluation in advance
   //TODO: Test whether in advance evaluation is faster
   DOPP = sqrtAWR/sqrtKT;
-  DOPP_ECOEF = DOPP/sqrt(PI);
+  DOPP_ECOEF = DOPP/E*sqrt(PI);
   for(iP=startW;iP<=endW;iP++){
-    Z_array[iP-startW] = (sqrtE - mpdata[pindex(MP_EA,iP-1,length)])*DOPP;
+    Z_array[iP-startW] = (sqrtE - mpdata[pindex(iP-1,MP_EA)])*DOPP;
     W_array[iP-startW] = Faddeeva::w(Z_array[iP-startW])*DOPP_ECOEF;
   }
 
   //evaluating
   for(iP=startW;iP<=endW;iP++){
-    sigT += real(mpdata[pindex(MP_RT,iP-1,length)]*sigT_factor[l_value[iP-1]-1]*W_array[iP-startW]);
-    sigA += real(mpdata[pindex(MP_RA,iP-1,length)]*W_array[iP-startW]);
+    sigT += real(mpdata[pindex(iP-1,MP_RT)]*sigT_factor[l_value[iP-1]-1]*W_array[iP-startW]);
+    sigA += real(mpdata[pindex(iP-1,MP_RA)]*W_array[iP-startW]);
     if(MP_FISS == fissionable)
-      sigF += real(mpdata[pindex(MP_RF,iP-1,length)]*W_array[iP-startW]);
+      sigF += real(mpdata[pindex(iP-1,MP_RF)]*W_array[iP-startW]);
   }
 
 
@@ -185,39 +185,34 @@ __device__  void multipole::xs_eval_fast(double E,
   //polynomial fitting
   for (iC=0;iC<=fitorder;iC++){
     power = pow(E,iC);
-    sigT += fit[findex(FIT_T, iC, iW,fitorder,windows)]*power;
-    sigA += fit[findex(FIT_A, iC, iW,fitorder,windows)]*power;
+    sigT += fit[findex(iW,iC,FIT_T,fitorder+1,2+fissionable)]*power;
+    sigA += fit[findex(iW,iC,FIT_A,fitorder+1,2+fissionable)]*power;
     if(MP_FISS == fissionable)
-      sigF += fit[findex(FIT_F, iC, iW,fitorder,windows)]*power;
+      sigF += fit[findex(iW,iC,FIT_F,fitorder+1,2+fissionable)]*power;
   }
   //Faddeeva evaluation in advance
 
   //evaluating
   for(iP=startW;iP<=endW;iP++){
-    PSIIKI = -ONEI/(mpdata[pindex(MP_EA,iP-1,length)] - sqrtE);
+    PSIIKI = -ONEI/(mpdata[pindex(iP-1,MP_EA)] - sqrtE);
     CDUM1  = PSIIKI / E;
-    sigT += real(mpdata[pindex(MP_RT,iP-1,length)]*CDUM1*sigT_factor[l_value[iP-1]-1]);
-    sigA += real(mpdata[pindex(MP_RA,iP-1,length)]*CDUM1);
+    sigT += real(mpdata[pindex(iP-1,MP_RT)]*CDUM1*sigT_factor[l_value[iP-1]-1]);
+    sigA += real(mpdata[pindex(iP-1,MP_RA)]*CDUM1);
     if(MP_FISS == fissionable)
-      sigF += real(mpdata[pindex(MP_RF,iP-1,length)]*CDUM1);
+      sigF += real(mpdata[pindex(iP-1,MP_RF)]*CDUM1);
   }
   free(twophi);
   
 }
 
 
-//__host__ __device__  int multipole::findex(int type, int iC, int iW, int fitorder, int windows){
-//  return windows*(fitorder+1)*type+windows*iC+iW;
-//}
+
 __host__ __device__ int multipole::findex(int iW, int iC, int type, int orders, int types){
-  return iW*(fitorder+1)*types + iC*types + type; 
+  return iW*orders*types + iC*types + type; 
 }
 
-//__host__ __device__  int multipole::pindex(int type, int iP, int length){
-//  return length*type + iP;
-//}
-__host__ __device__ int multipole::pindex(int iP, int type, int types){
-  return iP*types + type;
+__host__ __device__ int multipole::pindex(int iP, int type){
+  return iP*4 + type;
 }
 
 //TODO: here just continue the initilization scheme, it deserves trying make some values shared
@@ -227,13 +222,13 @@ __device__ void multipole::fill_factors(double sqrtE, double *twophi, CComplex *
 
   for(iL = 0; iL<dev_integers[NUML]; iL++){
     twophi[iL] = pseudo_rho[iL] * sqrtE; 
-    if(2==iL)
+    if(1==iL)
       twophi[iL] -= atan(twophi[iL]);
-    else if(3==iL){
+    else if(2==iL){
       arg = 3.0*twophi[iL] / (3.0 - twophi[iL]*twophi[iL]);
       twophi[iL] -= atan(arg);
     }
-    else if(4==iL){
+    else if(3==iL){
       arg = twophi[iL]*(15.0 - twophi[iL]*twophi[iL])/(15.0 - 6.0*twophi[iL]*twophi[iL]);
       twophi[iL] -= atan(arg);
     }
