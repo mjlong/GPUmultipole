@@ -23,7 +23,7 @@ int main(){
   while(energy>=e0){
     rnd = rand()/(double)RAND_MAX;
     //energy = 20000.0; //(i+1.0)*1.63;//20000.0;//
-    U238.xs_eval_fast(energy,sqrt(KB*T),sigT,sigA,sigF,counts,2*N);
+    U238.xs_eval_fast(21,sqrt(KB*T),sigT,sigA,sigF,counts,2*N);
     printf("xs:%g,%g,%g\n",sigT,sigA,sigF);
     energy = energy*rnd;
   }
