@@ -2,7 +2,7 @@
 
 __global__ void initialize(neutronInfo Info, double energy){
   int id = ((blockDim.x*blockDim.y*blockDim.z)*(blockIdx.y*gridDim.x+blockIdx.x)+(blockDim.x*blockDim.y)*threadIdx.z+blockDim.x*threadIdx.y+threadIdx.x);//THREADID;
-  Info.energy[id] = energy;//(id + 1)*1.63*energy*0.001;// 
+  Info.energy[id] = (id+1.0); //energy;//(id + 1)*1.63*energy*0.001;// 
 
 }
 
@@ -26,10 +26,10 @@ __global__ void history(multipole U238, double *devicearray, struct neutronInfo 
   localenergy = Info.energy[id];
   unsigned cnt = 0;
   while(live){
-    rnd = curand_uniform(&localState);
+    //rnd = curand_uniform(&localState);
     U238.xs_eval_fast(localenergy, sqrt(300.0*KB), sigT, sigA, sigF);
     //localenergy = localenergy * rnd;
-    live = (localenergy>1.0);
+    //live = (localenergy>1.0);
     cnt = cnt + 1;
     live = false;
   }
