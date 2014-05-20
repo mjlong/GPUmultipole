@@ -48,23 +48,6 @@ multipole::multipole(struct multipoledata data){
   size = (FIT_F+data.fissionable)*(data.fitorder+1)*data.windows*sizeof(double);
   cudaMalloc((void**)&fit, size);
   cudaMemcpy(fit, data.fit, size, cudaMemcpyHostToDevice);
-
-  /*
-    Following lines allocate Z_array, W_array for the "in advance" scheme
-  */
-
-  int maxwindow=0;
-  int cnt;
-  int iW;
-  for(iW=0;iW<data.windows;iW++){
-    cnt = data.w_end[iW]-data.w_start[iW]+1;
-    if(cnt>maxwindow)
-      maxwindow = cnt;
-  }
-  size = maxwindow*2*sizeof(double);
-  cudaMalloc((void**)&Z_array, size);
-  cudaMalloc((void**)&W_array, size);
-
 }
 
 
@@ -77,8 +60,6 @@ multipole::~multipole(){
   cudaFree(w_start);
   cudaFree(w_end);
   cudaFree(fit);
-  cudaFree(Z_array);
-  cudaFree(W_array);
 }
 __device__  void multipole::xs_eval_fast(double E, double sqrtKT, 
 			double &sigT, double &sigA, double &sigF){
@@ -104,6 +85,8 @@ __device__  void multipole::xs_eval_fast(double E, double sqrtKT,
   double sqrtE = sqrt(E);
   double power, DOPP, DOPP_ECOEF;
   CComplex w_val;
+  CComplex *Z_array;
+  CComplex *W_array;
 
   if(1==mode)
     iW = (int)((sqrtE - sqrt(startE))/spacing);
@@ -113,6 +96,9 @@ __device__  void multipole::xs_eval_fast(double E, double sqrtKT,
     iW = (int)(( E - startE )/spacing);
   startW = w_start[iW];
   endW   = w_end[iW];
+  Z_array = (CComplex*)malloc((endW-startW+1)*sizeof(CComplex));
+  W_array = (CComplex*)malloc((endW-startW+1)*sizeof(CComplex));
+
   if(startW <= endW)
     fill_factors(sqrtE,twophi,numL,sigT_factor);
   sigT = 0.0;
@@ -143,7 +129,8 @@ __device__  void multipole::xs_eval_fast(double E, double sqrtKT,
       sigF += real(mpdata[pindex(iP-1,MP_RF)]*W_array[iP-startW]);
   }
 
-
+  free(Z_array);
+  free(W_array);
 }
 
 __device__  void multipole::xs_eval_fast(double E,  

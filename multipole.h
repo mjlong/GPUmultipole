@@ -54,7 +54,6 @@ public:
   int *w_end;  // Contains the index of the pole at the end of the window
   double *fit;
   //Contains the fitting function.  (reaction type, coeff index, window index)
-  CComplex *Z_array, *W_array;
   //=========================================================================
 
 
