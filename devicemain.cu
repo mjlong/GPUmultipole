@@ -23,9 +23,9 @@ void anyvalue(struct multipoledata data, int *value, double *d1, double *d2){
   cudaEventCreate(&start);
   cudaEventCreate(&stop);
   // printdevice();
-  gridx = 16;//4;
+  gridx = 512;
   gridy = 1;
-  blockx = 512; //256;//128;
+  blockx = 256;
   blocky = 1;
   blockz = 1;
   dim3 dimBlock(gridx, gridy);
@@ -42,7 +42,7 @@ void anyvalue(struct multipoledata data, int *value, double *d1, double *d2){
   multipole U238(data); //host multipoledata to device
 
 
-  initialize<<<dimBlock, dimGrid>>>(Info, 21.0);//1.95093e4);
+  initialize<<<dimBlock, dimGrid>>>(Info, 2000.0);//1.95093e4);
   //  cudaDeviceSynchronize();
 
   /*
