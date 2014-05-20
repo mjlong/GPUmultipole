@@ -85,8 +85,8 @@ __device__  void multipole::xs_eval_fast(double E, double sqrtKT,
   double sqrtE = sqrt(E);
   double power, DOPP, DOPP_ECOEF;
   CComplex w_val;
-  CComplex *Z_array;
-  CComplex *W_array;
+  //  CComplex *Z_array;
+  //  CComplex *W_array;
 
   if(1==mode)
     iW = (int)((sqrtE - sqrt(startE))/spacing);
@@ -96,8 +96,8 @@ __device__  void multipole::xs_eval_fast(double E, double sqrtKT,
     iW = (int)(( E - startE )/spacing);
   startW = w_start[iW];
   endW   = w_end[iW];
-  Z_array = (CComplex*)malloc((endW-startW+1)*sizeof(CComplex));
-  W_array = (CComplex*)malloc((endW-startW+1)*sizeof(CComplex));
+  //  Z_array = (CComplex*)malloc((endW-startW+1)*sizeof(CComplex));
+  //  W_array = (CComplex*)malloc((endW-startW+1)*sizeof(CComplex));
 
   if(startW <= endW)
     fill_factors(sqrtE,twophi,numL,sigT_factor);
@@ -116,21 +116,26 @@ __device__  void multipole::xs_eval_fast(double E, double sqrtKT,
   //TODO: Test whether in advance evaluation is faster
   DOPP = sqrtAWR/sqrtKT;
   DOPP_ECOEF = DOPP/E*sqrt(PI);
+  /*
   for(iP=startW;iP<=endW;iP++){
     Z_array[iP-startW] = (sqrtE - mpdata[pindex(iP-1,MP_EA)])*DOPP;
     W_array[iP-startW] = Faddeeva::w(Z_array[iP-startW])*DOPP_ECOEF;
   }
-
+  */
   //evaluating
   for(iP=startW;iP<=endW;iP++){
-    sigT += real(mpdata[pindex(iP-1,MP_RT)]*sigT_factor[l_value[iP-1]-1]*W_array[iP-startW]);
-    sigA += real(mpdata[pindex(iP-1,MP_RA)]*W_array[iP-startW]);
+    w_val = Faddeeva::w((sqrtE - mpdata[pindex(iP-1,MP_EA)])*DOPP)*DOPP_ECOEF;
+    //sigT += real(mpdata[pindex(iP-1,MP_RT)]*sigT_factor[l_value[iP-1]-1]*W_array[iP-startW]);
+    //sigA += real(mpdata[pindex(iP-1,MP_RA)]*W_array[iP-startW]);                              
+    sigT += real(mpdata[pindex(iP-1,MP_RT)]*sigT_factor[l_value[iP-1]-1]*w_val);	    
+    sigA += real(mpdata[pindex(iP-1,MP_RA)]*w_val);                              
     if(MP_FISS == fissionable)
-      sigF += real(mpdata[pindex(iP-1,MP_RF)]*W_array[iP-startW]);
+      //sigF += real(mpdata[pindex(iP-1,MP_RF)]*W_array[iP-startW]);
+      sigF += real(mpdata[pindex(iP-1,MP_RF)]*w_val);
   }
 
-  free(Z_array);
-  free(W_array);
+  //  free(Z_array);
+  //  free(W_array);
 }
 
 __device__  void multipole::xs_eval_fast(double E,  
