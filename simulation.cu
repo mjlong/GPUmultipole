@@ -45,13 +45,13 @@ __global__ void history(multipole U238, struct neutronInfo Info){
   Info.rndState[id] = localState; 
 
   /*reduce tally*/
-  double *tally = &shared[0];
+  unsigned *tally = (unsigned*)shared;
   int i;
   int idl = threadIdx.x;
   int idb = blockIdx.x;
   int blocksize = blockDim.x * blockDim.y * blockDim.z;
 
-  tally[idl] = (double)(cnt);
+  tally[idl] = cnt;
   __syncthreads();
   i = blocksize>>1;
   while(i){
@@ -63,7 +63,7 @@ __global__ void history(multipole U238, struct neutronInfo Info){
   if(0==idl){
     //reduction scheme depends on tally type
     //following is to count moderation times
-    Info.tally[idb] = tally[0];
+    Info.ntally.cnt[idb] = tally[0];
   }
 
 }

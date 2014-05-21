@@ -17,7 +17,7 @@ void anyvalue(struct multipoledata data, int *value, double *d1, double *d2){
   unsigned gridx, gridy, blockx, blocky, blockz, blocknum, gridsize;
   unsigned ints=0, floats=0, doubles=0, sharedmem;
   float timems = 0.0;
-  double *tally; //,*hostarray, *devicearray;
+  unsigned *tally; //,*hostarray, *devicearray;
   struct neutronInfo Info;
   cudaEvent_t start, stop;
   cudaEventCreate(&start);
@@ -35,9 +35,9 @@ void anyvalue(struct multipoledata data, int *value, double *d1, double *d2){
   //cudaMalloc((void**)&devicearray, 4*gridsize*sizeof(double));
   cudaMalloc((void**)&(Info.rndState), gridsize*sizeof(curandState));
   cudaMalloc((void**)&(Info.energy), gridsize*sizeof(double));
-  cudaMalloc((void**)&(Info.tally), blocknum*sizeof(double));
+  cudaMalloc((void**)&(Info.ntally.cnt), blocknum*sizeof(unsigned));
   //hostarray = (double*)malloc(4*gridsize*sizeof(double));
-  tally     = (double*)malloc(blocknum*sizeof(double));     
+  tally     = (unsigned*)malloc(blocknum*sizeof(unsigned));     
 
   multipole U238(data); //host multipoledata to device
 
@@ -49,7 +49,7 @@ void anyvalue(struct multipoledata data, int *value, double *d1, double *d2){
     Note: shared memory size is in unit of Bybe
     And the address can be referred in form of p = pshared + offset
   */
-  doubles = blockx*blocky*blockz;
+  ints = blockx*blocky*blockz;
   sharedmem = doubles*sizeof(double)+floats*sizeof(float)+ints*sizeof(int);
   cudaEventRecord(start, 0);
   //history<<<dimBlock, dimGrid, sharedmem>>>(U238, devicearray, Info);
@@ -61,7 +61,7 @@ void anyvalue(struct multipoledata data, int *value, double *d1, double *d2){
   printf("time elapsed:%3.1f ms\n", timems);
  
   //cudaMemcpy(hostarray, devicearray, 4*gridsize*sizeof(double), cudaMemcpyDeviceToHost);
-  cudaMemcpy(tally, Info.tally, blocknum*sizeof(double), cudaMemcpyDeviceToHost);
+  cudaMemcpy(tally, Info.ntally.cnt, blocknum*sizeof(unsigned), cudaMemcpyDeviceToHost);
   /*
   for(int i=0;i<gridsize;i++){
     printf("%8.4e %.15e %.15e %.15e\n",
@@ -88,7 +88,7 @@ void anyvalue(struct multipoledata data, int *value, double *d1, double *d2){
 
   //cudaFree(devicearray);
   cudaFree(Info.energy);
-  cudaFree(Info.tally);
+  cudaFree(Info.ntally.cnt);
   cudaFree(Info.rndState);
 
   return;
