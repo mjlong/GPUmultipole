@@ -18,7 +18,7 @@ struct neutronInfo{
   double *tally;
 };
 
-__global__ void history(multipole, double*, struct neutronInfo );
+__global__ void history(multipole, struct neutronInfo );
 __global__ void initialize(struct neutronInfo, double);
 
 
