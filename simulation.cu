@@ -1,15 +1,17 @@
 #include "simulation.h"
 
 __global__ void initialize(neutronInfo Info, double energy){
-  int id = ((blockDim.x*blockDim.y*blockDim.z)*(blockIdx.y*gridDim.x+blockIdx.x)+(blockDim.x*blockDim.y)*threadIdx.z+blockDim.x*threadIdx.y+threadIdx.x);//THREADID;
+  //  int id = ((blockDim.x*blockDim.y*blockDim.z)*(blockIdx.y*gridDim.x+blockIdx.x)+(blockDim.x*blockDim.y)*threadIdx.z+blockDim.x*threadIdx.y+threadIdx.x);//THREADID;
+  int id = blockDim.x * blockIdx.x + threadIdx.x;
   Info.energy[id] = energy; //(id+1.0); //energy;//(id + 1)*1.63*energy*0.001;// 
 
 }
 
-__global__ void history(multipole U238, double *devicearray, struct neutronInfo Info){
+//__global__ void history(multipole U238, double *devicearray, struct neutronInfo Info){
+__global__ void history(multipole U238, struct neutronInfo Info){
   //TODO:this is one scheme to match threads to 1D array, 
   //try others when real simulation structure becomes clear
-  int id = ((blockDim.x*blockDim.y*blockDim.z)*(blockIdx.y*gridDim.x+blockIdx.x)+(blockDim.x*blockDim.y)*threadIdx.z+blockDim.x*threadIdx.y+threadIdx.x);//THREADID;
+  int id = blockDim.x * blockIdx.x + threadIdx.x;//THREADID;
 
   bool live=true;
   double localenergy;
@@ -33,25 +35,20 @@ __global__ void history(multipole U238, double *devicearray, struct neutronInfo 
     cnt = cnt + 1;
     //live = false;
   }
-   
+  /* 
   devicearray[4*id]=localenergy;
   devicearray[4*id+1]=sigT;
   devicearray[4*id+2]=sigA;
   devicearray[4*id+3]=sigF;
-  
+  */
   /* Copy state back to global memory */ 
   Info.rndState[id] = localState; 
 
   /*reduce tally*/
   double *tally = &shared[0];
   int i;
-  int idl = 
-    (blockDim.x*blockDim.y)*threadIdx.z+
-    blockDim.x*threadIdx.y+
-    threadIdx.x;
-
-  int idb = 
-    blockIdx.y*gridDim.x+blockIdx.x;
+  int idl = threadIdx.x;
+  int idb = blockIdx.x;
   int blocksize = blockDim.x * blockDim.y * blockDim.z;
 
   tally[idl] = (double)(cnt);
@@ -68,6 +65,7 @@ __global__ void history(multipole U238, double *devicearray, struct neutronInfo 
     //following is to count moderation times
     Info.tally[idb] = tally[0];
   }
+
 }
 
 
