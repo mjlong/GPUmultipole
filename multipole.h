@@ -62,9 +62,10 @@ public:
   multipole(struct multipoledata data);
   ~multipole();
   __device__  void xs_eval_fast(double E, double sqrtAWR, 
-					 double &sigT, double &sigA, double &sigF);
+				double &sigT, double &sigA, double &sigF,
+				double*);
   __device__  void xs_eval_fast(double E, 
-					 double &sigT, double &sigA, double &sigF);
+				double &sigT, double &sigA, double &sigF);
   __device__ void fill_factors(double sqrtE, double *twophi,int numL, CComplex *sigT_factor);
   __host__ __device__  int findex(int, int, int, int, int);
   __host__ __device__  int pindex(int, int);
