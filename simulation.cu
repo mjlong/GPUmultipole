@@ -14,7 +14,7 @@ __global__ void history(multipole U238, double *devicearray, struct neutronInfo 
   int id = blockDim.x * blockIdx.x + threadIdx.x;//THREADID;
 
   bool live=true;
-  double localenergy;
+  double localenergy, lastenergy;
   double rnd;
   double sigT, sigA, sigF;
   extern __shared__ double shared[];
@@ -39,13 +39,14 @@ __global__ void history(multipole U238, double *devicearray, struct neutronInfo 
   while(live){
     rnd = curand_uniform(&localState);
     U238.xs_eval_fast(localenergy, sqrt(300.0*KB), sigT, sigA, sigF, sharedpole);
+    lastenergy  = localenergy;
     localenergy = localenergy * rnd;
-    live = (localenergy>10.0);
+    live = (localenergy>1.0);
     cnt = cnt + 1;
     //live = false;
   }
 
-  devicearray[4*id]=localenergy;
+  devicearray[4*id]=lastenergy;
   devicearray[4*id+1]=sigT;
   devicearray[4*id+2]=sigA;
   devicearray[4*id+3]=sigF;
