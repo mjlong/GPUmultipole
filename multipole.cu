@@ -62,7 +62,8 @@ multipole::~multipole(){
   cudaFree(fit);
 }
 __device__  void multipole::xs_eval_fast(double E, double sqrtKT, 
-			double &sigT, double &sigA, double &sigF){
+					 double &sigT, double &sigA, double &sigF, 
+					 double* shared){
   /* Copy variables to local memory for efficiency */ 
   int mode        = dev_integers[MODE];
   int fitorder    = dev_integers[FITORDER];
@@ -80,8 +81,11 @@ __device__  void multipole::xs_eval_fast(double E, double sqrtKT,
   int    iP, iC, iW, startW, endW;
   //TODO:I've not found wat to allocate for a thread
   // 4 = maximum numL, consistent with max 3==iL in fill_factors()
-  double twophi[4];
-  CComplex sigT_factor[4];
+  //double twophi[4];
+  //CComplex sigT_factor[4];
+  double *twophi = shared;
+  CComplex *sigT_factor = (CComplex*)(shared + MAXNUML);
+  
   double sqrtE = sqrt(E);
   double power, DOPP, DOPP_ECOEF;
   CComplex w_val;
