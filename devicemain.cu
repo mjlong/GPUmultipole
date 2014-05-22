@@ -25,9 +25,9 @@ void anyvalue(struct multipoledata data, int *value, double *d1, double *d2){
   cudaEventCreate(&start);
   cudaEventCreate(&stop);
   // printdevice();
-  gridx = 32;
+  gridx = 16;
   gridy = 1;
-  blockx = 256;
+  blockx = 512;
   blocky = 1;
   blockz = 1;
   dim3 dimBlock(gridx, gridy);
