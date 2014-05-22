@@ -40,7 +40,7 @@ __global__ void history(multipole U238, double *devicearray, struct neutronInfo 
     rnd = curand_uniform(&localState);
     U238.xs_eval_fast(localenergy, sqrt(300.0*KB), sigT, sigA, sigF, sharedpole);
     localenergy = localenergy * rnd;
-    live = (localenergy>1.0);
+    live = (localenergy>10.0);
     cnt = cnt + 1;
     //live = false;
   }
