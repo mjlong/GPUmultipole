@@ -13,7 +13,7 @@
 
 void printdevice();
 
-void anyvalue(struct multipoledata data, int *value, double *d1, double *d2){
+void anyvalue(struct multipoledata data, int setgridx, int setblockx){
   unsigned gridx, gridy, blockx, blocky, blockz, blocknum, gridsize;
   unsigned ints=0, floats=0, doubles=0, sharedmem;
   float timems = 0.0;
@@ -25,9 +25,9 @@ void anyvalue(struct multipoledata data, int *value, double *d1, double *d2){
   cudaEventCreate(&start);
   cudaEventCreate(&stop);
   // printdevice();
-  gridx = 8;
+  gridx = setgridx;
   gridy = 1;
-  blockx = 256;
+  blockx = setblockx;
   blocky = 1;
   blockz = 1;
   dim3 dimBlock(gridx, gridy);
@@ -70,7 +70,7 @@ void anyvalue(struct multipoledata data, int *value, double *d1, double *d2){
   //cudaMemcpy(unknown, Info.ntally.unknown, blocknum*sizeof(double), cudaMemcpyDeviceToHost);
 
   for(int i=0;i<gridsize;i++){
-    printf("%8.4e %.15e %.15e %.15e\n",
+    printf("%.15e %.15e %.15e %.15e\n",
 	   hostarray[4*i],
 	   hostarray[4*i+1],
 	   hostarray[4*i+2],
