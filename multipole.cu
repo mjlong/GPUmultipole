@@ -66,38 +66,38 @@ __device__  void multipole::xs_eval_fast(double E, double sqrtKT,
 					 double* shared){
   /* Copy variables to local memory for efficiency */ 
   int mode        = dev_integers[MODE];
-  int fitorder    = dev_integers[FITORDER];
-  int numL        = dev_integers[NUML];
-  int fissionable = dev_integers[FISSIONABLE];
-  //int length      = dev_integers[LENGTH];
-  //int windows     = dev_integers[WINDOWS];
-
-  //TODO:if length,windows are really not needed, remove them from dev_integers[] array
-
+  int    iP, iC, iW, startW, endW;
   double spacing = dev_doubles[SPACING];
   double startE  = dev_doubles[STARTE];
-  double sqrtAWR = dev_doubles[SQRTAWR];
-
-  int    iP, iC, iW, startW, endW;
-  //TODO:I've not found wat to allocate for a thread
-  // 4 = maximum numL, consistent with max 3==iL in fill_factors()
-  //double twophi[4];
-  //CComplex sigT_factor[4];
-  double *twophi = shared;
-  CComplex *sigT_factor = (CComplex*)(shared + MAXNUML);
-  
   double sqrtE = sqrt(E);
-  double power, DOPP, DOPP_ECOEF;
-  CComplex w_val;
-  //  CComplex *Z_array;
-  //  CComplex *W_array;
-
   if(1==mode)
     iW = (int)((sqrtE - sqrt(startE))/spacing);
   else if(2==mode)
     iW = (int)((log(E) - log(startE))/spacing);
   else
     iW = (int)(( E - startE )/spacing);
+  int fitorder    = dev_integers[FITORDER];
+  int numL        = dev_integers[NUML];
+  int fissionable = dev_integers[FISSIONABLE];
+  //int length      = dev_integers[LENGTH];
+  //int windows     = dev_integers[WINDOWS];
+  //TODO:if length,windows are really not needed, remove them from dev_integers[] array
+
+  //TODO:I've not found wat to allocate for a thread
+  // 4 = maximum numL, consistent with max 3==iL in fill_factors()
+  //double twophi[4];
+  //CComplex sigT_factor[4];
+  double *twophi = shared;
+  CComplex *sigT_factor = (CComplex*)(shared + MAXNUML);
+
+  double sqrtAWR = dev_doubles[SQRTAWR];
+
+  
+  double power, DOPP, DOPP_ECOEF;
+  CComplex w_val;
+  //  CComplex *Z_array;
+  //  CComplex *W_array;
+
   startW = w_start[iW];
   endW   = w_end[iW];
   //  Z_array = (CComplex*)malloc((endW-startW+1)*sizeof(CComplex));
@@ -116,8 +116,7 @@ __device__  void multipole::xs_eval_fast(double E, double sqrtKT,
     if(MP_FISS == fissionable)
       sigF += fit[findex(iW,iC,FIT_F,fitorder+1,2+fissionable)]*power;
   }
-  //Faddeeva evaluation in advance
-  //TODO: Test whether in advance evaluation is faster
+
   DOPP = sqrtAWR/sqrtKT;
   DOPP_ECOEF = DOPP/E*sqrt(PI);
   /*
