@@ -34,7 +34,7 @@ __global__ void history(multipole U238, double *devicearray, struct neutronInfo 
     //live = false;
   }
    
-  devicearray[4*id]=localenergy;
+  devicearray[4*id]=localenergy/rnd;
   devicearray[4*id+1]=sigT;
   devicearray[4*id+2]=sigA;
   devicearray[4*id+3]=sigF;
