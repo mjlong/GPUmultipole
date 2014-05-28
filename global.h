@@ -7,3 +7,4 @@
 #define HALFI CComplex(0.0,0.5)
 #define ONEI CComplex(0.0,1.0)
 #define MAXNUML 4
+#define SHAREUNIT 5
