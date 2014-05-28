@@ -55,6 +55,7 @@ void anyvalue(struct multipoledata data, int setgridx, int setblockx){
   */
   ints = blockx*blocky*blockz;
   doubles = blockx*MAXNUML*3;
+  floats  = blockx*((1<<SHAREUNIT)-1-MAXNUML*3*2);//waste 6*4B/thread to avoid bank conflict
   sharedmem = doubles*sizeof(double)+floats*sizeof(float)+ints*sizeof(int);
   cudaEventRecord(start, 0);
   history<<<dimBlock, dimGrid, sharedmem>>>(U238, devicearray, Info);
