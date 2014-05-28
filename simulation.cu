@@ -17,7 +17,7 @@ __global__ void history(multipole U238, double *devicearray, struct neutronInfo 
   double localenergy, lastenergy;
   double rnd;
   double sigT, sigA, sigF;
-  extern __shared__ double shared[];
+  extern __shared__ float shared[];
   //size of shared[] is given as 3rd parameter while launching the kernel
   /* Each thread gets same seed, a different sequence number, no offset */
   curand_init(1234, id, 0, &Info.rndState[id]);
@@ -27,7 +27,7 @@ __global__ void history(multipole U238, double *devicearray, struct neutronInfo 
 
   localenergy = Info.energy[id];
   unsigned cnt = 0;
-  unsigned *tally = (unsigned*)shared;
+  unsigned *tally = (unsigned*)(shared);
   int idl = threadIdx.x;
   int idb = blockIdx.x;
   int blocksize = blockDim.x * blockDim.y * blockDim.z;
@@ -35,7 +35,8 @@ __global__ void history(multipole U238, double *devicearray, struct neutronInfo 
     shift shared memory for double twophi[MAXNUML] and complex sigT_factor[MAXNUML]
   */
   //TODO: tailor to accomodate more than two isotopes
-  double *sharedpole = shared + (blocksize>>1) + idl*MAXNUML*3;
+  //double *sharedpole = shared + (blocksize>>1) + idl*MAXNUML*3;
+  double *sharedpole = (double*)(shared + (idl<<SHAREUNIT) );
   while(live){
     rnd = curand_uniform(&localState);
     U238.xs_eval_fast(localenergy, sqrt(300.0*KB), sigT, sigA, sigF, sharedpole);
@@ -56,19 +57,21 @@ __global__ void history(multipole U238, double *devicearray, struct neutronInfo 
 
   /*reduce tally*/
   int i;
-  tally[idl] = cnt;
+  int itally;
+  itally = ((idl+1)<<SHAREUNIT)-1;
+  tally[itally] = cnt;
   __syncthreads();
   i = blocksize>>1;
   while(i){
     if(idl<i)
-      tally[idl] += tally[idl+i];
+      tally[itally] += tally[itally+(i<<SHAREUNIT)];
     __syncthreads();
     i=i>>1;
   }
   if(0==idl){
     //reduction scheme depends on tally type
     //following is to count moderation times
-    Info.ntally.cnt[idb] = tally[0];
+    Info.ntally.cnt[idb] = tally[(1<<SHAREUNIT)-1];
   }
 
 }
