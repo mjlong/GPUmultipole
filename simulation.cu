@@ -14,7 +14,7 @@ __global__ void history(multipole U238, double *devicearray, struct neutronInfo 
   int id = blockDim.x * blockIdx.x + threadIdx.x;//THREADID;
 
   bool live=true;
-  double localenergy, lastenergy;
+  double localenergy;
   double rnd;
   double sigT, sigA, sigF;
   extern __shared__ float shared[];
@@ -27,9 +27,9 @@ __global__ void history(multipole U238, double *devicearray, struct neutronInfo 
 
   localenergy = Info.energy[id];
   unsigned cnt = 0;
-  int idl = threadIdx.x;
-  int idb = blockIdx.x;
-  int blocksize = blockDim.x * blockDim.y * blockDim.z;
+  unsigned idl = threadIdx.x;
+  unsigned idb = blockIdx.x;
+  unsigned blocksize = blockDim.x;
   /*
     shift shared memory for double twophi[MAXNUML] and complex sigT_factor[MAXNUML]
   */
@@ -37,15 +37,14 @@ __global__ void history(multipole U238, double *devicearray, struct neutronInfo 
   CComplex *sharedpole = (CComplex*)(shared + blocksize) + idl;
   while(live){
     rnd = curand_uniform(&localState);
-    U238.xs_eval_fast(localenergy, sqrt(300.0*KB), sigT, sigA, sigF, sharedpole, blocksize);
-    lastenergy  = localenergy;
+    U238.xs_eval_fast(localenergy, sqrt(300.0*KB), sigT, sigA, sigF, sharedpole, Info.blockbase);
     localenergy = localenergy * rnd;
     live = (localenergy>1.0);
     cnt = cnt + 1;
     //live = false;
   }
 
-  devicearray[4*id]=lastenergy;
+  devicearray[4*id]=localenergy/rnd;
   devicearray[4*id+1]=sigT;
   devicearray[4*id+2]=sigA;
   devicearray[4*id+3]=sigF;
