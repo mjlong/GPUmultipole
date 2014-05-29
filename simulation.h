@@ -16,6 +16,7 @@ struct tally{
   double   *unknown;
 };
 struct neutronInfo{
+  unsigned blockbase;
   double *energy;
   curandState *rndState;
   struct tally ntally;
