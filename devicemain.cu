@@ -53,9 +53,9 @@ void anyvalue(struct multipoledata data, int setgridx, int setblockx){
     Note: shared memory size is in unit of Bybe
     And the address can be referred in form of p = pshared + offset
   */
-  ints = blockx*blocky*blockz;
-  doubles = blockx*MAXNUML*3;
-  floats  = blockx*((1<<SHAREUNIT)-1-MAXNUML*3*2);//waste 6*4B/thread to avoid bank conflict
+  ints = blockx;
+  doubles = blockx*(MAXNUML+1)*2;
+  floats  = 0;
   sharedmem = doubles*sizeof(double)+floats*sizeof(float)+ints*sizeof(int);
   cudaEventRecord(start, 0);
   history<<<dimBlock, dimGrid, sharedmem>>>(U238, devicearray, Info);
