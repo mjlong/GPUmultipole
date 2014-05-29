@@ -63,7 +63,7 @@ multipole::~multipole(){
 }
 __device__  void multipole::xs_eval_fast(double E, double sqrtKT, 
 					 double &sigT, double &sigA, double &sigF, 
-					 CComplex* sigT_factor){
+					 CComplex* sigT_factor, unsigned blocksize){
   /* Copy variables to local memory for efficiency */ 
   int mode        = dev_integers[MODE];
   int    iP, iC, iW, startW, endW;
@@ -93,16 +93,12 @@ __device__  void multipole::xs_eval_fast(double E, double sqrtKT,
   
   double power, DOPP, DOPP_ECOEF;
   CComplex w_val;
-  //  CComplex *Z_array;
-  //  CComplex *W_array;
 
   startW = w_start[iW];
   endW   = w_end[iW];
-  //  Z_array = (CComplex*)malloc((endW-startW+1)*sizeof(CComplex));
-  //  W_array = (CComplex*)malloc((endW-startW+1)*sizeof(CComplex));
 
   if(startW <= endW)
-    fill_factors(sqrtE,numL,sigT_factor);
+    fill_factors(sqrtE,numL,sigT_factor, blocksize);
   sigT = 0.0;
   sigA = 0.0;
   sigF = 0.0;
@@ -117,30 +113,20 @@ __device__  void multipole::xs_eval_fast(double E, double sqrtKT,
 
   DOPP = sqrtAWR/sqrtKT;
   DOPP_ECOEF = DOPP/E*sqrt(PI);
-  /*
-  for(iP=startW;iP<=endW;iP++){
-    Z_array[iP-startW] = (sqrtE - mpdata[pindex(iP-1,MP_EA)])*DOPP;
-    W_array[iP-startW] = Faddeeva::w(Z_array[iP-startW])*DOPP_ECOEF;
-  }
-  */
-  //evaluating
+
   for(iP=startW;iP<=endW;iP++){
     w_val = Faddeeva::w((sqrtE - mpdata[pindex(iP-1,MP_EA)])*DOPP)*DOPP_ECOEF;
-    //sigT += real(mpdata[pindex(iP-1,MP_RT)]*sigT_factor[l_value[iP-1]-1]*W_array[iP-startW]);
-    //sigA += real(mpdata[pindex(iP-1,MP_RA)]*W_array[iP-startW]);                              
-    sigT += real(mpdata[pindex(iP-1,MP_RT)]*sigT_factor[l_value[iP-1]-1]*w_val);	    
+    sigT += real(mpdata[pindex(iP-1,MP_RT)]*sigT_factor[(l_value[iP-1]-1)*blocksize]*w_val);	    
     sigA += real(mpdata[pindex(iP-1,MP_RA)]*w_val);                              
     if(MP_FISS == fissionable)
-      //sigF += real(mpdata[pindex(iP-1,MP_RF)]*W_array[iP-startW]);
       sigF += real(mpdata[pindex(iP-1,MP_RF)]*w_val);
   }
 
-  //  free(Z_array);
-  //  free(W_array);
 }
 
 __device__  void multipole::xs_eval_fast(double E,  
-			double &sigT, double &sigA, double &sigF){
+					 double &sigT, double &sigA, double &sigF,
+					 CComplex *sigT_factor, unsigned blocksize){
   /* Copy variables to local memory for efficiency */ 
   int mode        = dev_integers[MODE];
   int fitorder    = dev_integers[FITORDER];
@@ -153,9 +139,7 @@ __device__  void multipole::xs_eval_fast(double E,
   double startE  = dev_doubles[STARTE];
   
   int    iP, iC, iW, startW, endW;
-  //TODO:I've not found wat to allocate for a thread
-  // 4 = maximum numL, consistent with max 3==iL in fill_factors()
-  CComplex sigT_factor[4];
+
 
   double sqrtE = sqrt(E);
   double power;
@@ -170,7 +154,7 @@ __device__  void multipole::xs_eval_fast(double E,
   startW = w_start[iW];
   endW   = w_end[iW];
   if(startW <= endW)
-    fill_factors(sqrtE,numL,sigT_factor);
+    fill_factors(sqrtE,numL,sigT_factor, blocksize);
   sigT = 0.0;
   sigA = 0.0;
   sigF = 0.0;
@@ -188,7 +172,7 @@ __device__  void multipole::xs_eval_fast(double E,
   for(iP=startW;iP<=endW;iP++){
     PSIIKI = -ONEI/(mpdata[pindex(iP-1,MP_EA)] - sqrtE);
     CDUM1  = PSIIKI / E;
-    sigT += real(mpdata[pindex(iP-1,MP_RT)]*CDUM1*sigT_factor[l_value[iP-1]-1]);
+    sigT += real(mpdata[pindex(iP-1,MP_RT)]*CDUM1*sigT_factor[(l_value[iP-1]-1)*blocksize]);
     sigA += real(mpdata[pindex(iP-1,MP_RA)]*CDUM1);
     if(MP_FISS == fissionable)
       sigF += real(mpdata[pindex(iP-1,MP_RF)]*CDUM1);
@@ -207,7 +191,7 @@ __host__ __device__ int multipole::pindex(int iP, int type){
 }
 
 //TODO: here just continue the initilization scheme, it deserves trying make some values shared
-__device__ void multipole::fill_factors(double sqrtE, int numL, CComplex *sigT_factor){
+__device__ void multipole::fill_factors(double sqrtE, int numL, CComplex *sigT_factor, unsigned blocksize){
   int iL;
   double arg;
   double twophi;
@@ -225,7 +209,7 @@ __device__ void multipole::fill_factors(double sqrtE, int numL, CComplex *sigT_f
       twophi -= atan(arg);
     }
     twophi *= 2.0;
-    sigT_factor[iL] = CComplex(cos(twophi), -sin(twophi));
+    sigT_factor[iL*blocksize] = CComplex(cos(twophi), -sin(twophi));
   }
 
 }
