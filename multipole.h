@@ -11,15 +11,15 @@
 #define FIT_F 2
 
 #define MODE     0
-#define WINDOWS  1
-#define FITORDER 2
-#define NUML     3
-#define FISSIONABLE  4
-#define LENGTH   5
+#define FITORDER 1
+#define NUML     2
+#define FISSIONABLE  3
+//#define WINDOWS  1
+//#define LENGTH   5
 #define STARTE   0
-#define ENDE     1
-#define SPACING  2
-#define SQRTAWR  3
+#define SPACING  1
+#define SQRTAWR  2
+//#define ENDE     1
 /*
   Mode, set to 0 for linear, 1 for momentum, 2 for logarithmic.
   Mode = 0 (linear)
@@ -63,10 +63,10 @@ public:
   ~multipole();
   __device__  void xs_eval_fast(double E, double sqrtAWR, 
 				double &sigT, double &sigA, double &sigF,
-				double*);
+				CComplex* shared);
   __device__  void xs_eval_fast(double E, 
 				double &sigT, double &sigA, double &sigF);
-  __device__ void fill_factors(double sqrtE, double *twophi,int numL, CComplex *sigT_factor);
+  __device__ void fill_factors(double sqrtE, int numL, CComplex *sigT_factor);
   __host__ __device__  int findex(int, int, int, int, int);
   __host__ __device__  int pindex(int, int);
 

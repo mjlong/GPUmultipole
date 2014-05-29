@@ -5,21 +5,21 @@ multipole::multipole(struct multipoledata data){
     allocate and assign integers
   */
   size = sizeof(int);
-  cudaMalloc((void**)&dev_integers, 6*size);
+  cudaMalloc((void**)&dev_integers, 4*size);
   cudaMemcpy(dev_integers+MODE,    &(data.mode), size, cudaMemcpyHostToDevice);
-  cudaMemcpy(dev_integers+WINDOWS, &(data.windows), size, cudaMemcpyHostToDevice);
+  //cudaMemcpy(dev_integers+WINDOWS, &(data.windows), size, cudaMemcpyHostToDevice);
   cudaMemcpy(dev_integers+FITORDER, &(data.fitorder), size, cudaMemcpyHostToDevice);
   cudaMemcpy(dev_integers+NUML, &(data.numL), size, cudaMemcpyHostToDevice);
   cudaMemcpy(dev_integers+FISSIONABLE, &(data.fissionable), size, cudaMemcpyHostToDevice);
-  cudaMemcpy(dev_integers+LENGTH, &(data.length), size, cudaMemcpyHostToDevice);
+  //cudaMemcpy(dev_integers+LENGTH, &(data.length), size, cudaMemcpyHostToDevice);
 
   /*
     allocate and assign doubles
   */
   size = sizeof(double);
-  cudaMalloc((void**)&dev_doubles,  4*size);
+  cudaMalloc((void**)&dev_doubles,  3*size);
   cudaMemcpy(dev_doubles+STARTE, &(data.startE), size, cudaMemcpyHostToDevice);
-  cudaMemcpy(dev_doubles+ENDE,   &(data.endE), size, cudaMemcpyHostToDevice);
+  //cudaMemcpy(dev_doubles+ENDE,   &(data.endE), size, cudaMemcpyHostToDevice);
   cudaMemcpy(dev_doubles+SPACING,&(data.spacing), size, cudaMemcpyHostToDevice);
   cudaMemcpy(dev_doubles+SQRTAWR, &(data.sqrtAWR), size, cudaMemcpyHostToDevice);
 
@@ -63,7 +63,7 @@ multipole::~multipole(){
 }
 __device__  void multipole::xs_eval_fast(double E, double sqrtKT, 
 					 double &sigT, double &sigA, double &sigF, 
-					 double* shared){
+					 CComplex* sigT_factor){
   /* Copy variables to local memory for efficiency */ 
   int mode        = dev_integers[MODE];
   int    iP, iC, iW, startW, endW;
@@ -87,8 +87,6 @@ __device__  void multipole::xs_eval_fast(double E, double sqrtKT,
   // 4 = maximum numL, consistent with max 3==iL in fill_factors()
   //double twophi[4];
   //CComplex sigT_factor[4];
-  double *twophi = shared;
-  CComplex *sigT_factor = (CComplex*)(shared + MAXNUML);
 
   double sqrtAWR = dev_doubles[SQRTAWR];
 
@@ -104,7 +102,7 @@ __device__  void multipole::xs_eval_fast(double E, double sqrtKT,
   //  W_array = (CComplex*)malloc((endW-startW+1)*sizeof(CComplex));
 
   if(startW <= endW)
-    fill_factors(sqrtE,twophi,numL,sigT_factor);
+    fill_factors(sqrtE,numL,sigT_factor);
   sigT = 0.0;
   sigA = 0.0;
   sigF = 0.0;
@@ -157,7 +155,6 @@ __device__  void multipole::xs_eval_fast(double E,
   int    iP, iC, iW, startW, endW;
   //TODO:I've not found wat to allocate for a thread
   // 4 = maximum numL, consistent with max 3==iL in fill_factors()
-  double twophi[4];
   CComplex sigT_factor[4];
 
   double sqrtE = sqrt(E);
@@ -173,7 +170,7 @@ __device__  void multipole::xs_eval_fast(double E,
   startW = w_start[iW];
   endW   = w_end[iW];
   if(startW <= endW)
-    fill_factors(sqrtE,twophi,numL,sigT_factor);
+    fill_factors(sqrtE,numL,sigT_factor);
   sigT = 0.0;
   sigA = 0.0;
   sigF = 0.0;
@@ -196,7 +193,6 @@ __device__  void multipole::xs_eval_fast(double E,
     if(MP_FISS == fissionable)
       sigF += real(mpdata[pindex(iP-1,MP_RF)]*CDUM1);
   }
-  free(twophi);
   
 }
 
@@ -211,24 +207,25 @@ __host__ __device__ int multipole::pindex(int iP, int type){
 }
 
 //TODO: here just continue the initilization scheme, it deserves trying make some values shared
-__device__ void multipole::fill_factors(double sqrtE, double *twophi, int numL, CComplex *sigT_factor){
+__device__ void multipole::fill_factors(double sqrtE, int numL, CComplex *sigT_factor){
   int iL;
   double arg;
+  double twophi;
 
   for(iL = 0; iL<numL; iL++){
-    twophi[iL] = pseudo_rho[iL] * sqrtE; 
+    twophi = pseudo_rho[iL] * sqrtE; 
     if(1==iL)
-      twophi[iL] -= atan(twophi[iL]);
+      twophi -= atan(twophi);
     else if(2==iL){
-      arg = 3.0*twophi[iL] / (3.0 - twophi[iL]*twophi[iL]);
-      twophi[iL] -= atan(arg);
+      arg = 3.0*twophi / (3.0 - twophi*twophi);
+      twophi -= atan(arg);
     }
     else if(3==iL){
-      arg = twophi[iL]*(15.0 - twophi[iL]*twophi[iL])/(15.0 - 6.0*twophi[iL]*twophi[iL]);
-      twophi[iL] -= atan(arg);
+      arg = twophi*(15.0 - twophi*twophi)/(15.0 - 6.0*twophi*twophi);
+      twophi -= atan(arg);
     }
-    twophi[iL] *= 2.0;
-    sigT_factor[iL] = CComplex(cos(twophi[iL]), -sin(twophi[iL]));
+    twophi *= 2.0;
+    sigT_factor[iL] = CComplex(cos(twophi), -sin(twophi));
   }
 
 }
