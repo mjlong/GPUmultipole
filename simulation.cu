@@ -27,7 +27,6 @@ __global__ void history(multipole U238, double *devicearray, struct neutronInfo 
 
   localenergy = Info.energy[id];
   unsigned cnt = 0;
-  unsigned *tally = (unsigned*)(shared);
   int idl = threadIdx.x;
   int idb = blockIdx.x;
   int blocksize = blockDim.x * blockDim.y * blockDim.z;
@@ -35,11 +34,10 @@ __global__ void history(multipole U238, double *devicearray, struct neutronInfo 
     shift shared memory for double twophi[MAXNUML] and complex sigT_factor[MAXNUML]
   */
   //TODO: tailor to accomodate more than two isotopes
-  //double *sharedpole = shared + (blocksize>>1) + idl*MAXNUML*3;
-  CComplex *sharedpole = (CComplex*)(shared + blocksize) + idl*(MAXNUML+1);
+  CComplex *sharedpole = (CComplex*)(shared + blocksize) + idl;
   while(live){
     rnd = curand_uniform(&localState);
-    U238.xs_eval_fast(localenergy, sqrt(300.0*KB), sigT, sigA, sigF, sharedpole);
+    U238.xs_eval_fast(localenergy, sqrt(300.0*KB), sigT, sigA, sigF, sharedpole, blocksize);
     lastenergy  = localenergy;
     localenergy = localenergy * rnd;
     live = (localenergy>1.0);
@@ -56,6 +54,7 @@ __global__ void history(multipole U238, double *devicearray, struct neutronInfo 
   Info.rndState[id] = localState; 
 
   /*reduce tally*/
+  unsigned *tally = (unsigned*)(shared);
   int i;
   tally[idl] = cnt;
   __syncthreads();
