@@ -14,40 +14,39 @@
 void printdevice();
 
 void anyvalue(struct multipoledata data, int setgridx, int setblockx){
-  unsigned gridx, gridy, blockx, blocky, blockz, blocknum, gridsize;
+  unsigned gridx, blockx, gridsize;
   unsigned ints=0, floats=0, doubles=0, sharedmem;
   float timems = 0.0;
   unsigned *cnt; 
   double *hostarray, *devicearray;
-  //double   *unknown;
   struct neutronInfo Info;
   cudaEvent_t start, stop;
   cudaEventCreate(&start);
   cudaEventCreate(&stop);
   // printdevice();
   gridx = setgridx;
-  gridy = 1;
   blockx = setblockx;
-  blocky = 1;
-  blockz = 1;
-  dim3 dimBlock(gridx, gridy);
-  dim3 dimGrid(blockx, blocky, blockz);
-  blocknum = gridx*gridy; 
-  gridsize = gridx*gridy*blockx*blocky*blockz;
+  dim3 dimBlock(gridx, 1);
+  dim3 dimGrid(blockx, 1, 1);
+  
+  ints = blockx>>1;
+  while(ints){
+    ints = ints>>1;
+    floats++;
+  }
+  Info.blockbase = floats;
+  floats = 0;
+  gridsize = gridx*blockx;
   cudaMalloc((void**)&devicearray, 4*gridsize*sizeof(double));
   cudaMalloc((void**)&(Info.rndState), gridsize*sizeof(curandState));
   cudaMalloc((void**)&(Info.energy), gridsize*sizeof(double));
-  cudaMalloc((void**)&(Info.ntally.cnt), blocknum*sizeof(unsigned));
-  //cudaMalloc((void**)&(Info.ntally.unknown), blocknum*sizeof(double));
+  cudaMalloc((void**)&(Info.ntally.cnt), gridx*sizeof(unsigned));
   hostarray = (double*)malloc(4*gridsize*sizeof(double));
-  cnt      = (unsigned*)malloc(blocknum*sizeof(unsigned));     
-  //unknown  = (double*)malloc(blocknum*sizeof(double));
+  cnt      = (unsigned*)malloc(gridx*sizeof(unsigned));     
 
   multipole U238(data); //host multipoledata to device
-
   initialize<<<dimBlock, dimGrid>>>(Info, 2000.0);//1.95093e4);
   //  cudaDeviceSynchronize();
-
   /*
     Note: shared memory size is in unit of Bybe
     And the address can be referred in form of p = pshared + offset
@@ -68,8 +67,7 @@ void anyvalue(struct multipoledata data, int setgridx, int setblockx){
   printf("time elapsed:%3.1f ms\n", timems);
  
   cudaMemcpy(hostarray, devicearray, 4*gridsize*sizeof(double), cudaMemcpyDeviceToHost);
-  cudaMemcpy(cnt, Info.ntally.cnt, blocknum*sizeof(unsigned), cudaMemcpyDeviceToHost);
-  //cudaMemcpy(unknown, Info.ntally.unknown, blocknum*sizeof(double), cudaMemcpyDeviceToHost);
+  cudaMemcpy(cnt, Info.ntally.cnt, gridx*sizeof(unsigned), cudaMemcpyDeviceToHost);
 
   for(int i=0;i<gridsize;i++){
     printf("%.15e %.15e %.15e %.15e\n",
@@ -80,9 +78,8 @@ void anyvalue(struct multipoledata data, int setgridx, int setblockx){
   }
 
   unsigned sum = 0;
-  for (int i=0;i<blocknum;i++){
+  for (int i=0;i<gridx;i++){
     printf("%4d\n",cnt[i]);
-    //printf("%4d, %4.1f\n",cnt[i],unknown[i]);
     sum += cnt[i];
   }
   printf("time elapsed:%g mus\n", timems*1000/sum);
@@ -98,12 +95,10 @@ void anyvalue(struct multipoledata data, int setgridx, int setblockx){
   cudaFree(devicearray);
   cudaFree(Info.energy);
   cudaFree(Info.ntally.cnt);
-  //cudaFree(Info.ntally.unknown);
   cudaFree(Info.rndState);
 
   free(hostarray);
   free(cnt);
-  //free(unknown);
   return;
 }
 
