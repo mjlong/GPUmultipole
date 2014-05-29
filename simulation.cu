@@ -36,7 +36,7 @@ __global__ void history(multipole U238, double *devicearray, struct neutronInfo 
   */
   //TODO: tailor to accomodate more than two isotopes
   //double *sharedpole = shared + (blocksize>>1) + idl*MAXNUML*3;
-  double *sharedpole = (double*)(shared + (idl<<SHAREUNIT) );
+  CComplex *sharedpole = (CComplex*)(shared + blocksize) + idl*(MAXNUML+1);
   while(live){
     rnd = curand_uniform(&localState);
     U238.xs_eval_fast(localenergy, sqrt(300.0*KB), sigT, sigA, sigF, sharedpole);
@@ -57,21 +57,19 @@ __global__ void history(multipole U238, double *devicearray, struct neutronInfo 
 
   /*reduce tally*/
   int i;
-  int itally;
-  itally = ((idl+1)<<SHAREUNIT)-1;
-  tally[itally] = cnt;
+  tally[idl] = cnt;
   __syncthreads();
   i = blocksize>>1;
   while(i){
     if(idl<i)
-      tally[itally] += tally[itally+(i<<SHAREUNIT)];
+      tally[idl] += tally[idl+i];
     __syncthreads();
     i=i>>1;
   }
   if(0==idl){
     //reduction scheme depends on tally type
     //following is to count moderation times
-    Info.ntally.cnt[idb] = tally[(1<<SHAREUNIT)-1];
+    Info.ntally.cnt[idb] = tally[0];
   }
 
 }
