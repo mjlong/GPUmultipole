@@ -15,11 +15,18 @@ struct tally{
   unsigned *cnt;
   double   *unknown;
 };
-struct neutronInfo{
+
+struct shareInfo{
+  unsigned numL;
+  unsigned windows;
   unsigned blockbase;
+};
+
+struct neutronInfo{
   double *energy;
   curandState *rndState;
   struct tally ntally;
+  struct shareInfo share;
 };
 
 __global__ void history(multipole, double*,struct neutronInfo );

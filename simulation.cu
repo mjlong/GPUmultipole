@@ -17,6 +17,7 @@ __global__ void history(multipole U238, double *devicearray, struct neutronInfo 
   double localenergy;
   double rnd;
   double sigT, sigA, sigF;
+  struct pointers sharedptr;
   extern __shared__ float shared[];
   //size of shared[] is given as 3rd parameter while launching the kernel
   /* Each thread gets same seed, a different sequence number, no offset */
@@ -34,10 +35,39 @@ __global__ void history(multipole U238, double *devicearray, struct neutronInfo 
     shift shared memory for double twophi[MAXNUML] and complex sigT_factor[MAXNUML]
   */
   //TODO: tailor to accomodate more than two isotopes
-  CComplex *sharedpole = (CComplex*)(shared + blocksize) + idl;
+  sharedptr.blockbase   = Info.share.blockbase;
+  sharedptr.sigT_factor = (CComplex*)(shared + blocksize) + idl;
+  sharedptr.w_start     = (unsigned*)(shared + blocksize + (blocksize<<2)*Info.share.numL);
+  sharedptr.w_end       = sharedptr.w_start + Info.share.windows;
+
+  cnt = idl;
+  /*
+  while(cnt<Info.share.windows){
+    sharedptr.w_start[cnt] = U238.w_start[cnt];
+    sharedptr.w_end[cnt]   = U238.w_end[cnt];
+    cnt += blocksize;
+  }*/
+  //__syncthreads();
+  cnt = 0;
+
+  sharedptr.dev_doubles =   (double*)(sharedptr.w_end + Info.share.windows);
+  if(idl<3)
+    sharedptr.dev_doubles[idl]  = U238.dev_doubles[idl];
+  //__syncthreads();
+
+  sharedptr.pseudo_rho  =   sharedptr.dev_doubles + 3;
+  if(idl<Info.share.numL)
+    sharedptr.pseudo_rho[idl]   = U238.pseudo_rho[idl];
+  //__syncthreads();
+
+  sharedptr.dev_integers =  (unsigned*)(sharedptr.pseudo_rho + Info.share.numL);
+  if(idl<4)
+    sharedptr.dev_integers[idl] = U238.dev_integers[idl];
+  __syncthreads();
+  
   while(live){
     rnd = curand_uniform(&localState);
-    U238.xs_eval_fast(localenergy, sqrt(300.0*KB), sigT, sigA, sigF, sharedpole, Info.blockbase);
+    U238.xs_eval_fast(localenergy, sqrt(300.0*KB), sigT, sigA, sigF, sharedptr);
     localenergy = localenergy * rnd;
     live = (localenergy>1.0);
     cnt = cnt + 1;
