@@ -35,7 +35,6 @@ void anyvalue(struct multipoledata data, int setgridx, int setblockx){
     floats++;
   }
   Info.share.blockbase = floats;
-  floats = 0;
   gridsize = gridx*blockx;
   cudaMalloc((void**)&devicearray, 4*gridsize*sizeof(double));
   cudaMalloc((void**)&(Info.rndState), gridsize*sizeof(curandState));
@@ -44,8 +43,8 @@ void anyvalue(struct multipoledata data, int setgridx, int setblockx){
   hostarray = (double*)malloc(4*gridsize*sizeof(double));
   cnt      = (unsigned*)malloc(gridx*sizeof(unsigned));     
 
-  Info.share.numL = data.numL;
-  Info.share.windows = data.windows;
+  //Info.share.numL = data.numL;
+  //Info.share.windows = data.windows;
   multipole U238(data); //host multipoledata to device
   initialize<<<dimBlock, dimGrid>>>(Info, 2000.0);//1.95093e4);
   //  cudaDeviceSynchronize();
@@ -53,12 +52,11 @@ void anyvalue(struct multipoledata data, int setgridx, int setblockx){
     Note: shared memory size is in unit of Bybe
     And the address can be referred in form of p = pshared + offset
   */
-  ints = 1 ;
+  ints = 0 ;
   doubles = data.numL<<1 ; 
   floats  = 0;
   sharedmem = blockx*(doubles*sizeof(double)+floats*sizeof(float)+ints*sizeof(int));
-  sharedmem += (data.windows<<1)*sizeof(unsigned) + 4*sizeof(unsigned) + 3*sizeof(double) 
-    + data.numL*sizeof(double);
+  //sharedmem += (data.windows<<1)*sizeof(unsigned) + 4*sizeof(unsigned) + 3*sizeof(double) + data.numL*sizeof(double); 
   /* (w_start,w_end) + (MODE, FITORDER, NUML, FISSIONABLE) + (SPACING, STARTE, SQRTAWR)*/
   cudaEventRecord(start, 0);
   history<<<dimBlock, dimGrid, sharedmem>>>(U238, devicearray, Info);
@@ -82,15 +80,18 @@ void anyvalue(struct multipoledata data, int setgridx, int setblockx){
 
   unsigned sum = 0;
   for (int i=0;i<gridx;i++){
-    printf("%4d\n",cnt[i]);
+    //printf("%4d\n",cnt[i]);
     sum += cnt[i];
   }
   printf("time elapsed:%g mus\n", timems*1000/sum);
 
+  FILE *fp=NULL;
+  fp = fopen("timelog","a+");
+  fprintf(fp,"%3d,%3d,%g mus\n", gridx, blockx, timems*1000/sum);
+  fclose(fp);
   //cudaEventRecord(stop, 0);
   //cudaEventSynchronize(stop);
   //cudaEventElapsedTime(&timems, start, stop);
-
 
   //cudaEventDestroy(start);
   //cudaEventDestroy(stop);
