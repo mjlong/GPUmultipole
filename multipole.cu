@@ -80,7 +80,6 @@ __device__  void multipole::xs_eval_fast(double E, double sqrtKT,
   int    iP, iC, iW, startW, endW;
   //TODO:I've not found wat to allocate for a thread
   // 4 = maximum numL, consistent with max 3==iL in fill_factors()
-  double twophi[4];
   CComplex sigT_factor[4];
   double sqrtE = sqrt(E);
   double power, DOPP, DOPP_ECOEF;
@@ -100,7 +99,7 @@ __device__  void multipole::xs_eval_fast(double E, double sqrtKT,
   //  W_array = (CComplex*)malloc((endW-startW+1)*sizeof(CComplex));
 
   if(startW <= endW)
-    fill_factors(sqrtE,twophi,numL,sigT_factor);
+    fill_factors(sqrtE,numL,sigT_factor);
   sigT = 0.0;
   sigA = 0.0;
   sigF = 0.0;
@@ -154,7 +153,6 @@ __device__  void multipole::xs_eval_fast(double E,
   int    iP, iC, iW, startW, endW;
   //TODO:I've not found wat to allocate for a thread
   // 4 = maximum numL, consistent with max 3==iL in fill_factors()
-  double twophi[4];
   CComplex sigT_factor[4];
 
   double sqrtE = sqrt(E);
@@ -170,7 +168,7 @@ __device__  void multipole::xs_eval_fast(double E,
   startW = w_start[iW];
   endW   = w_end[iW];
   if(startW <= endW)
-    fill_factors(sqrtE,twophi,numL,sigT_factor);
+    fill_factors(sqrtE,numL,sigT_factor);
   sigT = 0.0;
   sigA = 0.0;
   sigF = 0.0;
@@ -193,7 +191,6 @@ __device__  void multipole::xs_eval_fast(double E,
     if(MP_FISS == fissionable)
       sigF += real(mpdata[pindex(iP-1,MP_RF)]*CDUM1);
   }
-  free(twophi);
   
 }
 
@@ -208,24 +205,25 @@ __host__ __device__ int multipole::pindex(int iP, int type){
 }
 
 //TODO: here just continue the initilization scheme, it deserves trying make some values shared
-__device__ void multipole::fill_factors(double sqrtE, double *twophi, int numL, CComplex *sigT_factor){
+__device__ void multipole::fill_factors(double sqrtE, int numL, CComplex *sigT_factor){
   int iL;
   double arg;
-
+  double twophi; 
+  
   for(iL = 0; iL<numL; iL++){
-    twophi[iL] = pseudo_rho[iL] * sqrtE; 
+    twophi = pseudo_rho[iL] * sqrtE; 
     if(1==iL)
-      twophi[iL] -= atan(twophi[iL]);
+      twophi -= atan(twophi);
     else if(2==iL){
-      arg = 3.0*twophi[iL] / (3.0 - twophi[iL]*twophi[iL]);
-      twophi[iL] -= atan(arg);
+      arg = 3.0*twophi / (3.0 - twophi*twophi);
+      twophi -= atan(arg);
     }
     else if(3==iL){
-      arg = twophi[iL]*(15.0 - twophi[iL]*twophi[iL])/(15.0 - 6.0*twophi[iL]*twophi[iL]);
-      twophi[iL] -= atan(arg);
+      arg = twophi*(15.0 - twophi*twophi)/(15.0 - 6.0*twophi*twophi);
+      twophi -= atan(arg);
     }
-    twophi[iL] *= 2.0;
-    sigT_factor[iL] = CComplex(cos(twophi[iL]), -sin(twophi[iL]));
+    twophi *= 2.0;
+    sigT_factor[iL] = CComplex(cos(twophi), -sin(twophi));
   }
 
 }
