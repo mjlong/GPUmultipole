@@ -11,13 +11,10 @@
 #define FIT_F 2
 
 #define MODE     0
-#define WINDOWS  1
 #define FITORDER 2
 #define NUML     3
 #define FISSIONABLE  4
-#define LENGTH   5
 #define STARTE   0
-#define ENDE     1
 #define SPACING  2
 #define SQRTAWR  3
 /*
