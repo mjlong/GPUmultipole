@@ -5,12 +5,12 @@ multipole::multipole(struct multipoledata data){
     allocate and assign integers
   */
   size = sizeof(int);
-  cudaMalloc((void**)&dev_integers, 4*size);
+  cudaMalloc((void**)&dev_integers, 5*size);
   cudaMemcpy(dev_integers+MODE,    &(data.mode), size, cudaMemcpyHostToDevice);
-  //cudaMemcpy(dev_integers+WINDOWS, &(data.windows), size, cudaMemcpyHostToDevice);
   cudaMemcpy(dev_integers+FITORDER, &(data.fitorder), size, cudaMemcpyHostToDevice);
   cudaMemcpy(dev_integers+NUML, &(data.numL), size, cudaMemcpyHostToDevice);
   cudaMemcpy(dev_integers+FISSIONABLE, &(data.fissionable), size, cudaMemcpyHostToDevice);
+  cudaMemcpy(dev_integers+WINDOWS, &(data.windows), size, cudaMemcpyHostToDevice);
   //cudaMemcpy(dev_integers+LENGTH, &(data.length), size, cudaMemcpyHostToDevice);
 
   /*
@@ -63,12 +63,12 @@ multipole::~multipole(){
 }
 __device__  void multipole::xs_eval_fast(double E, double sqrtKT, 
 					 double &sigT, double &sigA, double &sigF, 
-					 CComplex* sigT_factor, unsigned blockbase){
+					 struct pointers ptr){
   /* Copy variables to local memory for efficiency */ 
-  int mode        = dev_integers[MODE];
+  unsigned mode        = ptr.dev_integers[MODE];
   int    iP, iC, iW, startW, endW;
-  double spacing = dev_doubles[SPACING];
-  double startE  = dev_doubles[STARTE];
+  double spacing = ptr.dev_doubles[SPACING];
+  double startE  = ptr.dev_doubles[STARTE];
   double sqrtE = sqrt(E);
   if(1==mode)
     iW = (int)((sqrtE - sqrt(startE))/spacing);
@@ -76,9 +76,9 @@ __device__  void multipole::xs_eval_fast(double E, double sqrtKT,
     iW = (int)((log(E) - log(startE))/spacing);
   else
     iW = (int)(( E - startE )/spacing);
-  int fitorder    = dev_integers[FITORDER];
-  int numL        = dev_integers[NUML];
-  int fissionable = dev_integers[FISSIONABLE];
+  unsigned fitorder    = ptr.dev_integers[FITORDER];
+  unsigned numL        = ptr.dev_integers[NUML];
+  unsigned fissionable = ptr.dev_integers[FISSIONABLE];
   //int length      = dev_integers[LENGTH];
   //int windows     = dev_integers[WINDOWS];
   //TODO:if length,windows are really not needed, remove them from dev_integers[] array
@@ -88,7 +88,7 @@ __device__  void multipole::xs_eval_fast(double E, double sqrtKT,
   //double twophi[4];
   //CComplex sigT_factor[4];
 
-  double sqrtAWR = dev_doubles[SQRTAWR];
+  double sqrtAWR = ptr.dev_doubles[SQRTAWR];
 
   
   double power, DOPP, DOPP_ECOEF;
@@ -98,7 +98,7 @@ __device__  void multipole::xs_eval_fast(double E, double sqrtKT,
   endW   = w_end[iW];
 
   if(startW <= endW)
-    fill_factors(sqrtE,numL,sigT_factor, blockbase);
+    fill_factors(sqrtE,numL,ptr.pseudo_rho,ptr.sigT_factor, ptr.blockbase);
   sigT = 0.0;
   sigA = 0.0;
   sigF = 0.0;
@@ -116,7 +116,7 @@ __device__  void multipole::xs_eval_fast(double E, double sqrtKT,
 
   for(iP=startW;iP<=endW;iP++){
     w_val = Faddeeva::w((sqrtE - mpdata[pindex(iP-1,MP_EA)])*DOPP)*DOPP_ECOEF;
-    sigT += real(mpdata[pindex(iP-1,MP_RT)]*sigT_factor[(l_value[iP-1]-1)<<blockbase]*w_val);	    
+    sigT += real(mpdata[pindex(iP-1,MP_RT)]*ptr.sigT_factor[(l_value[iP-1]-1)<<ptr.blockbase]*w_val);	    
     sigA += real(mpdata[pindex(iP-1,MP_RA)]*w_val);                              
     if(MP_FISS == fissionable)
       sigF += real(mpdata[pindex(iP-1,MP_RF)]*w_val);
@@ -126,17 +126,17 @@ __device__  void multipole::xs_eval_fast(double E, double sqrtKT,
 
 __device__  void multipole::xs_eval_fast(double E,  
 					 double &sigT, double &sigA, double &sigF,
-					 CComplex *sigT_factor, unsigned blockbase){
+					 struct pointers ptr){
   /* Copy variables to local memory for efficiency */ 
-  int mode        = dev_integers[MODE];
-  int fitorder    = dev_integers[FITORDER];
-  int fissionable = dev_integers[FISSIONABLE];
+  int mode        = ptr.dev_integers[MODE];
+  int fitorder    = ptr.dev_integers[FITORDER];
+  int fissionable = ptr.dev_integers[FISSIONABLE];
   //int length      = dev_integers[LENGTH];
   //int windows     = dev_integers[WINDOWS];
-  int numL        = dev_integers[NUML];
+  int numL        = ptr.dev_integers[NUML];
   //size_t size;
-  double spacing = dev_doubles[SPACING];
-  double startE  = dev_doubles[STARTE];
+  double spacing = ptr.dev_doubles[SPACING];
+  double startE  = ptr.dev_doubles[STARTE];
   
   int    iP, iC, iW, startW, endW;
 
@@ -151,10 +151,10 @@ __device__  void multipole::xs_eval_fast(double E,
     iW = (int)((log(E) - log(startE))/spacing);
   else
     iW = (int)(( E - startE )/spacing);
-  startW = w_start[iW];
-  endW   = w_end[iW];
+  startW = ptr.w_start[iW];
+  endW   = ptr.w_end[iW];
   if(startW <= endW)
-    fill_factors(sqrtE,numL,sigT_factor, blockbase);
+    fill_factors(sqrtE,numL,ptr.pseudo_rho,ptr.sigT_factor, ptr.blockbase);
   sigT = 0.0;
   sigA = 0.0;
   sigF = 0.0;
@@ -172,7 +172,7 @@ __device__  void multipole::xs_eval_fast(double E,
   for(iP=startW;iP<=endW;iP++){
     PSIIKI = -ONEI/(mpdata[pindex(iP-1,MP_EA)] - sqrtE);
     CDUM1  = PSIIKI / E;
-    sigT += real(mpdata[pindex(iP-1,MP_RT)]*CDUM1*sigT_factor[(l_value[iP-1]-1)<<blockbase]);
+    sigT += real(mpdata[pindex(iP-1,MP_RT)]*CDUM1*ptr.sigT_factor[(l_value[iP-1]-1)<<ptr.blockbase]);
     sigA += real(mpdata[pindex(iP-1,MP_RA)]*CDUM1);
     if(MP_FISS == fissionable)
       sigF += real(mpdata[pindex(iP-1,MP_RF)]*CDUM1);
@@ -191,13 +191,14 @@ __host__ __device__ int multipole::pindex(int iP, int type){
 }
 
 //TODO: here just continue the initilization scheme, it deserves trying make some values shared
-__device__ void multipole::fill_factors(double sqrtE, int numL, CComplex *sigT_factor, unsigned blockbase){
+__device__ void multipole::fill_factors(double sqrtE, int numL, double *prho, 
+					CComplex *sigT_factor, unsigned blockbase){
   int iL;
   double arg;
   double twophi;
 
   for(iL = 0; iL<numL; iL++){
-    twophi = pseudo_rho[iL] * sqrtE; 
+    twophi = prho[iL] * sqrtE; 
     if(1==iL)
       twophi -= atan(twophi);
     else if(2==iL){

@@ -14,7 +14,7 @@
 #define FITORDER 1
 #define NUML     2
 #define FISSIONABLE  3
-//#define WINDOWS  1
+#define WINDOWS  4
 //#define LENGTH   5
 #define STARTE   0
 #define SPACING  1
@@ -41,6 +41,16 @@
 using namespace std;
 //using namespace Faddeeva;
 
+struct pointers{
+  unsigned *dev_integers;
+  double   *dev_doubles;
+  unsigned *w_start;
+  unsigned *w_end;
+  double   *pseudo_rho;
+  CComplex *sigT_factor;
+  unsigned blockbase;
+};
+
 class multipole{
 public:
   int *dev_integers;
@@ -63,11 +73,11 @@ public:
   ~multipole();
   __device__  void xs_eval_fast(double E, double sqrtAWR, 
 				double &sigT, double &sigA, double &sigF,
-				CComplex* shared, unsigned blocksize);
+				struct pointers);
   __device__  void xs_eval_fast(double E, 
 				double &sigT, double &sigA, double &sigF,
-                                CComplex* shared, unsigned blocksize);
-  __device__ void fill_factors(double sqrtE, int numL, CComplex *sigT_factor,
+                                struct pointers);
+  __device__ void fill_factors(double sqrtE, int numL, double* pseudo_rho, CComplex *sigT_factor,
 			       unsigned blocksize);
   __host__ __device__  int findex(int, int, int, int, int);
   __host__ __device__  int pindex(int, int);
