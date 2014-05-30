@@ -17,8 +17,8 @@ struct tally{
 };
 
 struct shareInfo{
-  unsigned numL;
-  unsigned windows;
+  //unsigned numL;
+  //unsigned windows;
   unsigned blockbase;
 };
 
