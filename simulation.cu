@@ -1,5 +1,4 @@
-#include "simulation.h"
-
+#include "simulation.h" 
 __global__ void initialize(neutronInfo Info, double energy){
   int id = ((blockDim.x*blockDim.y*blockDim.z)*(blockIdx.y*gridDim.x+blockIdx.x)+(blockDim.x*blockDim.y)*threadIdx.z+blockDim.x*threadIdx.y+threadIdx.x);//THREADID;
   Info.energy[id] = energy; //(id+1.0); //energy;//(id + 1)*1.63*energy*0.001;// 
@@ -15,7 +14,7 @@ __global__ void history(multipole U238, double *devicearray, struct neutronInfo 
   double localenergy;
   double rnd;
   double sigT, sigA, sigF;
-  extern __shared__ double shared[];
+  extern __shared__ unsigned shared[];
   //size of shared[] is given as 3rd parameter while launching the kernel
   /* Each thread gets same seed, a different sequence number, no offset */
   curand_init(1234, id, 0, &Info.rndState[id]);
@@ -43,7 +42,7 @@ __global__ void history(multipole U238, double *devicearray, struct neutronInfo 
   Info.rndState[id] = localState; 
 
   /*reduce tally*/
-  double *tally = &shared[0];
+  unsigned *tally = shared;
   int i;
   int idl = 
     (blockDim.x*blockDim.y)*threadIdx.z+
@@ -54,7 +53,7 @@ __global__ void history(multipole U238, double *devicearray, struct neutronInfo 
     blockIdx.y*gridDim.x+blockIdx.x;
   int blocksize = blockDim.x * blockDim.y * blockDim.z;
 
-  tally[idl] = (double)(cnt);
+  tally[idl] = cnt;
   __syncthreads();
   i = blocksize>>1;
   while(i){
