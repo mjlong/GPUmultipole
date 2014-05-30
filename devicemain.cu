@@ -34,7 +34,7 @@ void anyvalue(struct multipoledata data, int setgridx, int setblockx){
     ints = ints>>1;
     floats++;
   }
-  Info.blockbase = floats;
+  Info.share.blockbase = floats;
   floats = 0;
   gridsize = gridx*blockx;
   cudaMalloc((void**)&devicearray, 4*gridsize*sizeof(double));
@@ -44,6 +44,8 @@ void anyvalue(struct multipoledata data, int setgridx, int setblockx){
   hostarray = (double*)malloc(4*gridsize*sizeof(double));
   cnt      = (unsigned*)malloc(gridx*sizeof(unsigned));     
 
+  Info.share.numL = data.numL;
+  Info.share.windows = data.windows;
   multipole U238(data); //host multipoledata to device
   initialize<<<dimBlock, dimGrid>>>(Info, 2000.0);//1.95093e4);
   //  cudaDeviceSynchronize();
@@ -55,8 +57,9 @@ void anyvalue(struct multipoledata data, int setgridx, int setblockx){
   doubles = data.numL<<1 ; 
   floats  = 0;
   sharedmem = blockx*(doubles*sizeof(double)+floats*sizeof(float)+ints*sizeof(int));
-  //sharedmem += 4 + (3<<1) + 1;
-  /* (MODE, FITORDER, NUML, FISSIONABLE) + (SPACING, STARTE, SQRTAWR)*/
+  sharedmem += (data.windows<<1)*sizeof(unsigned) + 4*sizeof(unsigned) + 3*sizeof(double) 
+    + data.numL*sizeof(double);
+  /* (w_start,w_end) + (MODE, FITORDER, NUML, FISSIONABLE) + (SPACING, STARTE, SQRTAWR)*/
   cudaEventRecord(start, 0);
   history<<<dimBlock, dimGrid, sharedmem>>>(U238, devicearray, Info);
   //history<<<dimBlock, dimGrid, sharedmem>>>(U238, Info);
