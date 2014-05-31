@@ -67,7 +67,7 @@ void anyvalue(struct multipoledata data, int setgridx, int setblockx){
 
   unsigned sum = 0;
   for (int i=0;i<gridx;i++){
-    //printf("%4d\n",cnt[i]);
+    printf("%4d\n",cnt[i]);
     sum += cnt[i];
   }
   printf("time elapsed:%g mus\n", timems*1000/sum);
