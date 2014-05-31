@@ -9,7 +9,7 @@ int main(int argc, char *argv[]){
   int l;
   double d1, d2;
   h5read(U238data, h5filename);
-  anyvalue(U238data,atoi(argv[1]),atoi(argv[2]));
+  anyvalue(U238data, atoi(argv[1]),atoi(argv[2]));
   //  printf("numL=%d\n",l);
   //  printf("double=%10.6e and %10.6e\n",d1, d2);
   return 0;
