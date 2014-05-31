@@ -4,7 +4,7 @@ multipole::multipole(struct multipoledata data){
   /*
     allocate and assign integers
   */
-  size = sizeof(int);
+  size = sizeof(unsigned);
   cudaMalloc((void**)&dev_integers, 4*size);
   cudaMemcpy(dev_integers+MODE,    &(data.mode), size, cudaMemcpyHostToDevice);
   cudaMemcpy(dev_integers+FITORDER, &(data.fitorder), size, cudaMemcpyHostToDevice);
@@ -59,36 +59,31 @@ multipole::~multipole(){
   cudaFree(fit);
 }
 __device__  void multipole::xs_eval_fast(double E, double sqrtKT, 
-			double &sigT, double &sigA, double &sigF){
+			                 double &sigT, double &sigA, double &sigF){
+
   /* Copy variables to local memory for efficiency */ 
   unsigned mode        = dev_integers[MODE];
-  unsigned fitorder    = dev_integers[FITORDER];
-  unsigned numL        = dev_integers[NUML];
-  unsigned fissionable = dev_integers[FISSIONABLE];
-
-  //TODO:if length,windows are really not needed, remove them from dev_integers[] array
-
+  int    iP, iC, iW, startW, endW;
   double spacing = dev_doubles[SPACING];
   double startE  = dev_doubles[STARTE];
-  double sqrtAWR = dev_doubles[SQRTAWR];
-
-  int    iP, iC, iW, startW, endW;
-  //TODO:I've not found wat to allocate for a thread
-  // 4 = maximum numL, consistent with max 3==iL in fill_factors()
-  CComplex sigT_factor[4];
   double sqrtE = sqrt(E);
-  double power, DOPP, DOPP_ECOEF;
-  CComplex w_val;
-
   if(1==mode)
     iW = (int)((sqrtE - sqrt(startE))/spacing);
   else if(2==mode)
     iW = (int)((log(E) - log(startE))/spacing);
   else
     iW = (int)(( E - startE )/spacing);
+  unsigned fitorder    = dev_integers[FITORDER];
+  unsigned numL        = dev_integers[NUML];
+  unsigned fissionable = dev_integers[FISSIONABLE];
+
+  double sqrtAWR = dev_doubles[SQRTAWR];
+  double power, DOPP, DOPP_ECOEF;
+  CComplex w_val;
+
   startW = w_start[iW];
   endW   = w_end[iW];
-
+  CComplex sigT_factor[4];
   if(startW <= endW)
     fill_factors(sqrtE,numL,sigT_factor);
   sigT = 0.0;
@@ -102,8 +97,7 @@ __device__  void multipole::xs_eval_fast(double E, double sqrtKT,
     if(MP_FISS == fissionable)
       sigF += fit[findex(iW,iC,FIT_F,fitorder+1,2+fissionable)]*power;
   }
-  //Faddeeva evaluation in advance
-  //TODO: Test whether in advance evaluation is faster
+
   DOPP = sqrtAWR/sqrtKT;
   DOPP_ECOEF = DOPP/E*sqrt(PI);
 
@@ -114,23 +108,23 @@ __device__  void multipole::xs_eval_fast(double E, double sqrtKT,
     if(MP_FISS == fissionable)
       sigF += real(mpdata[pindex(iP-1,MP_RF)]*w_val);
   }
+
 }
 
 __device__  void multipole::xs_eval_fast(double E,  
-			double &sigT, double &sigA, double &sigF){
+                        	 	 double &sigT, double &sigA, double &sigF){
+
   /* Copy variables to local memory for efficiency */ 
   unsigned mode        = dev_integers[MODE];
   unsigned fitorder    = dev_integers[FITORDER];
   unsigned fissionable = dev_integers[FISSIONABLE];
   unsigned numL        = dev_integers[NUML];
+
   double spacing = dev_doubles[SPACING];
   double startE  = dev_doubles[STARTE];
   
   int    iP, iC, iW, startW, endW;
-  //TODO:I've not found wat to allocate for a thread
-  // 4 = maximum numL, consistent with max 3==iL in fill_factors()
   CComplex sigT_factor[4];
-
   double sqrtE = sqrt(E);
   double power;
   CComplex PSIIKI, CDUM1, w_val;
@@ -156,9 +150,7 @@ __device__  void multipole::xs_eval_fast(double E,
     if(MP_FISS == fissionable)
       sigF += fit[findex(iW,iC,FIT_F,fitorder+1,2+fissionable)]*power;
   }
-  //Faddeeva evaluation in advance
 
-  //evaluating
   for(iP=startW;iP<=endW;iP++){
     PSIIKI = -ONEI/(mpdata[pindex(iP-1,MP_EA)] - sqrtE);
     CDUM1  = PSIIKI / E;
@@ -180,8 +172,8 @@ __host__ __device__ int multipole::pindex(int iP, int type){
   return iP*4 + type;
 }
 
-//TODO: here just continue the initilization scheme, it deserves trying make some values shared
-__device__ void multipole::fill_factors(double sqrtE, int numL, CComplex *sigT_factor){
+__device__ void multipole::fill_factors(double sqrtE, int numL, 
+                                        CComplex *sigT_factor){
   int iL;
   double arg;
   double twophi; 
