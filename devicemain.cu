@@ -13,19 +13,19 @@
 
 void printdevice();
 
-void anyvalue(struct multipoledata data, int gridset, int blockset){
+void anyvalue(struct multipoledata data, int setgridx, int setblockx){
   unsigned gridx, blockx, gridsize;
   unsigned ints=0, doubles=0, sharedmem;
   float timems = 0.0;
+  unsigned *cnt;
   double *hostarray, *devicearray;
-  unsigned  *tally;
   struct neutronInfo Info;
   cudaEvent_t start, stop;
   cudaEventCreate(&start);
   cudaEventCreate(&stop);
   // printdevice();
-  gridx = gridset;
-  blockx = blockset;
+  gridx = setgridx;
+  blockx = setblockx;
   dim3 dimBlock(gridx, 1);
   dim3 dimGrid(blockx, 1, 1);
   gridsize = gridx*blockx;
@@ -34,14 +34,11 @@ void anyvalue(struct multipoledata data, int gridset, int blockset){
   cudaMalloc((void**)&(Info.energy), gridsize*sizeof(double));
   cudaMalloc((void**)&(Info.tally), gridx*sizeof(unsigned));
   hostarray = (double*)malloc(4*gridsize*sizeof(double));
-  tally     = (unsigned*)malloc(gridx*sizeof(unsigned));
+  cnt      = (unsigned*)malloc(gridx*sizeof(unsigned));
 
   multipole U238(data); //host multipoledata to device
-
-
   initialize<<<dimBlock, dimGrid>>>(Info, 2000.0);//1.95093e4);
   //  cudaDeviceSynchronize();
-
   /*
     Note: shared memory size is in unit of Bybe
     And the address can be referred in form of p = pshared + offset
@@ -58,7 +55,7 @@ void anyvalue(struct multipoledata data, int gridset, int blockset){
   printf("time elapsed:%3.1f ms\n", timems);
  
   cudaMemcpy(hostarray, devicearray, 4*gridsize*sizeof(double), cudaMemcpyDeviceToHost);
-  cudaMemcpy(tally, Info.tally, gridx*sizeof(unsigned), cudaMemcpyDeviceToHost);
+  cudaMemcpy(cnt, Info.tally, gridx*sizeof(unsigned), cudaMemcpyDeviceToHost);
 
   for(int i=0;i<gridsize;i++){
     printf("%.15e %.15e %.15e %.15e\n",
@@ -67,20 +64,21 @@ void anyvalue(struct multipoledata data, int gridset, int blockset){
 	   hostarray[4*i+2],
 	   hostarray[4*i+3]);
   }
+
   unsigned sum = 0;
   for (int i=0;i<gridx;i++){
-    printf("%5d\n",tally[i]);
-    sum += tally[i];
+    //printf("%4d\n",cnt[i]);
+    sum += cnt[i];
   }
   printf("time elapsed:%g mus\n", timems*1000/sum);
-  FILE *fp;
+
+  FILE *fp=NULL;
   fp = fopen("timelog","a+");
-  fprintf(fp,"%3d,%3d,%g\n",gridx,blockx,timems*1000/sum);
+  fprintf(fp,"%3d,%3d,%g    \n", gridx, blockx, timems*1000/sum);
   fclose(fp);
   //cudaEventRecord(stop, 0);
   //cudaEventSynchronize(stop);
   //cudaEventElapsedTime(&timems, start, stop);
-
 
   //cudaEventDestroy(start);
   //cudaEventDestroy(stop);
@@ -90,6 +88,8 @@ void anyvalue(struct multipoledata data, int gridset, int blockset){
   cudaFree(Info.tally);
   cudaFree(Info.rndState);
 
+  free(hostarray);
+  free(cnt);
   return;
 }
 
