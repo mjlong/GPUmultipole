@@ -44,7 +44,7 @@ __global__ void history(multipole U238, double *devicearray, struct neutronInfo 
   devicearray[4*id+3]=sigF;
   
   /* Copy state back to global memory */ 
-  //Info.rndState[id] = localState; 
+  Info.rndState[id] = localState; 
 
   /*reduce tally*/
   __syncthreads();
@@ -62,7 +62,7 @@ __global__ void history(multipole U238, double *devicearray, struct neutronInfo 
   if(0==idl){
     //reduction scheme depends on tally type
     //following is to count moderation times
-    Info.tally[blockIdx.x] = tally[0];
+    Info.ntally.cnt[blockIdx.x] = tally[0];
   }
 }
 

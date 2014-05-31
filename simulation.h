@@ -11,11 +11,15 @@
 struct basicneutronInfo{
   double energy;
 };
+struct tally{
+  unsigned *cnt;
+  double   *unknown;
+};
 
 struct neutronInfo{
   double *energy;
   curandState *rndState;
-  unsigned *tally;
+  struct tally ntally;
 };
 
 __global__ void history(multipole, double*, struct neutronInfo );
