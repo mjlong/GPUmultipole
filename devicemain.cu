@@ -32,7 +32,7 @@ void anyvalue(struct multipoledata data, int setgridx, int setblockx){
   cudaMalloc((void**)&devicearray, 4*gridsize*sizeof(double));
   cudaMalloc((void**)&(Info.rndState), gridsize*sizeof(curandState));
   cudaMalloc((void**)&(Info.energy), gridsize*sizeof(double));
-  cudaMalloc((void**)&(Info.tally), gridx*sizeof(unsigned));
+  cudaMalloc((void**)&(Info.ntally.cnt), gridx*sizeof(unsigned));
   hostarray = (double*)malloc(4*gridsize*sizeof(double));
   cnt      = (unsigned*)malloc(gridx*sizeof(unsigned));
 
@@ -55,7 +55,7 @@ void anyvalue(struct multipoledata data, int setgridx, int setblockx){
   printf("time elapsed:%3.1f ms\n", timems);
  
   cudaMemcpy(hostarray, devicearray, 4*gridsize*sizeof(double), cudaMemcpyDeviceToHost);
-  cudaMemcpy(cnt, Info.tally, gridx*sizeof(unsigned), cudaMemcpyDeviceToHost);
+  cudaMemcpy(cnt, Info.ntally.cnt, gridx*sizeof(unsigned), cudaMemcpyDeviceToHost);
 
   for(int i=0;i<gridsize;i++){
     printf("%.15e %.15e %.15e %.15e\n",
@@ -85,7 +85,7 @@ void anyvalue(struct multipoledata data, int setgridx, int setblockx){
 
   cudaFree(devicearray);
   cudaFree(Info.energy);
-  cudaFree(Info.tally);
+  cudaFree(Info.ntally.cnt);
   cudaFree(Info.rndState);
 
   free(hostarray);
