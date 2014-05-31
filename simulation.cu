@@ -1,8 +1,9 @@
 #include "simulation.h" 
+
 __global__ void initialize(neutronInfo Info, double energy){
   //int id = ((blockDim.x*blockDim.y*blockDim.z)*(blockIdx.y*gridDim.x+blockIdx.x)+(blockDim.x*blockDim.y)*threadIdx.z+blockDim.x*threadIdx.y+threadIdx.x);//THREADID;
   int id = blockDim.x * blockIdx.x + threadIdx.x;
-  Info.energy[id] = energy; //(id+1.0); //energy;//(id + 1)*1.63*energy*0.001;// 
+  Info.energy[id] = energy; //id+1.0; //(id + 1)*1.63*energy*0.001;// 
 
 }
 
@@ -15,6 +16,7 @@ __global__ void history(multipole U238, double *devicearray, struct neutronInfo 
   double localenergy;
   double rnd;
   double sigT, sigA, sigF;
+
   extern __shared__ unsigned shared[];
   //size of shared[] is given as 3rd parameter while launching the kernel
   /* Each thread gets same seed, a different sequence number, no offset */
@@ -25,6 +27,8 @@ __global__ void history(multipole U238, double *devicearray, struct neutronInfo 
 
   localenergy = Info.energy[id];
   unsigned cnt = 0;
+  unsigned idl = threadIdx.x;
+
   while(live){
     rnd = curand_uniform(&localState);
     U238.xs_eval_fast(localenergy, sqrt(300.0*KB), sigT, sigA, sigF);
@@ -40,11 +44,11 @@ __global__ void history(multipole U238, double *devicearray, struct neutronInfo 
   devicearray[4*id+3]=sigF;
   
   /* Copy state back to global memory */ 
-  Info.rndState[id] = localState; 
+  //Info.rndState[id] = localState; 
 
   /*reduce tally*/
+  __syncthreads();
   unsigned *tally = shared;
-  int idl = threadIdx.x;
   int i;
   tally[idl] = cnt;
   __syncthreads();
@@ -61,5 +65,6 @@ __global__ void history(multipole U238, double *devicearray, struct neutronInfo 
     Info.tally[blockIdx.x] = tally[0];
   }
 }
+
 
 
