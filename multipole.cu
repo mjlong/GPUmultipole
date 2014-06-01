@@ -49,7 +49,7 @@ multipole::multipole(struct multipoledata data){
 
 
 multipole::~multipole(){
-  cudaFree(dev_integers);
+  gpuErrchk(cudaFree(dev_integers));
   cudaFree(dev_doubles);
   cudaFree(mpdata);
   cudaFree(l_value);
