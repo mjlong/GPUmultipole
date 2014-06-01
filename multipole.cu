@@ -49,14 +49,17 @@ multipole::multipole(struct multipoledata data){
 
 
 multipole::~multipole(){
+}
+
+void multipole::release_pointer(){
   gpuErrchk(cudaFree(dev_integers));
-  cudaFree(dev_doubles);
-  cudaFree(mpdata);
-  cudaFree(l_value);
-  cudaFree(pseudo_rho);
-  cudaFree(w_start);
-  cudaFree(w_end);
-  cudaFree(fit);
+  gpuErrchk(cudaFree(dev_doubles));
+  gpuErrchk(cudaFree(mpdata));
+  gpuErrchk(cudaFree(l_value));
+  gpuErrchk(cudaFree(pseudo_rho));
+  gpuErrchk(cudaFree(w_start));
+  gpuErrchk(cudaFree(w_end));
+  gpuErrchk(cudaFree(fit));
 }
 __device__  void multipole::xs_eval_fast(double E, double sqrtKT, 
 			                 double &sigT, double &sigA, double &sigF){
