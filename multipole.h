@@ -11,12 +11,12 @@
 #define FIT_F 2
 
 #define MODE     0
-#define FITORDER 2
-#define NUML     3
-#define FISSIONABLE  4
+#define FITORDER 1
+#define NUML     2
+#define FISSIONABLE  3
 #define STARTE   0
-#define SPACING  2
-#define SQRTAWR  3
+#define SPACING  1
+#define SQRTAWR  2
 /*
   Mode, set to 0 for linear, 1 for momentum, 2 for logarithmic.
   Mode = 0 (linear)
@@ -35,6 +35,7 @@
 #include <iostream>
 #include "Faddeeva.h"
 #include "global.h"
+#include "gpuerrchk.h"
 using namespace std;
 //using namespace Faddeeva;
 
