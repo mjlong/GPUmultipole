@@ -87,7 +87,7 @@ void anyvalue(struct multipoledata data, int setgridx, int setblockx){
   gpuErrchk(cudaFree(Info.energy));
   gpuErrchk(cudaFree(Info.ntally.cnt));
   gpuErrchk(cudaFree(Info.rndState));
-  U238.~multipole();
+  U238.release_pointer();
 
   free(hostarray);
   free(cnt);
