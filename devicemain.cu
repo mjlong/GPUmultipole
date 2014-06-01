@@ -21,18 +21,18 @@ void anyvalue(struct multipoledata data, int setgridx, int setblockx){
   double *hostarray, *devicearray;
   struct neutronInfo Info;
   cudaEvent_t start, stop;
-  cudaEventCreate(&start);
-  cudaEventCreate(&stop);
+  gpuErrchk(cudaEventCreate(&start));
+  gpuErrchk(cudaEventCreate(&stop));
   // printdevice();
   gridx = setgridx;
   blockx = setblockx;
   dim3 dimBlock(gridx, 1);
   dim3 dimGrid(blockx, 1, 1);
   gridsize = gridx*blockx;
-  cudaMalloc((void**)&devicearray, 4*gridsize*sizeof(double));
-  cudaMalloc((void**)&(Info.rndState), gridsize*sizeof(curandState));
-  cudaMalloc((void**)&(Info.energy), gridsize*sizeof(double));
-  cudaMalloc((void**)&(Info.ntally.cnt), gridx*sizeof(unsigned));
+  gpuErrchk(cudaMalloc((void**)&devicearray, 4*gridsize*sizeof(double)));
+  gpuErrchk(cudaMalloc((void**)&(Info.rndState), gridsize*sizeof(curandState)));
+  gpuErrchk(cudaMalloc((void**)&(Info.energy), gridsize*sizeof(double)));
+  gpuErrchk(cudaMalloc((void**)&(Info.ntally.cnt), gridx*sizeof(unsigned)));
   hostarray = (double*)malloc(4*gridsize*sizeof(double));
   cnt      = (unsigned*)malloc(gridx*sizeof(unsigned));
 
@@ -45,17 +45,17 @@ void anyvalue(struct multipoledata data, int setgridx, int setblockx){
   */
   ints = blockx;
   sharedmem = doubles*sizeof(double)+ints*sizeof(int);
-  cudaEventRecord(start, 0);
+  gpuErrchk(cudaEventRecord(start, 0));
   history<<<dimBlock, dimGrid, sharedmem>>>(U238, devicearray, Info);
 
-  cudaEventRecord(stop, 0);
-  cudaEventSynchronize(stop);
-  cudaEventElapsedTime(&timems, start, stop);
+  gpuErrchk(cudaEventRecord(stop, 0));
+  gpuErrchk(cudaEventSynchronize(stop));
+  gpuErrchk(cudaEventElapsedTime(&timems, start, stop));
 
   printf("time elapsed:%3.1f ms\n", timems);
  
-  cudaMemcpy(hostarray, devicearray, 4*gridsize*sizeof(double), cudaMemcpyDeviceToHost);
-  cudaMemcpy(cnt, Info.ntally.cnt, gridx*sizeof(unsigned), cudaMemcpyDeviceToHost);
+  gpuErrchk(cudaMemcpy(hostarray, devicearray, 4*gridsize*sizeof(double), cudaMemcpyDeviceToHost));
+  gpuErrchk(cudaMemcpy(cnt, Info.ntally.cnt, gridx*sizeof(unsigned), cudaMemcpyDeviceToHost));
 
   for(int i=0;i<gridsize;i++){
     printf("%.15e %.15e %.15e %.15e\n",
@@ -80,13 +80,14 @@ void anyvalue(struct multipoledata data, int setgridx, int setblockx){
   //cudaEventSynchronize(stop);
   //cudaEventElapsedTime(&timems, start, stop);
 
-  //cudaEventDestroy(start);
-  //cudaEventDestroy(stop);
+  gpuErrchk(cudaEventDestroy(start));
+  gpuErrchk(cudaEventDestroy(stop));
 
-  cudaFree(devicearray);
-  cudaFree(Info.energy);
-  cudaFree(Info.ntally.cnt);
-  cudaFree(Info.rndState);
+  gpuErrchk(cudaFree(devicearray));
+  gpuErrchk(cudaFree(Info.energy));
+  gpuErrchk(cudaFree(Info.ntally.cnt));
+  gpuErrchk(cudaFree(Info.rndState));
+  U238.~multipole();
 
   free(hostarray);
   free(cnt);
