@@ -40,7 +40,7 @@ using namespace std;
 //using namespace Faddeeva;
 
 class multipole{
-public:
+private:
   int *dev_integers;
   double *dev_doubles;
   CComplex *mpdata;
