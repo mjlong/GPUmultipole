@@ -100,7 +100,8 @@ void anyvalue(struct multipoledata data, int setgridx, int setblockx){
   cudaFree(Info.energy);
   cudaFree(Info.ntally.cnt);
   cudaFree(Info.rndState);
-
+  U238.release_pointer();
+    
   free(hostarray);
   free(cnt);
   return;

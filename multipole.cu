@@ -49,6 +49,9 @@ multipole::multipole(struct multipoledata data){
 
 
 multipole::~multipole(){
+}
+
+void multipole::release_pointer(){
   cudaFree(dev_integers);
   cudaFree(dev_doubles);
   cudaFree(mpdata);
@@ -58,6 +61,7 @@ multipole::~multipole(){
   cudaFree(w_end);
   cudaFree(fit);
 }
+
 __device__  void multipole::xs_eval_fast(double E, double sqrtKT, 
 					 double &sigT, double &sigA, double &sigF, 
 					 struct pointers ptr){

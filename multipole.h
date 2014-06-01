@@ -68,6 +68,7 @@ class multipole{
  public:
   multipole(struct multipoledata data);
   ~multipole();
+  void release_pointer();
   __device__  void xs_eval_fast(double E, double sqrtAWR, 
 				double &sigT, double &sigA, double &sigF,
 				struct pointers);
