@@ -12,7 +12,7 @@ struct basicneutronInfo{
   double energy;
 };
 struct tally{
-  unsigned *cnt;
+  unsigned long long *cnt;
   double   *unknown;
 };
 
