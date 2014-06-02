@@ -39,6 +39,12 @@
 using namespace std;
 //using namespace Faddeeva;
 
+struct datatextures{
+  texture<unsigned> W_start;
+  texture<unsigned> W_end;
+  texture<unsigned> l_value;
+};
+
 class multipole{
 private:
   int *dev_integers;
@@ -48,8 +54,10 @@ private:
   int      w_function; //Which W function to use
   double   *pseudo_rho;  //inherit nomenclature from isotope.h
 
-  int *w_start;// Contains the index of the pole at the start of the window
-  int *w_end;  // Contains the index of the pole at the end of the window
+  //texture<unsigned> texW_start;
+  struct datatextures dtex;
+  unsigned *w_start;// Contains the index of the pole at the start of the window
+  unsigned *w_end;  // Contains the index of the pole at the end of the window
   double *fit;
   //Contains the fitting function.  (reaction type, coeff index, window index)
   //=========================================================================
