@@ -17,7 +17,7 @@ void anyvalue(struct multipoledata data, int setgridx, int setblockx){
   unsigned gridx, blockx, gridsize;
   unsigned ints=0, doubles=0, sharedmem;
   float timems = 0.0;
-  unsigned long long*cnt;
+  unsigned *cnt;
   double *hostarray, *devicearray;
   struct neutronInfo Info;
   cudaEvent_t start, stop;
@@ -32,9 +32,9 @@ void anyvalue(struct multipoledata data, int setgridx, int setblockx){
   gpuErrchk(cudaMalloc((void**)&devicearray, 4*gridsize*sizeof(double)));
   gpuErrchk(cudaMalloc((void**)&(Info.rndState), gridsize*sizeof(curandState)));
   gpuErrchk(cudaMalloc((void**)&(Info.energy), gridsize*sizeof(double)));
-  gpuErrchk(cudaMalloc((void**)&(Info.ntally.cnt), gridx*sizeof(unsigned long long)));
+  gpuErrchk(cudaMalloc((void**)&(Info.ntally.cnt), gridx*sizeof(unsigned)));
   hostarray = (double*)malloc(4*gridsize*sizeof(double));
-  cnt      = (unsigned long long*)malloc(gridx*sizeof(unsigned long long));
+  cnt      = (unsigned*)malloc(gridx*sizeof(unsigned));
 
   multipole U238(data); //host multipoledata to device
   initialize<<<dimBlock, dimGrid>>>(Info, 2000.0);//1.95093e4);
@@ -44,7 +44,7 @@ void anyvalue(struct multipoledata data, int setgridx, int setblockx){
     And the address can be referred in form of p = pshared + offset
   */
   ints = blockx;
-  sharedmem = doubles*sizeof(double)+ints*sizeof(int);
+  sharedmem = doubles*sizeof(double)+ints*sizeof(unsigned);
   gpuErrchk(cudaEventRecord(start, 0));
   history<<<dimBlock, dimGrid, sharedmem>>>(U238, devicearray, Info);
 
@@ -55,7 +55,7 @@ void anyvalue(struct multipoledata data, int setgridx, int setblockx){
   printf("time elapsed:%3.1f ms\n", timems);
  
   gpuErrchk(cudaMemcpy(hostarray, devicearray, 4*gridsize*sizeof(double), cudaMemcpyDeviceToHost));
-  gpuErrchk(cudaMemcpy(cnt, Info.ntally.cnt, gridx*sizeof(unsigned long long), cudaMemcpyDeviceToHost));
+  gpuErrchk(cudaMemcpy(cnt, Info.ntally.cnt, gridx*sizeof(unsigned), cudaMemcpyDeviceToHost));
 
   for(int i=0;i<gridsize;i++){
     printf("%.15e %.15e %.15e %.15e\n",
@@ -67,7 +67,7 @@ void anyvalue(struct multipoledata data, int setgridx, int setblockx){
 
   unsigned sum = 0;
   for (int i=0;i<gridx;i++){
-    printf("%10llu\n",cnt[i]);
+    printf("%10u\n",cnt[i]);
     sum += cnt[i];
   }
   printf("time elapsed:%g mus\n", timems*1000/sum);
