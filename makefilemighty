@@ -13,8 +13,8 @@ main.cc
 GSOURCES=\
 CComplex.cu\
 Faddeeva.cu\
-simulation.cu\
 multipole.cu\
+simulation.cu\
 devicemain.cu
 COBJECTS=$(CSOURCES:.cc=.obj)
 GOBJECTS=$(GSOURCES:.cu=.o)
