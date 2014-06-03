@@ -30,7 +30,7 @@ multipole::multipole(struct multipoledata data){
   size = data.length*sizeof(unsigned);
   gpuErrchk(cudaMalloc((void**)&l_value, size));
   cudaMemcpy(l_value, data.l_value, size, cudaMemcpyHostToDevice);
-  //cudaBindTexture(NULL,dtex.l_value, l_value, size);
+  //gpuErrchk(cudaBindTexture(NULL,dtex.l_value, l_value, size));
 
   size = data.numL*sizeof(double);
   gpuErrchk(cudaMalloc((void**)&pseudo_rho, size));
@@ -65,7 +65,7 @@ void multipole::release_pointer(){
   gpuErrchk(cudaFree(fit));
   //cudaUnbindTexture(dtex.W_start);
   //cudaUnbindTexture(dtex.W_end);
-  //cudaUnbindTexture(dtex.l_value);
+  //gpuErrchk(cudaUnbindTexture(dtex.l_value));
 }
 __device__  void multipole::xs_eval_fast(double E, double sqrtKT, 
 			                 double &sigT, double &sigA, double &sigF){
