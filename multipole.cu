@@ -122,19 +122,19 @@ __device__  void multipole::xs_eval_fast(double E, double sqrtKT,
   for (iC=0;iC<=fitorder;iC++){
     power = pow(E,iC*0.5-1.0);
     //texture
-    ///*
+    /*
     sigT += tex1Dfetch_double(texfit,findex(iW,iC,FIT_T,fitorder+1,2+fissionable))*power;
     sigA += tex1Dfetch_double(texfit,findex(iW,iC,FIT_A,fitorder+1,2+fissionable))*power;
     if(MP_FISS == fissionable)
       sigF += tex1Dfetch_double(texfit,findex(iW,iC,FIT_F,fitorder+1,2+fissionable))*power;
-    //*/
+    */
     //global
-    /*
+    ///*
     sigT += fit[findex(iW,iC,FIT_T,fitorder+1,2+fissionable)]*power;
     sigA += fit[findex(iW,iC,FIT_A,fitorder+1,2+fissionable)]*power;
     if(MP_FISS == fissionable)
       sigF += fit[findex(iW,iC,FIT_F,fitorder+1,2+fissionable)]*power;
-    */
+    //*/
   }
 
   DOPP = sqrtAWR/sqrtKT;
@@ -142,23 +142,23 @@ __device__  void multipole::xs_eval_fast(double E, double sqrtKT,
 
   for(iP=startW;iP<=endW;iP++){
     //texture
-    ///*
+    /*
     w_val = Faddeeva::w((sqrtE - tex1Dfetch_complex(texmpdata,pindex(iP-1,MP_EA)))*DOPP)*DOPP_ECOEF;
     sigT += real(tex1Dfetch_complex(texmpdata,pindex(iP-1,MP_RT))*sigT_factor[tex1Dfetch(texl_value,iP-1)-1]*w_val);	    
     sigT += real(tex1Dfetch_complex(texmpdata,pindex(iP-1,MP_RT))*sigT_factor[tex1Dfetch(texl_value,iP-1)-1]*w_val);	    
     sigA += real(tex1Dfetch_complex(texmpdata,pindex(iP-1,MP_RA))*w_val);                              
     if(MP_FISS == fissionable)
       sigF += real(tex1Dfetch_complex(texmpdata,pindex(iP-1,MP_RF))*w_val);
-    //*/
+    */
 
     //global
-    /*
+    ///*
     w_val = Faddeeva::w((sqrtE - mpdata[pindex(iP-1,MP_EA)])*DOPP)*DOPP_ECOEF;
     sigT += real(mpdata[pindex(iP-1,MP_RT)]*sigT_factor[l_value[iP-1]-1]*w_val);	    
     sigA += real(mpdata[pindex(iP-1,MP_RA)]*w_val);                              
     if(MP_FISS == fissionable)
       sigF += real(mpdata[pindex(iP-1,MP_RF)]*w_val);
-    */
+    //*/
   }
 
 }
