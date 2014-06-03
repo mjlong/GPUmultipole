@@ -38,13 +38,13 @@
 #include "gpuerrchk.h"
 using namespace std;
 //using namespace Faddeeva;
-
+/*
 struct datatextures{
   texture<unsigned> W_start;
   texture<unsigned> W_end;
   texture<unsigned> l_value;
 };
-
+*/
 class multipole{
 private:
   int *dev_integers;
@@ -55,7 +55,7 @@ private:
   double   *pseudo_rho;  //inherit nomenclature from isotope.h
 
   //texture<unsigned> texW_start;
-  struct datatextures dtex;
+  //struct datatextures dtex;
   unsigned *w_start;// Contains the index of the pole at the start of the window
   unsigned *w_end;  // Contains the index of the pole at the end of the window
   double *fit;

@@ -5,7 +5,7 @@ multipole::multipole(struct multipoledata data){
     allocate and assign integers
   */
   size = sizeof(unsigned);
-  cudaMalloc((void**)&dev_integers, 4*size);
+  gpuErrchk(cudaMalloc((void**)&dev_integers, 4*size));
   cudaMemcpy(dev_integers+MODE,    &(data.mode), size, cudaMemcpyHostToDevice);
   cudaMemcpy(dev_integers+FITORDER, &(data.fitorder), size, cudaMemcpyHostToDevice);
   cudaMemcpy(dev_integers+NUML, &(data.numL), size, cudaMemcpyHostToDevice);
@@ -15,7 +15,7 @@ multipole::multipole(struct multipoledata data){
     allocate and assign doubles
   */
   size = sizeof(double);
-  cudaMalloc((void**)&dev_doubles,  3*size);
+  gpuErrchk(cudaMalloc((void**)&dev_doubles,  3*size));
   cudaMemcpy(dev_doubles+STARTE, &(data.startE), size, cudaMemcpyHostToDevice);
   cudaMemcpy(dev_doubles+SPACING,&(data.spacing), size, cudaMemcpyHostToDevice);
   cudaMemcpy(dev_doubles+SQRTAWR, &(data.sqrtAWR), size, cudaMemcpyHostToDevice);
@@ -24,29 +24,29 @@ multipole::multipole(struct multipoledata data){
     allocate and assign arrays
   */
   size = data.length*(MP_RF+data.fissionable)*2*sizeof(double);
-  cudaMalloc((void**)&mpdata, size);
+  gpuErrchk(cudaMalloc((void**)&mpdata, size));
   cudaMemcpy(mpdata, data.mpdata, size, cudaMemcpyHostToDevice);
 
   size = data.length*sizeof(unsigned);
-  cudaMalloc((void**)&l_value, size);
+  gpuErrchk(cudaMalloc((void**)&l_value, size));
   cudaMemcpy(l_value, data.l_value, size, cudaMemcpyHostToDevice);
-  cudaBindTexture(NULL,dtex.l_value, l_value, size);
+  //cudaBindTexture(NULL,dtex.l_value, l_value, size);
 
   size = data.numL*sizeof(double);
-  cudaMalloc((void**)&pseudo_rho, size);
+  gpuErrchk(cudaMalloc((void**)&pseudo_rho, size));
   cudaMemcpy(pseudo_rho, data.pseudo_rho, size, cudaMemcpyHostToDevice);
 
 
   size = data.windows*sizeof(unsigned);
-  cudaMalloc((void**)&w_start, size);
+  gpuErrchk(cudaMalloc((void**)&w_start, size));
   cudaMemcpy(w_start, data.w_start, size, cudaMemcpyHostToDevice);
-  cudaMalloc((void**)&w_end, size);
+  gpuErrchk(cudaMalloc((void**)&w_end, size));
   cudaMemcpy(w_end, data.w_end, size, cudaMemcpyHostToDevice);
-  cudaBindTexture(NULL,dtex.W_start, w_start, size);
-  cudaBindTexture(NULL,dtex.W_end,   w_end,   size);
+  //cudaBindTexture(NULL,dtex.W_start, w_start, size);
+  //cudaBindTexture(NULL,dtex.W_end,   w_end,   size);
 
   size = (FIT_F+data.fissionable)*(data.fitorder+1)*data.windows*sizeof(double);
-  cudaMalloc((void**)&fit, size);
+  gpuErrchk(cudaMalloc((void**)&fit, size));
   cudaMemcpy(fit, data.fit, size, cudaMemcpyHostToDevice);
 }
 
@@ -62,10 +62,10 @@ void multipole::release_pointer(){
   gpuErrchk(cudaFree(pseudo_rho));
   gpuErrchk(cudaFree(w_start));
   gpuErrchk(cudaFree(w_end));
-  cudaFree(fit);
-  cudaUnbindTexture(dtex.W_start);
-  cudaUnbindTexture(dtex.W_end);
-  cudaUnbindTexture(dtex.l_value);
+  gpuErrchk(cudaFree(fit));
+  //cudaUnbindTexture(dtex.W_start);
+  //cudaUnbindTexture(dtex.W_end);
+  //cudaUnbindTexture(dtex.l_value);
 }
 __device__  void multipole::xs_eval_fast(double E, double sqrtKT, 
 			                 double &sigT, double &sigA, double &sigF){
@@ -90,8 +90,10 @@ __device__  void multipole::xs_eval_fast(double E, double sqrtKT,
   double power, DOPP, DOPP_ECOEF;
   CComplex w_val;
 
-  startW = tex1Dfetch(dtex.W_start,iW);
-  endW   = tex1Dfetch(dtex.W_end,iW);
+  //startW = tex1Dfetch(dtex.W_start,iW);
+  //endW   = tex1Dfetch(dtex.W_end,iW);
+  startW = w_start[iW];
+  endW   = w_end[iW];
   CComplex sigT_factor[4];
   if(startW <= endW)
     fill_factors(sqrtE,numL,sigT_factor);
@@ -112,7 +114,8 @@ __device__  void multipole::xs_eval_fast(double E, double sqrtKT,
 
   for(iP=startW;iP<=endW;iP++){
     w_val = Faddeeva::w((sqrtE - mpdata[pindex(iP-1,MP_EA)])*DOPP)*DOPP_ECOEF;
-    sigT += real(mpdata[pindex(iP-1,MP_RT)]*sigT_factor[tex1Dfetch(dtex.l_value,iP-1)-1]*w_val);	    
+    //sigT += real(mpdata[pindex(iP-1,MP_RT)]*sigT_factor[tex1Dfetch(dtex.l_value,iP-1)-1]*w_val);	    
+    sigT += real(mpdata[pindex(iP-1,MP_RT)]*sigT_factor[l_value[iP-1]-1]*w_val);	    
     sigA += real(mpdata[pindex(iP-1,MP_RA)]*w_val);                              
     if(MP_FISS == fissionable)
       sigF += real(mpdata[pindex(iP-1,MP_RF)]*w_val);
