@@ -58,11 +58,19 @@ void anyvalue(struct multipoledata data, int setgridx, int setblockx){
   gpuErrchk(cudaMemcpy(cnt, Info.ntally.cnt, gridx*sizeof(unsigned), cudaMemcpyDeviceToHost));
 
   for(int i=0;i<gridsize;i++){
-    printf("%.15e %.15e %.15e %.15e\n",
+    printf("%.15e %.15e %.15e %.15e",
 	   hostarray[4*i],
 	   hostarray[4*i+1],
 	   hostarray[4*i+2],
 	   hostarray[4*i+3]);
+    if(hostarray[4*i]<0)
+      printf("error-:%d \n",i);
+    else{
+      if(hostarray[4*i]>=2000.0)
+	printf("error+:%d \n",i);
+      else
+	printf("\n");
+    }
   }
 
   unsigned sum = 0;
