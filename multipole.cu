@@ -1,10 +1,16 @@
 #include "multipole.h"
 texture<unsigned> texl_value;
 texture<int2> texfit;
+texture<int4> texmpdata;
 
 static __inline__ __device__ double tex1Dfetch_double(texture<int2> t, int i){
   int2 v = tex1Dfetch(t,i);
   return __hiloint2double(v.y, v.x);
+}
+
+static __inline__ __device__ CComplex tex1Dfetch_complex(texture<int4> t, int i){
+  int4 v = tex1Dfetch(t,i);
+  return CComplex(__hiloint2double(v.y, v.x),__hiloint2double(v.w,v.z));
 }
 
 multipole::multipole(struct multipoledata data){
@@ -34,6 +40,7 @@ multipole::multipole(struct multipoledata data){
   size = data.length*(MP_RF+data.fissionable)*2*sizeof(double);
   gpuErrchk(cudaMalloc((void**)&mpdata, size));
   cudaMemcpy(mpdata, data.mpdata, size, cudaMemcpyHostToDevice);
+  cudaBindTexture(NULL,texmpdata,mpdata,size);
 
   size = data.length*sizeof(unsigned);
   gpuErrchk(cudaMalloc((void**)&l_value, size));
@@ -76,6 +83,7 @@ void multipole::release_pointer(){
   //cudaUnbindTexture(dtex.W_end);
   cudaUnbindTexture(texl_value);
   cudaUnbindTexture(texfit);
+  cudaUnbindTexture(texmpdata);
 }
 __device__  void multipole::xs_eval_fast(double E, double sqrtKT, 
 			                 double &sigT, double &sigA, double &sigF){
@@ -113,25 +121,44 @@ __device__  void multipole::xs_eval_fast(double E, double sqrtKT,
   //polynomial fitting
   for (iC=0;iC<=fitorder;iC++){
     power = pow(E,iC*0.5-1.0);
-    //sigT += fit[findex(iW,iC,FIT_T,fitorder+1,2+fissionable)]*power;
-    //sigA += fit[findex(iW,iC,FIT_A,fitorder+1,2+fissionable)]*power;
+    //texture
+    ///*
     sigT += tex1Dfetch_double(texfit,findex(iW,iC,FIT_T,fitorder+1,2+fissionable))*power;
     sigA += tex1Dfetch_double(texfit,findex(iW,iC,FIT_A,fitorder+1,2+fissionable))*power;
     if(MP_FISS == fissionable)
-      //sigF += fit[findex(iW,iC,FIT_F,fitorder+1,2+fissionable)]*power;
       sigF += tex1Dfetch_double(texfit,findex(iW,iC,FIT_F,fitorder+1,2+fissionable))*power;
+    //*/
+    //global
+    /*
+    sigT += fit[findex(iW,iC,FIT_T,fitorder+1,2+fissionable)]*power;
+    sigA += fit[findex(iW,iC,FIT_A,fitorder+1,2+fissionable)]*power;
+    if(MP_FISS == fissionable)
+      sigF += fit[findex(iW,iC,FIT_F,fitorder+1,2+fissionable)]*power;
+    */
   }
 
   DOPP = sqrtAWR/sqrtKT;
   DOPP_ECOEF = DOPP/E*sqrt(PI);
 
   for(iP=startW;iP<=endW;iP++){
+    //texture
+    ///*
+    w_val = Faddeeva::w((sqrtE - tex1Dfetch_complex(texmpdata,pindex(iP-1,MP_EA)))*DOPP)*DOPP_ECOEF;
+    sigT += real(tex1Dfetch_complex(texmpdata,pindex(iP-1,MP_RT))*sigT_factor[tex1Dfetch(texl_value,iP-1)-1]*w_val);	    
+    sigT += real(tex1Dfetch_complex(texmpdata,pindex(iP-1,MP_RT))*sigT_factor[tex1Dfetch(texl_value,iP-1)-1]*w_val);	    
+    sigA += real(tex1Dfetch_complex(texmpdata,pindex(iP-1,MP_RA))*w_val);                              
+    if(MP_FISS == fissionable)
+      sigF += real(tex1Dfetch_complex(texmpdata,pindex(iP-1,MP_RF))*w_val);
+    //*/
+
+    //global
+    /*
     w_val = Faddeeva::w((sqrtE - mpdata[pindex(iP-1,MP_EA)])*DOPP)*DOPP_ECOEF;
-    //sigT += real(mpdata[pindex(iP-1,MP_RT)]*sigT_factor[tex1Dfetch(texl_value,iP-1)-1]*w_val);	    
     sigT += real(mpdata[pindex(iP-1,MP_RT)]*sigT_factor[l_value[iP-1]-1]*w_val);	    
     sigA += real(mpdata[pindex(iP-1,MP_RA)]*w_val);                              
     if(MP_FISS == fissionable)
       sigF += real(mpdata[pindex(iP-1,MP_RF)]*w_val);
+    */
   }
 
 }
