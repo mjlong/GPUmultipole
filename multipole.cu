@@ -1,5 +1,11 @@
 #include "multipole.h"
 texture<unsigned> texl_value;
+texture<int2> texfit;
+
+static __inline__ __device__ double tex1Dfetch_double(texture<int2> t, int i){
+  int2 v = tex1Dfetch(t,i);
+  return __hiloint2double(v.y, v.x);
+}
 
 multipole::multipole(struct multipoledata data){
   size_t size;
@@ -50,6 +56,7 @@ multipole::multipole(struct multipoledata data){
   size = (FIT_F+data.fissionable)*(data.fitorder+1)*data.windows*sizeof(double);
   gpuErrchk(cudaMalloc((void**)&fit, size));
   cudaMemcpy(fit, data.fit, size, cudaMemcpyHostToDevice);
+  cudaBindTexture(NULL,texfit, fit, size);
 }
 
 
@@ -68,6 +75,7 @@ void multipole::release_pointer(){
   //cudaUnbindTexture(dtex.W_start);
   //cudaUnbindTexture(dtex.W_end);
   cudaUnbindTexture(texl_value);
+  cudaUnbindTexture(texfit);
 }
 __device__  void multipole::xs_eval_fast(double E, double sqrtKT, 
 			                 double &sigT, double &sigA, double &sigF){
@@ -105,10 +113,13 @@ __device__  void multipole::xs_eval_fast(double E, double sqrtKT,
   //polynomial fitting
   for (iC=0;iC<=fitorder;iC++){
     power = pow(E,iC*0.5-1.0);
-    sigT += fit[findex(iW,iC,FIT_T,fitorder+1,2+fissionable)]*power;
-    sigA += fit[findex(iW,iC,FIT_A,fitorder+1,2+fissionable)]*power;
+    //sigT += fit[findex(iW,iC,FIT_T,fitorder+1,2+fissionable)]*power;
+    //sigA += fit[findex(iW,iC,FIT_A,fitorder+1,2+fissionable)]*power;
+    sigT += tex1Dfetch_double(texfit,findex(iW,iC,FIT_T,fitorder+1,2+fissionable))*power;
+    sigA += tex1Dfetch_double(texfit,findex(iW,iC,FIT_A,fitorder+1,2+fissionable))*power;
     if(MP_FISS == fissionable)
-      sigF += fit[findex(iW,iC,FIT_F,fitorder+1,2+fissionable)]*power;
+      //sigF += fit[findex(iW,iC,FIT_F,fitorder+1,2+fissionable)]*power;
+      sigF += tex1Dfetch_double(texfit,findex(iW,iC,FIT_F,fitorder+1,2+fissionable))*power;
   }
 
   DOPP = sqrtAWR/sqrtKT;
@@ -116,8 +127,8 @@ __device__  void multipole::xs_eval_fast(double E, double sqrtKT,
 
   for(iP=startW;iP<=endW;iP++){
     w_val = Faddeeva::w((sqrtE - mpdata[pindex(iP-1,MP_EA)])*DOPP)*DOPP_ECOEF;
-    sigT += real(mpdata[pindex(iP-1,MP_RT)]*sigT_factor[tex1Dfetch(texl_value,iP-1)-1]*w_val);	    
-    //sigT += real(mpdata[pindex(iP-1,MP_RT)]*sigT_factor[l_value[iP-1]-1]*w_val);	    
+    //sigT += real(mpdata[pindex(iP-1,MP_RT)]*sigT_factor[tex1Dfetch(texl_value,iP-1)-1]*w_val);	    
+    sigT += real(mpdata[pindex(iP-1,MP_RT)]*sigT_factor[l_value[iP-1]-1]*w_val);	    
     sigA += real(mpdata[pindex(iP-1,MP_RA)]*w_val);                              
     if(MP_FISS == fissionable)
       sigF += real(mpdata[pindex(iP-1,MP_RF)]*w_val);
