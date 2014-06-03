@@ -6,14 +6,14 @@ LINKLAG=-arch=sm_20 -dlink
 LDFLAGS=-g  -L/opt/hdf5/1.8.10-gnu/lib/ -L/usr/local/cuda/lib64 -lcudart -lhdf5 
 CSOURCES=\
 CPUComplex.cc\
-hdf5IO.cc\
-main.cc
+hdf5IO.cc
 GSOURCES=\
 CComplex.cu\
 Faddeeva.cu\
 simulation.cu\
 multipole.cu\
-devicemain.cu
+devicemain.cu\
+main.cu
 COBJECTS=$(CSOURCES:.cc=.obj)
 GOBJECTS=$(GSOURCES:.cu=.o)
 LINKJECT=dlink.o
