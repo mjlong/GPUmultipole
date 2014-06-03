@@ -41,6 +41,7 @@ multipole::multipole(struct multipoledata data){
   cudaMemcpy(w_start, data.w_start, size, cudaMemcpyHostToDevice);
   cudaMalloc((void**)&w_end, size);
   cudaMemcpy(w_end, data.w_end, size, cudaMemcpyHostToDevice);
+  cudaBindTexture(NULL,dtex.W_start, w_start, size);
 
   size = (FIT_F+data.fissionable)*(data.fitorder+1)*data.windows*sizeof(double);
   cudaMalloc((void**)&fit, size);
@@ -60,6 +61,7 @@ void multipole::release_pointer(){
   gpuErrchk(cudaFree(w_start));
   gpuErrchk(cudaFree(w_end));
   gpuErrchk(cudaFree(fit));
+  cudaUnbindTexture(dtex.W_start);
 }
 __device__  void multipole::xs_eval_fast(double E, double sqrtKT, 
 			                 double &sigT, double &sigA, double &sigF){
@@ -84,7 +86,8 @@ __device__  void multipole::xs_eval_fast(double E, double sqrtKT,
   double power, DOPP, DOPP_ECOEF;
   CComplex w_val;
 
-  startW = w_start[iW];
+  //startW = w_start[iW];
+  startW = tex1Dfetch(dtex.W_start, iW);
   endW   = w_end[iW];
   CComplex sigT_factor[4];
   if(startW <= endW)
