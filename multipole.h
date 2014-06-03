@@ -39,6 +39,12 @@
 using namespace std;
 //using namespace Faddeeva;
 
+struct datatextures{
+  texture<unsigned> W_start;
+  texture<unsigned> W_end;
+  texture<unsigned> l_value;
+  texture<int2> fit;
+};
 class multipole{
 public:
   int *dev_integers;
@@ -51,6 +57,7 @@ public:
   int *w_start;// Contains the index of the pole at the start of the window
   int *w_end;  // Contains the index of the pole at the end of the window
   double *fit;
+  struct datatextures dtex;
   //Contains the fitting function.  (reaction type, coeff index, window index)
   //=========================================================================
 
