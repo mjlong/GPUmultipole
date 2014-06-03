@@ -38,13 +38,6 @@
 #include "gpuerrchk.h"
 using namespace std;
 //using namespace Faddeeva;
-/*
-struct datatextures{
-  texture<unsigned> W_start;
-  texture<unsigned> W_end;
-  texture<unsigned> l_value;
-};
-*/
 class multipole{
 private:
   int *dev_integers;
