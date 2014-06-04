@@ -20,7 +20,7 @@ __global__ void history(multipole U238, double *devicearray, struct neutronInfo 
   extern __shared__ unsigned shared[];
   //size of shared[] is given as 3rd parameter while launching the kernel
   /* Each thread gets same seed, a different sequence number, no offset */
-  curand_init(1234, id, 0, &Info.rndState[id]);
+  curand_init(id+619, id, 0, &Info.rndState[id]);
 
   /* Copy state to local memory for efficiency */ 
   curandState localState = Info.rndState[id];

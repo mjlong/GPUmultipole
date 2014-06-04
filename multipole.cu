@@ -36,7 +36,7 @@ multipole::multipole(struct multipoledata data){
   size = data.length*(MP_RF+data.fissionable)*2*sizeof(double);
   cudaMalloc((void**)&mpdata, size);
   cudaMemcpy(mpdata, data.mpdata, size, cudaMemcpyHostToDevice);
-  gpuErrchk(cudaBindTexture(NULL, dtex.mpdata, mpdata, size));
+  cudaBindTexture(NULL, dtex.mpdata, mpdata, size);
 
   size = data.length*sizeof(unsigned);
   cudaMalloc((void**)&l_value, size);
