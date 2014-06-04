@@ -1,4 +1,14 @@
 #include "multipole.h"
+static __inline__ __device__ double tex1Dfetch_double(texture<int2> t, int i){
+  int2 v = tex1Dfetch(t,i);
+  return __hiloint2double(v.y, v.x);
+}
+
+static __inline__ __device__ CComplex tex1Dfetch_complex(texture<int4> t, int i){
+  int4 v = tex1Dfetch(t,i);
+  return CComplex(__hiloint2double(v.y, v.x),__hiloint2double(v.w,v.z));
+}
+
 multipole::multipole(struct multipoledata data){
   size_t size;
   /*
@@ -26,10 +36,12 @@ multipole::multipole(struct multipoledata data){
   size = data.length*(MP_RF+data.fissionable)*2*sizeof(double);
   cudaMalloc((void**)&mpdata, size);
   cudaMemcpy(mpdata, data.mpdata, size, cudaMemcpyHostToDevice);
+  cudaBindTexture(NULL, dtex.mpdata, mpdata, size);
 
   size = data.length*sizeof(unsigned);
   cudaMalloc((void**)&l_value, size);
   cudaMemcpy(l_value, data.l_value, size, cudaMemcpyHostToDevice);
+  cudaBindTexture(NULL, dtex.l_value, l_value, size);
 
   size = data.numL*sizeof(double);
   cudaMalloc((void**)&pseudo_rho, size);
@@ -41,11 +53,11 @@ multipole::multipole(struct multipoledata data){
   cudaMemcpy(w_start, data.w_start, size, cudaMemcpyHostToDevice);
   cudaMalloc((void**)&w_end, size);
   cudaMemcpy(w_end, data.w_end, size, cudaMemcpyHostToDevice);
-  cudaBindTexture(NULL,dtex.W_start, w_start, size);
 
   size = (FIT_F+data.fissionable)*(data.fitorder+1)*data.windows*sizeof(double);
   cudaMalloc((void**)&fit, size);
   cudaMemcpy(fit, data.fit, size, cudaMemcpyHostToDevice);
+  cudaBindTexture(NULL, dtex.fit, fit, size);
 }
 
 
@@ -61,7 +73,9 @@ void multipole::release_pointer(){
   gpuErrchk(cudaFree(w_start));
   gpuErrchk(cudaFree(w_end));
   gpuErrchk(cudaFree(fit));
-  cudaUnbindTexture(dtex.W_start);
+  cudaUnbindTexture(dtex.fit);
+  cudaUnbindTexture(dtex.l_value);
+  cudaUnbindTexture(dtex.mpdata);
 }
 __device__  void multipole::xs_eval_fast(double E, double sqrtKT, 
 			                 double &sigT, double &sigA, double &sigF){
@@ -86,8 +100,7 @@ __device__  void multipole::xs_eval_fast(double E, double sqrtKT,
   double power, DOPP, DOPP_ECOEF;
   CComplex w_val;
 
-  //startW = w_start[iW];
-  startW = tex1Dfetch(dtex.W_start, iW);
+  startW = w_start[iW];
   endW   = w_end[iW];
   CComplex sigT_factor[4];
   if(startW <= endW)
@@ -98,21 +111,21 @@ __device__  void multipole::xs_eval_fast(double E, double sqrtKT,
   //polynomial fitting
   for (iC=0;iC<=fitorder;iC++){
     power = pow(E,iC*0.5-1.0);
-    sigT += fit[findex(iW,iC,FIT_T,fitorder+1,2+fissionable)]*power;
-    sigA += fit[findex(iW,iC,FIT_A,fitorder+1,2+fissionable)]*power;
+    sigT += tex1Dfetch_double(dtex.fit,findex(iW,iC,FIT_T,fitorder+1,2+fissionable))*power;
+    sigA += tex1Dfetch_double(dtex.fit,findex(iW,iC,FIT_A,fitorder+1,2+fissionable))*power;
     if(MP_FISS == fissionable)
-      sigF += fit[findex(iW,iC,FIT_F,fitorder+1,2+fissionable)]*power;
+      sigF += tex1Dfetch_double(dtex.fit,findex(iW,iC,FIT_F,fitorder+1,2+fissionable))*power;
   }
 
   DOPP = sqrtAWR/sqrtKT;
   DOPP_ECOEF = DOPP/E*sqrt(PI);
 
   for(iP=startW;iP<=endW;iP++){
-    w_val = Faddeeva::w((sqrtE - mpdata[pindex(iP-1,MP_EA)])*DOPP)*DOPP_ECOEF;
-    sigT += real(mpdata[pindex(iP-1,MP_RT)]*sigT_factor[l_value[iP-1]-1]*w_val);	    
-    sigA += real(mpdata[pindex(iP-1,MP_RA)]*w_val);                              
+    w_val = Faddeeva::w((sqrtE - tex1Dfetch_complex(dtex.mpdata,pindex(iP-1,MP_EA)))*DOPP)*DOPP_ECOEF;
+    sigT += real(tex1Dfetch_complex(dtex.mpdata,pindex(iP-1,MP_RT))*sigT_factor[tex1Dfetch(dtex.l_value,iP-1)-1]*w_val);	    
+    sigA += real(tex1Dfetch_complex(dtex.mpdata,pindex(iP-1,MP_RA))*w_val);                              
     if(MP_FISS == fissionable)
-      sigF += real(mpdata[pindex(iP-1,MP_RF)]*w_val);
+      sigF += real(tex1Dfetch_complex(dtex.mpdata,pindex(iP-1,MP_RF))*w_val);
   }
 
 }
