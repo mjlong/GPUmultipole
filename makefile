@@ -7,10 +7,8 @@ LINKLAG=-arch=sm_20 -dlink
 #LDFLAGS=-g -L/opt/mpich/3.0.4-intel/lib/ -L/opt/hdf5/1.8.11-intel/lib/ -L/usr/local/cuda-5.5/lib64 -lcudart -lhdf5 -lmpich
 LDFLAGS=-g -L/home/jlmiao/opt/hdf5/lib/ -L/usr/local/cuda-5.5/lib64 -lcudart -lhdf5 
 CSOURCES=\
-CPUComplex.cc\
 hdf5IO.cc
 GSOURCES=\
-CComplex.cu\
 Faddeeva.cu\
 multipole.cu\
 simulation.cu\
