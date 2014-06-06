@@ -22,7 +22,6 @@ History****:*Date*******************Author**************************************
 #define __CCOMPLEX_H__
 #include <iostream>
 #include <math.h>
-#include "CPUComplex.h"
 using namespace std;
 
 #define PI 3.141592653589793238462643383279
