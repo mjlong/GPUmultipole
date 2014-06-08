@@ -41,17 +41,17 @@ using namespace std;
 class multipole{
 private:
   int *dev_integers;
-  double *dev_doubles;
-  CComplex *mpdata;
+  SETTYPE *dev_doubles;
+  CComplex<SETTYPE> *mpdata;
   unsigned *l_value; // l and j index of the pole
   int      w_function; //Which W function to use
-  double   *pseudo_rho;  //inherit nomenclature from isotope.h
+  SETTYPE   *pseudo_rho;  //inherit nomenclature from isotope.h
 
   //texture<unsigned> texW_start;
   //struct datatextures dtex;
   unsigned *w_start;// Contains the index of the pole at the start of the window
   unsigned *w_end;  // Contains the index of the pole at the end of the window
-  double *fit;
+  SETTYPE *fit;
   //Contains the fitting function.  (reaction type, coeff index, window index)
   //=========================================================================
 
@@ -61,11 +61,11 @@ private:
   multipole(struct multipoledata data);
   ~multipole();
   void release_pointer();
-  __device__  void xs_eval_fast(double E, double sqrtAWR, 
-					 double &sigT, double &sigA, double &sigF);
-  __device__  void xs_eval_fast(double E, 
-					 double &sigT, double &sigA, double &sigF);
-  __device__ void fill_factors(double sqrtE, int numL, CComplex *sigT_factor);
+  __device__  void xs_eval_fast(SETTYPE E, SETTYPE sqrtAWR, 
+					 SETTYPE &sigT, SETTYPE &sigA, SETTYPE &sigF);
+  __device__  void xs_eval_fast(SETTYPE E, 
+					 SETTYPE &sigT, SETTYPE &sigA, SETTYPE &sigF);
+  __device__ void fill_factors(SETTYPE sqrtE, int numL, CComplex<SETTYPE> *sigT_factor);
   __host__ __device__  int findex(int, int, int, int, int);
   __host__ __device__  int pindex(int, int);
 
