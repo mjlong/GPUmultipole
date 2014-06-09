@@ -105,6 +105,7 @@ __device__  void multipole::xs_eval_fast(double E, double sqrtKT,
   DOPP_ECOEF = DOPP/E*sqrt(PI);
 
   for(iP=startW;iP<=endW;iP++){
+    //w_val = (sqrtE - mpdata[pindex(iP-1,MP_EA)])*DOPP*DOPP_ECOEF;
     w_val = Faddeeva::w((sqrtE - mpdata[pindex(iP-1,MP_EA)])*DOPP)*DOPP_ECOEF;
     sigT += real(mpdata[pindex(iP-1,MP_RT)]*sigT_factor[l_value[iP-1]-1]*w_val);	    
     sigA += real(mpdata[pindex(iP-1,MP_RA)]*w_val);                              
