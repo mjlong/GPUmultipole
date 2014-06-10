@@ -1,13 +1,20 @@
 #include "simulation.h" 
 
-__global__ void initialize(NeutronInfoStruct Info, double energy){
+__device__ void launch(NeutronInfoStruct* pInfo,int id, double energy){
+  pInfo[id].energy = energy;
+}
+
+__global__ void initialize(MemStruct pInfo, double energy){
   //int id = ((blockDim.x*blockDim.y*blockDim.z)*(blockIdx.y*gridDim.x+blockIdx.x)+(blockDim.x*blockDim.y)*threadIdx.z+blockDim.x*threadIdx.y+threadIdx.x);//THREADID;
   int id = blockDim.x * blockIdx.x + threadIdx.x;
-  Info.energy[id] = energy; //id+1.0; //(id + 1)*1.63*energy*0.001;// 
+  launch(pInfo.nInfo, id, energy);
+  //pInfo[id].energy = energy; //id+1.0; //(id + 1)*1.63*energy*0.001;// 
+  pInfo.thread_active[id] = 1u;
+  pInfo.tally[id].cnt = 0;
 
 }
 
-__global__ void history(multipole U238, double *devicearray, NeutronInfoStruct Info){
+__global__ void history(multipole U238, double *devicearray, NeutronInfoStruct *pInfo, TallyStruct *pTally){
   //TODO:this is one scheme to match threads to 1D array, 
   //try others when real simulation structure becomes clear
   int id = blockDim.x * blockIdx.x + threadIdx.x;
@@ -17,17 +24,14 @@ __global__ void history(multipole U238, double *devicearray, NeutronInfoStruct I
   double rnd;
   double sigT, sigA, sigF;
 
-  extern __shared__ unsigned shared[];
-  //size of shared[] is given as 3rd parameter while launching the kernel
   /* Each thread gets same seed, a different sequence number, no offset */
-  curand_init(1234, id, 0, &Info.rndState[id]);
+  curand_init(1234, id, 0, &(pInfo[id].rndState));
 
   /* Copy state to local memory for efficiency */ 
-  curandState localState = Info.rndState[id];
+  curandState localState = pInfo[id].rndState;
 
-  localenergy = Info.energy[id];
+  localenergy = pInfo[id].energy;
   unsigned cnt = 0;
-  unsigned idl = threadIdx.x;
 
   while(live){
     rnd = curand_uniform(&localState);
@@ -44,27 +48,37 @@ __global__ void history(multipole U238, double *devicearray, NeutronInfoStruct I
   devicearray[4*id+3]=sigF;
   
   /* Copy state back to global memory */ 
-  Info.rndState[id] = localState; 
+  pInfo[id].rndState = localState; 
+  pTally[id].cnt += cnt; 
+}
 
+
+
+__global__ void statistics(TallyStruct *threadtally, unsigned* cnt){
   /*reduce tally*/
-  __syncthreads();
-  unsigned *tally = shared;
+  /*TODO:
+    alternatives:
+    1. only count for a block, saving global memory (acceess)
+    2. count for each thread, saving time in thread wait
+  */
+  int id = blockDim.x * blockIdx.x + threadIdx.x;
+  unsigned idl = threadIdx.x;
+  extern __shared__ unsigned shared[];
+  //size of shared[] is given as 3rd parameter while launching the kernel
   int i;
-  tally[idl] = cnt;
+  shared[idl] = threadtally[id].cnt;
   __syncthreads();
   i = blockDim.x>>1;
   while(i){
     if(idl<i)
-      tally[idl] += tally[idl+i];
+      shared[idl] += shared[idl+i];
     __syncthreads();
     i=i>>1;
   }
   if(0==idl){
     //reduction scheme depends on tally type
     //following is to count moderation times
-    Info.ntally.cnt[blockIdx.x] = tally[0];
+    cnt[blockIdx.x] = shared[0];
   }
+  
 }
-
-
-

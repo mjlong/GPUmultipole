@@ -13,13 +13,12 @@
 
 void printdevice();
 
-void anyvalue(struct multipoledata data, int setgridx, int setblockx){
+void anyvalue(struct multipoledata data, int setgridx, int setblockx, int num_src){
   unsigned gridx, blockx, gridsize;
-  unsigned ints=0, doubles=0, sharedmem;
   float timems = 0.0;
-  unsigned *cnt;
+  unsigned *cnt, *blockcnt;
   double *hostarray, *devicearray;
-  struct neutronInfo Info;
+  MemStruct DeviceMem;
   cudaEvent_t start, stop;
   gpuErrchk(cudaEventCreate(&start));
   gpuErrchk(cudaEventCreate(&stop));
@@ -30,23 +29,22 @@ void anyvalue(struct multipoledata data, int setgridx, int setblockx){
   dim3 dimGrid(blockx, 1, 1);
   gridsize = gridx*blockx;
   gpuErrchk(cudaMalloc((void**)&devicearray, 4*gridsize*sizeof(double)));
-  gpuErrchk(cudaMalloc((void**)&(Info.rndState), gridsize*sizeof(curandState)));
-  gpuErrchk(cudaMalloc((void**)&(Info.energy), gridsize*sizeof(double)));
-  gpuErrchk(cudaMalloc((void**)&(Info.ntally.cnt), gridx*sizeof(unsigned)));
+  gpuErrchk(cudaMalloc((void**)&(DeviceMem.nInfo), gridsize*sizeof(NeutronInfoStruct)));
+  gpuErrchk(cudaMalloc((void**)&(DeviceMem.thread_active), gridsize*sizeof(unsigned int)));
+  gpuErrchk(cudaMalloc((void**)&(DeviceMem.tally), gridsize*sizeof(TallyStruct)));
+  gpuErrchk(cudaMalloc((void**)&(blockcnt), gridx*sizeof(unsigned int)));
   hostarray = (double*)malloc(4*gridsize*sizeof(double));
   cnt      = (unsigned*)malloc(gridx*sizeof(unsigned));
 
   multipole U238(data); //host multipoledata to device
-  initialize<<<dimBlock, dimGrid>>>(Info, 2000.0);//1.95093e4);
+  initialize<<<dimBlock, dimGrid>>>(DeviceMem, 2000.0);//1.95093e4);
   //  cudaDeviceSynchronize();
   /*
     Note: shared memory size is in unit of Bybe
     And the address can be referred in form of p = pshared + offset
   */
-  ints = blockx;
-  sharedmem = doubles*sizeof(double)+ints*sizeof(int);
   gpuErrchk(cudaEventRecord(start, 0));
-  history<<<dimBlock, dimGrid, sharedmem>>>(U238, devicearray, Info);
+  history<<<dimBlock, dimGrid>>>(U238, devicearray, DeviceMem.nInfo, DeviceMem.tally);
 
   gpuErrchk(cudaEventRecord(stop, 0));
   gpuErrchk(cudaEventSynchronize(stop));
@@ -55,7 +53,12 @@ void anyvalue(struct multipoledata data, int setgridx, int setblockx){
   printf("time elapsed:%3.1f ms\n", timems);
  
   gpuErrchk(cudaMemcpy(hostarray, devicearray, 4*gridsize*sizeof(double), cudaMemcpyDeviceToHost));
-  gpuErrchk(cudaMemcpy(cnt, Info.ntally.cnt, gridx*sizeof(unsigned), cudaMemcpyDeviceToHost));
+
+  unsigned ints=0, sharedmem;
+  ints = blockx;
+  sharedmem = ints*sizeof(int);
+  statistics<<<dimBlock, dimGrid, sharedmem>>>(DeviceMem.tally, blockcnt);
+  gpuErrchk(cudaMemcpy(cnt, blockcnt, gridx*sizeof(unsigned), cudaMemcpyDeviceToHost));
 
   for(int i=0;i<gridsize;i++){
     printf("%.15e %.15e %.15e %.15e",
@@ -92,9 +95,9 @@ void anyvalue(struct multipoledata data, int setgridx, int setblockx){
   gpuErrchk(cudaEventDestroy(stop));
 
   gpuErrchk(cudaFree(devicearray));
-  gpuErrchk(cudaFree(Info.energy));
-  gpuErrchk(cudaFree(Info.ntally.cnt));
-  gpuErrchk(cudaFree(Info.rndState));
+  gpuErrchk(cudaFree(DeviceMem.nInfo));
+  gpuErrchk(cudaFree(DeviceMem.thread_active));
+  gpuErrchk(cudaFree(DeviceMem.tally));
   U238.release_pointer();
 
   free(hostarray);
