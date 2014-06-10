@@ -1,13 +1,13 @@
 #include "simulation.h" 
 
-__global__ void initialize(neutronInfo Info, double energy){
+__global__ void initialize(NeutronInfoStruct Info, double energy){
   //int id = ((blockDim.x*blockDim.y*blockDim.z)*(blockIdx.y*gridDim.x+blockIdx.x)+(blockDim.x*blockDim.y)*threadIdx.z+blockDim.x*threadIdx.y+threadIdx.x);//THREADID;
   int id = blockDim.x * blockIdx.x + threadIdx.x;
   Info.energy[id] = energy; //id+1.0; //(id + 1)*1.63*energy*0.001;// 
 
 }
 
-__global__ void history(multipole U238, double *devicearray, struct neutronInfo Info){
+__global__ void history(multipole U238, double *devicearray, NeutronInfoStruct Info){
   //TODO:this is one scheme to match threads to 1D array, 
   //try others when real simulation structure becomes clear
   int id = blockDim.x * blockIdx.x + threadIdx.x;
@@ -20,7 +20,7 @@ __global__ void history(multipole U238, double *devicearray, struct neutronInfo 
   extern __shared__ unsigned shared[];
   //size of shared[] is given as 3rd parameter while launching the kernel
   /* Each thread gets same seed, a different sequence number, no offset */
-  curand_init(id, id, 0, &Info.rndState[id]);
+  curand_init(1234, id, 0, &Info.rndState[id]);
 
   /* Copy state to local memory for efficiency */ 
   curandState localState = Info.rndState[id];
