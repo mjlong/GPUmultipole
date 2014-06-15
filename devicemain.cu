@@ -17,8 +17,9 @@ void anyvalue(struct multipoledata data, int setgridx, int setblockx, int num_sr
   unsigned gridx, blockx, gridsize;
   float timems = 0.0;
   unsigned *cnt, *blockcnt;
+  unsigned int active,i;
   double *hostarray, *devicearray;
-  MemStruct DeviceMem;
+  MemStruct HostMem, DeviceMem;
   cudaEvent_t start, stop;
   gpuErrchk(cudaEventCreate(&start));
   gpuErrchk(cudaEventCreate(&stop));
@@ -31,6 +32,11 @@ void anyvalue(struct multipoledata data, int setgridx, int setblockx, int num_sr
   gpuErrchk(cudaMalloc((void**)&devicearray, 4*gridsize*sizeof(double)));
   gpuErrchk(cudaMalloc((void**)&(DeviceMem.nInfo), gridsize*sizeof(NeutronInfoStruct)));
   gpuErrchk(cudaMalloc((void**)&(DeviceMem.thread_active), gridsize*sizeof(unsigned int)));
+  HostMem.thread_active = (unsigned int *)malloc(gridsize*sizeof(unsigned int));
+  gpuErrchk(cudaMalloc((void**)&(DeviceMem.num_terminated_neutrons), sizeof(unsigned int)));
+  HostMem.num_terminated_neutrons = (unsigned int *)malloc(sizeof(unsigned int));
+  HostMem.num_terminated_neutrons[0] = 0u;
+  gpuErrchk(cudaMemcpy(DeviceMem.num_terminated_neutrons, HostMem.num_terminated_neutrons, sizeof(unsigned int), cudaMemcpyHostToDevice));
   gpuErrchk(cudaMalloc((void**)&(DeviceMem.tally), gridsize*sizeof(TallyStruct)));
   gpuErrchk(cudaMalloc((void**)&(blockcnt), gridx*sizeof(unsigned int)));
   hostarray = (double*)malloc(4*gridsize*sizeof(double));
@@ -44,7 +50,17 @@ void anyvalue(struct multipoledata data, int setgridx, int setblockx, int num_sr
     And the address can be referred in form of p = pshared + offset
   */
   gpuErrchk(cudaEventRecord(start, 0));
-  history<<<dimBlock, dimGrid>>>(U238, devicearray, DeviceMem.nInfo, DeviceMem.tally);
+
+  active = 1u;
+
+  while (active){
+    history<<<dimBlock, dimGrid>>>(U238, devicearray, DeviceMem.nInfo, DeviceMem.tally);
+	gpuErrchk(cudaMemCpy(HostMem.thread_active, DeviceMem.thread_active, gridsize*sizeof(unsigned int), cudaMemcpyDeviceToHost));
+	active = 0u;
+	for (i = 0; i < blockx; i++){
+		active += HostMem.thread_active[i];
+	}
+  }
 
   gpuErrchk(cudaEventRecord(stop, 0));
   gpuErrchk(cudaEventSynchronize(stop));
