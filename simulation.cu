@@ -14,7 +14,7 @@ __global__ void initialize(MemStruct pInfo, double energy){
 
 }
 
-__global__ void history(multipole U238, MemStruct Info){
+__global__ void history(multipole U238, MemStruct Info, unsigned num_src){
   //TODO:this is one scheme to match threads to 1D array, 
   //try others when real simulation structure becomes clear
   int id = blockDim.x * blockIdx.x + threadIdx.x;
@@ -47,7 +47,7 @@ __global__ void history(multipole U238, MemStruct Info){
   }
   //}
   /*Note: from now on, live does not indicate neutron but thread active */
-  live = ((blockDim.x*2 + atomicAdd(Info.num_terminated_neutrons, terminated)) < NUMSRC);
+  live = ((blockDim.x*2 + atomicAdd(Info.num_terminated_neutrons, terminated)) < num_src);
   Info.thread_active[id] = live;
   /* Copy state back to global memory */ 
   Info.nInfo[id].rndState = localState; 

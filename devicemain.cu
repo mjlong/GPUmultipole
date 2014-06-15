@@ -13,7 +13,7 @@
 
 void printdevice();
 
-void anyvalue(struct multipoledata data, int setgridx, int setblockx, int num_src){
+void anyvalue(struct multipoledata data, unsigned setgridx, unsigned setblockx, unsigned num_src){
   unsigned gridx, blockx, gridsize;
   float timems = 0.0;
   unsigned *cnt, *blockcnt;
@@ -54,7 +54,7 @@ void anyvalue(struct multipoledata data, int setgridx, int setblockx, int num_sr
   active = 1u;
 
   while (active){
-    history<<<dimBlock, dimGrid>>>(U238, DeviceMem);
+    history<<<dimBlock, dimGrid>>>(U238, DeviceMem, num_src);
     gpuErrchk(cudaMemcpy(HostMem.thread_active, DeviceMem.thread_active, gridsize*sizeof(unsigned int), cudaMemcpyDeviceToHost));
 	active = 0u;
 	for (i = 0; i < blockx; i++){
