@@ -13,7 +13,7 @@
 
 void printdevice();
 
-void anyvalue(struct multipoledata data, unsigned setgridx, unsigned setblockx, unsigned num_src){
+void anyvalue(struct multipoledata data, unsigned setgridx, unsigned setblockx, unsigned num_src, unsigned devstep){
   unsigned gridx, blockx, gridsize;
   float timems = 0.0;
   unsigned *cnt, *blockcnt;
@@ -54,7 +54,7 @@ void anyvalue(struct multipoledata data, unsigned setgridx, unsigned setblockx, 
   active = 1u;
 
   while (active){
-    history<<<dimBlock, dimGrid>>>(U238, DeviceMem, num_src);
+    history<<<dimBlock, dimGrid>>>(U238, DeviceMem, num_src, devstep);
     gpuErrchk(cudaMemcpy(HostMem.thread_active, DeviceMem.thread_active, gridsize*sizeof(unsigned int), cudaMemcpyDeviceToHost));
 	active = 0u;
 	for (i = 0; i < blockx; i++){
@@ -102,7 +102,7 @@ void anyvalue(struct multipoledata data, unsigned setgridx, unsigned setblockx, 
 
   FILE *fp=NULL;
   fp = fopen("timelog","a+");
-  fprintf(fp,"%3d,%3d,%g    \n", gridx, blockx, timems*1000/sum);
+  fprintf(fp,"%-4d,%-4d,%6g,%-.2f M,%-4d\n", gridx, blockx,timems*1000/sum, num_src/1000000.0f, devstep);
   fclose(fp);
   //cudaEventRecord(stop, 0);
   //cudaEventSynchronize(stop);
