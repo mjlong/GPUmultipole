@@ -14,7 +14,7 @@ __global__ void initialize(MemStruct pInfo, double energy){
 
 }
 
-__global__ void history(multipole U238, double *devicearray, MemStruct Info){
+__global__ void history(multipole U238, MemStruct Info){
   //TODO:this is one scheme to match threads to 1D array, 
   //try others when real simulation structure becomes clear
   int id = blockDim.x * blockIdx.x + threadIdx.x;
@@ -46,20 +46,48 @@ __global__ void history(multipole U238, double *devicearray, MemStruct Info){
 	  terminated += !live;
   }
   //}
-  live = ((blockDim.x + atomicAdd(Info.num_terminated_neutrons, terminated)) < NUMSRC);
+  /*Note: from now on, live does not indicate neutron but thread active */
+  live = ((blockDim.x*2 + atomicAdd(Info.num_terminated_neutrons, terminated)) < NUMSRC);
   Info.thread_active[id] = live;
   /* Copy state back to global memory */ 
   Info.nInfo[id].rndState = localState; 
   Info.tally[id].cnt += cnt; 
 
-  if (!live){
-	  devicearray[4 * id] = localenergy / rnd;
-	  devicearray[4 * id + 1] = sigT;
-	  devicearray[4 * id + 2] = sigA;
-	  devicearray[4 * id + 3] = sigF;
-  }
 }
 
+__global__ void remaining(multipole U238, double *devicearray, MemStruct Info){
+	//TODO:this is one scheme to match threads to 1D array, 
+	//try others when real simulation structure becomes clear
+	int id = blockDim.x * blockIdx.x + threadIdx.x;
+	bool live = true;
+	double localenergy;
+	double rnd;
+	double sigT, sigA, sigF;
+
+	/* Each thread gets same seed, a different sequence number, no offset */
+	curand_init(1234, id, 0, &(Info.nInfo[id].rndState));
+
+	/* Copy state to local memory for efficiency */
+	curandState localState = Info.nInfo[id].rndState;
+
+	localenergy = Info.nInfo[id].energy;
+	unsigned cnt = 0u;
+	while(live){
+		rnd = curand_uniform(&localState);
+		U238.xs_eval_fast(localenergy, sqrt(300.0*KB), sigT, sigA, sigF);
+		localenergy = localenergy * rnd;
+		live = (localenergy > 1.0);
+		cnt = cnt + 1;
+	}
+	/* Copy state back to global memory */
+	Info.nInfo[id].rndState = localState;
+	Info.tally[id].cnt += cnt;
+
+	devicearray[4 * id] = localenergy / rnd;
+	devicearray[4 * id + 1] = sigT;
+	devicearray[4 * id + 2] = sigA;
+	devicearray[4 * id + 3] = sigF;
+}
 
 
 __global__ void statistics(TallyStruct *threadtally, unsigned* cnt){
