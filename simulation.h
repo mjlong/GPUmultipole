@@ -6,7 +6,7 @@
 #include <curand_kernel.h>
 
 #define NUMSRC 1000000
-
+#define DEVSTP 1000
 //TODO: it has not been determined how to save neutron and simulation state
 
 typedef struct {
@@ -33,12 +33,13 @@ typedef struct {
 typedef struct {
   NeutronInfoStruct *nInfo;
   unsigned int *thread_active;
+  unsigned int *num_terminated_neutrons;
   XsStruct *sigma;
   TallyStruct *tally;
 }MemStruct;
 
 
-__global__ void history(multipole, double*, NeutronInfoStruct*, TallyStruct* );
+__global__ void history(multipole, double*, MemStruct );
 __global__ void initialize(MemStruct, double);
 __device__ void launch(NeutronInfoStruct*, int, double);
 __global__ void statistics(TallyStruct*, unsigned*);
