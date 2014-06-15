@@ -6,7 +6,7 @@
 #include <curand_kernel.h>
 
 #define NUMSRC 1000000
-#define DEVSTP 1000
+#define DEVSTP 100
 //TODO: it has not been determined how to save neutron and simulation state
 
 typedef struct {
