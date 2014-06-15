@@ -102,7 +102,7 @@ void anyvalue(struct multipoledata data, unsigned setgridx, unsigned setblockx, 
 
   FILE *fp=NULL;
   fp = fopen("timelog","a+");
-  fprintf(fp,"%-4d,%-4d,%6g,%-.2f M,%-4d\n", gridx, blockx,timems*1000/sum, num_src/1000000.0f, devstep);
+  fprintf(fp,"%-4d,%-4d,%-.6f,%-.2f M,%-4d\n", gridx, blockx,timems*1000/sum, num_src/1000000.0f, devstep);
   fclose(fp);
   //cudaEventRecord(stop, 0);
   //cudaEventSynchronize(stop);
