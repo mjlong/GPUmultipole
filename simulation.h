@@ -5,7 +5,6 @@
 #include <cuda.h>
 #include <curand_kernel.h>
 
-#define DEVSTP 100
 //TODO: it has not been determined how to save neutron and simulation state
 
 typedef struct {
@@ -38,7 +37,7 @@ typedef struct {
 }MemStruct;
 
 
-__global__ void history(multipole, MemStruct, unsigned );
+__global__ void history(multipole, MemStruct, unsigned, unsigned );
 __global__ void remaining(multipole, double *, MemStruct );
 __global__ void initialize(MemStruct, double);
 __device__ void launch(NeutronInfoStruct*, int, double);

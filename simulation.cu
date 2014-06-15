@@ -14,7 +14,7 @@ __global__ void initialize(MemStruct pInfo, double energy){
 
 }
 
-__global__ void history(multipole U238, MemStruct Info, unsigned num_src){
+__global__ void history(multipole U238, MemStruct Info, unsigned num_src, unsigned devstep){
   //TODO:this is one scheme to match threads to 1D array, 
   //try others when real simulation structure becomes clear
   int id = blockDim.x * blockIdx.x + threadIdx.x;
@@ -35,7 +35,7 @@ __global__ void history(multipole U238, MemStruct Info, unsigned num_src){
   unsigned cnt = 0u;
   unsigned terminated = 0u;
   //while(live){
-  for (istep = 0; istep < DEVSTP; istep++){
+  for (istep = 0; istep < devstep; istep++){
 	  rnd = curand_uniform(&localState);
 	  U238.xs_eval_fast(localenergy, sqrt(300.0*KB), sigT, sigA, sigF);
 	  localenergy = localenergy * rnd;
