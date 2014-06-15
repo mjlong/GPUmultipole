@@ -35,7 +35,7 @@ __global__ void history(multipole U238, double *devicearray, MemStruct Info){
   unsigned cnt = 0u;
   unsigned terminated = 0u;
   //while(live){
-  for (istep = 0; istep < DEVSTP; i++){
+  for (istep = 0; istep < DEVSTP; istep++){
 	  rnd = curand_uniform(&localState);
 	  U238.xs_eval_fast(localenergy, sqrt(300.0*KB), sigT, sigA, sigF);
 	  localenergy = localenergy * rnd;
@@ -92,13 +92,13 @@ __global__ void statistics(TallyStruct *threadtally, unsigned* cnt){
 }
 
 
-__global__ void isActive(MemStruct, unsigned int *active){
+__global__ void isActive(MemStruct DevMem, unsigned int *active){
   int id = blockDim.x * blockIdx.x + threadIdx.x;
   unsigned idl = threadIdx.x;
   extern __shared__ unsigned shared[];
   //size of shared[] is given as 3rd parameter while launching the kernel
   int i;
-  shared[idl] = MemStruct.thread_active[id]; 
+  shared[idl] = DevMem.thread_active[id]; 
   __syncthreads();
   i = blockDim.x>>1;
   while(i){
