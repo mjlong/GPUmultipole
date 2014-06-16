@@ -46,7 +46,7 @@ __global__ void history(multipole U238, MemStruct Info, unsigned num_src, unsign
   }
   //}
   /*Note: from now on, live does not indicate neutron but thread active */
-  live = ((blockDim.x*2 + atomicAdd(Info.num_terminated_neutrons, terminated)) < num_src);
+  live = ((blockDim.x*gridDim.x + atomicAdd(Info.num_terminated_neutrons, terminated)) < num_src);
   Info.thread_active[id] = live;
   /* Copy state back to global memory */ 
   Info.nInfo[id].rndState = localState; 
