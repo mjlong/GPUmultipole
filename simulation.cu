@@ -20,7 +20,7 @@ __global__ void history(multipole U238, MemStruct Info, unsigned num_src, unsign
   int id = blockDim.x * blockIdx.x + threadIdx.x;
   unsigned istep;
   bool live=true;
-  double localenergy,initenergy;
+  double localenergy;
   double rnd;
   double sigT, sigA, sigF;
 
