@@ -30,8 +30,7 @@ __global__ void history(multipole U238, MemStruct Info, unsigned num_src, unsign
   /* Copy state to local memory for efficiency */ 
   curandState localState = Info.nInfo[id].rndState;
 
-  initenergy = Info.nInfo[id].energy;
-  localenergy = initenergy;
+  localenergy = Info.nInfo[id].energy;
   unsigned cnt = 0u;
   unsigned terminated = 0u;
   //while(live){
@@ -42,7 +41,7 @@ __global__ void history(multipole U238, MemStruct Info, unsigned num_src, unsign
 	  live = (localenergy > 1.0);
 	  cnt = cnt + 1;
 	  /*So far, energy is the only state*/
-	  localenergy = localenergy*live + initenergy*(1u - live);
+	  localenergy = localenergy*live + 2000.0*(1u - live);
 	  terminated += !live;
   }
   //}
@@ -51,6 +50,7 @@ __global__ void history(multipole U238, MemStruct Info, unsigned num_src, unsign
   Info.thread_active[id] = live;
   /* Copy state back to global memory */ 
   Info.nInfo[id].rndState = localState; 
+  Info.nInfo[id].energy = localenergy;
   Info.tally[id].cnt += cnt; 
 
 }
