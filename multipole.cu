@@ -87,6 +87,7 @@ __device__  void multipole::xs_eval_fast(double E, double sqrtKT,
   startW = w_start[iW];
   endW   = w_end[iW];
   CComplex sigT_factor[4];
+  //CComplex sigtfactor;
   if(startW <= endW)
     fill_factors(sqrtE,numL,sigT_factor);
   sigT = 0.0;
@@ -105,9 +106,10 @@ __device__  void multipole::xs_eval_fast(double E, double sqrtKT,
   DOPP_ECOEF = DOPP/E*sqrt(PI);
 
   for(iP=startW;iP<=endW;iP++){
+    //sigtfactor = sigT_factor[l_value[iP-1]-1];
     //w_val = (sqrtE - mpdata[pindex(iP-1,MP_EA)])*DOPP*DOPP_ECOEF;
     w_val = Faddeeva::w((sqrtE - mpdata[pindex(iP-1,MP_EA)])*DOPP)*DOPP_ECOEF;
-    sigT += real(mpdata[pindex(iP-1,MP_RT)]*sigT_factor[l_value[iP-1]-1]*w_val);	    
+    sigT += real(mpdata[pindex(iP-1,MP_RT)]*sigT_factor[l_value[iP-1]-1]*w_val);//sigtfactor);	    
     sigA += real(mpdata[pindex(iP-1,MP_RA)]*w_val);                              
     if(MP_FISS == fissionable)
       sigF += real(mpdata[pindex(iP-1,MP_RF)]*w_val);
@@ -129,6 +131,7 @@ __device__  void multipole::xs_eval_fast(double E,
   
   int    iP, iC, iW, startW, endW;
   CComplex sigT_factor[4];
+  //CComplex sigtfactor;
   double sqrtE = sqrt(E);
   double power;
   CComplex PSIIKI, CDUM1, w_val;
@@ -156,9 +159,10 @@ __device__  void multipole::xs_eval_fast(double E,
   }
 
   for(iP=startW;iP<=endW;iP++){
+    //sigtfactor = sigT_factor[l_value[iP-1]-1];
     PSIIKI = -ONEI/(mpdata[pindex(iP-1,MP_EA)] - sqrtE);
     CDUM1  = PSIIKI / E;
-    sigT += real(mpdata[pindex(iP-1,MP_RT)]*CDUM1*sigT_factor[l_value[iP-1]-1]);
+    sigT += real(mpdata[pindex(iP-1,MP_RT)]*CDUM1*sigT_factor[l_value[iP-1]-1]);//sigtfactor);
     sigA += real(mpdata[pindex(iP-1,MP_RA)]*CDUM1);
     if(MP_FISS == fissionable)
       sigF += real(mpdata[pindex(iP-1,MP_RF)]*CDUM1);
