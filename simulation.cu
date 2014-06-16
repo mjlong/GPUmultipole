@@ -41,14 +41,17 @@ __global__ void history(multipole U238, MemStruct Info, unsigned num_src, unsign
 	  localenergy = localenergy * rnd;
 	  live = (localenergy > 1.0);
 	  cnt = cnt + 1;
-	  /*So far, energy is the only state*/
-	  localenergy = localenergy*live + initenergy*(1u - live);
-	  terminated += !live;
+          if(!live){
+            terminated = atomicAdd(Info.num_terminated_neutrons, 1u);
+	    localenergy = 2000.0;
+            if(terminated >= (num_src - blockDim.x)){
+              istep = devstep;  
+              Info.thread_active[id] = 0u;
+            }
+          }
   }
   //}
-  /*Note: from now on, live does not indicate neutron but thread active */
-  live = ((blockDim.x*2 + atomicAdd(Info.num_terminated_neutrons, terminated)) < num_src);
-  Info.thread_active[id] = live;
+  Info.nInfo[id].energy = localenergy;
   /* Copy state back to global memory */ 
   Info.nInfo[id].rndState = localState; 
   Info.tally[id].cnt += cnt; 
