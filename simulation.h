@@ -38,7 +38,7 @@ typedef struct {
 }MemStruct;
 
 
-__global__ void history(multipole, double*, NeutronInfoStruct*, TallyStruct* );
+__global__ void history(multipole, double*, NeutronInfoStruct*, TallyStruct*, int );
 __global__ void initialize(MemStruct, double);
 __device__ void launch(NeutronInfoStruct*, int, double);
 __global__ void statistics(TallyStruct*, unsigned*);

@@ -14,7 +14,7 @@ __global__ void initialize(MemStruct pInfo, double energy){
 
 }
 
-__global__ void history(multipole U238, double *devicearray, NeutronInfoStruct *pInfo, TallyStruct *pTally){
+__global__ void history(multipole U238, double *devicearray, NeutronInfoStruct *pInfo, TallyStruct *pTally, int last){
   //TODO:this is one scheme to match threads to 1D array, 
   //try others when real simulation structure becomes clear
   int id = blockDim.x * blockIdx.x + threadIdx.x;
@@ -33,19 +33,21 @@ __global__ void history(multipole U238, double *devicearray, NeutronInfoStruct *
   localenergy = pInfo[id].energy;
   unsigned cnt = 0;
 
-  while(live){
-    rnd = curand_uniform(&localState);
-    U238.xs_eval_fast(localenergy, sqrt(300.0*KB), sigT, sigA, sigF);
-    localenergy = localenergy * rnd;
-    live = (localenergy>1.0);
-    cnt = cnt + 1;
-    //live = false;
-  }
+    while(live){
+      rnd = curand_uniform(&localState);
+      U238.xs_eval_fast(localenergy, sqrt(300.0*KB), sigT, sigA, sigF);
+      localenergy = localenergy * rnd;
+      live = (localenergy>1.0);
+      cnt = cnt + 1;
+      //live = false;
+    }
    
+  if(last){
   devicearray[4*id]=localenergy/rnd;
   devicearray[4*id+1]=sigT;
   devicearray[4*id+2]=sigA;
   devicearray[4*id+3]=sigF;
+  }
   
   /* Copy state back to global memory */ 
   pInfo[id].rndState = localState; 
