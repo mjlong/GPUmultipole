@@ -56,10 +56,10 @@ void anyvalue(struct multipoledata data, unsigned setgridx, unsigned setblockx, 
   while (active){
     history<<<dimBlock, dimGrid>>>(U238, DeviceMem, num_src, devstep);
     gpuErrchk(cudaMemcpy(HostMem.thread_active, DeviceMem.thread_active, gridsize*sizeof(unsigned int), cudaMemcpyDeviceToHost));
-	active = 0u;
-	for (i = 0; i < blockx; i++){
-		active += HostMem.thread_active[i];
-	}
+    active = 0u;
+    for (i = 0; i < blockx; i++){
+      active += HostMem.thread_active[i];
+    }
   }
   remaining<<<dimBlock, dimGrid>>>(U238, devicearray, DeviceMem);
 
@@ -102,7 +102,11 @@ void anyvalue(struct multipoledata data, unsigned setgridx, unsigned setblockx, 
 
   FILE *fp=NULL;
   fp = fopen("timelog","a+");
-  fprintf(fp,"%-4d,%-4d,%-.6f,%-.2f M,%-4d\n", gridx, blockx,timems*1000/sum, num_src/1000000.0f, devstep);
+  gpuErrchk(cudaMemcpy(HostMem.num_terminated_neutrons, 
+		       DeviceMem.num_terminated_neutrons, 
+		       sizeof(unsigned int), 
+		       cudaMemcpyDeviceToHost));
+  fprintf(fp,"%-4d,%-4d,%-.6f,%-.2f M,%-4d\n", gridx, blockx,timems*1000/sum, *HostMem.num_terminated_neutrons/1000000.0f, devstep);
   fclose(fp);
   //cudaEventRecord(stop, 0);
   //cudaEventSynchronize(stop);
@@ -119,6 +123,8 @@ void anyvalue(struct multipoledata data, unsigned setgridx, unsigned setblockx, 
 
   free(hostarray);
   free(cnt);
+  free(HostMem.thread_active);
+  free(HostMem.num_terminated_neutrons);
   return;
 }
 
