@@ -61,7 +61,7 @@ void anyvalue(struct multipoledata data, unsigned setgridx, unsigned setblockx, 
 		active += HostMem.thread_active[i];
 	}
   }
-  remaining<<<dimBlock, dimGrid>>>(U238, devicearray, DeviceMem);
+  //remaining<<<dimBlock, dimGrid>>>(U238, devicearray, DeviceMem);
 
   gpuErrchk(cudaEventRecord(stop, 0));
   gpuErrchk(cudaEventSynchronize(stop));
