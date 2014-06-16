@@ -43,7 +43,7 @@ __global__ void history(multipole U238, MemStruct Info, unsigned num_src, unsign
 	  cnt = cnt + 1;
           if(!live){
             terminated = atomicAdd(Info.num_terminated_neutrons, 1u);
-	    localenergy = 2000.0;
+	        localenergy = 2000.0;
             if(terminated >= (num_src - blockDim.x)){
               istep = devstep;  
               Info.thread_active[id] = 0u;
