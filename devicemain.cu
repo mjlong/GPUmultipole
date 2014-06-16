@@ -44,7 +44,10 @@ void anyvalue(struct multipoledata data, int setgridx, int setblockx, int num_sr
     And the address can be referred in form of p = pshared + offset
   */
   gpuErrchk(cudaEventRecord(start, 0));
-  history<<<dimBlock, dimGrid>>>(U238, devicearray, DeviceMem.nInfo, DeviceMem.tally);
+  unsigned steps = num_src/gridx/blockx;
+  for(unsigned istep=0;istep<=steps;istep++){
+    history<<<dimBlock, dimGrid>>>(U238, devicearray, DeviceMem.nInfo, DeviceMem.tally, steps==istep);
+  }
 
   gpuErrchk(cudaEventRecord(stop, 0));
   gpuErrchk(cudaEventSynchronize(stop));
@@ -85,7 +88,7 @@ void anyvalue(struct multipoledata data, int setgridx, int setblockx, int num_sr
 
   FILE *fp=NULL;
   fp = fopen("timelog","a+");
-  fprintf(fp,"%3d,%3d,%g    \n", gridx, blockx, timems*1000/sum);
+  fprintf(fp,"%-4d,%-4d,%-.6f,%-.2f M,\n", gridx, blockx, timems*1000/sum, num_src/1000000.0f);
   fclose(fp);
   //cudaEventRecord(stop, 0);
   //cudaEventSynchronize(stop);
