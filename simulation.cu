@@ -48,7 +48,7 @@ __global__ void history(multipole U238, MemStruct Info, unsigned num_src, unsign
   /*Note: from now on, live does not indicate neutron but thread active */
   //live = (((terminated*2)*blockDim.x*gridDim.x + atomicAdd(Info.num_terminated_neutrons, terminated)) < num_src);
   atomicAdd(Info.num_terminated_neutrons,terminated);
-  Info.thread_active[id] =  terminated*blockDim.x*gridDim.x + *Info.num_terminated_neutrons < num_src;
+  Info.thread_active[id] =  (terminated+1)*blockDim.x*gridDim.x + *Info.num_terminated_neutrons < num_src;
   /* Copy state back to global memory */ 
   Info.nInfo[id].rndState = localState; 
   Info.nInfo[id].energy = localenergy;
@@ -73,14 +73,17 @@ __global__ void remaining(multipole U238, double *devicearray, MemStruct Info){
   
   localenergy = Info.nInfo[id].energy;
   unsigned cnt = 0u;
+  unsigned terminated = 0u;
   while(live){
     rnd = curand_uniform(&localState);
     U238.xs_eval_fast(localenergy, sqrt(300.0*KB), sigT, sigA, sigF);
     localenergy = localenergy * rnd;
     live = (localenergy > 1.0);
     cnt = cnt + 1;
+    terminated += !live;
   }
   /* Copy state back to global memory */
+  atomicAdd(Info.num_terminated_neutrons,terminated);
   Info.nInfo[id].rndState = localState;
   Info.tally[id].cnt += cnt;
   
