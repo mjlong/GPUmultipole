@@ -106,7 +106,7 @@ void anyvalue(struct multipoledata data, unsigned setgridx, unsigned setblockx, 
 		       DeviceMem.num_terminated_neutrons, 
 		       sizeof(unsigned int), 
 		       cudaMemcpyDeviceToHost));
-  fprintf(fp,"%-4d,%-4d,%-.6f,%-5.2f M,%-4d,%-2d M\n", gridx, blockx,timems*1000/sum, *HostMem.num_terminated_neutrons/1000000.0f, devstep, num_src/1000000);
+  fprintf(fp,"%-4d,%-4d,%-.6f,%-8d,%-4d,%-2d M\n", gridx, blockx,timems*1000/sum, *HostMem.num_terminated_neutrons, devstep, num_src/1000000);
   fclose(fp);
   //cudaEventRecord(stop, 0);
   //cudaEventSynchronize(stop);
