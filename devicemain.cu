@@ -70,7 +70,6 @@ void anyvalue(struct multipoledata data, unsigned setgridx, unsigned setblockx, 
   gpuErrchk(cudaMemset(cdevice, 0, active));
   remaining<<<dimBlock, dimGrid>>>(U238, devicearray, cdevice, DeviceMem);
   gpuErrchk(cudaMemcpy(chost, cdevice, active, cudaMemcpyDeviceToHost));
-  
 
   gpuErrchk(cudaEventRecord(stop, 0));
   gpuErrchk(cudaEventSynchronize(stop));
@@ -85,7 +84,7 @@ void anyvalue(struct multipoledata data, unsigned setgridx, unsigned setblockx, 
   sharedmem = ints*sizeof(int);
   statistics<<<dimBlock, dimGrid, sharedmem>>>(DeviceMem.tally, blockcnt);
   gpuErrchk(cudaMemcpy(cnt, blockcnt, gridx*sizeof(unsigned), cudaMemcpyDeviceToHost));
-
+  
   for(int i=0;i<gridsize;i++){
     printf("%.15e %.15e %.15e %.15e",
 	   hostarray[4*i],
@@ -101,7 +100,7 @@ void anyvalue(struct multipoledata data, unsigned setgridx, unsigned setblockx, 
 	printf("\n");
     }
   }
-
+  
   unsigned sum = 0;
   for (int i=0;i<gridx;i++){
     printf("%4d\n",cnt[i]);
@@ -120,7 +119,7 @@ void anyvalue(struct multipoledata data, unsigned setgridx, unsigned setblockx, 
 
   fp = fopen("complexhisto","w");
   for(int i=0;i<gridsize*MAXCNT*WINSIZE;i++){
-    fprintf(fp, "%.10e  %.10e\n",real(chost[i]),imag(chost[i]));
+    fprintf(fp, "%18.10e,%18.10e\n",real(chost[i]),imag(chost[i]));
   }
   fclose(fp);
   //cudaEventRecord(stop, 0);
