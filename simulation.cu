@@ -56,7 +56,7 @@ __global__ void history(multipole U238, MemStruct Info, unsigned num_src, unsign
 
 }
 
-__global__ void remaining(multipole U238, double *devicearray, MemStruct Info){
+__global__ void remaining(multipole U238, double *devicearray, CComplex* cvector, MemStruct Info){
   //TODO:this is one scheme to match threads to 1D array, 
   //try others when real simulation structure becomes clear
   int id = blockDim.x * blockIdx.x + threadIdx.x;
@@ -75,7 +75,8 @@ __global__ void remaining(multipole U238, double *devicearray, MemStruct Info){
   unsigned cnt = 0u;
   while(live){
     rnd = curand_uniform(&localState);
-    U238.xs_eval_fast(localenergy, sqrt(300.0*KB), sigT, sigA, sigF);
+    U238.xs_eval_fast(localenergy, sqrt(300.0*KB), sigT, sigA, sigF, 
+		      &cvector[WINSIZE*MAXCNT*id+(cnt%MAXCNT)*WINSIZE]);
     localenergy = localenergy * rnd;
     live = (localenergy > 1.0);
     cnt = cnt + 1;
