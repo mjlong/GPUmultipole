@@ -94,6 +94,7 @@ __device__  void multipole::xs_eval_fast(double E, double sqrtKT,
   sigA = 0.0;
   sigF = 0.0;
   //polynomial fitting
+
   for (iC=0;iC<=fitorder;iC++){
     power = pow(E,iC*0.5-1.0);
     sigT += fit[findex(iW,iC,FIT_T,fitorder+1,2+fissionable)]*power;
