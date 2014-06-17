@@ -62,6 +62,9 @@ public:
   void release_pointer();
   __device__  void xs_eval_fast(double E, double sqrtAWR, 
 					 double &sigT, double &sigA, double &sigF);
+  __device__  void xs_eval_fast(double E, double sqrtAWR, 
+				double &sigT, double &sigA, double &sigF,
+				CComplex*);
   __device__  void xs_eval_fast(double E, 
 					 double &sigT, double &sigA, double &sigF);
   __device__ void fill_factors(double sqrtE, int numL, CComplex *sigT_factor);

@@ -61,7 +61,16 @@ void anyvalue(struct multipoledata data, unsigned setgridx, unsigned setblockx, 
       active += HostMem.thread_active[i];
     }
   }
-  remaining<<<dimBlock, dimGrid>>>(U238, devicearray, DeviceMem);
+  
+  CPUComplex *chost;
+  CComplex *cdevice;
+  active = WINSIZE*MAXCNT*gridsize*sizeof(double)*2;//from now on, active = z output size
+  gpuErrchk(cudaMalloc((void**)&(cdevice), active));
+  chost = (CPUComplex*)malloc(active);
+  gpuErrchk(cudaMemset(cdevice, 0, active));
+  remaining<<<dimBlock, dimGrid>>>(U238, devicearray, cdevice, DeviceMem);
+  gpuErrchk(cudaMemcpy(chost, cdevice, active, cudaMemcpyDeviceToHost));
+  
 
   gpuErrchk(cudaEventRecord(stop, 0));
   gpuErrchk(cudaEventSynchronize(stop));
@@ -108,6 +117,12 @@ void anyvalue(struct multipoledata data, unsigned setgridx, unsigned setblockx, 
 		       cudaMemcpyDeviceToHost));
   fprintf(fp,"%-4d,%-4d,%-.6f,%-8d,%-4d,%-2d M\n", gridx, blockx,timems*1000/sum, *HostMem.num_terminated_neutrons, devstep, num_src/1000000);
   fclose(fp);
+
+  fp = fopen("complexhisto","w");
+  for(int i=0;i<gridsize*MAXCNT*WINSIZE;i++){
+    fprintf(fp, "%.10e  %.10e\n",real(chost[i]),imag(chost[i]));
+  }
+  fclose(fp);
   //cudaEventRecord(stop, 0);
   //cudaEventSynchronize(stop);
   //cudaEventElapsedTime(&timems, start, stop);
@@ -119,12 +134,14 @@ void anyvalue(struct multipoledata data, unsigned setgridx, unsigned setblockx, 
   gpuErrchk(cudaFree(DeviceMem.nInfo));
   gpuErrchk(cudaFree(DeviceMem.thread_active));
   gpuErrchk(cudaFree(DeviceMem.tally));
+  gpuErrchk(cudaFree(cdevice));
   U238.release_pointer();
 
   free(hostarray);
   free(cnt);
   free(HostMem.thread_active);
   free(HostMem.num_terminated_neutrons);
+  free(chost);
   return;
 }
 
