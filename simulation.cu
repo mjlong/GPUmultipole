@@ -76,7 +76,7 @@ __global__ void remaining(multipole U238, double *devicearray, CComplex* cvector
   while(live){
     rnd = curand_uniform(&localState);
     U238.xs_eval_fast(localenergy, sqrt(300.0*KB), sigT, sigA, sigF, 
-		      &cvector[WINSIZE*MAXCNT*id+(cnt%MAXCNT)*WINSIZE]);
+			&cvector[WINSIZE*MAXCNT*id+(cnt%MAXCNT)*WINSIZE]);
     localenergy = localenergy * rnd;
     live = (localenergy > 1.0);
     cnt = cnt + 1;
@@ -84,11 +84,12 @@ __global__ void remaining(multipole U238, double *devicearray, CComplex* cvector
   /* Copy state back to global memory */
   Info.nInfo[id].rndState = localState;
   Info.tally[id].cnt += cnt;
-  
+
   devicearray[4 * id] = localenergy / rnd;
   devicearray[4 * id + 1] = sigT;
   devicearray[4 * id + 2] = sigA;
-  devicearray[4 * id + 3] = sigF;
+  devicearray[4 * id + 3] = cnt;
+
 }
 
 
