@@ -64,12 +64,19 @@ void anyvalue(struct multipoledata data, unsigned setgridx, unsigned setblockx, 
   
   CPUComplex *chost;
   CComplex *cdevice;
+  unsigned *cwindows, *dwindows;
   active = WINSIZE*MAXCNT*gridsize*sizeof(double)*2;//from now on, active = z output size
   gpuErrchk(cudaMalloc((void**)&(cdevice), active));
   chost = (CPUComplex*)malloc(active);
   gpuErrchk(cudaMemset(cdevice, 0, active));
-  remaining<<<dimBlock, dimGrid>>>(U238, devicearray, cdevice, DeviceMem);
+  gpuErrchk(cudaMalloc((void**)&(dwindows), MAXCNT*gridsize));
+  cwindows = (unsigned*)malloc(MAXCNT*gridsize);
+  gpuErrchk(cudaMemset(dwindows, 0, gridsize*MAXCNT));
+  //
+  remaining<<<dimBlock, dimGrid>>>(U238, devicearray, cdevice, dwindows, DeviceMem);
+  //
   gpuErrchk(cudaMemcpy(chost, cdevice, active, cudaMemcpyDeviceToHost));
+  gpuErrchk(cudaMemcpy(cwindows, dwindows, gridsize*MAXCNT, cudaMemcpyDeviceToHost));
 
   gpuErrchk(cudaEventRecord(stop, 0));
   gpuErrchk(cudaEventSynchronize(stop));
@@ -110,6 +117,7 @@ void anyvalue(struct multipoledata data, unsigned setgridx, unsigned setblockx, 
 
   FILE *fp=NULL;
   fp = fopen("timelog","a+");
+  CPUComplex temp;
   gpuErrchk(cudaMemcpy(HostMem.num_terminated_neutrons, 
 		       DeviceMem.num_terminated_neutrons, 
 		       sizeof(unsigned int), 
@@ -119,8 +127,11 @@ void anyvalue(struct multipoledata data, unsigned setgridx, unsigned setblockx, 
 
   fp = fopen("complexhisto","w");
   for(int i=0;i<gridsize*MAXCNT*WINSIZE;i++){
-    fprintf(fp, "%18.10e,%18.10e, cnt=%d, windows = %-d\n",real(chost[i]),imag(chost[i]), 
-	    (int)hostarray[4*(i/(MAXCNT*WINSIZE))+3], (int)hostarray[4*(i/(MAXCNT*WINSIZE))+2]);
+    //active = i/(MAXCNT*WINSIZE); //active = id now
+    //fprintf(fp, "%18.10e %18.10e, cnt=%d, windows = %-3d\n",real(chost[i]),imag(chost[i]),(int)hostarray[4*active+3], cwindows[i/WINSIZE]);//(int)cwindows[active*MAXCNT+(i/WINSIZE)%MAXCNT]);
+    temp = chost[i];
+    if((0.0!=real(temp)) && (0.0!=imag(temp)))
+      fprintf(fp, "%33.25e %33.25e\n", real(temp), imag(temp));
   }
   fclose(fp);
   //cudaEventRecord(stop, 0);
@@ -135,6 +146,7 @@ void anyvalue(struct multipoledata data, unsigned setgridx, unsigned setblockx, 
   gpuErrchk(cudaFree(DeviceMem.thread_active));
   gpuErrchk(cudaFree(DeviceMem.tally));
   gpuErrchk(cudaFree(cdevice));
+  gpuErrchk(cudaFree(dwindows));
   U238.release_pointer();
 
   free(hostarray);
@@ -142,6 +154,7 @@ void anyvalue(struct multipoledata data, unsigned setgridx, unsigned setblockx, 
   free(HostMem.thread_active);
   free(HostMem.num_terminated_neutrons);
   free(chost);
+  free(cwindows);
   return;
 }
 
