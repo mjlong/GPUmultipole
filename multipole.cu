@@ -115,7 +115,6 @@ __device__  void multipole::xs_eval_fast(double E, double sqrtKT,
     if(MP_FISS == fissionable)
       sigF += real(mpdata[pindex(iP-1,MP_RF)]*w_val);
   }
-  sigA = endW - startW;
 }
 
 __device__  void multipole::xs_eval_fast(double E,  
@@ -261,5 +260,6 @@ __device__  void multipole::xs_eval_fast(double E, double sqrtKT,
     if(MP_FISS == fissionable)
       sigF += real(mpdata[pindex(iP-1,MP_RF)]*w_val);
   }
+  sigA = (double)(endW - startW);
 
 }
