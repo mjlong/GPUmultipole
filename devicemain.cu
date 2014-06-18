@@ -119,7 +119,8 @@ void anyvalue(struct multipoledata data, unsigned setgridx, unsigned setblockx, 
 
   fp = fopen("complexhisto","w");
   for(int i=0;i<gridsize*MAXCNT*WINSIZE;i++){
-    fprintf(fp, "%18.10e,%18.10e\n",real(chost[i]),imag(chost[i]));
+    fprintf(fp, "%18.10e,%18.10e,  cnt=%d\n",real(chost[i]),imag(chost[i]), 
+	    (int)hostarray[4*(i/(MAXCNT*WINSIZE))+3]);
   }
   fclose(fp);
   //cudaEventRecord(stop, 0);
