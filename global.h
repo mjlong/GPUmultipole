@@ -8,4 +8,4 @@
 #define ONEI CComplex(0.0,1.0)
 
 #define WINSIZE 4
-#define MAXCNT  4
+#define MAXCNT  5
