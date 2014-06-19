@@ -141,7 +141,7 @@ __device__  void multipole::xs_eval_fast(double E,
   CComplex PSIIKI, CDUM1, w_val;
 
  
- startW = w_start[iW];
+  startW = w_start[iW];
   endW   = w_end[iW];
   CComplex sigT_factor[4];
   //CComplex sigtfactor;
@@ -153,7 +153,7 @@ __device__  void multipole::xs_eval_fast(double E,
   //polynomial fitting
 
   for (iC=0;iC<=fitorder;iC++){
-    power = pow(E,iC);
+    power = pow(E,iC*0.5-1.0);
     sigT += fit[findex(iW,iC,FIT_T,fitorder+1,2+fissionable)]*power;
     sigA += fit[findex(iW,iC,FIT_A,fitorder+1,2+fissionable)]*power;
     if(MP_FISS == fissionable)
