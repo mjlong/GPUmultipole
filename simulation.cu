@@ -21,7 +21,7 @@ __global__ void history(multipole U238, MemStruct Info, unsigned num_src, unsign
   unsigned istep;
   bool live=true;
   double localenergy;
-  double rnd;
+  double rnd,norm;
   double sigT, sigA, sigF;
 
   /* Each thread gets same seed, a different sequence number, no offset */
@@ -36,7 +36,8 @@ __global__ void history(multipole U238, MemStruct Info, unsigned num_src, unsign
   //while(live){
   for (istep = 0; istep < devstep; istep++){
     rnd = curand_uniform(&localState);
-    U238.xs_eval_fast(localenergy, sqrt(300.0*KB), sigT, sigA, sigF);
+    norm = curand_normal(&localState);
+    U238.xs_eval_fast(localenergy, sqrt(300.0*KB), norm, sigT, sigA, sigF);
     localenergy = localenergy * rnd;
     live = (localenergy > 1.0);
     cnt = cnt + 1;
@@ -62,7 +63,7 @@ __global__ void remaining(multipole U238, double *devicearray, MemStruct Info){
   int id = blockDim.x * blockIdx.x + threadIdx.x;
   bool live = true;
   double localenergy;
-  double rnd;
+  double rnd, norm;
   double sigT, sigA, sigF;
   
   /* Each thread gets same seed, a different sequence number, no offset */
@@ -76,7 +77,8 @@ __global__ void remaining(multipole U238, double *devicearray, MemStruct Info){
   unsigned terminated = 0u;
   while(live){
     rnd = curand_uniform(&localState);
-    U238.xs_eval_fast(localenergy, sqrt(300.0*KB), sigT, sigA, sigF);
+    norm = curand_normal(&localState);
+    U238.xs_eval_fast(localenergy, sqrt(300.0*KB), norm, sigT, sigA, sigF);
     localenergy = localenergy * rnd;
     live = (localenergy > 1.0);
     cnt = cnt + 1;
