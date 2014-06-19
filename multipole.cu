@@ -175,6 +175,64 @@ __device__  void multipole::xs_eval_fast(double E,
   
 }
 
+__device__  void multipole::xs_eval_fast(double E, double sqrtKT, double rnd, 
+                        	 	 double &sigT, double &sigA, double &sigF){
+
+  /* Copy variables to local memory for efficiency */ 
+  unsigned mode        = dev_integers[MODE];
+  int    iP, iC, iW, startW, endW;
+  double spacing = dev_doubles[SPACING];
+  double startE  = dev_doubles[STARTE];
+  double sqrtAWR = dev_doubles[SQRTAWR];
+
+  E = E + rnd * sqrtKT * sqrt(0.5) / sqrtAWR;
+  double sqrtE = sqrt(E);
+  if(1==mode)
+    iW = (int)((sqrtE - sqrt(startE))/spacing);
+  else if(2==mode)
+    iW = (int)((log(E) - log(startE))/spacing);
+  else
+    iW = (int)(( E - startE )/spacing);
+  unsigned fitorder    = dev_integers[FITORDER];
+  unsigned fissionable = dev_integers[FISSIONABLE];
+  unsigned numL        = dev_integers[NUML];
+
+  double power;
+  CComplex PSIIKI, CDUM1, w_val;
+ 
+  startW = w_start[iW];
+  endW   = w_end[iW];
+  CComplex sigT_factor[4];
+  //CComplex sigtfactor;
+  if(startW <= endW)
+    fill_factors(sqrtE,numL,sigT_factor);
+  sigT = 0.0;
+  sigA = 0.0;
+  sigF = 0.0;
+  //polynomial fitting
+
+  for (iC=0;iC<=fitorder;iC++){
+    power = pow(E,iC*0.5-1.0);
+    sigT += fit[findex(iW,iC,FIT_T,fitorder+1,2+fissionable)]*power;
+    sigA += fit[findex(iW,iC,FIT_A,fitorder+1,2+fissionable)]*power;
+    if(MP_FISS == fissionable)
+      sigF += fit[findex(iW,iC,FIT_F,fitorder+1,2+fissionable)]*power;
+  }
+
+
+
+
+  for(iP=startW;iP<=endW;iP++){
+    //sigtfactor = sigT_factor[l_value[iP-1]-1];
+    PSIIKI = -ONEI/(mpdata[pindex(iP-1,MP_EA)] - sqrtE);
+    CDUM1  = PSIIKI / E;
+    sigT += real(mpdata[pindex(iP-1,MP_RT)]*CDUM1*sigT_factor[l_value[iP-1]-1]);//sigtfactor);
+    sigA += real(mpdata[pindex(iP-1,MP_RA)]*CDUM1);
+    if(MP_FISS == fissionable)
+      sigF += real(mpdata[pindex(iP-1,MP_RF)]*CDUM1);
+  }
+  
+}
 
 
 __host__ __device__ int multipole::findex(int iW, int iC, int type, int orders, int types){
