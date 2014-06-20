@@ -1,11 +1,6 @@
 #ifndef __MULTIPOLE_H__
 #define __MULTIPOLE_H__
 
-/* conditional comilation macro*/
-#define __QUICKW
-#define __SAMPLE
-
-
 #define MP_EA 0
 #define MP_RT 1
 #define MP_RA 2
