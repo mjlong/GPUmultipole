@@ -31,7 +31,8 @@
 #define WIDTH  0.1
 #define ONEI   CComplex(0.0,1.0)
 
-__device__ void initialize_w_tabulated(CComplex*);
+//__device__ void initialize_w_tabulated(CComplex*);
+__device__ void fill_w_tabulated(CComplex*, unsigned);
 __device__ CComplex w_function(CComplex, CComplex*);
 
 

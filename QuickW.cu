@@ -12,6 +12,7 @@ double c = 0.051765358792987823963876628425793170829107067780337219430904;
  has accuracy of at least 13 significant digits.                                                 
 ===============================================================================*/     
 
+/*
 __device__ void initialize_w_tabulated(CComplex* w_tabulated){
   int i,j;
   double x,y;
@@ -24,6 +25,17 @@ __device__ void initialize_w_tabulated(CComplex* w_tabulated){
       w_tabulated[i*LENGTH+j] = Faddeeva::w(z);
     }
   }
+  return;
+}
+*/
+
+__device__ void fill_w_tabulated(CComplex* w_tabulated, unsigned id){
+  double x,y;
+  CComplex z;
+  y = WIDTH*(id/LENGTH-1);
+  x = WIDTH*(id%LENGTH-1);
+  z = CComplex(x,y);
+  w_tabulated[id] = Faddeeva::w(z);
   return;
 }
 
