@@ -25,7 +25,7 @@ History****:*Date*******************Author**************************************
 #include "CPUComplex.h"
 using namespace std;
 
-#define PI 3.141592653589793238462643383279
+#define PI 3.14159265358979323846264338327950
 
 
 class CComplex{
