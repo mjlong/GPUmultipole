@@ -1,6 +1,11 @@
 #ifndef __MULTIPOLE_H__
 #define __MULTIPOLE_H__
 
+/* conditional comilation macro*/
+#define __QUICKW
+#define __SAMPLE
+
+
 #define MP_EA 0
 #define MP_RT 1
 #define MP_RA 2
@@ -17,6 +22,7 @@
 #define STARTE   0
 #define SPACING  1
 #define SQRTAWR  2
+
 /*
   Mode, set to 0 for linear, 1 for momentum, 2 for logarithmic.
   Mode = 0 (linear)
