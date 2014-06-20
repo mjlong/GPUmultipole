@@ -46,7 +46,6 @@ multipole::multipole(struct multipoledata data){
   cudaMalloc((void**)&fit, size);
   cudaMemcpy(fit, data.fit, size, cudaMemcpyHostToDevice);
 
-  w_function = 1;
 }
 
 
@@ -63,10 +62,12 @@ void multipole::release_pointer(){
   gpuErrchk(cudaFree(w_end));
   gpuErrchk(cudaFree(fit));
 }
+
+// xs eval with MIT Faddeeva()
 __device__  void multipole::xs_eval_fast(double E, double sqrtKT, 
 			                 double &sigT, double &sigA, double &sigF){
 
-  /* Copy variables to local memory for efficiency */ 
+  // Copy variables to local memory for efficiency 
   unsigned mode        = dev_integers[MODE];
   int    iP, iC, iW, startW, endW;
   double spacing = dev_doubles[SPACING];
@@ -120,10 +121,71 @@ __device__  void multipole::xs_eval_fast(double E, double sqrtKT,
 
 }
 
+//xs eval with Quick W()
+/*
+__device__  void multipole::xs_eval_fast(double E, double sqrtKT, CComplex *table, 
+			                 double &sigT, double &sigA, double &sigF){
+
+  // Copy variables to local memory for efficiency 
+  unsigned mode        = dev_integers[MODE];
+  int    iP, iC, iW, startW, endW;
+  double spacing = dev_doubles[SPACING];
+  double startE  = dev_doubles[STARTE];
+  double sqrtE = sqrt(E);
+  if(1==mode)
+    iW = (int)((sqrtE - sqrt(startE))/spacing);
+  else if(2==mode)
+    iW = (int)((log(E) - log(startE))/spacing);
+  else
+    iW = (int)(( E - startE )/spacing);
+  unsigned fitorder    = dev_integers[FITORDER];
+  unsigned numL        = dev_integers[NUML];
+  unsigned fissionable = dev_integers[FISSIONABLE];
+
+  double sqrtAWR = dev_doubles[SQRTAWR];
+  double power, DOPP, DOPP_ECOEF;
+  CComplex w_val;
+
+  startW = w_start[iW];
+  endW   = w_end[iW];
+  CComplex sigT_factor[4];
+  //CComplex sigtfactor;
+  if(startW <= endW)
+    fill_factors(sqrtE,numL,sigT_factor);
+  sigT = 0.0;
+  sigA = 0.0;
+  sigF = 0.0;
+  //polynomial fitting
+
+  for (iC=0;iC<=fitorder;iC++){
+    power = pow(E,iC*0.5-1.0);
+    sigT += fit[findex(iW,iC,FIT_T,fitorder+1,2+fissionable)]*power;
+    sigA += fit[findex(iW,iC,FIT_A,fitorder+1,2+fissionable)]*power;
+    if(MP_FISS == fissionable)
+      sigF += fit[findex(iW,iC,FIT_F,fitorder+1,2+fissionable)]*power;
+  }
+
+  DOPP = sqrtAWR/sqrtKT;
+  DOPP_ECOEF = DOPP/E*sqrt(PI);
+
+  for(iP=startW;iP<=endW;iP++){
+    //sigtfactor = sigT_factor[l_value[iP-1]-1];
+    //w_val = (sqrtE - mpdata[pindex(iP-1,MP_EA)])*DOPP*DOPP_ECOEF;
+    w_val = w_function((sqrtE - mpdata[pindex(iP-1,MP_EA)])*DOPP,table)*DOPP_ECOEF;
+    sigT += real(mpdata[pindex(iP-1,MP_RT)]*sigT_factor[l_value[iP-1]-1]*w_val);//sigtfactor);	    
+    sigA += real(mpdata[pindex(iP-1,MP_RA)]*w_val);                              
+    if(MP_FISS == fissionable)
+      sigF += real(mpdata[pindex(iP-1,MP_RF)]*w_val);
+  }
+
+}
+*/
+
+//xs eval at 0K
 __device__  void multipole::xs_eval_fast(double E,  
                         	 	 double &sigT, double &sigA, double &sigF){
 
-  /* Copy variables to local memory for efficiency */ 
+  // Copy variables to local memory for efficiency 
   unsigned mode        = dev_integers[MODE];
   int    iP, iC, iW, startW, endW;
   double spacing = dev_doubles[SPACING];
@@ -177,10 +239,12 @@ __device__  void multipole::xs_eval_fast(double E,
   
 }
 
+//xs eval at 0k but sampled to sqrtKT
+/*
 __device__  void multipole::xs_eval_fast(double E, double sqrtKT, double rnd, 
                         	 	 double &sigT, double &sigA, double &sigF){
 
-  /* Copy variables to local memory for efficiency */ 
+  // Copy variables to local memory for efficiency 
   unsigned mode        = dev_integers[MODE];
   int    iP, iC, iW, startW, endW;
   double spacing = dev_doubles[SPACING];
@@ -235,7 +299,7 @@ __device__  void multipole::xs_eval_fast(double E, double sqrtKT, double rnd,
   }
   
 }
-
+*/
 
 __host__ __device__ int multipole::findex(int iW, int iC, int type, int orders, int types){
   return iW*orders*types + iC*types + type; 
