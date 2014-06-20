@@ -46,7 +46,7 @@ multipole::multipole(struct multipoledata data){
   cudaMalloc((void**)&fit, size);
   cudaMemcpy(fit, data.fit, size, cudaMemcpyHostToDevice);
 
-  //w_function = &Faddeeva::w;
+  w_function = 1;
 }
 
 

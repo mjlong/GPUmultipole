@@ -34,6 +34,7 @@
 #include "CComplex.h"
 #include <iostream>
 #include "Faddeeva.h"
+#include "QuickW.h"
 #include "global.h"
 #include "gpuerrchk.h"
 using namespace std;
@@ -45,7 +46,7 @@ public:
   double *dev_doubles;
   CComplex *mpdata;
   unsigned *l_value; // l and j index of the pole
-  //CComplex (*w_function)(CComplex,double); //Which W function to use
+  int w_function; //Which W function to use
   double   *pseudo_rho;  //inherit nomenclature from isotope.h
 
   int *w_start;// Contains the index of the pole at the start of the window
