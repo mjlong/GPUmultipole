@@ -13,6 +13,7 @@ hdf5IO.cc
 GSOURCES=\
 CComplex.cu\
 Faddeeva.cu\
+QuickW.cu\
 simulation.cu\
 multipole.cu\
 devicemain.cu\
