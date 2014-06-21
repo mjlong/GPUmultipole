@@ -84,7 +84,7 @@ __global__ void remaining(multipole U238, double *devicearray, MemStruct Info){
   double rnd;
   //double norm;
   double sigT, sigA, sigF;
- #if defined(__QUICKW)
+#if defined(__QUICKW)
   extern __shared__ CComplex sharedtable[];
   live = id;
   while (live < LENGTH*LENGTH){
