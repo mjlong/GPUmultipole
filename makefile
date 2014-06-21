@@ -13,7 +13,6 @@ LDFLAGS=-g -L/home/jlmiao/opt/hdf5/lib/ -L/usr/local/cuda-5.5/lib64 -lcudart -lh
 ifeq ($(WFUC),0)
   def = -D __MITW
   GSOURCES=\
-  CComplex.cu\
   Faddeeva.cu\
   simulation.cu\
   multipole.cu\
@@ -22,7 +21,6 @@ ifeq ($(WFUC),0)
 else ifeq ($(WFUC),1)
        def = -D __QUICKW
        GSOURCES=\
-       CComplex.cu\
        Faddeeva.cu\
        QuickW.cu\
        simulation.cu\
@@ -32,7 +30,6 @@ else ifeq ($(WFUC),1)
      else
        def = -D __SAMPLE
        GSOURCES=\
-       CComplex.cu\
        simulation.cu\
        multipole.cu\
        devicemain.cu\
