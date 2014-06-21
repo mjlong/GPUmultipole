@@ -25,14 +25,14 @@ __global__ void history(multipole U238, MemStruct Info, unsigned num_src, unsign
   //double norm;
   double sigT, sigA, sigF;
 #if defined(__QUICKW)
-  extern __shared__ CComplex shared[];
+  extern __shared__ CComplex sharedtable[];
   live = id;
   while (live < LENGTH*LENGTH){
-	  fill_w_tabulated(shared, live);
+	  fill_w_tabulated(sharedtable, live);
 	  live += blockDim.x*gridDim.x;
   }
   __syncthreads();
-  U238.table = shared;
+  U238.table = sharedtable;
 #endif
   /* Each thread gets same seed, a different sequence number, no offset */
   curand_init(1234, id, 0, &(Info.nInfo[id].rndState));
@@ -85,14 +85,14 @@ __global__ void remaining(multipole U238, double *devicearray, MemStruct Info){
   //double norm;
   double sigT, sigA, sigF;
  #if defined(__QUICKW)
-  extern __shared__ CComplex shared[];
+  extern __shared__ CComplex sharedtable[];
   live = id;
   while (live < LENGTH*LENGTH){
-	  fill_w_tabulated(shared, live);
+	  fill_w_tabulated(sharedtable, live);
 	  live += blockDim.x*gridDim.x;
   }
   __syncthreads();
-  U238.table = shared;
+  U238.table = sharedtable;
 #endif
  
   /* Each thread gets same seed, a different sequence number, no offset */
