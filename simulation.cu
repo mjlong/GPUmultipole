@@ -24,6 +24,7 @@ __global__ void history(multipole U238, MemStruct Info, unsigned num_src, unsign
   double rnd;
   //double norm;
   double sigT, sigA, sigF;
+  extern __shared__ CComplex shared[];
 
   /* Each thread gets same seed, a different sequence number, no offset */
   curand_init(1234, id, 0, &(Info.nInfo[id].rndState));
