@@ -18,18 +18,18 @@ __global__ void history(multipole U238, MemStruct Info, unsigned num_src, unsign
   //TODO:this is one scheme to match threads to 1D array, 
   //try others when real simulation structure becomes clear
   int id = blockDim.x * blockIdx.x + threadIdx.x;
-  unsigned istepu;
-  bool live=true;
+  unsigned istep;
+  unsigned live;
   double localenergy;
   double rnd;
   //double norm;
   double sigT, sigA, sigF;
 #if defined(__QUICKW)
   extern __shared__ CComplex shared[];
-  istep = id;
-  while (istep < LENGTH*LENGTH){
-	  fill_w_tabulated(shared, istep);
-	  istep += blockDim.x*gridDim.x;
+  live = id;
+  while (live < LENGTH*LENGTH){
+	  fill_w_tabulated(shared, live);
+	  live += blockDim.x*gridDim.x;
   }
   __syncthreads();
   U238.table = shared;
@@ -43,6 +43,7 @@ __global__ void history(multipole U238, MemStruct Info, unsigned num_src, unsign
   localenergy = Info.nInfo[id].energy;
   unsigned cnt = 0u;
   unsigned terminated = 0u;
+  live = 1u;
   //while(live){
   for (istep = 0; istep < devstep; istep++){
     rnd = curand_uniform(&localState);
@@ -78,12 +79,22 @@ __global__ void remaining(multipole U238, double *devicearray, MemStruct Info){
   //TODO:this is one scheme to match threads to 1D array, 
   //try others when real simulation structure becomes clear
   int id = blockDim.x * blockIdx.x + threadIdx.x;
-  bool live = true;
+  unsigned live = true;
   double localenergy;
   double rnd;
   //double norm;
   double sigT, sigA, sigF;
-  
+ #if defined(__QUICKW)
+  extern __shared__ CComplex shared[];
+  live = id;
+  while (live < LENGTH*LENGTH){
+	  fill_w_tabulated(shared, live);
+	  live += blockDim.x*gridDim.x;
+  }
+  __syncthreads();
+  U238.table = shared;
+#endif
+ 
   /* Each thread gets same seed, a different sequence number, no offset */
   curand_init(1234, id, 0, &(Info.nInfo[id].rndState));
   
@@ -93,6 +104,7 @@ __global__ void remaining(multipole U238, double *devicearray, MemStruct Info){
   localenergy = Info.nInfo[id].energy;
   unsigned cnt = 0u;
   unsigned terminated = 0u;
+  live = 1u;
   while(live){
     rnd = curand_uniform(&localState);
     //norm = curand_normal(&localState);
