@@ -34,8 +34,15 @@
 #include "multipole_data.h"
 #include "CComplex.h"
 #include <iostream>
+
+#if defined(__MITW)
 #include "Faddeeva.h"
+#endif
+
+#if defined(__QUICKW)
 #include "QuickW.h"
+#endif
+
 #include "global.h"
 #include "gpuerrchk.h"
 using namespace std;
@@ -63,8 +70,10 @@ public:
   multipole(struct multipoledata data);
   ~multipole();
   void release_pointer();
+#if defined(__MITW) || defined(__QUICKW)
   __device__  void xs_eval_fast(double E, double sqrtKT, 
 					 double &sigT, double &sigA, double &sigF);
+#endif
   __device__  void xs_eval_fast(double E, 
 					 double &sigT, double &sigA, double &sigF);
   /*__device__  void xs_eval_fast(double E, double sqrtKT, double rnd, 

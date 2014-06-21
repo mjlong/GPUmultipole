@@ -64,6 +64,7 @@ void multipole::release_pointer(){
 }
 
 // xs eval with MIT Faddeeva()
+#if defined(__MITW) || defined(__QUICKW)
 __device__  void multipole::xs_eval_fast(double E, double sqrtKT, 
 			                 double &sigT, double &sigA, double &sigF){
 
@@ -114,7 +115,8 @@ __device__  void multipole::xs_eval_fast(double E, double sqrtKT,
     //w_val = (sqrtE - mpdata[pindex(iP-1,MP_EA)])*DOPP*DOPP_ECOEF;
 #if defined(__QUICKW)
     w_val =  w_function((sqrtE - mpdata[pindex(iP-1,MP_EA)])*DOPP,table)*DOPP_ECOEF;
-#else
+#endif
+#if defined(__MITW)
     w_val = Faddeeva::w((sqrtE - mpdata[pindex(iP-1,MP_EA)])*DOPP,0.0)*DOPP_ECOEF;
 #endif
     sigT += real(mpdata[pindex(iP-1,MP_RT)]*sigT_factor[l_value[iP-1]-1]*w_val);//sigtfactor);	    
@@ -124,6 +126,7 @@ __device__  void multipole::xs_eval_fast(double E, double sqrtKT,
   }
 
 }
+#endif
 
 //xs eval with Quick W()
 /*
