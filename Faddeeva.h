@@ -32,29 +32,29 @@
 namespace Faddeeva {
 
 // compute w(z) = exp(-z^2) erfc(-iz) [ Faddeeva / scaled complex error func ]
-extern __device__  CComplex w(CComplex z,double relerr=0);
+extern __device__  CComplex<double> w(CComplex<double> z,double relerr=0);
 extern __device__  double w_im(double x); // special-case code for Im[w(x)] of real x
 
 // Various functions that we can compute with the help of w(z)
 
 // compute erfcx(z) = exp(z^2) erfc(z)
-extern __device__  CComplex erfcx(CComplex z, double relerr=0);
+extern __device__  CComplex<double> erfcx(CComplex<double> z, double relerr=0);
 extern __device__  double erfcx(double x); // special case for real x
 
 // compute erf(z), the error function of complex arguments
-extern __device__  CComplex erf(CComplex z, double relerr=0);
+extern __device__  CComplex<double> erf(CComplex<double> z, double relerr=0);
 extern __device__  double erf(double x); // special case for real x
 
 // compute erfi(z) = -i erf(iz), the imaginary error function
-extern __device__  CComplex erfi(CComplex z, double relerr=0);
+extern __device__  CComplex<double> erfi(CComplex<double> z, double relerr=0);
 extern __device__  double erfi(double x); // special case for real x
 
 // compute erfc(z) = 1 - erf(z), the complementary error function
-extern __device__  CComplex erfc(CComplex z, double relerr=0);
+extern __device__  CComplex<double> erfc(CComplex<double> z, double relerr=0);
 extern __device__  double erfc(double x); // special case for real x
 
 // compute Dawson(z) = sqrt(pi)/2  *  exp(-z^2) * erfi(z)
-extern __device__  CComplex Dawson(CComplex z, double relerr=0);
+extern __device__  CComplex<double> Dawson(CComplex<double> z, double relerr=0);
 extern __device__  double Dawson(double x); // special case for real x
 
 } // namespace Faddeeva
