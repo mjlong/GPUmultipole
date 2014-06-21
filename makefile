@@ -6,7 +6,7 @@ CCFLAGS=-c -g -I/home/jlmiao/opt/hdf5/include
 LINKLAG=-arch=sm_20 -dlink
 #LDFLAGS=-g -L/opt/mpich/3.0.4-intel/lib/ -L/opt/hdf5/1.8.11-intel/lib/ -L/usr/local/cuda-5.5/lib64 -lcudart -lhdf5 -lmpich
 LDFLAGS=-g -L/home/jlmiao/opt/hdf5/lib/ -L/usr/local/cuda-5.5/lib64 -lcudart -lhdf5 
-def = -D __SAMPLE=1
+def = -D __QUICKW=1 -D __SAMPLE=1
 CSOURCES=\
 CPUComplex.cc\
 hdf5IO.cc
@@ -29,7 +29,7 @@ $(EXECUTABLE): $(COBJECTS) $(GOBJECTS) $(LINKJECT)
 %.obj : %.cc
 	$(CC)   $(CCFLAGS) $^ -o $@
 %.o : %.cu
-	$(NVCC) $(NCFLAGS) $(def) $^ -o $@
+	$(NVCC) $(def) $(NCFLAGS)  $^ -o $@
 $(LINKJECT) : $(GOBJECTS)
 	$(NVCC) $(LINKLAG) $^ -o $@
 remove :
