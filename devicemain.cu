@@ -15,6 +15,7 @@ void printdevice();
 
 void anyvalue(struct multipoledata data, unsigned setgridx, unsigned setblockx, unsigned num_src, unsigned devstep){
   unsigned gridx, blockx, gridsize;
+  unsigned ints=0, sharedmem;
   float timems = 0.0;
   unsigned *cnt, *blockcnt;
   unsigned int active,i;
@@ -54,14 +55,25 @@ void anyvalue(struct multipoledata data, unsigned setgridx, unsigned setblockx, 
   active = 1u;
 
   while (active){
+#if defined(__QUICKW)
+    sharedmem = LENGTH*LENGTH*sizeof(double)*2;
+    history<<<dimBlock, dimGrid, sharedmem>>>(U238, DeviceMem, num_src, devstep);
+#else
     history<<<dimBlock, dimGrid>>>(U238, DeviceMem, num_src, devstep);
+#endif
     gpuErrchk(cudaMemcpy(HostMem.thread_active, DeviceMem.thread_active, gridsize*sizeof(unsigned int), cudaMemcpyDeviceToHost));
     active = 0u;
     for (i = 0; i < blockx; i++){
       active += HostMem.thread_active[i];
     }
   }
+
+#if defined(__QUICKW)
+  sharedmem = LENGTH*LENGTH*sizeof(double)*2;
+  remaining<<<dimBlock, dimGrid, sharedmem>>>(U238, devicearray, DeviceMem);
+#else
   remaining<<<dimBlock, dimGrid>>>(U238, devicearray, DeviceMem);
+#endif
 
   gpuErrchk(cudaEventRecord(stop, 0));
   gpuErrchk(cudaEventSynchronize(stop));
@@ -71,7 +83,7 @@ void anyvalue(struct multipoledata data, unsigned setgridx, unsigned setblockx, 
  
   gpuErrchk(cudaMemcpy(hostarray, devicearray, 4*gridsize*sizeof(double), cudaMemcpyDeviceToHost));
 
-  unsigned ints=0, sharedmem;
+  
   ints = blockx;
   sharedmem = ints*sizeof(int);
   statistics<<<dimBlock, dimGrid, sharedmem>>>(DeviceMem.tally, blockcnt);
