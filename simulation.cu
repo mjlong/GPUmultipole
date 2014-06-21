@@ -18,14 +18,22 @@ __global__ void history(multipole U238, MemStruct Info, unsigned num_src, unsign
   //TODO:this is one scheme to match threads to 1D array, 
   //try others when real simulation structure becomes clear
   int id = blockDim.x * blockIdx.x + threadIdx.x;
-  unsigned istep;
+  unsigned istepu;
   bool live=true;
   double localenergy;
   double rnd;
   //double norm;
   double sigT, sigA, sigF;
+#if defined(__QUICKW)
   extern __shared__ CComplex shared[];
-
+  istep = id;
+  while (istep < LENGTH*LENGTH){
+	  fill_w_tabulated(shared, istep);
+	  istep += blockDim.x*gridDim.x;
+  }
+  __syncthreads();
+  U238.table = shared;
+#endif
   /* Each thread gets same seed, a different sequence number, no offset */
   curand_init(1234, id, 0, &(Info.nInfo[id].rndState));
 

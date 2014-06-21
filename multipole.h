@@ -55,8 +55,9 @@ public:
   double *fit;
   //Contains the fitting function.  (reaction type, coeff index, window index)
   //=========================================================================
-
-
+#if defined(__QUICKW)
+  CComplex* table;
+#endif
 
  public:
   multipole(struct multipoledata data);
