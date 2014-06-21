@@ -1,3 +1,6 @@
+MITW = 0
+QUCW = 1
+WHPW = 2
 CC=h5cc #g++ #h5pcc #g++
 NVCC = nvcc
 NCFLAGS=-g -G -dc -arch=sm_20
@@ -6,7 +9,16 @@ CCFLAGS=-c -g -I/home/jlmiao/opt/hdf5/include
 LINKLAG=-arch=sm_20 -dlink
 #LDFLAGS=-g -L/opt/mpich/3.0.4-intel/lib/ -L/opt/hdf5/1.8.11-intel/lib/ -L/usr/local/cuda-5.5/lib64 -lcudart -lhdf5 -lmpich
 LDFLAGS=-g -L/home/jlmiao/opt/hdf5/lib/ -L/usr/local/cuda-5.5/lib64 -lcudart -lhdf5 
-def = -D __QUICKW=1 -D __SAMPLE=1
+#
+ifeq($(WFUC),MITW)
+  def = -D __MITW
+else ifeq($(WFUC),QUIW)
+       def = -D __QUICKW
+     else
+       def = -D __SAMPLE
+     endif
+endif
+#
 CSOURCES=\
 CPUComplex.cc\
 hdf5IO.cc
