@@ -12,7 +12,7 @@ using namespace std;
 // Use C-like complex syntax, since the C syntax is more restrictive
 #  define cpolar(r,t) polar(r,t)
 
-#  define C(a,b) CComplex(a,b)
+#  define C(a,b) CComplex<double>(a,b)
 
 #  define FADDEEVA(name) Faddeeva::name
 #  define FADDEEVA_RE(name) Faddeeva::name
@@ -37,7 +37,7 @@ static  double my_copysign(double x, double y) { return y<0 ? -x : x; }
 // Auxiliary routines to compute other special functions based on w(z)
 
 // compute erfcx(z) = exp(z^2) erfz(z)
-__device__  CComplex FADDEEVA(erfcx)(CComplex z, double relerr)
+__device__  CComplex<double> FADDEEVA(erfcx)(CComplex<double> z, double relerr)
 {
   return FADDEEVA(w)(C(-imag(z), real(z)), relerr);
 }
@@ -75,7 +75,7 @@ __device__  double FADDEEVA_RE(erf)(double x)
 }
 
 // compute the error function erf(z)
-__device__  CComplex FADDEEVA(erf)(CComplex z, double relerr)
+__device__  CComplex<double> FADDEEVA(erf)(CComplex<double> z, double relerr)
 {
   double x = real(z), y = imag(z);
 
@@ -131,7 +131,7 @@ __device__  CComplex FADDEEVA(erf)(CComplex z, double relerr)
   //   erf(z) = 2/sqrt(pi) * z * (1 - z^2/3 + z^4/10 - z^6/42 + z^8/216 + ...)
  taylor:
   {
-    CComplex mz2 = C(mRe_z2, mIm_z2); // -z^2
+    CComplex<double> mz2 = C(mRe_z2, mIm_z2); // -z^2
     return z * (1.1283791670955125739
                 + mz2 * (0.37612638903183752464
                          + mz2 * (0.11283791670955125739
@@ -167,9 +167,9 @@ __device__  CComplex FADDEEVA(erf)(CComplex z, double relerr)
 }
 
 // erfi(z) = -i erf(iz)
-__device__  CComplex FADDEEVA(erfi)(CComplex z, double relerr)
+__device__  CComplex<double> FADDEEVA(erfi)(CComplex<double> z, double relerr)
 {
-  CComplex e = FADDEEVA(erf)(C(-imag(z),real(z)), relerr);
+  CComplex<double> e = FADDEEVA(erf)(C(-imag(z),real(z)), relerr);
   return C(imag(e), -real(e));
 }
 
@@ -196,7 +196,7 @@ __device__  double FADDEEVA_RE(erfc)(double x)
 }
 
 // erfc(z) = 1 - erf(z)
-__device__  CComplex FADDEEVA(erfc)(CComplex z, double relerr)
+__device__  CComplex<double> FADDEEVA(erfc)(CComplex<double> z, double relerr)
 {
   double x = real(z), y = imag(z);
 
@@ -237,7 +237,7 @@ __device__  double FADDEEVA_RE(Dawson)(double x)
 }
 
 // compute Dawson(z) = sqrt(pi)/2  *  exp(-z^2) * erfi(z)
-__device__  CComplex FADDEEVA(Dawson)(CComplex z, double relerr)
+__device__  CComplex<double> FADDEEVA(Dawson)(CComplex<double> z, double relerr)
 {
   const double spi2 = 0.8862269254527580136490837416705725913990; // sqrt(pi)/2
   double x = real(z), y = imag(z);
@@ -262,7 +262,7 @@ __device__  CComplex FADDEEVA(Dawson)(CComplex z, double relerr)
 
   double mRe_z2 = (y - x) * (x + y); // Re(-z^2), being careful of overflow
   double mIm_z2 = -2*x*y; // Im(-z^2)
-  CComplex mz2 = C(mRe_z2, mIm_z2); // -z^2
+  CComplex<double> mz2 = C(mRe_z2, mIm_z2); // -z^2
 
   /* Handle positive and negative x via different formulas,
      using the mirror symmetries of w, to avoid overflow/underflow
@@ -274,7 +274,7 @@ __device__  CComplex FADDEEVA(Dawson)(CComplex z, double relerr)
       else if (fabs(mIm_z2) < 5e-3)
         goto taylor_realaxis;
     }
-    CComplex res = exp(mz2) - FADDEEVA(w)(z, relerr);
+    CComplex<double> res = exp(mz2) - FADDEEVA(w)(z, relerr);
     return spi2 * C(-imag(res), real(res));
   }
   else { // y < 0
@@ -286,7 +286,7 @@ __device__  CComplex FADDEEVA(Dawson)(CComplex z, double relerr)
     }
     else if (isnan(y))
       return C(x == 0 ? 0 : NaN, NaN);
-    CComplex res = FADDEEVA(w)(-z, relerr) - exp(mz2);
+    CComplex<double> res = FADDEEVA(w)(-z, relerr) - exp(mz2);
     return spi2 * C(-imag(res), real(res));
   }
 
@@ -444,7 +444,7 @@ static __device__  __constant__ double expa2n2[] = {
 
 /////////////////////////////////////////////////////////////////////////
 
-__device__  CComplex FADDEEVA(w)(CComplex z, double relerr)
+__device__  CComplex<double> FADDEEVA(w)(CComplex<double> z, double relerr)
 {
   if (real(z) == 0.0)
     return C(FADDEEVA_RE(erfcx)(imag(z)), 
@@ -470,7 +470,7 @@ __device__  CComplex FADDEEVA(w)(CComplex z, double relerr)
   const double x = fabs(real(z));
   const double y = imag(z), ya = fabs(y);
 
-  CComplex ret = 0.; // return value
+  CComplex<double> ret = 0.; // return value
 
   double sum1 = 0, sum2 = 0, sum3 = 0, sum4 = 0, sum5 = 0;
 
@@ -1685,7 +1685,7 @@ int main(void) {
   {
     printf("############# w(z) tests #############\n");
 #define NTST 57 // define instead of const for C compatibility
-    CComplex z[NTST] = {
+    CComplex<double> z[NTST] = {
       C(624.2,-0.26123),
       C(-0.4,3.),
       C(0.6,2.),
@@ -1744,7 +1744,7 @@ int main(void) {
       C(NaN,Inf),
       C(Inf,NaN)
     };
-    CComplex w[NTST] = { /* w(z), computed with WolframAlpha
+    CComplex<double> w[NTST] = { /* w(z), computed with WolframAlpha
                                    ... note that WolframAlpha is problematic
                                    some of the above inputs, so I had to
                                    use the continued-fraction expansion
@@ -1856,7 +1856,7 @@ int main(void) {
     };
     double errmax = 0;
     for (int i = 0; i < NTST; ++i) {
-      CComplex fw = FADDEEVA(w)(z[i],0.);
+      CComplex<double> fw = FADDEEVA(w)(z[i],0.);
       double re_err = relerr(real(w[i]), real(fw));
       double im_err = relerr(imag(w[i]), imag(fw));
       printf("w(%g%+gi) = %g%+gi (vs. %g%+gi), re/im rel. err. = %0.2g/%0.2g)\n",
@@ -1875,7 +1875,7 @@ int main(void) {
   {
 #undef NTST
 #define NTST 41 // define instead of const for C compatibility
-    CComplex z[NTST] = {
+    CComplex<double> z[NTST] = {
       C(1,2),
       C(-1,2),
       C(1,-2),
@@ -1918,7 +1918,7 @@ int main(void) {
       C(7e-2,0.9e-2),
       C(7e-2,1.1e-2)
     };
-    CComplex w[NTST] = { // erf(z[i]), evaluated with Maple
+    CComplex<double> w[NTST] = { // erf(z[i]), evaluated with Maple
       C(-0.5366435657785650339917955593141927494421,
         -5.049143703447034669543036958614140565553),
       C(0.5366435657785650339917955593141927494421,
@@ -1992,7 +1992,7 @@ int main(void) {
     printf("############# " #f "(z) tests #############\n");            \
     double errmax = 0;                                                  \
     for (int i = 0; i < NTST; ++i) {                                    \
-      CComplex fw = FADDEEVA(f)(z[i],0.);                  \
+      CComplex<double> fw = FADDEEVA(f)(z[i],0.);                  \
       double re_err = relerr(real(w[i]), real(fw));                   \
       double im_err = relerr(imag(w[i]), imag(fw));                   \
       printf(#f "(%g%+gi) = %g%+gi (vs. %g%+gi), re/im rel. err. = %0.2g/%0.2g)\n", \
@@ -2040,8 +2040,8 @@ int main(void) {
     // be sufficient to make sure I didn't screw up the signs or something
 #undef NTST
 #define NTST 1 // define instead of const for C compatibility
-    CComplex z[NTST] = { C(1.234,0.5678) };
-    CComplex w[NTST] = { // erfi(z[i]), computed with Maple
+    CComplex<double> z[NTST] = { C(1.234,0.5678) };
+    CComplex<double> w[NTST] = { // erfi(z[i]), computed with Maple
       C(1.081032284405373149432716643834106923212,
         1.926775520840916645838949402886591180834)
     };
@@ -2052,8 +2052,8 @@ int main(void) {
     // be sufficient to make sure I didn't screw up the signs or something
 #undef NTST
 #define NTST 1 // define instead of const for C compatibility
-    CComplex z[NTST] = { C(1.234,0.5678) };
-    CComplex w[NTST] = { // erfcx(z[i]), computed with Maple
+    CComplex<double> z[NTST] = { C(1.234,0.5678) };
+    CComplex<double> w[NTST] = { // erfcx(z[i]), computed with Maple
       C(0.3382187479799972294747793561190487832579,
         -0.1116077470811648467464927471872945833154)
     };
@@ -2062,7 +2062,7 @@ int main(void) {
   {
 #undef NTST
 #define NTST 30 // define instead of const for C compatibility
-    CComplex z[NTST] = {
+    CComplex<double> z[NTST] = {
       C(1,2),
       C(-1,2),
       C(1,-2),
@@ -2094,7 +2094,7 @@ int main(void) {
       C(Inf,NaN),
       C(88,0)
     };
-    CComplex w[NTST] = { // erfc(z[i]), evaluated with Maple
+    CComplex<double> w[NTST] = { // erfc(z[i]), evaluated with Maple
       C(1.536643565778565033991795559314192749442,
         5.049143703447034669543036958614140565553),
       C(0.4633564342214349660082044406858072505579,
@@ -2145,7 +2145,7 @@ int main(void) {
   {
 #undef NTST
 #define NTST 48 // define instead of const for C compatibility
-    CComplex z[NTST] = {
+    CComplex<double> z[NTST] = {
       C(2,1),
       C(-2,1),
       C(2,-1),
@@ -2195,7 +2195,7 @@ int main(void) {
       C(1e13, 2.4e-16),
       C(1e300, 2.4e-303)
     };
-    CComplex w[NTST] = { // dawson(z[i]), evaluated with Maple
+    CComplex<double> w[NTST] = { // dawson(z[i]), evaluated with Maple
       C(0.1635394094345355614904345232875688576839,
         -0.1531245755371229803585918112683241066853),
       C(-0.1635394094345355614904345232875688576839,
