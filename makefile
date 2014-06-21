@@ -12,24 +12,37 @@ LDFLAGS=-g -L/home/jlmiao/opt/hdf5/lib/ -L/usr/local/cuda-5.5/lib64 -lcudart -lh
 #
 ifeq($(WFUC),MITW)
   def = -D __MITW
+  GSOURCES=\
+  CComplex.cu\
+  Faddeeva.cu\
+  simulation.cu\
+  multipole.cu\
+  devicemain.cu\
+  main.cu
 else ifeq($(WFUC),QUIW)
        def = -D __QUICKW
+       GSOURCES=\
+       CComplex.cu\
+       Faddeeva.cu\
+       QuickW.cu\
+       simulation.cu\
+       multipole.cu\
+       devicemain.cu\
+       main.cu
      else
        def = -D __SAMPLE
-     endif
+       GSOURCES=\
+       CComplex.cu\
+       simulation.cu\
+       multipole.cu\
+       devicemain.cu\
+       main.cu
+    endif
 endif
 #
 CSOURCES=\
 CPUComplex.cc\
 hdf5IO.cc
-GSOURCES=\
-CComplex.cu\
-Faddeeva.cu\
-QuickW.cu\
-simulation.cu\
-multipole.cu\
-devicemain.cu\
-main.cu
 COBJECTS=$(CSOURCES:.cc=.obj)
 GOBJECTS=$(GSOURCES:.cu=.o)
 LINKJECT=dlink.o
