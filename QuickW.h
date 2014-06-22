@@ -7,6 +7,7 @@
 #define CMPTYPE double 
 #endif
 
+#include "global.h"
 #include "CComplex.h"
 #include "Faddeeva.h"
 
@@ -35,11 +36,10 @@
 
 #define LENGTH 62
 #define WIDTH  0.1
-#define ONEI   CComplex(0.0,1.0)
 
 //__device__ void initialize_w_tabulated(CComplex*);
 __device__ void fill_w_tabulated(CComplex<CMPTYPE>*, unsigned);
-__device__ CComplex w_function(CComplex<CMPTYPE>, CComplex<CMPTYPE>*);
+__device__ CComplex<CMPTYPE> w_function(CComplex<CMPTYPE>, CComplex<CMPTYPE>*);
 
 
 
