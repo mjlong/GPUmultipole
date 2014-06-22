@@ -13,8 +13,18 @@ __global__ void initialize(MemStruct pInfo, CMPTYPE energy){
   pInfo.tally[id].cnt = 0;
 
 }
+#if defined(__QUICKW)
+__global__ void initialize_table(CComplex<CMPTYPE> *table){
+	int id = blockDim.x*blockIdx.x + threadIdx.x;
+	fill_w_tabulated(table, id);
+}
+#endif
 
+#if defined(__QUICKW)
+__global__ void history(multipole U238, MemStruct Info, CComplex<CMPTYPE> *wtable, unsigned num_src, unsigned devstep){
+#else
 __global__ void history(multipole U238, MemStruct Info, unsigned num_src, unsigned devstep){
+#endif
   //TODO:this is one scheme to match threads to 1D array, 
   //try others when real simulation structure becomes clear
   int id = blockDim.x * blockIdx.x + threadIdx.x;
@@ -28,7 +38,7 @@ __global__ void history(multipole U238, MemStruct Info, unsigned num_src, unsign
   extern __shared__ CComplex<float> sharedtable[];
   live = id;
   while (live < LENGTH*LENGTH){
-	  fill_w_tabulated(sharedtable, live);
+	  sharedtable[live] = wtable[live];
 	  live += blockDim.x*gridDim.x;
   }
   __syncthreads();
@@ -75,7 +85,11 @@ __global__ void history(multipole U238, MemStruct Info, unsigned num_src, unsign
 
 }
 
+#if defined (__QUICKW)
+__global__ void remaining(multipole U238, CComplex<CMPTYPE>* wtable, CMPTYPE *devicearray, MemStruct Info){
+#else
 __global__ void remaining(multipole U238, CMPTYPE *devicearray, MemStruct Info){
+#endif
   //TODO:this is one scheme to match threads to 1D array, 
   //try others when real simulation structure becomes clear
   int id = blockDim.x * blockIdx.x + threadIdx.x;
@@ -88,7 +102,7 @@ __global__ void remaining(multipole U238, CMPTYPE *devicearray, MemStruct Info){
   extern __shared__ CComplex<float> sharedtable[];
   live = id;
   while (live < LENGTH*LENGTH){
-	  fill_w_tabulated(sharedtable, live);
+	  sharedtable[live] = wtable[live];
 	  live += blockDim.x*gridDim.x;
   }
   __syncthreads();

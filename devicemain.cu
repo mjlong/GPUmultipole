@@ -43,6 +43,13 @@ void anyvalue(struct multipoledata data, unsigned setgridx, unsigned setblockx, 
   hostarray = (CMPTYPE*)malloc(4*gridsize*sizeof(CMPTYPE));
   cnt      = (unsigned*)malloc(gridx*sizeof(unsigned));
 
+#if defined(__QUICKW)
+  CComplex<CMPTYPE> *wtable;
+  gpuErrchk(cudaMalloc((void**)&wtable, LENGTH*LENGHT * 2 * sizeof(CMPTYPE)));
+  initialize_table<<<LENGTH,LENGTH>>>(wtable);
+#endif 
+
+
   multipole U238(data); //host multipoledata to device
   initialize<<<dimBlock, dimGrid>>>(DeviceMem, 2000.0);//1.95093e4);
   //  cudaDeviceSynchronize();
@@ -59,7 +66,7 @@ void anyvalue(struct multipoledata data, unsigned setgridx, unsigned setblockx, 
 
   while (active){
 #if defined(__QUICKW)
-    history<<<dimBlock, dimGrid, sharedmem>>>(U238, DeviceMem, num_src, devstep);
+    history<<<dimBlock, dimGrid, sharedmem>>>(U238, DeviceMem, wtable, num_src, devstep);
 #else
     history<<<dimBlock, dimGrid>>>(U238, DeviceMem, num_src, devstep);
 #endif
@@ -72,7 +79,7 @@ void anyvalue(struct multipoledata data, unsigned setgridx, unsigned setblockx, 
 
 #if defined(__QUICKW)
   sharedmem = LENGTH*LENGTH*sizeof(float)*2;
-  remaining<<<dimBlock, dimGrid, sharedmem>>>(U238, devicearray, DeviceMem);
+  remaining<<<dimBlock, dimGrid, sharedmem>>>(U238, wtable, devicearray, DeviceMem);
 #else
   remaining<<<dimBlock, dimGrid>>>(U238, devicearray, DeviceMem);
 #endif
@@ -133,6 +140,9 @@ void anyvalue(struct multipoledata data, unsigned setgridx, unsigned setblockx, 
   gpuErrchk(cudaFree(DeviceMem.nInfo));
   gpuErrchk(cudaFree(DeviceMem.thread_active));
   gpuErrchk(cudaFree(DeviceMem.tally));
+#if defined(__QUICKW)
+  gpuErrchk(cudaFree(wtable));
+#endif
   U238.release_pointer();
 
   free(hostarray);
