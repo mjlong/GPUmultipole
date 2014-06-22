@@ -100,7 +100,7 @@ __device__  void multipole::xs_eval_fast(CMPTYPE E, CMPTYPE sqrtKT,
   //polynomial fitting
 
   for (iC=0;iC<=fitorder;iC++){
-    power = pow(E,iC*0.5-1.0);
+    power = (CMPTYPE)pow((double)E,(double)iC*0.5-1.0);
     sigT += fit[findex(iW,iC,FIT_T,fitorder+1,2+fissionable)]*power;
     sigA += fit[findex(iW,iC,FIT_A,fitorder+1,2+fissionable)]*power;
     if(MP_FISS == fissionable)
@@ -114,7 +114,7 @@ __device__  void multipole::xs_eval_fast(CMPTYPE E, CMPTYPE sqrtKT,
     //sigtfactor = sigT_factor[l_value[iP-1]-1];
     //w_val = (sqrtE - mpdata[pindex(iP-1,MP_EA)])*DOPP*DOPP_ECOEF;
 #if defined(__QUICKW)
-    w_val = (CMPTYPE)w_function((sqrtE - mpdata[pindex(iP-1,MP_EA)])*DOPP,table)*DOPP_ECOEF;
+    w_val = w_function((sqrtE - mpdata[pindex(iP-1,MP_EA)])*DOPP,table)*DOPP_ECOEF;
 #endif
 #if defined(__MITW)
     w_val = Faddeeva::w((sqrtE - mpdata[pindex(iP-1,MP_EA)])*DOPP,0.0)*DOPP_ECOEF;
@@ -165,7 +165,7 @@ __device__  void multipole::xs_eval_fast(CMPTYPE E, CMPTYPE sqrtKT, CComplex<CMP
   //polynomial fitting
 
   for (iC=0;iC<=fitorder;iC++){
-    power = pow(E,iC*0.5-1.0);
+    power = (CMPTYPE)pow((double)E,(double)iC*0.5-1.0);
     sigT += fit[findex(iW,iC,FIT_T,fitorder+1,2+fissionable)]*power;
     sigA += fit[findex(iW,iC,FIT_A,fitorder+1,2+fissionable)]*power;
     if(MP_FISS == fissionable)
@@ -224,7 +224,7 @@ __device__  void multipole::xs_eval_fast(CMPTYPE E,
   //polynomial fitting
 
   for (iC=0;iC<=fitorder;iC++){
-    power = pow(E,iC*0.5-1.0);
+    power = (CMPTYPE)pow((double)E,(double)iC*0.5-1.0);
     sigT += fit[findex(iW,iC,FIT_T,fitorder+1,2+fissionable)]*power;
     sigA += fit[findex(iW,iC,FIT_A,fitorder+1,2+fissionable)]*power;
     if(MP_FISS == fissionable)
@@ -285,7 +285,7 @@ __device__  void multipole::xs_eval_fast(CMPTYPE E, CMPTYPE sqrtKT, CMPTYPE rnd,
   //polynomial fitting
 
   for (iC=0;iC<=fitorder;iC++){
-    power = pow(E,iC*0.5-1.0);
+    power = (CMPTYPE)pow((double)E,(double)iC*0.5-1.0);
     sigT += fit[findex(iW,iC,FIT_T,fitorder+1,2+fissionable)]*power;
     sigA += fit[findex(iW,iC,FIT_A,fitorder+1,2+fissionable)]*power;
     if(MP_FISS == fissionable)
