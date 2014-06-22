@@ -3,7 +3,7 @@
 
 #include "CPUComplex.h"
 
-#if defined(__FLOAT)
+#if defined(__CFLOAT)
 #define CMPTYPE float
 #else
 #define CMPTYPE double
