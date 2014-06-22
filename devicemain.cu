@@ -53,10 +53,12 @@ void anyvalue(struct multipoledata data, unsigned setgridx, unsigned setblockx, 
   gpuErrchk(cudaEventRecord(start, 0));
 
   active = 1u;
+#if defined(__QUICKW)
+    sharedmem = LENGTH*LENGTH*sizeof(float)*2;
+#endif
 
   while (active){
 #if defined(__QUICKW)
-    sharedmem = LENGTH*LENGTH*sizeof(double)*2;
     history<<<dimBlock, dimGrid, sharedmem>>>(U238, DeviceMem, num_src, devstep);
 #else
     history<<<dimBlock, dimGrid>>>(U238, DeviceMem, num_src, devstep);
@@ -69,7 +71,7 @@ void anyvalue(struct multipoledata data, unsigned setgridx, unsigned setblockx, 
   }
 
 #if defined(__QUICKW)
-  sharedmem = LENGTH*LENGTH*sizeof(double)*2;
+  sharedmem = LENGTH*LENGTH*sizeof(float)*2;
   remaining<<<dimBlock, dimGrid, sharedmem>>>(U238, devicearray, DeviceMem);
 #else
   remaining<<<dimBlock, dimGrid>>>(U238, devicearray, DeviceMem);

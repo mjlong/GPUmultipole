@@ -25,7 +25,7 @@ __global__ void history(multipole U238, MemStruct Info, unsigned num_src, unsign
   //double norm;
   double sigT, sigA, sigF;
 #if defined(__QUICKW)
-  extern __shared__ CComplex sharedtable[];
+  extern __shared__ CComplex<float> sharedtable[];
   live = id;
   while (live < LENGTH*LENGTH){
 	  fill_w_tabulated(sharedtable, live);
@@ -85,7 +85,7 @@ __global__ void remaining(multipole U238, double *devicearray, MemStruct Info){
   //double norm;
   double sigT, sigA, sigF;
 #if defined(__QUICKW)
-  extern __shared__ CComplex sharedtable[];
+  extern __shared__ CComplex<float> sharedtable[];
   live = id;
   while (live < LENGTH*LENGTH){
 	  fill_w_tabulated(sharedtable, live);
