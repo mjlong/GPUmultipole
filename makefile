@@ -20,6 +20,7 @@ ifeq ($(WFUN),0)
   main.cu
 else ifeq ($(WFUN),1)
        W_IDEN = -D __QUICKW
+       FLOAT = 1
        GSOURCES=\
        Faddeeva.cu\
        QuickW.cu\
@@ -34,6 +35,10 @@ else ifeq ($(WFUN),1)
        multipole.cu\
        devicemain.cu\
        main.cu
+endif   
+#
+ifeq ($(FLOAT),1)
+  CMPTYPE = -D __CFLOAT
 endif
 #
 CSOURCES=\
@@ -50,7 +55,7 @@ $(EXECUTABLE): $(COBJECTS) $(GOBJECTS) $(LINKJECT)
 %.obj : %.cc
 	$(CC)   $(CCFLAGS) $^ -o $@
 %.o : %.cu
-	$(NVCC) $(W_IDEN) $(NCFLAGS)  $^ -o $@
+	$(NVCC) $(W_IDEN) $(CMPTYPE) $(NCFLAGS)  $^ -o $@
 $(LINKJECT) : $(GOBJECTS)
 	$(NVCC) $(LINKLAG) $^ -o $@
 remove :
