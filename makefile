@@ -9,17 +9,17 @@ CCFLAGS=-c -g -I/home/jlmiao/opt/hdf5/include
 LINKLAG=-arch=sm_20 -dlink
 #LDFLAGS=-g -L/opt/mpich/3.0.4-intel/lib/ -L/opt/hdf5/1.8.11-intel/lib/ -L/usr/local/cuda-5.5/lib64 -lcudart -lhdf5 -lmpich
 LDFLAGS=-g -L/home/jlmiao/opt/hdf5/lib/ -L/usr/local/cuda-5.5/lib64 -lcudart -lhdf5 
-#
-ifeq ($(WFUC),0)
-  def = -D __MITW
+# Faddeeva function implementation 
+ifeq ($(WFUN),0)
+  W_IDEN = -D __MITW
   GSOURCES=\
   Faddeeva.cu\
   simulation.cu\
   multipole.cu\
   devicemain.cu\
   main.cu
-else ifeq ($(WFUC),1)
-       def = -D __QUICKW
+else ifeq ($(WFUN),1)
+       W_IDEN = -D __QUICKW
        GSOURCES=\
        Faddeeva.cu\
        QuickW.cu\
@@ -28,7 +28,7 @@ else ifeq ($(WFUC),1)
        devicemain.cu\
        main.cu
      else
-       def = -D __SAMPLE
+       W_IDEN = -D __SAMPLE
        GSOURCES=\
        simulation.cu\
        multipole.cu\
@@ -51,7 +51,7 @@ $(EXECUTABLE): $(COBJECTS) $(GOBJECTS) $(LINKJECT)
 %.obj : %.cc
 	$(CC)   $(CCFLAGS) $^ -o $@
 %.o : %.cu
-	$(NVCC) $(def) $(NCFLAGS)  $^ -o $@
+	$(NVCC) $(W_IDEN) $(NCFLAGS)  $^ -o $@
 $(LINKJECT) : $(GOBJECTS)
 	$(NVCC) $(LINKLAG) $^ -o $@
 remove :
