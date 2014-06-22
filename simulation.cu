@@ -1,10 +1,10 @@
 #include "simulation.h" 
 
-__device__ void launch(NeutronInfoStruct* pInfo,int id, double energy){
+__device__ void launch(NeutronInfoStruct* pInfo,int id, CMPTYPE energy){
   pInfo[id].energy = energy;
 }
 
-__global__ void initialize(MemStruct pInfo, double energy){
+__global__ void initialize(MemStruct pInfo, CMPTYPE energy){
   //int id = ((blockDim.x*blockDim.y*blockDim.z)*(blockIdx.y*gridDim.x+blockIdx.x)+(blockDim.x*blockDim.y)*threadIdx.z+blockDim.x*threadIdx.y+threadIdx.x);//THREADID;
   int id = blockDim.x * blockIdx.x + threadIdx.x;
   launch(pInfo.nInfo, id, energy);
@@ -20,10 +20,10 @@ __global__ void history(multipole U238, MemStruct Info, unsigned num_src, unsign
   int id = blockDim.x * blockIdx.x + threadIdx.x;
   unsigned istep;
   unsigned live;
-  double localenergy;
-  double rnd;
-  //double norm;
-  double sigT, sigA, sigF;
+  CMPTYPE localenergy;
+  CMPTYPE rnd;
+  //CMPTYPE norm;
+  CMPTYPE sigT, sigA, sigF;
 #if defined(__QUICKW)
   extern __shared__ CComplex<float> sharedtable[];
   live = id;
@@ -75,15 +75,15 @@ __global__ void history(multipole U238, MemStruct Info, unsigned num_src, unsign
 
 }
 
-__global__ void remaining(multipole U238, double *devicearray, MemStruct Info){
+__global__ void remaining(multipole U238, CMPTYPE *devicearray, MemStruct Info){
   //TODO:this is one scheme to match threads to 1D array, 
   //try others when real simulation structure becomes clear
   int id = blockDim.x * blockIdx.x + threadIdx.x;
   unsigned live = true;
-  double localenergy;
-  double rnd;
-  //double norm;
-  double sigT, sigA, sigF;
+  CMPTYPE localenergy;
+  CMPTYPE rnd;
+  //CMPTYPE norm;
+  CMPTYPE sigT, sigA, sigF;
 #if defined(__QUICKW)
   extern __shared__ CComplex<float> sharedtable[];
   live = id;

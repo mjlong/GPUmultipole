@@ -8,24 +8,24 @@
 //TODO: it has not been determined how to save neutron and simulation state
 
 typedef struct {
-  double energy;
+  CMPTYPE energy;
 }basicneutronInfo;
 
 typedef struct {
   unsigned cnt;
-  //double   *unknown;
+  //CMPTYPE   *unknown;
 }TallyStruct;
 
 typedef struct {
-  double energy;
+  CMPTYPE energy;
   curandState rndState;
 }NeutronInfoStruct;
 
 typedef struct {
-  double energy;
-  double sigT;
-  double sigA;
-  double sigF;
+  CMPTYPE energy;
+  CMPTYPE sigT;
+  CMPTYPE sigA;
+  CMPTYPE sigF;
 }XsStruct;
 
 typedef struct {
@@ -38,9 +38,9 @@ typedef struct {
 
 
 __global__ void history(multipole, MemStruct, unsigned, unsigned );
-__global__ void remaining(multipole, double *, MemStruct );
-__global__ void initialize(MemStruct, double);
-__device__ void launch(NeutronInfoStruct*, int, double);
+__global__ void remaining(multipole, CMPTYPE *, MemStruct );
+__global__ void initialize(MemStruct, CMPTYPE);
+__device__ void launch(NeutronInfoStruct*, int, CMPTYPE);
 __global__ void statistics(TallyStruct*, unsigned*);
 
 #endif
