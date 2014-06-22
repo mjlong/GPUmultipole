@@ -19,7 +19,7 @@ void anyvalue(struct multipoledata data, unsigned setgridx, unsigned setblockx, 
   float timems = 0.0;
   unsigned *cnt, *blockcnt;
   unsigned int active,i;
-  double *hostarray, *devicearray;
+  CMPTYPE *hostarray, *devicearray;
   MemStruct HostMem, DeviceMem;
   cudaEvent_t start, stop;
   gpuErrchk(cudaEventCreate(&start));
@@ -30,7 +30,7 @@ void anyvalue(struct multipoledata data, unsigned setgridx, unsigned setblockx, 
   dim3 dimBlock(gridx, 1);
   dim3 dimGrid(blockx, 1, 1);
   gridsize = gridx*blockx;
-  gpuErrchk(cudaMalloc((void**)&devicearray, 4*gridsize*sizeof(double)));
+  gpuErrchk(cudaMalloc((void**)&devicearray, 4*gridsize*sizeof(CMPTYPE)));
   gpuErrchk(cudaMalloc((void**)&(DeviceMem.nInfo), gridsize*sizeof(NeutronInfoStruct)));
   gpuErrchk(cudaMalloc((void**)&(DeviceMem.thread_active), gridsize*sizeof(unsigned int)));
   HostMem.thread_active = (unsigned int *)malloc(gridsize*sizeof(unsigned int));
@@ -40,7 +40,7 @@ void anyvalue(struct multipoledata data, unsigned setgridx, unsigned setblockx, 
   gpuErrchk(cudaMemcpy(DeviceMem.num_terminated_neutrons, HostMem.num_terminated_neutrons, sizeof(unsigned int), cudaMemcpyHostToDevice));
   gpuErrchk(cudaMalloc((void**)&(DeviceMem.tally), gridsize*sizeof(TallyStruct)));
   gpuErrchk(cudaMalloc((void**)&(blockcnt), gridx*sizeof(unsigned int)));
-  hostarray = (double*)malloc(4*gridsize*sizeof(double));
+  hostarray = (CMPTYPE*)malloc(4*gridsize*sizeof(CMPTYPE));
   cnt      = (unsigned*)malloc(gridx*sizeof(unsigned));
 
   multipole U238(data); //host multipoledata to device
@@ -83,7 +83,7 @@ void anyvalue(struct multipoledata data, unsigned setgridx, unsigned setblockx, 
 
   printf("time elapsed:%3.1f ms\n", timems);
  
-  gpuErrchk(cudaMemcpy(hostarray, devicearray, 4*gridsize*sizeof(double), cudaMemcpyDeviceToHost));
+  gpuErrchk(cudaMemcpy(hostarray, devicearray, 4*gridsize*sizeof(CMPTYPE), cudaMemcpyDeviceToHost));
 
   
   ints = blockx;
