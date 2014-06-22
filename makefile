@@ -37,7 +37,6 @@ else ifeq ($(WFUN),1)
 endif
 #
 CSOURCES=\
-CPUComplex.cc\
 hdf5IO.cc
 COBJECTS=$(CSOURCES:.cc=.obj)
 GOBJECTS=$(GSOURCES:.cu=.o)
