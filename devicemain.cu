@@ -45,7 +45,7 @@ void anyvalue(struct multipoledata data, unsigned setgridx, unsigned setblockx, 
 
 #if defined(__QUICKW)
   CComplex<CMPTYPE> *wtable;
-  gpuErrchk(cudaMalloc((void**)&wtable, LENGTH*LENGHT * 2 * sizeof(CMPTYPE)));
+  gpuErrchk(cudaMalloc((void**)&wtable, LENGTH*LENGTH * 2 * sizeof(CMPTYPE)));
   initialize_table<<<LENGTH,LENGTH>>>(wtable);
 #endif 
 
