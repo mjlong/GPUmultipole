@@ -1,9 +1,9 @@
 #include "QuickW.h"
 
-__device__ double b = 0.275255128608410950901357962647054304017026259671664935783653;
-__device__ double d = 2.724744871391589049098642037352945695982973740328335064216346;
-__device__ double a = 0.512424224754768462984202823134979415014943561548661637413182;
-__device__ double c = 0.051765358792987823963876628425793170829107067780337219430904;
+__device__ CMPTYPE b = 0.275255128608410950901357962647054304017026259671664935783653;
+__device__ CMPTYPE d = 2.724744871391589049098642037352945695982973740328335064216346;
+__device__ CMPTYPE a = 0.512424224754768462984202823134979415014943561548661637413182;
+__device__ CMPTYPE c = 0.051765358792987823963876628425793170829107067780337219430904;
 
 /*===============================================================================  
  INITIALIZE_W_TABULATED calculates the Faddeeva function on a 62 x 62 grid       
@@ -29,13 +29,13 @@ __device__ void initialize_w_tabulated(CComplex* w_tabulated){
 }
 */
 
-__device__ void fill_w_tabulated(CComplex* w_tabulated, unsigned id){
+__device__ void fill_w_tabulated(CComplex<CMPTYPE>* w_tabulated, unsigned id){
   double x,y;
   CComplex z;
   y = WIDTH*(id/LENGTH-1);
   x = WIDTH*(id%LENGTH-1);
   z = CComplex(x,y);
-  w_tabulated[id] = Faddeeva::w(z);
+  w_tabulated[id] = (CComplex<CMPTYPE>)Faddeeva::w(z);
   return;
 }
 
@@ -47,20 +47,20 @@ __device__ void fill_w_tabulated(CComplex* w_tabulated, unsigned id){
  O(10^-3). For |z| > 6, it uses a three-term asymptotic approximation that is                 
  accurate to O(10^-6).                           
 ===============================================================================*/ 
-__device__ CComplex w_function(CComplex z, CComplex* w_tabulated){
-  double  p;           // interpolation factor on real axis                                   
-  double  q;           // interpolation factor on imaginary axis                                  
-  double  pp, qq, pq;  // products of p and q                                         
-  double  a_l;         // coefficient for left point                                   
-  double  a_c;         // coefficient for center point                                         
-  double  a_b;         // coefficient for bottom point    
-  double  a_r;         // coefficient for right point                                             
-  double  a_t;         // coefficient for top point  
+__device__ CComplex w_function(CComplex<CMPTYPE> z, CComplex<CMPTYPE>* w_tabulated){
+  CMPTYPE  p;           // interpolation factor on real axis                                   
+  CMPTYPE  q;           // interpolation factor on imaginary axis                                  
+  CMPTYPE  pp, qq, pq;  // products of p and q                                         
+  CMPTYPE  a_l;         // coefficient for left point                                   
+  CMPTYPE  a_c;         // coefficient for center point                                         
+  CMPTYPE  a_b;         // coefficient for bottom point    
+  CMPTYPE  a_r;         // coefficient for right point                                             
+  CMPTYPE  a_t;         // coefficient for top point  
 
   int l;               //interpolation index for real axis
   int m;               //interpolation index for imaginary axis
   
-  CComplex w;
+  CComplex<CMPTYPE> w;
   
   if(abs(Norm(z)) < 6.0){
     // Use interpolation for |z| < 6. The interpolation scheme uses a bivariate         

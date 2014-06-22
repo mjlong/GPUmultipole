@@ -1,6 +1,12 @@
 #ifndef __QUICKW_H__
 #define __QUICKW_H__
 
+#if defined(__CFLOAT)
+#define CMPTYPE float
+#else
+#define CMPTYPE double 
+#endif
+
 #include "CComplex.h"
 #include "Faddeeva.h"
 
@@ -32,8 +38,8 @@
 #define ONEI   CComplex(0.0,1.0)
 
 //__device__ void initialize_w_tabulated(CComplex*);
-__device__ void fill_w_tabulated(CComplex*, unsigned);
-__device__ CComplex w_function(CComplex, CComplex*);
+__device__ void fill_w_tabulated(CComplex<CMPTYPE>*, unsigned);
+__device__ CComplex w_function(CComplex<CMPTYPE>, CComplex<CMPTYPE>*);
 
 
 
