@@ -31,11 +31,16 @@ __device__ void initialize_w_tabulated(CComplex* w_tabulated){
 
 __device__ void fill_w_tabulated(CComplex<CMPTYPE>* w_tabulated, unsigned id){
   double x,y;
-  CComplex z;
+  CComplex<double> z;
   y = WIDTH*(id/LENGTH-1);
   x = WIDTH*(id%LENGTH-1);
-  z = CComplex(x,y);
-  w_tabulated[id] = (CComplex<CMPTYPE>)Faddeeva::w(z);
+  z = CComplex<double>(x,y);
+#if defined(__CFLOAT)
+  z=Faddeeva::w(z);
+  w_tabulated[id] = CComplex<float>((float)real(z),(float)imag(z));
+#else
+  w_tabulated[id] = Faddeeva::w(z);
+#endif
   return;
 }
 
@@ -47,7 +52,7 @@ __device__ void fill_w_tabulated(CComplex<CMPTYPE>* w_tabulated, unsigned id){
  O(10^-3). For |z| > 6, it uses a three-term asymptotic approximation that is                 
  accurate to O(10^-6).                           
 ===============================================================================*/ 
-__device__ CComplex w_function(CComplex<CMPTYPE> z, CComplex<CMPTYPE>* w_tabulated){
+__device__ CComplex<CMPTYPE> w_function(CComplex<CMPTYPE> z, CComplex<CMPTYPE>* w_tabulated){
   CMPTYPE  p;           // interpolation factor on real axis                                   
   CMPTYPE  q;           // interpolation factor on imaginary axis                                  
   CMPTYPE  pp, qq, pq;  // products of p and q                                         
