@@ -29,7 +29,7 @@ __device__ void initialize_w_tabulated(CComplex* w_tabulated){
 }
 */
 
-__device__ void fill_w_tabulated(CComplex<CMPTYPE>* w_tabulated, unsigned id){
+__device__ void fill_w_tabulated(CComplex<CMPTYPE>* w_tabulated, int id){
   double x,y;
   CComplex<double> z;
   y = WIDTH*(id/LENGTH-1);

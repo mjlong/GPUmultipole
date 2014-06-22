@@ -38,7 +38,7 @@
 #define WIDTH  0.1
 
 //__device__ void initialize_w_tabulated(CComplex*);
-__device__ void fill_w_tabulated(CComplex<CMPTYPE>*, unsigned);
+__device__ void fill_w_tabulated(CComplex<CMPTYPE>*, int);
 __device__ CComplex<CMPTYPE> w_function(CComplex<CMPTYPE>, CComplex<CMPTYPE>*);
 
 
