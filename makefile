@@ -53,7 +53,7 @@ $(EXECUTABLE): $(COBJECTS) $(GOBJECTS) $(LINKJECT)
 	$(CC)  $^ $(LDFLAGS) -o $@
 
 %.obj : %.cc
-	$(CC)   $(CCFLAGS) $^ -o $@
+	$(CC)             $(CMPTYPE) $(CCFLAGS) $^ -o $@
 %.o : %.cu
 	$(NVCC) $(W_IDEN) $(CMPTYPE) $(NCFLAGS)  $^ -o $@
 $(LINKJECT) : $(GOBJECTS)
