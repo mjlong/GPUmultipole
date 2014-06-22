@@ -6,8 +6,14 @@
 #include "CPUComplex.h"
 #include "multipole_data.h"
 
+#if defined(__CFLOAT)
+#define CMPTYPE float
+#else
+#define CMPTYPE double 
+#endif
+
 typedef struct{
-  double complex[2];
+  CMPTYPE complex[2];
 }tuple;
 
 void h5read(struct multipoledata & pole, char filename[]); 

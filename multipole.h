@@ -18,6 +18,11 @@
 #define SPACING  1
 #define SQRTAWR  2
 
+#if defined(__CFLOAT)
+#define CMPTYPE float
+#else
+#define CMPTYPE double 
+#endif
 /*
   Mode, set to 0 for linear, 1 for momentum, 2 for logarithmic.
   Mode = 0 (linear)
@@ -51,19 +56,19 @@ using namespace std;
 class multipole{
 public:
   int *dev_integers;
-  double *dev_doubles;
-  CComplex *mpdata;
+  CMPTYPE *dev_doubles;
+  CComplex<CMPTYPE> *mpdata;
   unsigned *l_value; // l and j index of the pole
   //int w_function; //Which W function to use
-  double   *pseudo_rho;  //inherit nomenclature from isotope.h
+  CMPTYPE  *pseudo_rho;  //inherit nomenclature from isotope.h
 
   int *w_start;// Contains the index of the pole at the start of the window
   int *w_end;  // Contains the index of the pole at the end of the window
-  double *fit;
+  CMPTYPE *fit;
   //Contains the fitting function.  (reaction type, coeff index, window index)
   //=========================================================================
 #if defined(__QUICKW)
-  CComplex* table;
+  CComplex<float>* table;
 #endif
 
  public:
@@ -71,14 +76,14 @@ public:
   ~multipole();
   void release_pointer();
 #if defined(__MITW) || defined(__QUICKW)
-  __device__  void xs_eval_fast(double E, double sqrtKT, 
-					 double &sigT, double &sigA, double &sigF);
+  __device__  void xs_eval_fast(CMPTYPE E, CMPTYPE sqrtKT, 
+					 CMPTYPE &sigT, CMPTYPE &sigA, CMPTYPE &sigF);
 #endif
-  __device__  void xs_eval_fast(double E, 
-					 double &sigT, double &sigA, double &sigF);
-  /*__device__  void xs_eval_fast(double E, double sqrtKT, double rnd, 
-					 double &sigT, double &sigA, double &sigF);*/
-  __device__ void fill_factors(double sqrtE, int numL, CComplex *sigT_factor);
+  __device__  void xs_eval_fast(CMPTYPE E, 
+					 CMPTYPE &sigT, CMPTYPE &sigA, CMPTYPE &sigF);
+  /*__device__  void xs_eval_fast(CMPTYPE E, CMPTYPE sqrtKT, CMPTYPE rnd, 
+					 CMPTYPE &sigT, CMPTYPE &sigA, CMPTYPE &sigF);*/
+  __device__ void fill_factors(CMPTYPE sqrtE, int numL, CComplex<CMPTYPE> *sigT_factor);
   __host__ __device__  int findex(int, int, int, int, int);
   __host__ __device__  int pindex(int, int);
 

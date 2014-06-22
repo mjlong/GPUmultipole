@@ -14,7 +14,7 @@ multipole::multipole(struct multipoledata data){
   /*
     allocate and assign doubles
   */
-  size = sizeof(double);
+  size = sizeof(CMPTYPE);
   cudaMalloc((void**)&dev_doubles,  3*size);
   cudaMemcpy(dev_doubles+STARTE, &(data.startE), size, cudaMemcpyHostToDevice);
   cudaMemcpy(dev_doubles+SPACING,&(data.spacing), size, cudaMemcpyHostToDevice);
@@ -23,7 +23,7 @@ multipole::multipole(struct multipoledata data){
   /*
     allocate and assign arrays
   */
-  size = data.length*(MP_RF+data.fissionable)*2*sizeof(double);
+  size = data.length*(MP_RF+data.fissionable)*2*sizeof(CMPTYPE);
   cudaMalloc((void**)&mpdata, size);
   cudaMemcpy(mpdata, data.mpdata, size, cudaMemcpyHostToDevice);
 
@@ -31,7 +31,7 @@ multipole::multipole(struct multipoledata data){
   cudaMalloc((void**)&l_value, size);
   cudaMemcpy(l_value, data.l_value, size, cudaMemcpyHostToDevice);
 
-  size = data.numL*sizeof(double);
+  size = data.numL*sizeof(CMPTYPE);
   cudaMalloc((void**)&pseudo_rho, size);
   cudaMemcpy(pseudo_rho, data.pseudo_rho, size, cudaMemcpyHostToDevice);
 
@@ -42,7 +42,7 @@ multipole::multipole(struct multipoledata data){
   cudaMalloc((void**)&w_end, size);
   cudaMemcpy(w_end, data.w_end, size, cudaMemcpyHostToDevice);
 
-  size = (FIT_F+data.fissionable)*(data.fitorder+1)*data.windows*sizeof(double);
+  size = (FIT_F+data.fissionable)*(data.fitorder+1)*data.windows*sizeof(CMPTYPE);
   cudaMalloc((void**)&fit, size);
   cudaMemcpy(fit, data.fit, size, cudaMemcpyHostToDevice);
 
@@ -65,15 +65,15 @@ void multipole::release_pointer(){
 
 // xs eval with MIT Faddeeva()
 #if defined(__MITW) || defined(__QUICKW)
-__device__  void multipole::xs_eval_fast(double E, double sqrtKT, 
-			                 double &sigT, double &sigA, double &sigF){
+__device__  void multipole::xs_eval_fast(CMPTYPE E, CMPTYPE sqrtKT, 
+			                 CMPTYPE &sigT, CMPTYPE &sigA, CMPTYPE &sigF){
 
   // Copy variables to local memory for efficiency 
   unsigned mode        = dev_integers[MODE];
   int    iP, iC, iW, startW, endW;
-  double spacing = dev_doubles[SPACING];
-  double startE  = dev_doubles[STARTE];
-  double sqrtE = sqrt(E);
+  CMPTYPE spacing = dev_doubles[SPACING];
+  CMPTYPE startE  = dev_doubles[STARTE];
+  CMPTYPE sqrtE = sqrt(E);
   if(1==mode)
     iW = (int)((sqrtE - sqrt(startE))/spacing);
   else if(2==mode)
@@ -84,13 +84,13 @@ __device__  void multipole::xs_eval_fast(double E, double sqrtKT,
   unsigned numL        = dev_integers[NUML];
   unsigned fissionable = dev_integers[FISSIONABLE];
 
-  double sqrtAWR = dev_doubles[SQRTAWR];
-  double power, DOPP, DOPP_ECOEF;
-  CComplex w_val;
+  CMPTYPE sqrtAWR = dev_doubles[SQRTAWR];
+  CMPTYPE power, DOPP, DOPP_ECOEF;
+  CComplex<CMPTYPE> w_val;
 
   startW = w_start[iW];
   endW   = w_end[iW];
-  CComplex sigT_factor[4];
+  CComplex<CMPTYPE> sigT_factor[4];
   //CComplex sigtfactor;
   if(startW <= endW)
     fill_factors(sqrtE,numL,sigT_factor);
@@ -114,7 +114,7 @@ __device__  void multipole::xs_eval_fast(double E, double sqrtKT,
     //sigtfactor = sigT_factor[l_value[iP-1]-1];
     //w_val = (sqrtE - mpdata[pindex(iP-1,MP_EA)])*DOPP*DOPP_ECOEF;
 #if defined(__QUICKW)
-    w_val =  w_function((sqrtE - mpdata[pindex(iP-1,MP_EA)])*DOPP,table)*DOPP_ECOEF;
+    w_val = (CMPTYPE)w_function((sqrtE - mpdata[pindex(iP-1,MP_EA)])*DOPP,table)*DOPP_ECOEF;
 #endif
 #if defined(__MITW)
     w_val = Faddeeva::w((sqrtE - mpdata[pindex(iP-1,MP_EA)])*DOPP,0.0)*DOPP_ECOEF;
@@ -130,15 +130,15 @@ __device__  void multipole::xs_eval_fast(double E, double sqrtKT,
 
 //xs eval with Quick W()
 /*
-__device__  void multipole::xs_eval_fast(double E, double sqrtKT, CComplex *table, 
-			                 double &sigT, double &sigA, double &sigF){
+__device__  void multipole::xs_eval_fast(CMPTYPE E, CMPTYPE sqrtKT, CComplex<CMPTYPE> *table, 
+			                 CMPTYPE &sigT, CMPTYPE &sigA, CMPTYPE &sigF){
 
   // Copy variables to local memory for efficiency 
   unsigned mode        = dev_integers[MODE];
   int    iP, iC, iW, startW, endW;
-  double spacing = dev_doubles[SPACING];
-  double startE  = dev_doubles[STARTE];
-  double sqrtE = sqrt(E);
+  CMPTYPE spacing = dev_doubles[SPACING];
+  CMPTYPE startE  = dev_doubles[STARTE];
+  CMPTYPE sqrtE = sqrt(E);
   if(1==mode)
     iW = (int)((sqrtE - sqrt(startE))/spacing);
   else if(2==mode)
@@ -149,13 +149,13 @@ __device__  void multipole::xs_eval_fast(double E, double sqrtKT, CComplex *tabl
   unsigned numL        = dev_integers[NUML];
   unsigned fissionable = dev_integers[FISSIONABLE];
 
-  double sqrtAWR = dev_doubles[SQRTAWR];
-  double power, DOPP, DOPP_ECOEF;
-  CComplex w_val;
+  CMPTYPE sqrtAWR = dev_doubles[SQRTAWR];
+  CMPTYPE power, DOPP, DOPP_ECOEF;
+  CComplex<CMPTYPE> w_val;
 
   startW = w_start[iW];
   endW   = w_end[iW];
-  CComplex sigT_factor[4];
+  CComplex<CMPTYPE> sigT_factor[4];
   //CComplex sigtfactor;
   if(startW <= endW)
     fill_factors(sqrtE,numL,sigT_factor);
@@ -189,15 +189,15 @@ __device__  void multipole::xs_eval_fast(double E, double sqrtKT, CComplex *tabl
 */
 
 //xs eval at 0K
-__device__  void multipole::xs_eval_fast(double E,  
-                        	 	 double &sigT, double &sigA, double &sigF){
+__device__  void multipole::xs_eval_fast(CMPTYPE E,  
+                        	 	 CMPTYPE &sigT, CMPTYPE &sigA, CMPTYPE &sigF){
 
   // Copy variables to local memory for efficiency 
   unsigned mode        = dev_integers[MODE];
   int    iP, iC, iW, startW, endW;
-  double spacing = dev_doubles[SPACING];
-  double startE  = dev_doubles[STARTE];
-  double sqrtE = sqrt(E);
+  CMPTYPE spacing = dev_doubles[SPACING];
+  CMPTYPE startE  = dev_doubles[STARTE];
+  CMPTYPE sqrtE = sqrt(E);
   if(1==mode)
     iW = (int)((sqrtE - sqrt(startE))/spacing);
   else if(2==mode)
@@ -208,13 +208,13 @@ __device__  void multipole::xs_eval_fast(double E,
   unsigned fissionable = dev_integers[FISSIONABLE];
   unsigned numL        = dev_integers[NUML];
 
-  double power;
-  CComplex PSIIKI, CDUM1, w_val;
+  CMPTYPE power;
+  CComplex<CMPTYPE> PSIIKI, CDUM1, w_val;
 
  
   startW = w_start[iW];
   endW   = w_end[iW];
-  CComplex sigT_factor[4];
+  CComplex<CMPTYPE> sigT_factor[4];
   //CComplex sigtfactor;
   if(startW <= endW)
     fill_factors(sqrtE,numL,sigT_factor);
@@ -248,18 +248,18 @@ __device__  void multipole::xs_eval_fast(double E,
 
 //xs eval at 0k but sampled to sqrtKT
 /*
-__device__  void multipole::xs_eval_fast(double E, double sqrtKT, double rnd, 
-                        	 	 double &sigT, double &sigA, double &sigF){
+__device__  void multipole::xs_eval_fast(CMPTYPE E, CMPTYPE sqrtKT, CMPTYPE rnd, 
+                        	 	 CMPTYPE &sigT, CMPTYPE &sigA, CMPTYPE &sigF){
 
   // Copy variables to local memory for efficiency 
   unsigned mode        = dev_integers[MODE];
   int    iP, iC, iW, startW, endW;
-  double spacing = dev_doubles[SPACING];
-  double startE  = dev_doubles[STARTE];
-  double sqrtAWR = dev_doubles[SQRTAWR];
+  CMPTYPE spacing = dev_doubles[SPACING];
+  CMPTYPE startE  = dev_doubles[STARTE];
+  CMPTYPE sqrtAWR = dev_doubles[SQRTAWR];
 
   E = E + rnd * sqrtKT * sqrt(0.5) / sqrtAWR;
-  double sqrtE = sqrt(E);
+  CMPTYPE sqrtE = sqrt(E);
   if(1==mode)
     iW = (int)((sqrtE - sqrt(startE))/spacing);
   else if(2==mode)
@@ -270,12 +270,12 @@ __device__  void multipole::xs_eval_fast(double E, double sqrtKT, double rnd,
   unsigned fissionable = dev_integers[FISSIONABLE];
   unsigned numL        = dev_integers[NUML];
 
-  double power;
-  CComplex PSIIKI, CDUM1, w_val;
+  CMPTYPE power;
+  CComplex<CMPTYPE> PSIIKI, CDUM1, w_val;
  
   startW = w_start[iW];
   endW   = w_end[iW];
-  CComplex sigT_factor[4];
+  CComplex<CMPTYPE> sigT_factor[4];
   //CComplex sigtfactor;
   if(startW <= endW)
     fill_factors(sqrtE,numL,sigT_factor);
@@ -316,11 +316,11 @@ __host__ __device__ int multipole::pindex(int iP, int type){
   return iP*4 + type;
 }
 
-__device__ void multipole::fill_factors(double sqrtE, int numL, 
-                                        CComplex *sigT_factor){
+__device__ void multipole::fill_factors(CMPTYPE sqrtE, int numL, 
+                                        CComplex<CMPTYPE> *sigT_factor){
   int iL;
-  double arg;
-  double twophi; 
+  CMPTYPE arg;
+  CMPTYPE twophi; 
   
   for(iL = 0; iL<numL; iL++){
     twophi = pseudo_rho[iL] * sqrtE; 
@@ -335,7 +335,7 @@ __device__ void multipole::fill_factors(double sqrtE, int numL,
       twophi -= atan(arg);
     }
     twophi *= 2.0;
-    sigT_factor[iL] = CComplex(cos(twophi), -sin(twophi));
+    sigT_factor[iL] = CComplex<CMPTYPE>(cos(twophi), -sin(twophi));
   }
 
 }
