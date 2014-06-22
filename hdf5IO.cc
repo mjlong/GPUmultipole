@@ -36,7 +36,7 @@ void h5read(struct multipoledata & pole, char filename[]) {
   status = H5Dclose(dataset_id);
 
   dataset_id = H5Dopen(file_id, "/isotope/sqrtAWR", H5P_DEFAULT);
-#if defined(__FLOAT)
+#if defined(__CFLOAT)
   status = H5Dread(dataset_id, H5T_NATIVE_FLOAT, H5S_ALL, H5S_ALL, H5P_DEFAULT,dvalue);
 #else
   status = H5Dread(dataset_id, H5T_NATIVE_DOUBLE, H5S_ALL, H5S_ALL, H5P_DEFAULT,dvalue);
@@ -46,7 +46,7 @@ void h5read(struct multipoledata & pole, char filename[]) {
   status = H5Dclose(dataset_id);
 
   dataset_id = H5Dopen(file_id, "/isotope/startE", H5P_DEFAULT);
-#if defined(__FLOAT)
+#if defined(__CFLOAT)
   status = H5Dread(dataset_id, H5T_NATIVE_FLOAT, H5S_ALL, H5S_ALL, H5P_DEFAULT,dvalue);
 #else
   status = H5Dread(dataset_id, H5T_NATIVE_DOUBLE, H5S_ALL, H5S_ALL, H5P_DEFAULT,dvalue);
@@ -56,7 +56,7 @@ void h5read(struct multipoledata & pole, char filename[]) {
   status = H5Dclose(dataset_id);
 
   dataset_id = H5Dopen(file_id, "/isotope/endE", H5P_DEFAULT);
-#if defined(__FLOAT)
+#if defined(__CFLOAT)
   status = H5Dread(dataset_id, H5T_NATIVE_FLOAT, H5S_ALL, H5S_ALL, H5P_DEFAULT,dvalue);
 #else
   status = H5Dread(dataset_id, H5T_NATIVE_DOUBLE, H5S_ALL, H5S_ALL, H5P_DEFAULT,dvalue);
@@ -66,7 +66,7 @@ void h5read(struct multipoledata & pole, char filename[]) {
   status = H5Dclose(dataset_id);
 
   dataset_id = H5Dopen(file_id, "/isotope/spacing", H5P_DEFAULT);
-#if defined(__FLOAT)
+#if defined(__CFLOAT)
   status = H5Dread(dataset_id, H5T_NATIVE_FLOAT, H5S_ALL, H5S_ALL, H5P_DEFAULT,dvalue);
 #else
   status = H5Dread(dataset_id, H5T_NATIVE_DOUBLE, H5S_ALL, H5S_ALL, H5P_DEFAULT,dvalue);
@@ -95,7 +95,7 @@ void h5read(struct multipoledata & pole, char filename[]) {
 
   pole.pseudo_rho = (CMPTYPE*)malloc(pole.numL*sizeof(CMPTYPE));
   dataset_id = H5Dopen(file_id, "/isotope/pK0RS", H5P_DEFAULT);
-#if defined(__FLOAT)
+#if defined(__CFLOAT)
   status = H5Dread(dataset_id, H5T_NATIVE_FLOAT, H5S_ALL, H5S_ALL, H5P_DEFAULT, pole.pseudo_rho);
 #else
   status = H5Dread(dataset_id, H5T_NATIVE_DOUBLE, H5S_ALL, H5S_ALL, H5P_DEFAULT, pole.pseudo_rho);
@@ -111,7 +111,7 @@ void h5read(struct multipoledata & pole, char filename[]) {
   
   pole.fit = (CMPTYPE*)malloc(3*pole.windows*(pole.fitorder+1)*sizeof(CMPTYPE));
   dataset_id = H5Dopen(file_id, "/isotope/fit", H5P_DEFAULT);
-#if defined(__FLOAT)
+#if defined(__CFLOAT)
   status = H5Dread(dataset_id, H5T_NATIVE_FLOAT, H5S_ALL, H5S_ALL, H5P_DEFAULT, pole.fit);
 #else
   status = H5Dread(dataset_id, H5T_NATIVE_DOUBLE, H5S_ALL, H5S_ALL, H5P_DEFAULT, pole.fit);
@@ -136,7 +136,7 @@ void h5read(struct multipoledata & pole, char filename[]) {
   ndims = H5Sget_simple_extent_dims(space_id, dims, NULL);
   //printf("number of dims:%d, length of dim1:%d,of dim2:%d\n",(int)ndims,(int)dims[0],(int)dims[1]);
   datasize_1d[0]=2;
-#if defined(__FLOAT)
+#if defined(__CFLOAT)
   complex_array_id = H5Tarray_create(H5T_NATIVE_FLOAT, 1, datasize_1d);
 #else
   complex_array_id = H5Tarray_create(H5T_NATIVE_DOUBLE, 1, datasize_1d);
