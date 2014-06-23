@@ -20,11 +20,7 @@ __global__ void initialize_table(CComplex<CMPTYPE> *table){
 }
 #endif
 
-#if defined(__QUICKW)
-__global__ void history(multipole U238, MemStruct Info, CComplex<CMPTYPE> *wtable, unsigned num_src, unsigned devstep){
-#else
 __global__ void history(multipole U238, MemStruct Info, unsigned num_src, unsigned devstep){
-#endif
   //TODO:this is one scheme to match threads to 1D array, 
   //try others when real simulation structure becomes clear
   int id = blockDim.x * blockIdx.x + threadIdx.x;
@@ -34,16 +30,6 @@ __global__ void history(multipole U238, MemStruct Info, unsigned num_src, unsign
   CMPTYPE rnd;
   //CMPTYPE norm;
   CMPTYPE sigT, sigA, sigF;
-#if defined(__QUICKW)
-  extern __shared__ CComplex<float> sharedtable[];
-  live = id;
-  while (live < LENGTH*LENGTH){
-	  sharedtable[live] = wtable[live];
-	  live += blockDim.x*gridDim.x;
-  }
-  __syncthreads();
-  U238.table = sharedtable;
-#endif
   /* Each thread gets same seed, a different sequence number, no offset */
   curand_init(1234, id, 0, &(Info.nInfo[id].rndState));
 
@@ -85,11 +71,8 @@ __global__ void history(multipole U238, MemStruct Info, unsigned num_src, unsign
 
 }
 
-#if defined (__QUICKW)
-__global__ void remaining(multipole U238, CComplex<CMPTYPE>* wtable, CMPTYPE *devicearray, MemStruct Info){
-#else
+
 __global__ void remaining(multipole U238, CMPTYPE *devicearray, MemStruct Info){
-#endif
   //TODO:this is one scheme to match threads to 1D array, 
   //try others when real simulation structure becomes clear
   int id = blockDim.x * blockIdx.x + threadIdx.x;
@@ -98,16 +81,6 @@ __global__ void remaining(multipole U238, CMPTYPE *devicearray, MemStruct Info){
   CMPTYPE rnd;
   //CMPTYPE norm;
   CMPTYPE sigT, sigA, sigF;
-#if defined(__QUICKW)
-  extern __shared__ CComplex<float> sharedtable[];
-  live = id;
-  while (live < LENGTH*LENGTH){
-	  sharedtable[live] = wtable[live];
-	  live += blockDim.x*gridDim.x;
-  }
-  __syncthreads();
-  U238.table = sharedtable;
-#endif
  
   /* Each thread gets same seed, a different sequence number, no offset */
   curand_init(1234, id, 0, &(Info.nInfo[id].rndState));
