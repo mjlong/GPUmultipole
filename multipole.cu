@@ -180,6 +180,8 @@ __device__  void multipole::xs_eval_fast(CMPTYPE E, CMPTYPE sqrtKT,
 #if defined(__CFLOAT)
     CComplex<float>  zfloat  = mpdata[pindex(iP-1,MP_EA)];
     CComplex<double> zdouble = CComplex<double>((double)real(zfloat),(double)imag(zfloat));
+    /*CComplex<double> zdouble = CComplex<double>((double)real(mpdata[pindex(iP-1,MP_EA)]),
+						(double)imag(mpdata[pindex(iP-1,MP_EA)]));*/
     zdouble = Faddeeva::w(((double)sqrtE - zdouble)*(double)DOPP);
     w_val = CComplex<float>((float)real(zdouble), (float)imag(zdouble))*DOPP_ECOEF;
 #else
