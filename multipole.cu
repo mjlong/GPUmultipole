@@ -1,4 +1,15 @@
 #include "multipole.h"
+#if defined(__QUICKWT)
+//TODO: consider quickw must use float here
+// it deserves try double later
+texture<float2> tex_wtable;
+
+static __inline__ __device__ CComplex<float> texfetch_complex8(texture<float2> t, int i){
+  float2 v = tex1Dfetch(t,i);
+  return CComplex<float>(v.x, v.y);
+}
+
+#endif
 
 #if defined(__QUICKW)
 multipole::multipole(struct multipoledata data, CComplex<CMPTYPE>* wtable){
@@ -50,8 +61,14 @@ multipole::multipole(struct multipoledata data){
   size = (FIT_F+data.fissionable)*(data.fitorder+1)*data.windows*sizeof(CMPTYPE);
   cudaMalloc((void**)&fit, size);
   cudaMemcpy(fit, data.fit, size, cudaMemcpyHostToDevice);
+  
+#if defined(__QUICKWT)
+  cudaBindTexture(NULL, tex_wtable, wtable, LENGTH*LENGTH*sizeof(CMPTYPE)*2);
+#endif
 
+#if defined(__QUICKWG)
   table = wtable;  
+#endif
 
 }
 
@@ -68,6 +85,9 @@ void multipole::release_pointer(){
   gpuErrchk(cudaFree(w_start));
   gpuErrchk(cudaFree(w_end));
   gpuErrchk(cudaFree(fit));
+#if defined(__QUICKWT)
+  cudaUnbindTexture(tex_wtable);
+#endif
 }
 
 // xs eval with MIT Faddeeva()
@@ -120,9 +140,26 @@ __device__  void multipole::xs_eval_fast(CMPTYPE E, CMPTYPE sqrtKT,
   for(iP=startW;iP<=endW;iP++){
     //sigtfactor = sigT_factor[l_value[iP-1]-1];
     //w_val = (sqrtE - mpdata[pindex(iP-1,MP_EA)])*DOPP*DOPP_ECOEF;
-#if defined(__QUICKW)
+#if defined(__QUICKWT)
+    CComplex<CMPTYPE> z;
+    CMPTYPE p = 10.0*abs(real(z));
+    CMPTYPE q = 10.0*imag(z);
+    int     l = (int)p + 1;
+    int     m = (int)m + 1;
+    w_val = w_function(z, 
+		       texfetch_complex8(tex_wtable, (m-1)*LENGTH+l),
+		       texfetch_complex8(tex_wtable, m*LENGTH + l-1),
+		       texfetch_complex8(tex_wtable, m*LENGTH + l  ),
+		       texfetch_complex8(tex_wtable, m*LENGTH + l+1),
+		       texfetch_complex8(tex_wtable, (m+1)*LENGTH+l),
+		       texfetch_complex8(tex_wtable, (m+1)*LENGTH+l+1),
+		       p, q);
+#endif
+		       
+#if defined(__QUICKWG)
     w_val = w_function((sqrtE - mpdata[pindex(iP-1,MP_EA)])*DOPP,table)*DOPP_ECOEF;
 #endif
+
 #if defined(__MITW)
     w_val = Faddeeva::w((sqrtE - mpdata[pindex(iP-1,MP_EA)])*DOPP,0.0)*DOPP_ECOEF;
 #endif
