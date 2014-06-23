@@ -62,9 +62,6 @@ void anyvalue(struct multipoledata data, unsigned setgridx, unsigned setblockx, 
   gpuErrchk(cudaEventRecord(start, 0));
 
   active = 1u;
-#if defined(__QUICKW)
-    sharedmem = LENGTH*LENGTH*sizeof(float)*2;
-#endif
 
   while (active){
     history<<<dimBlock, dimGrid>>>(U238, DeviceMem, num_src, devstep);
