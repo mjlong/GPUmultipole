@@ -1,5 +1,10 @@
 #include "multipole.h"
+
+#if defined(__QUICKW)
+multipole::multipole(struct multipoledata data, CComplex<CMPTYPE>* wtable){
+#else
 multipole::multipole(struct multipoledata data){
+#endif
   size_t size;
   /*
     allocate and assign integers
@@ -45,6 +50,8 @@ multipole::multipole(struct multipoledata data){
   size = (FIT_F+data.fissionable)*(data.fitorder+1)*data.windows*sizeof(CMPTYPE);
   cudaMalloc((void**)&fit, size);
   cudaMemcpy(fit, data.fit, size, cudaMemcpyHostToDevice);
+
+  table = wtable;  
 
 }
 
