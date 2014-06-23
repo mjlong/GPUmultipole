@@ -2,10 +2,15 @@
 #if defined(__QUICKWT)
 //TODO: consider quickw must use float here
 // it deserves try double later
-texture<float2> tex_wtable;
-
-static __inline__ __device__ CComplex<float> texfetch_complex8(texture<float2> t, int i){
+//texture<float2> tex_wtable;
+/*static __inline__ __device__ CComplex<float> texfetch_complex8(texture<float2> t, int i){
   float2 v = tex1Dfetch(t,i);
+  return CComplex<float>(v.x, v.y);
+  }*/
+
+texture<float2, 2> tex_wtable;
+static __inline__ __device__ CComplex<float> texfetch_complex8(texture<float2,2> t, int i, int j){
+  float2 v = tex2D(t, i, j);
   return CComplex<float>(v.x, v.y);
 }
 
@@ -63,7 +68,9 @@ multipole::multipole(struct multipoledata data){
   cudaMemcpy(fit, data.fit, size, cudaMemcpyHostToDevice);
   
 #if defined(__QUICKWT)
-  cudaBindTexture(NULL, tex_wtable, wtable, LENGTH*LENGTH*sizeof(CMPTYPE)*2);
+  //cudaBindTexture(NULL, tex_wtable, wtable, LENGTH*LENGTH*sizeof(CMPTYPE)*2);
+  cudaChannelFormatDesc desc = cudaCreateChannelDesc<float2>();
+  cudaBindTexture2D(NULL, tex_wtable, wtable, desc, LENGTH, LENGTH, sizeof(float2)*LENGTH);
 #endif
 
 #if defined(__QUICKWG)
@@ -146,13 +153,22 @@ __device__  void multipole::xs_eval_fast(CMPTYPE E, CMPTYPE sqrtKT,
     CMPTYPE q = 10.0*imag(z);
     int     l = (int)p + 1;
     int     m = (int)q + 1;
-    w_val = w_function(z, 
+    /*    w_val = w_function(z, 
 		       texfetch_complex8(tex_wtable, (m-1)*LENGTH+l),
 		       texfetch_complex8(tex_wtable, m*LENGTH + l-1),
 		       texfetch_complex8(tex_wtable, m*LENGTH + l  ),
 		       texfetch_complex8(tex_wtable, m*LENGTH + l+1),
 		       texfetch_complex8(tex_wtable, (m+1)*LENGTH+l),
 		       texfetch_complex8(tex_wtable, (m+1)*LENGTH+l+1),
+		       p, q)*DOPP_ECOEF;
+    */
+    w_val = w_function(z, 
+		       texfetch_complex8(tex_wtable, m-1, l  ),
+		       texfetch_complex8(tex_wtable, m  , l-1),
+		       texfetch_complex8(tex_wtable, m  , l  ),
+		       texfetch_complex8(tex_wtable, m  , l+1),
+		       texfetch_complex8(tex_wtable, m+1, l  ),
+		       texfetch_complex8(tex_wtable, m+1, l+1),
 		       p, q)*DOPP_ECOEF;
 #endif
 		       
