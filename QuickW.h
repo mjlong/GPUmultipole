@@ -39,8 +39,18 @@
 
 //__device__ void initialize_w_tabulated(CComplex*);
 __device__ void fill_w_tabulated(CComplex<CMPTYPE>*, int);
+#if defined(__QUICKWT)
+__device__ CComplex<CMPTYPE> w_function(CComplex<CMPTYPE> z, 
+					CComplex<CMPTYPE> bottom,
+					CComplex<CMPTYPE> left,
+					CComplex<CMPTYPE> center,
+					CComplex<CMPTYPE> right,
+					CComplex<CMPTYPE> top,
+					CComplex<CMPTYPE> topright,
+					CMPTYPE p, CMPTYPE q);
+#else //__QUICKWG
 __device__ CComplex<CMPTYPE> w_function(CComplex<CMPTYPE>, CComplex<CMPTYPE>*);
-
+#endif
 
 
 

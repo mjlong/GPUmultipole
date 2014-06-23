@@ -52,15 +52,49 @@ __device__ void fill_w_tabulated(CComplex<CMPTYPE>* w_tabulated, int id){
  O(10^-3). For |z| > 6, it uses a three-term asymptotic approximation that is                 
  accurate to O(10^-6).                           
 ===============================================================================*/ 
+#if defined(__QUICKWT)
+__device__ CComplex<CMPTYPE> w_function(CComplex<CMPTYPE> z, 
+					CComplex<CMPTYPE> bottom,
+					CComplex<CMPTYPE> left,
+					CComplex<CMPTYPE> center,
+					CComplex<CMPTYPE> right,
+					CComplex<CMPTYPE> top,
+					CComplex<CMPTYPE> topright,
+					CMPTYPE p, CMPTYPE q){
+  CComplex<CMPTYPE> w;
+  if(abs(Norm(z)) < 6.0){
+    p = p - (int)p;
+    q = q - (int)q;
+    CMPTYPE pp = p*p;
+    CMPTYPE qq = q*q;
+    CMPTYPE pq = p*q;
+    w =  
+      (CMPTYPE)0.5*(qq - q)        *bottom + 
+      (CMPTYPE)0.5*(pp - p)        *left   +
+      (CMPTYPE)(1.0 + pq - pp - qq)*center +
+      (CMPTYPE)(0.5*(pp + p) - pq) *right  +
+      (CMPTYPE)(0.5*(qq + q) - pq) *top    +
+      (CMPTYPE) pq                 *topright;
+    if(real(z)<0)
+      w = Conjugate(w);
+  }
+  else
+    w = ONEI * z * (a/(z*z - b) + c/(z*z - d));
+  return w;
+  
+}
+#else //__QUICKWG
 __device__ CComplex<CMPTYPE> w_function(CComplex<CMPTYPE> z, CComplex<CMPTYPE>* w_tabulated){
   CMPTYPE  p;           // interpolation factor on real axis                                   
   CMPTYPE  q;           // interpolation factor on imaginary axis                                  
   CMPTYPE  pp, qq, pq;  // products of p and q                                         
+  /*
   CMPTYPE  a_l;         // coefficient for left point                                   
   CMPTYPE  a_c;         // coefficient for center point                                         
   CMPTYPE  a_b;         // coefficient for bottom point    
   CMPTYPE  a_r;         // coefficient for right point                                             
   CMPTYPE  a_t;         // coefficient for top point  
+  */
 
   int l;               //interpolation index for real axis
   int m;               //interpolation index for imaginary axis
@@ -97,22 +131,31 @@ __device__ CComplex<CMPTYPE> w_function(CComplex<CMPTYPE> z, CComplex<CMPTYPE>* 
     pq = p*q;
 
     //Coefficients for interpolation
+    /*
     a_b = 0.5*(qq - q);         //bottom
     a_l = 0.5*(pp - p);         //left
     a_c = 1.0 + pq - pp - qq;   //center
     a_r = 0.5*(pp + p) - pq;    //right
     a_t = 0.5*(qq + q) - pq;    //top
-  
+    */
+
     // Use six-point interpolation to calculate real and imaginary parts
     l++;
     m++;
     w =  
-      a_b*w_tabulated[(m-1)*LENGTH+l] + 
+      /*a_b*w_tabulated[(m-1)*LENGTH+l] + 
       a_l*w_tabulated[m*LENGTH + l-1] +
       a_c*w_tabulated[m*LENGTH + l  ] +
       a_r*w_tabulated[m*LENGTH + l+1] +
       a_t*w_tabulated[(m+1)*LENGTH+l] +
-      pq *w_tabulated[(m+1)*LENGTH+l+1];
+      pq *w_tabulated[(m+1)*LENGTH+l+1];*/
+      (CMPTYPE)0.5*(qq - q)        *w_tabulated[(m-1)*LENGTH+l] + 
+      (CMPTYPE)0.5*(pp - p)        *w_tabulated[m*LENGTH + l-1] +
+      (CMPTYPE)(1.0 + pq - pp - qq)*w_tabulated[m*LENGTH + l  ] +
+      (CMPTYPE)(0.5*(pp + p) - pq) *w_tabulated[m*LENGTH + l+1] +
+      (CMPTYPE)(0.5*(qq + q) - pq) *w_tabulated[(m+1)*LENGTH+l] +
+      (CMPTYPE) pq                 *w_tabulated[(m+1)*LENGTH+l+1];
+
     if(real(z)<0) 
       w = Conjugate(w);
   }
@@ -121,3 +164,4 @@ __device__ CComplex<CMPTYPE> w_function(CComplex<CMPTYPE> z, CComplex<CMPTYPE>* 
 
   return w;
 }
+#endif
