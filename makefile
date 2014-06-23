@@ -21,7 +21,6 @@ ifeq ($(WFUN),0)
   main.cu
 else ifeq ($(WFUN),11)
        W_IDEN = -D __QUICKW -D __QUICKWG
-       FLOAT = 1
        GSOURCES=\
        Faddeeva.cu\
        QuickW.cu\
@@ -31,7 +30,6 @@ else ifeq ($(WFUN),11)
        main.cu
      else ifeq ($(WFUN),12)
        W_IDEN = -D __QUICKW -D __QUICKWT
-       FLOAT = 1
        GSOURCES=\
        Faddeeva.cu\
        QuickW.cu\
