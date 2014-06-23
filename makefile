@@ -18,7 +18,7 @@ ifeq ($(WFUN),0)
   simulation.cu\
   multipole.cu\
   devicemain.cu\
-  main.cu
+  main.cu   
 else ifeq ($(WFUN),11)
        W_IDEN = -D __QUICKW -D __QUICKWG
        GSOURCES=\
@@ -54,7 +54,7 @@ CSOURCES=\
 hdf5IO.cc
 COBJECTS=$(CSOURCES:.cc=.obj)
 GOBJECTS=$(GSOURCES:.cu=.o)
-LINKJECT=dlink.o
+LINKJECT=dlink.o      
 EXECUTABLE=tiny
 all: $(EXECUTABLE)
 
