@@ -1,5 +1,6 @@
 #MITW = 0
-#QUCW = 1
+#QUICKW_GLOABAL = 11
+#QUICKW_TEXTURE = 12
 #WHPW = 2
 CC=h5cc #g++ #h5pcc #g++
 NVCC = nvcc
@@ -18,8 +19,8 @@ ifeq ($(WFUN),0)
   multipole.cu\
   devicemain.cu\
   main.cu
-else ifeq ($(WFUN),1)
-       W_IDEN = -D __QUICKW
+else ifeq ($(WFUN),11)
+       W_IDEN = -D __QUICKW -D __QUICKWG
        FLOAT = 1
        GSOURCES=\
        Faddeeva.cu\
@@ -28,13 +29,23 @@ else ifeq ($(WFUN),1)
        multipole.cu\
        devicemain.cu\
        main.cu
-     else
-       W_IDEN = -D __SAMPLE
+     else ifeq ($(WFUN),12)
+       W_IDEN = -D __QUICKW -D __QUICKWT
+       FLOAT = 1
        GSOURCES=\
+       Faddeeva.cu\
+       QuickW.cu\
        simulation.cu\
        multipole.cu\
        devicemain.cu\
        main.cu
+          else
+            W_IDEN = -D __SAMPLE
+            GSOURCES=\
+            simulation.cu\
+            multipole.cu\
+            devicemain.cu\
+            main.cu
 endif   
 #
 ifeq ($(FLOAT),1)
