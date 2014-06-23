@@ -141,11 +141,11 @@ __device__  void multipole::xs_eval_fast(CMPTYPE E, CMPTYPE sqrtKT,
     //sigtfactor = sigT_factor[l_value[iP-1]-1];
     //w_val = (sqrtE - mpdata[pindex(iP-1,MP_EA)])*DOPP*DOPP_ECOEF;
 #if defined(__QUICKWT)
-    CComplex<CMPTYPE> z;
+    CComplex<CMPTYPE> z = (sqrtE - mpdata[pindex(iP-1,MP_EA)])*DOPP;
     CMPTYPE p = 10.0*abs(real(z));
     CMPTYPE q = 10.0*imag(z);
     int     l = (int)p + 1;
-    int     m = (int)m + 1;
+    int     m = (int)q + 1;
     w_val = w_function(z, 
 		       texfetch_complex8(tex_wtable, (m-1)*LENGTH+l),
 		       texfetch_complex8(tex_wtable, m*LENGTH + l-1),
@@ -153,7 +153,7 @@ __device__  void multipole::xs_eval_fast(CMPTYPE E, CMPTYPE sqrtKT,
 		       texfetch_complex8(tex_wtable, m*LENGTH + l+1),
 		       texfetch_complex8(tex_wtable, (m+1)*LENGTH+l),
 		       texfetch_complex8(tex_wtable, (m+1)*LENGTH+l+1),
-		       p, q);
+		       p, q)*DOPP_ECOEF;
 #endif
 		       
 #if defined(__QUICKWG)
