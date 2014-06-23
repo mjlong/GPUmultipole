@@ -72,7 +72,11 @@ public:
 #endif
 
  public:
+#if defined(__QUICKW)
+  multipole(struct multipoledata data, CComplex<CMPTYPE> *wtable);
+#else
   multipole(struct multipoledata data);
+#endif
   ~multipole();
   void release_pointer();
 #if defined(__MITW) || defined(__QUICKW)
