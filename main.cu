@@ -1,9 +1,12 @@
 #include "CPUComplex.h"
+#include "CComplex.h"
 #include "multipole_data.h"
+#include "global.h"
 
 #if defined (__QUICKWC)
-  __constant__ CComplex<CMPTYPE> table[LENGH*LENGTH]
+__constant__ CMPTYPE table[LENGTH*LENGTH*2];
 #endif
+
 extern void h5read(struct multipoledata & pole, char filename[]);
 extern void anyvalue(struct multipoledata, unsigned, unsigned, unsigned, unsigned);
 int main(int argc, char *argv[]){
