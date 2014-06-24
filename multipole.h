@@ -72,7 +72,7 @@ public:
 #endif
 
  public:
-#if defined(__QUICKW)
+#if defined(__QUICKWG) || defined(__QUICKWT)
   multipole(struct multipoledata data, CComplex<CMPTYPE> *wtable);
 #else
   multipole(struct multipoledata data);
