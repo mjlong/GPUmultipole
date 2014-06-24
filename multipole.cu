@@ -16,7 +16,7 @@ static __inline__ __device__ CComplex<float> texfetch_complex8(texture<float2,2>
 
 #endif
 
-#if defined(__QUICKW)
+#if defined(__QUICKWG) || defined(__QUICKWT)
 multipole::multipole(struct multipoledata data, CComplex<CMPTYPE>* wtable){
 #else
 multipole::multipole(struct multipoledata data){

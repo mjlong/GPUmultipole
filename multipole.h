@@ -67,7 +67,7 @@ public:
   CMPTYPE *fit;
   //Contains the fitting function.  (reaction type, coeff index, window index)
   //=========================================================================
-#if defined(__QUICKW)
+#if defined(__QUICKWG) || defined(__QUICKWT)
   CComplex<CMPTYPE>* table;
 #endif
 
