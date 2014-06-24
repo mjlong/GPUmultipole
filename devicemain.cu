@@ -47,7 +47,12 @@ void anyvalue(struct multipoledata data, unsigned setgridx, unsigned setblockx, 
   CComplex<CMPTYPE> *wtable;
   gpuErrchk(cudaMalloc((void**)&wtable, LENGTH*LENGTH * 2 * sizeof(CMPTYPE)));
   initialize_table<<<LENGTH,LENGTH>>>(wtable);
+#if defined(__QUICWC)
+  cudaMemcpyToSymbol(table, &wtable, sizeof(wtable));
+  multipole U238(data);
+#else
   multipole U238(data, wtable);
+#endif //__QUICKWC
 #else
   multipole U238(data); //host multipoledata to device
 #endif 
