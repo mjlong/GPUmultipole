@@ -1,5 +1,21 @@
 #include "QuickW.h"
+#if defined(__QUICKWT)
+//TODO: consider quickw must use float here
+// it deserves try double later
+//texture<float2> tex_wtable;
+/*static __inline__ __device__ CComplex<float> texfetch_complex8(texture<float2> t, int i){
+  float2 v = tex1Dfetch(t,i);
+  return CComplex<float>(v.x, v.y);
+  }*/
 
+extern texture<float2,2> tex_wtable;
+
+static __inline__ __device__ CComplex<float> texfetch_complex8(texture<float2,2> t, int i, int j){
+  float2 v = tex2D(t, i, j);
+  return CComplex<float>(v.x, v.y);
+}
+
+#endif
 __device__ CMPTYPE b = 0.275255128608410950901357962647054304017026259671664935783653;
 __device__ CMPTYPE d = 2.724744871391589049098642037352945695982973740328335064216346;
 __device__ CMPTYPE a = 0.512424224754768462984202823134979415014943561548661637413182;
@@ -53,28 +69,25 @@ __device__ void fill_w_tabulated(CComplex<CMPTYPE>* w_tabulated, int id){
  accurate to O(10^-6).                           
 ===============================================================================*/ 
 #if defined(__QUICKWT)
-__device__ CComplex<CMPTYPE> w_function(CComplex<CMPTYPE> z, 
-					CComplex<CMPTYPE> bottom,
-					CComplex<CMPTYPE> left,
-					CComplex<CMPTYPE> center,
-					CComplex<CMPTYPE> right,
-					CComplex<CMPTYPE> top,
-					CComplex<CMPTYPE> topright,
-					CMPTYPE p, CMPTYPE q){
+__device__ CComplex<CMPTYPE> w_function(CComplex<CMPTYPE> z){
   CComplex<CMPTYPE> w;
   if(abs(Norm(z)) < 6.0){
+    CMPTYPE p = 10.0*abs(real(z));
+    CMPTYPE q = 10.0*imag(z);
+    int     l = (int)p + 1;
+    int     m = (int)q + 1;
     p = p - (int)p;
     q = q - (int)q;
     CMPTYPE pp = p*p;
     CMPTYPE qq = q*q;
     CMPTYPE pq = p*q;
     w =  
-      (CMPTYPE)0.5*(qq - q)        *bottom + 
-      (CMPTYPE)0.5*(pp - p)        *left   +
-      (CMPTYPE)(1.0 + pq - pp - qq)*center +
-      (CMPTYPE)(0.5*(pp + p) - pq) *right  +
-      (CMPTYPE)(0.5*(qq + q) - pq) *top    +
-      (CMPTYPE) pq                 *topright;
+      (CMPTYPE)0.5*(qq - q)        *texfetch_complex8(tex_wtable, m-1, l  ) + 
+      (CMPTYPE)0.5*(pp - p)        *texfetch_complex8(tex_wtable, m  , l-1) +
+      (CMPTYPE)(1.0 + pq - pp - qq)*texfetch_complex8(tex_wtable, m  , l  ) +
+      (CMPTYPE)(0.5*(pp + p) - pq) *texfetch_complex8(tex_wtable, m  , l+1) +
+      (CMPTYPE)(0.5*(qq + q) - pq) *texfetch_complex8(tex_wtable, m+1, l  ) +
+      (CMPTYPE) pq                 *texfetch_complex8(tex_wtable, m+1, l+1);
     if(real(z)<0)
       w = Conjugate(w);
   }
@@ -88,13 +101,6 @@ __device__ CComplex<CMPTYPE> w_function(CComplex<CMPTYPE> z, CComplex<CMPTYPE>* 
   CMPTYPE  p;           // interpolation factor on real axis                                   
   CMPTYPE  q;           // interpolation factor on imaginary axis                                  
   CMPTYPE  pp, qq, pq;  // products of p and q                                         
-  /*
-  CMPTYPE  a_l;         // coefficient for left point                                   
-  CMPTYPE  a_c;         // coefficient for center point                                         
-  CMPTYPE  a_b;         // coefficient for bottom point    
-  CMPTYPE  a_r;         // coefficient for right point                                             
-  CMPTYPE  a_t;         // coefficient for top point  
-  */
 
   int l;               //interpolation index for real axis
   int m;               //interpolation index for imaginary axis
@@ -130,15 +136,6 @@ __device__ CComplex<CMPTYPE> w_function(CComplex<CMPTYPE> z, CComplex<CMPTYPE>* 
     qq = q*q;
     pq = p*q;
 
-    //Coefficients for interpolation
-    /*
-    a_b = 0.5*(qq - q);         //bottom
-    a_l = 0.5*(pp - p);         //left
-    a_c = 1.0 + pq - pp - qq;   //center
-    a_r = 0.5*(pp + p) - pq;    //right
-    a_t = 0.5*(qq + q) - pq;    //top
-    */
-
     // Use six-point interpolation to calculate real and imaginary parts
     l++;
     m++;
@@ -165,3 +162,4 @@ __device__ CComplex<CMPTYPE> w_function(CComplex<CMPTYPE> z, CComplex<CMPTYPE>* 
   return w;
 }
 #endif
+
