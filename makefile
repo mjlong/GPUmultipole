@@ -19,7 +19,8 @@ ifeq ($(WFUN),0)
   W_IDEN = -D __MITW
   GSOURCES += Faddeeva.cu
 else 
-  ifeq ($(WFUN),11)
+ W_IDEN = -D __SAMPLE
+ ifeq ($(WFUN),11)
   W_IDEN = -D __QUICKW -D __QUICKWG
   GSOURCES += Faddeeva.cu QuickW.cu
   endif 
@@ -29,8 +30,6 @@ else
   endif
   ifeq ($(WFUN),13)
   W_IDEN = -D __QUICKW -D __QUICKWC
-  else
-  W_IDEN = -D __SAMPLE
   endif
 endif   
 #
