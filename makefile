@@ -4,11 +4,10 @@
 #WHPW = 2
 CC=h5cc #g++ #h5pcc #g++
 NVCC = nvcc
-NCFLAGS=-g -G -dc -arch=sm_20
+NCFLAGS=-g -G -dc -arch=sm_20 -Xptxas="-v"
 #CCFLAGS=-c -g -I/opt/hdf5/1.8.11-intel/include -I/opt/mpich/3.0.4-intel/include/
 CCFLAGS=-c -g -I/home/jlmiao/opt/hdf5/include 
 LINKLAG=-arch=sm_20 -dlink
-#LDFLAGS=-g -L/opt/mpich/3.0.4-intel/lib/ -L/opt/hdf5/1.8.11-intel/lib/ -L/usr/local/cuda-5.5/lib64 -lcudart -lhdf5 -lmpich
 LDFLAGS=-g -L/home/jlmiao/opt/hdf5/lib/ -L/usr/local/cuda-5.5/lib64 -lcudart -lhdf5 
 # Faddeeva function implementation 
 ifeq ($(WFUN),0)
