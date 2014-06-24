@@ -1,6 +1,7 @@
 #MITW = 0
 #QUICKW_GLOABAL = 11
 #QUICKW_TEXTURE = 12
+#QUICKW_CONST   = 13
 #WHPW = 2
 CC=h5cc #g++ #h5pcc #g++
 NVCC = nvcc
@@ -21,13 +22,15 @@ else
   ifeq ($(WFUN),11)
   W_IDEN = -D __QUICKW -D __QUICKWG
   GSOURCES += Faddeeva.cu QuickW.cu
-  else 
-    ifeq ($(WFUN),12)
+  endif 
+  ifeq ($(WFUN),12)
   W_IDEN = -D __QUICKW -D __QUICKWT
   GSOURCES += Faddeeva.cu QuickW.cu
-    else
+  endif
+  ifeq ($(WFUN),13)
+  W_IDEN = -D __QUICKW -D --QUICKWC
+  else
   W_IDEN = -D __SAMPLE
-    endif
   endif
 endif   
 #
