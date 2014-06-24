@@ -5,44 +5,30 @@
 CC=h5cc #g++ #h5pcc #g++
 NVCC = nvcc
 NCFLAGS=-g -G -dc -arch=sm_20 -Xptxas="-v"
-#CCFLAGS=-c -g -I/opt/hdf5/1.8.11-intel/include -I/opt/mpich/3.0.4-intel/include/
 CCFLAGS=-c -g -I/home/jlmiao/opt/hdf5/include 
 LINKLAG=-arch=sm_20 -dlink
 LDFLAGS=-g -L/home/jlmiao/opt/hdf5/lib/ -L/usr/local/cuda-5.5/lib64 -lcudart -lhdf5 
-# Faddeeva function implementation 
-ifeq ($(WFUN),0)
-  W_IDEN = -D __MITW
-  GSOURCES=\
-  Faddeeva.cu\
+GSOURCES=\
   simulation.cu\
   multipole.cu\
   devicemain.cu\
-  main.cu   
-else ifeq ($(WFUN),11)
-       W_IDEN = -D __QUICKW -D __QUICKWG
-       GSOURCES=\
-       Faddeeva.cu\
-       QuickW.cu\
-       simulation.cu\
-       multipole.cu\
-       devicemain.cu\
-       main.cu
-     else ifeq ($(WFUN),12)
-       W_IDEN = -D __QUICKW -D __QUICKWT
-       GSOURCES=\
-       Faddeeva.cu\
-       QuickW.cu\
-       simulation.cu\
-       multipole.cu\
-       devicemain.cu\
-       main.cu
-          else
-            W_IDEN = -D __SAMPLE
-            GSOURCES=\
-            simulation.cu\
-            multipole.cu\
-            devicemain.cu\
-            main.cu
+  main.cu
+# Faddeeva function implementation 
+ifeq ($(WFUN),0)
+  W_IDEN = -D __MITW
+  GSOURCES += Faddeeva.cu
+else 
+  ifeq ($(WFUN),11)
+  W_IDEN = -D __QUICKW -D __QUICKWG
+  GSOURCES += Faddeeva.cu QuickW.cu
+  else 
+    ifeq ($(WFUN),12)
+  W_IDEN = -D __QUICKW -D __QUICKWT
+  GSOURCES += Faddeeva.cu QuickW.cu
+    else
+  W_IDEN = -D __SAMPLE
+    endif
+  endif
 endif   
 #
 ifeq ($(FLOAT),1)
