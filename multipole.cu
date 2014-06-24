@@ -16,6 +16,10 @@ static __inline__ __device__ CComplex<float> texfetch_complex8(texture<float2,2>
 
 #endif
 
+#if defined(__QUICKWC)
+extern __constant__ CMPTYPE table[LENGTH*LENGTH*2];
+#endif
+
 #if defined(__QUICKWG) || defined(__QUICKWT)
 multipole::multipole(struct multipoledata data, CComplex<CMPTYPE>* wtable){
 #else
@@ -172,8 +176,24 @@ __device__  void multipole::xs_eval_fast(CMPTYPE E, CMPTYPE sqrtKT,
 		       p, q)*DOPP_ECOEF;
 #endif
 		       
-#if defined(__QUICKWG)
+#if defined(__QUICKWG) 
     w_val = w_function((sqrtE - mpdata[pindex(iP-1,MP_EA)])*DOPP,table)*DOPP_ECOEF;
+#endif
+
+#if defined(__QUICKWC)
+    CComplex<CMPTYPE> z = (sqrtE - mpdata[pindex(iP-1,MP_EA)])*DOPP;
+    CMPTYPE p = 10.0*abs(real(z));
+    CMPTYPE q = 10.0*imag(z);
+    int     l = (int)p + 1;
+    int     m = (int)q + 1;
+    w_val = w_function(z, 
+		       CComplex<CMPTYPE>(table[((m-1)*LENGTH+l)*2],table[((m-1)*LENGTH+l)*2+1]),
+		       CComplex<CMPTYPE>(table[(m*LENGTH + l-1)*2],table[(m*LENGTH + l-1)*2+1]),
+		       CComplex<CMPTYPE>(table[(m*LENGTH + l  )*2],table[(m*LENGTH + l  )*2+1]),
+		       CComplex<CMPTYPE>(table[(m*LENGTH + l+1)*2],table[(m*LENGTH + l+1)*2+1]),
+		       CComplex<CMPTYPE>(table[((m+1)*LENGTH+l)*2],table[((m+1)*LENGTH+l)*2+1]),
+		       CComplex<CMPTYPE>(table[((m+1)*LENGTH+l+1)*2],table[((m+1)*LENGTH+l+1)*2]),
+		       p, q)*DOPP_ECOEF;
 #endif
 
 #if defined(__MITW)
