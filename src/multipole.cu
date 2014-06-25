@@ -8,8 +8,12 @@ texture<double2, 2> tex_wtable;
 #endif
 
 #if defined(__QUICKWG) || defined(__QUICKWT)
+// __QUICKWT binds   global memory wtable to texture   
+// __QUICKWG assigns global memory wtable to multipole member
 multipole::multipole(struct multipoledata data, CComplex<CMPTYPE>* wtable){
-#else
+#else 
+// __QUICKWC uses constant memory
+// __MITW    uses no wtable
 multipole::multipole(struct multipoledata data){
 #endif
   size_t size;
