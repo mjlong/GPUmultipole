@@ -7,10 +7,6 @@ texture<double2, 2> tex_wtable;
 #endif
 #endif
 
-#if defined(__QUICKWC)
-extern __constant__ CMPTYPE table[LENGTH*LENGTH*2];
-#endif
-
 #if defined(__QUICKWG) || defined(__QUICKWT)
 multipole::multipole(struct multipoledata data, CComplex<CMPTYPE>* wtable){
 #else
