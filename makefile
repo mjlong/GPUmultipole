@@ -3,6 +3,9 @@
 #QUICKW_TEXTURE = 12
 #QUICKW_CONST   = 13
 #WHPW = 2
+DIR_SRC = .
+DIR_OBJ = ./bin
+DIR_BIN = ./bin
 CC=h5cc #g++ #h5pcc #g++
 NVCC = nvcc
 NCFLAGS=-g -G -dc -arch=sm_20 #-Xptxas="-v"
@@ -38,22 +41,21 @@ ifeq ($(FLOAT),1)
   CMPTYPE = -D __CFLOAT
 endif
 #
-CSOURCES=\
-hdf5IO.cc
+CSOURCES= $(wildcard ${DIR_SRC}/*.cc)
 COBJECTS=$(CSOURCES:.cc=.obj)
 GOBJECTS=$(GSOURCES:.cu=.o)
 LINKJECT=dlink.o      
-EXECUTABLE=tiny
+EXECUTABLE=bin/tiny
 all: $(EXECUTABLE)
 
 $(EXECUTABLE): $(COBJECTS) $(GOBJECTS) $(LINKJECT)
 	$(CC)  $^ $(LDFLAGS) -o $@
 
-%.obj : %.cc
-	$(CC)             $(CMPTYPE) $(CCFLAGS) $^ -o $@
-%.o : %.cu
+bin/%.obj : %.cc
+	$(CC)             $(CMPTYPE) $(CCFLAGS) $< -o $@
+bin/%.o : %.cu
 	$(NVCC) $(W_IDEN) $(CMPTYPE) $(NCFLAGS)  $^ -o $@
-$(LINKJECT) : $(GOBJECTS)
+bin/$(LINKJECT) : $(GOBJECTS)
 	$(NVCC) $(LINKLAG) $^ -o $@
 remove :
 	rm -rf *.o  *.obj *~
