@@ -39,10 +39,10 @@
 
 //__device__ void initialize_w_tabulated(CComplex*);
 __device__ void fill_w_tabulated(CComplex<CMPTYPE>*, int);
-#if defined(__QUICKWT)
-__device__ CComplex<CMPTYPE> w_function(CComplex<CMPTYPE>);
-#else //__QUICKWG
+#if defined(__QUICKWG)
 __device__ CComplex<CMPTYPE> w_function(CComplex<CMPTYPE>, CComplex<CMPTYPE>*);
+#else //__QUICKWT or __QUICKWC
+__device__ CComplex<CMPTYPE> w_function(CComplex<CMPTYPE>);
 #endif
 
 

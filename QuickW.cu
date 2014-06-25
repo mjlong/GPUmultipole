@@ -7,15 +7,17 @@
   float2 v = tex1Dfetch(t,i);
   return CComplex<float>(v.x, v.y);
   }*/
-
 extern texture<float2,2> tex_wtable;
-
 static __inline__ __device__ CComplex<float> texfetch_complex8(texture<float2,2> t, int i, int j){
   float2 v = tex2D(t, i, j);
   return CComplex<float>(v.x, v.y);
 }
-
 #endif
+
+#if defined(__QUICKWC)
+extern __constant__ CMPTYPE table[LENGTH*LENGTH*2];
+#endif
+
 __device__ CMPTYPE b = 0.275255128608410950901357962647054304017026259671664935783653;
 __device__ CMPTYPE d = 2.724744871391589049098642037352945695982973740328335064216346;
 __device__ CMPTYPE a = 0.512424224754768462984202823134979415014943561548661637413182;
@@ -68,7 +70,7 @@ __device__ void fill_w_tabulated(CComplex<CMPTYPE>* w_tabulated, int id){
  O(10^-3). For |z| > 6, it uses a three-term asymptotic approximation that is                 
  accurate to O(10^-6).                           
 ===============================================================================*/ 
-#if defined(__QUICKWT)
+#if defined(__QUICKWT) || defined(__QUICKWC)
 __device__ CComplex<CMPTYPE> w_function(CComplex<CMPTYPE> z){
   CComplex<CMPTYPE> w;
   if(abs(Norm(z)) < 6.0){
@@ -82,12 +84,21 @@ __device__ CComplex<CMPTYPE> w_function(CComplex<CMPTYPE> z){
     CMPTYPE qq = q*q;
     CMPTYPE pq = p*q;
     w =  
+#if defined(__QUICKWT)
       (CMPTYPE)0.5*(qq - q)        *texfetch_complex8(tex_wtable, m-1, l  ) + 
       (CMPTYPE)0.5*(pp - p)        *texfetch_complex8(tex_wtable, m  , l-1) +
       (CMPTYPE)(1.0 + pq - pp - qq)*texfetch_complex8(tex_wtable, m  , l  ) +
       (CMPTYPE)(0.5*(pp + p) - pq) *texfetch_complex8(tex_wtable, m  , l+1) +
       (CMPTYPE)(0.5*(qq + q) - pq) *texfetch_complex8(tex_wtable, m+1, l  ) +
       (CMPTYPE) pq                 *texfetch_complex8(tex_wtable, m+1, l+1);
+#else    // __QUICKWC
+      (CMPTYPE)0.5*(qq - q)        *CComplex<CMPTYPE>(table[((m-1)*LENGTH+l)*2],table[((m-1)*LENGTH+l)*2+1]),
+      (CMPTYPE)0.5*(pp - p)        *CComplex<CMPTYPE>(table[(m*LENGTH + l-1)*2],table[(m*LENGTH + l-1)*2+1]),
+      (CMPTYPE)(1.0 + pq - pp - qq)*CComplex<CMPTYPE>(table[(m*LENGTH + l  )*2],table[(m*LENGTH + l  )*2+1]),
+      (CMPTYPE)(0.5*(pp + p) - pq) *CComplex<CMPTYPE>(table[(m*LENGTH + l+1)*2],table[(m*LENGTH + l+1)*2+1]),
+      (CMPTYPE)(0.5*(qq + q) - pq) *CComplex<CMPTYPE>(table[((m+1)*LENGTH+l)*2],table[((m+1)*LENGTH+l)*2+1]),
+      (CMPTYPE) pq                 *CComplex<CMPTYPE>(table[((m+1)*LENGTH+l+1)*2],table[((m+1)*LENGTH+l+1)*2]);
+#endif
     if(real(z)<0)
       w = Conjugate(w);
   }
