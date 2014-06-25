@@ -12,7 +12,12 @@
 
 
 #if defined (__QUICKWC)
-extern __constant__ CMPTYPE table[LENGTH*LENGTH*2];
+#if defined(__CFLOAT)
+extern __constant__ float2 table[LENGTH*LENGTH];
+#else
+extern __constant__ double2 table[LENGTH*LENGTH];
+#endif
+//extern __constant__ CMPTYPE table[LENGTH*LENGTH*2];
 #endif
 
 void printdevice();
