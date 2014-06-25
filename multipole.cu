@@ -140,29 +140,15 @@ __device__  void multipole::xs_eval_fast(CMPTYPE E, CMPTYPE sqrtKT,
   for(iP=startW;iP<=endW;iP++){
     //sigtfactor = sigT_factor[l_value[iP-1]-1];
     //w_val = (sqrtE - mpdata[pindex(iP-1,MP_EA)])*DOPP*DOPP_ECOEF;
-#if defined(__QUICKWT)
-    w_val = w_function((sqrtE - mpdata[pindex(iP-1,MP_EA)])*DOPP      )*DOPP_ECOEF;
-#endif
 		       
 #if defined(__QUICKWG) 
     w_val = w_function((sqrtE - mpdata[pindex(iP-1,MP_EA)])*DOPP,table)*DOPP_ECOEF;
+#else
+    w_val = w_function((sqrtE - mpdata[pindex(iP-1,MP_EA)])*DOPP      )*DOPP_ECOEF;
+    // __QUICKWT extern texture in QuickW.cu
+    // __QUICKWC extern array   in QuickW.cu
 #endif
 
-#if defined(__QUICKWC)
-    CComplex<CMPTYPE> z = (sqrtE - mpdata[pindex(iP-1,MP_EA)])*DOPP;
-    CMPTYPE p = 10.0*abs(real(z));
-    CMPTYPE q = 10.0*imag(z);
-    int     l = (int)p + 1;
-    int     m = (int)q + 1;
-    w_val = w_function(z, 
-		       CComplex<CMPTYPE>(table[((m-1)*LENGTH+l)*2],table[((m-1)*LENGTH+l)*2+1]),
-		       CComplex<CMPTYPE>(table[(m*LENGTH + l-1)*2],table[(m*LENGTH + l-1)*2+1]),
-		       CComplex<CMPTYPE>(table[(m*LENGTH + l  )*2],table[(m*LENGTH + l  )*2+1]),
-		       CComplex<CMPTYPE>(table[(m*LENGTH + l+1)*2],table[(m*LENGTH + l+1)*2+1]),
-		       CComplex<CMPTYPE>(table[((m+1)*LENGTH+l)*2],table[((m+1)*LENGTH+l)*2+1]),
-		       CComplex<CMPTYPE>(table[((m+1)*LENGTH+l+1)*2],table[((m+1)*LENGTH+l+1)*2]),
-		       p, q)*DOPP_ECOEF;
-#endif
 
 #if defined(__MITW)
 #if defined(__CFLOAT)
