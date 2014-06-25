@@ -4,7 +4,12 @@
 #include "global.h"
 
 #if defined (__QUICKWC)
-__constant__ CMPTYPE table[LENGTH*LENGTH*2];
+#if defined(__CFLOAT)
+__constant__ float2 table[LENGTH*LENGTH];
+#else
+__constant__ double2 table[LENGTH*LENGTH];
+#endif
+//__constant__ CMPTYPE table[LENGTH*LENGTH*2];
 #endif
 
 extern void h5read(struct multipoledata & pole, char filename[]);
