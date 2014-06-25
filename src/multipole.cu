@@ -145,7 +145,9 @@ __device__  void multipole::xs_eval_fast(CMPTYPE E, CMPTYPE sqrtKT,
 		       
 #if defined(__QUICKWG) 
     w_val = w_function((sqrtE - mpdata[pindex(iP-1,MP_EA)])*DOPP,table)*DOPP_ECOEF;
-#else
+#endif
+
+#if defined(__QUICKWC) || defined(__QUICKWT)
     w_val = w_function((sqrtE - mpdata[pindex(iP-1,MP_EA)])*DOPP      )*DOPP_ECOEF;
     // __QUICKWT extern texture in QuickW.cu
     // __QUICKWC extern array   in QuickW.cu
