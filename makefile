@@ -18,27 +18,35 @@ WSOURCES=
 ifeq ($(WFUN),0)
   W_IDEN = -D __MITW
   WSOURCES += $(DIR_SRC)/wfunction/Faddeeva.cu
+  EXENAME=$(DIR_BIN)/gpumr_mitw_double
 else 
   W_IDEN = -D __SAMPLE
+  EXENAME=$(DIR_BIN)/gpumr_sample_double
   ifeq ($(WFUN),11)
   W_IDEN = -D __QUICKW -D __QUICKWG
   WSOURCES += $(DIR_SRC)/wfunction/Faddeeva.cu 
   WSOURCES += $(DIR_SRC)/wfunction/QuickW.cu
+  EXENAME=$(DIR_BIN)/gpumr_quickwg_double
   endif 
   ifeq ($(WFUN),12)
   W_IDEN = -D __QUICKW -D __QUICKWT
   WSOURCES += $(DIR_SRC)/wfunction/Faddeeva.cu 
   WSOURCES += $(DIR_SRC)/wfunction/QuickW.cu
+  EXENAME=$(DIR_BIN)/gpumr_quickwt_double
   endif
   ifeq ($(WFUN),13)
   W_IDEN = -D __QUICKW -D __QUICKWC
   WSOURCES += $(DIR_SRC)/wfunction/Faddeeva.cu 
   WSOURCES += $(DIR_SRC)/wfunction/QuickW.cu
+  EXENAME=$(DIR_BIN)/gpumr_quickwc_double
   endif
 endif   
 #
 ifeq ($(FLOAT),1)
   CMPTYPE = -D __CFLOAT
+  EXECUTABLE=$(patsubst %_double, %_float, $(EXENAME))
+else
+  EXECUTABLE=$(EXENAME)
 endif
 #
 CSOURCES=$(wildcard ${DIR_SRC}/*.cc)
@@ -46,7 +54,6 @@ COBJECTS=$(patsubst %.cc, ${DIR_OBJ}/%.obj, $(notdir ${CSOURCES}))
 GOBJECTS=$(patsubst %.cu, ${DIR_OBJ}/%.o  , $(notdir ${GSOURCES}))
 WOBJECTS=$(patsubst %.cu, ${DIR_OBJ}/%.o  , $(notdir ${WSOURCES}))
 LINKJECT=${DIR_OBJ}/dlink.o      
-EXECUTABLE=$(DIR_BIN)/tiny
 all: $(EXECUTABLE)
 
 $(EXECUTABLE): $(COBJECTS) $(GOBJECTS) $(WOBJECTS) $(LINKJECT)
@@ -62,7 +69,9 @@ ${DIR_OBJ}/%.o : ${DIR_SRC}/wfunction/%.cu
 $(LINKJECT) : $(GOBJECTS) $(WOBJECTS)
 	$(NVCC) $(LINKLAG) $^ -o $@
 remove :
-	rm -rf *.o  *.obj *~
+	find ${DIR_OBJ} -name *.o   -exec rm -rf {} \;
+	find ${DIR_OBJ} -name *.obj -exec rm -rf {} \;
+	find ${DIR_BIN} -name gpumr_*   -exec rm -rf {} \;
 clean :  
 	find ${DIR_OBJ} -name *.o   -exec rm -rf {} \;
 	find ${DIR_OBJ} -name *.obj -exec rm -rf {} \;
