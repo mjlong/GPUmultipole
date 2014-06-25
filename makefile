@@ -4,11 +4,11 @@
 #QUICKW_CONST   = 13
 #WHPW = 2
 DIR_SRC = ./src
-DIR_OBJ = ./bin
+DIR_OBJ = ./obj
 DIR_BIN = ./bin
 CC=h5cc #g++ #h5pcc #g++
 NVCC = nvcc
-NCFLAGS=-g -G -dc -arch=sm_20 #-Xptxas="-v"
+NCFLAGS=-g -G -dc -arch=sm_20 -I${DIR_SRC} -I${DIR_SRC}/wfunction #-Xptxas="-v"
 CCFLAGS=-c -g -I/home/jlmiao/opt/hdf5/include 
 LINKLAG=-arch=sm_20 -dlink
 LDFLAGS=-g -L/home/jlmiao/opt/hdf5/lib/ -L/usr/local/cuda-5.5/lib64 -lcudart -lhdf5 
@@ -49,7 +49,7 @@ LINKJECT=${DIR_OBJ}/dlink.o
 EXECUTABLE=$(DIR_BIN)/tiny
 all: $(EXECUTABLE)
 
-$(EXECUTABLE): $(COBJECTS) $(GOBJECTS) $(LINKJECT)
+$(EXECUTABLE): $(COBJECTS) $(GOBJECTS) $(WOBJECTS) $(LINKJECT)
 	$(CC)  $^ $(LDFLAGS) -o $@
 
 ${DIR_OBJ}/%.obj : ${DIR_SRC}/%.cc
@@ -58,9 +58,11 @@ ${DIR_OBJ}/%.o : ${DIR_SRC}/%.cu
 	$(NVCC) $(W_IDEN) $(CMPTYPE) $(NCFLAGS)  $^ -o $@
 ${DIR_OBJ}/%.o : ${DIR_SRC}/wfunction/%.cu
 	$(NVCC) $(W_IDEN) $(CMPTYPE) $(NCFLAGS)  $^ -o $@
-${DIR_OBJ}/$(LINKJECT) : $(GOBJECTS) $(WOBJECTS)
+#${DIR_OBJ}/$(LINKJECT) : ${DIR_OBJ}/multipole.o
+$(LINKJECT) : $(GOBJECTS) $(WOBJECTS)
 	$(NVCC) $(LINKLAG) $^ -o $@
 remove :
 	rm -rf *.o  *.obj *~
 clean :  
-	find ${DIR_OBJ} -name *.o *.obj -exec rm -rf {}
+	find ${DIR_OBJ} -name *.o   -exec rm -rf {} \;
+	find ${DIR_OBJ} -name *.obj -exec rm -rf {} \;
