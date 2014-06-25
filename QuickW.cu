@@ -104,12 +104,20 @@ __device__ CComplex<CMPTYPE> w_function(CComplex<CMPTYPE> z){
       (CMPTYPE)(0.5*(qq + q) - pq) *texfetch_complex(tex_wtable, m+1, l  ) +
       (CMPTYPE) pq                 *texfetch_complex(tex_wtable, m+1, l+1);
 #else    // __QUICKWC
-      (CMPTYPE)0.5*(qq - q)        *CComplex<CMPTYPE>(table[((m-1)*LENGTH+l)*2],table[((m-1)*LENGTH+l)*2+1]),
-      (CMPTYPE)0.5*(pp - p)        *CComplex<CMPTYPE>(table[(m*LENGTH + l-1)*2],table[(m*LENGTH + l-1)*2+1]),
-      (CMPTYPE)(1.0 + pq - pp - qq)*CComplex<CMPTYPE>(table[(m*LENGTH + l  )*2],table[(m*LENGTH + l  )*2+1]),
-      (CMPTYPE)(0.5*(pp + p) - pq) *CComplex<CMPTYPE>(table[(m*LENGTH + l+1)*2],table[(m*LENGTH + l+1)*2+1]),
-      (CMPTYPE)(0.5*(qq + q) - pq) *CComplex<CMPTYPE>(table[((m+1)*LENGTH+l)*2],table[((m+1)*LENGTH+l)*2+1]),
-      (CMPTYPE) pq                 *CComplex<CMPTYPE>(table[((m+1)*LENGTH+l+1)*2],table[((m+1)*LENGTH+l+1)*2]);
+    /*
+      (CMPTYPE)0.5*(qq - q)        *CComplex<CMPTYPE>(table[((m-1)*LENGTH+l)*2],table[((m-1)*LENGTH+l)*2+1])+
+      (CMPTYPE)0.5*(pp - p)        *CComplex<CMPTYPE>(table[(m*LENGTH + l-1)*2],table[(m*LENGTH + l-1)*2+1])+
+      (CMPTYPE)(1.0 + pq - pp - qq)*CComplex<CMPTYPE>(table[(m*LENGTH + l  )*2],table[(m*LENGTH + l  )*2+1])+
+      (CMPTYPE)(0.5*(pp + p) - pq) *CComplex<CMPTYPE>(table[(m*LENGTH + l+1)*2],table[(m*LENGTH + l+1)*2+1])+
+      (CMPTYPE)(0.5*(qq + q) - pq) *CComplex<CMPTYPE>(table[((m+1)*LENGTH+l)*2],table[((m+1)*LENGTH+l)*2+1])+
+      (CMPTYPE) pq                 *CComplex<CMPTYPE>(table[((m+1)*LENGTH+l+1)*2],table[((m+1)*LENGTH+l+1)*2+1]);
+    */
+      (CMPTYPE)0.5*(qq - q)        *CComplex<CMPTYPE>(table[(m-1)*LENGTH+l].x,table[(m-1)*LENGTH+l].y)+
+      (CMPTYPE)0.5*(pp - p)        *CComplex<CMPTYPE>(table[m*LENGTH + l-1].x,table[m*LENGTH + l-1].y)+
+      (CMPTYPE)(1.0 + pq - pp - qq)*CComplex<CMPTYPE>(table[m*LENGTH + l  ].x,table[m*LENGTH + l  ].y)+
+      (CMPTYPE)(0.5*(pp + p) - pq) *CComplex<CMPTYPE>(table[m*LENGTH + l+1].x,table[m*LENGTH + l+1].y)+
+      (CMPTYPE)(0.5*(qq + q) - pq) *CComplex<CMPTYPE>(table[(m+1)*LENGTH+l].x,table[(m+1)*LENGTH+l].y)+
+      (CMPTYPE) pq                 *CComplex<CMPTYPE>(table[(m+1)*LENGTH+l+1].x,table[(m+1)*LENGTH+l+1].y);
 #endif
     if(real(z)<0)
       w = Conjugate(w);
