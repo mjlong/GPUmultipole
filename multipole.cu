@@ -1,8 +1,10 @@
 #include "multipole.h"
 #if defined(__QUICKWT)
-//TODO: consider quickw must use float here
-// it deserves try double later
+#if defined(__CFLOAT)
 texture<float2, 2> tex_wtable;
+#else
+texture<double2, 2> tex_wtable;
+#endif
 #endif
 
 #if defined(__QUICKWC)
@@ -62,8 +64,12 @@ multipole::multipole(struct multipoledata data){
   
 #if defined(__QUICKWT)
   //cudaBindTexture(NULL, tex_wtable, wtable, LENGTH*LENGTH*sizeof(CMPTYPE)*2);
+#if defined(__CFLOAT)
   cudaChannelFormatDesc desc = cudaCreateChannelDesc<float2>();
-  cudaBindTexture2D(NULL, tex_wtable, wtable, desc, LENGTH, LENGTH, sizeof(float2)*LENGTH);
+#else
+  cudaChannelFormatDesc desc = cudaCreateChannelDesc<double2>();
+#endif
+  cudaBindTexture2D(NULL, tex_wtable, wtable, desc, LENGTH, LENGTH, sizeof(CMPTYPE)*2*LENGTH);
 #endif
 
 #if defined(__QUICKWG)

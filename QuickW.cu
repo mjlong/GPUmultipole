@@ -1,21 +1,33 @@
 #include "QuickW.h"
 #if defined(__QUICKWT)
-//TODO: consider quickw must use float here
-// it deserves try double later
 //texture<float2> tex_wtable;
 /*static __inline__ __device__ CComplex<float> texfetch_complex8(texture<float2> t, int i){
   float2 v = tex1Dfetch(t,i);
   return CComplex<float>(v.x, v.y);
-  }*/
+  }
+*/
+#if defined(__CFLOAT)
 extern texture<float2,2> tex_wtable;
-static __inline__ __device__ CComplex<float> texfetch_complex8(texture<float2,2> t, int i, int j){
+static __inline__ __device__ CComplex<float> texfetch_complex(texture<float2,2> t, int i, int j){
   float2 v = tex2D(t, i, j);
   return CComplex<float>(v.x, v.y);
 }
+#else
+extern texture<int4,2> tex_wtable;
+static __inline__ __device__ CComplex<double> texfetch_complex(texture<int4,2> t, int i, int j){
+  int4 v = tex2D(t, i, j);
+  return CComplex<double>(__hiloint2double(v.y, v.x),__hiloint2double(v.w,v.z));
+}
+#endif
 #endif
 
 #if defined(__QUICKWC)
-extern __constant__ CMPTYPE table[LENGTH*LENGTH*2];
+#if defined(__CFLOAT)
+extern __constant__ float2 table[LENGTH*LENGTH];
+#else
+extern __constant__ double2 table[LENGTH*LENGTH];
+#endif
+//extern __constant__ CMPTYPE table[LENGTH*LENGTH*2];
 #endif
 
 __device__ CMPTYPE b = 0.275255128608410950901357962647054304017026259671664935783653;
@@ -85,12 +97,12 @@ __device__ CComplex<CMPTYPE> w_function(CComplex<CMPTYPE> z){
     CMPTYPE pq = p*q;
     w =  
 #if defined(__QUICKWT)
-      (CMPTYPE)0.5*(qq - q)        *texfetch_complex8(tex_wtable, m-1, l  ) + 
-      (CMPTYPE)0.5*(pp - p)        *texfetch_complex8(tex_wtable, m  , l-1) +
-      (CMPTYPE)(1.0 + pq - pp - qq)*texfetch_complex8(tex_wtable, m  , l  ) +
-      (CMPTYPE)(0.5*(pp + p) - pq) *texfetch_complex8(tex_wtable, m  , l+1) +
-      (CMPTYPE)(0.5*(qq + q) - pq) *texfetch_complex8(tex_wtable, m+1, l  ) +
-      (CMPTYPE) pq                 *texfetch_complex8(tex_wtable, m+1, l+1);
+      (CMPTYPE)0.5*(qq - q)        *texfetch_complex(tex_wtable, m-1, l  ) + 
+      (CMPTYPE)0.5*(pp - p)        *texfetch_complex(tex_wtable, m  , l-1) +
+      (CMPTYPE)(1.0 + pq - pp - qq)*texfetch_complex(tex_wtable, m  , l  ) +
+      (CMPTYPE)(0.5*(pp + p) - pq) *texfetch_complex(tex_wtable, m  , l+1) +
+      (CMPTYPE)(0.5*(qq + q) - pq) *texfetch_complex(tex_wtable, m+1, l  ) +
+      (CMPTYPE) pq                 *texfetch_complex(tex_wtable, m+1, l+1);
 #else    // __QUICKWC
       (CMPTYPE)0.5*(qq - q)        *CComplex<CMPTYPE>(table[((m-1)*LENGTH+l)*2],table[((m-1)*LENGTH+l)*2+1]),
       (CMPTYPE)0.5*(pp - p)        *CComplex<CMPTYPE>(table[(m*LENGTH + l-1)*2],table[(m*LENGTH + l-1)*2+1]),
