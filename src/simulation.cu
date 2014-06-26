@@ -84,34 +84,43 @@ __global__ void remaining(multipole U238, CMPTYPE *devicearray, MemStruct Info){
   /* Copy state to local memory for efficiency */
   curandState localState = Info.nInfo[id].rndState;
   
+#if defined(__PROCESS)
+  localenergy = 1.0+19999.0/65536.0*id;
+#else
   localenergy = Info.nInfo[id].energy;
+#endif
   unsigned cnt = 0u;
   unsigned terminated = 0u;
   live = 1u;
   while(live){
-    //rnd = curand_uniform(&localState);
+    rnd = curand_uniform(&localState);
 #if defined(__SAMPLE)
     U238.xs_eval_fast(localenergy + 
 		      curand_normal(&localState)*sqrt(300.0*KB)*sqrt(0.5)/U238.dev_doubles[SQRTAWR], 
 		      sigT, sigA, sigF);
 #else
     U238.xs_eval_fast(localenergy, sqrt(300.0*KB), sigT, sigA, sigF);
-    //TODO:remove test version
 #endif
-    rnd = 0.0005 + id/65536.0;
-    //this is a good way to compare, but now i'll go back to previous bug
+
+#if !defined(__PROCESS)
     localenergy = localenergy * rnd;
     live = (localenergy > 1.0);
     cnt = cnt + 1;
     terminated += !live;
-    live = live &&(cnt < 2);
+#else
+    live = false;
+#enif
   }
   /* Copy state back to global memory */
   atomicAdd(Info.num_terminated_neutrons,terminated);
   Info.nInfo[id].rndState = localState;
   Info.tally[id].cnt += cnt;
-  
+
+#if defined(__PROCESS)  
+  devicearray[4 * id] = localenergy ;
+#else
   devicearray[4 * id] = localenergy / rnd;
+#endif
   devicearray[4 * id + 1] = sigT;
   devicearray[4 * id + 2] = sigA;
   devicearray[4 * id + 3] = sigF;
