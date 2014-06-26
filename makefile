@@ -47,6 +47,11 @@ else
   endif
 endif   
 #
+ifeq ($(compare),1)
+  W_IDEN += __PROCESS
+endif
+#
+#
 ifeq ($(FLOAT),1)
   CMPTYPE = -D __CFLOAT
   EXECUTABLE=$(patsubst %_double, %_float, $(EXENAME))
