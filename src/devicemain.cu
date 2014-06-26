@@ -67,7 +67,7 @@ void anyvalue(struct multipoledata data, unsigned setgridx, unsigned setblockx, 
 #endif 
 
 
-  initialize<<<dimBlock, dimGrid>>>(DeviceMem, 2000.0);//1.95093e4);
+  initialize<<<dimBlock, dimGrid>>>(DeviceMem, 20000.0);//1.95093e4);
   //  cudaDeviceSynchronize();
   /*
     Note: shared memory size is in unit of Bybe
@@ -75,7 +75,11 @@ void anyvalue(struct multipoledata data, unsigned setgridx, unsigned setblockx, 
   */
   gpuErrchk(cudaEventRecord(start, 0));
 
+#if defined(__PROCESS)
   active = 0u;
+#else
+  active = 1u;
+#endif
 
   while (active){
     history<<<dimBlock, dimGrid>>>(U238, DeviceMem, num_src, devstep);
@@ -111,13 +115,14 @@ void anyvalue(struct multipoledata data, unsigned setgridx, unsigned setblockx, 
     if(hostarray[4*i]<0)
       printf("error-:%d \n",i);
     else{
-      if(hostarray[4*i]>=2000.0)
+      if(hostarray[4*i]>=20000.0)
 	printf("error+:%d \n",i);
       else
 	printf("\n");
     }
   }
 
+#if !defined(__PROCESS)
   unsigned sum = 0;
   for (int i=0;i<gridx;i++){
     printf("%4d\n",cnt[i]);
@@ -133,6 +138,7 @@ void anyvalue(struct multipoledata data, unsigned setgridx, unsigned setblockx, 
 		       cudaMemcpyDeviceToHost));
   fprintf(fp,"%-4d,%-4d,%-.6f,%-8d,%-4d,%-2d M\n", gridx, blockx,timems*1000/sum, *HostMem.num_terminated_neutrons, devstep, num_src/1000000);
   fclose(fp);
+#endif
   //cudaEventRecord(stop, 0);
   //cudaEventSynchronize(stop);
   //cudaEventElapsedTime(&timems, start, stop);
