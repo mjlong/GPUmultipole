@@ -84,24 +84,27 @@ __global__ void remaining(multipole U238, CMPTYPE *devicearray, MemStruct Info){
   /* Copy state to local memory for efficiency */
   curandState localState = Info.nInfo[id].rndState;
   
-  localenergy = 6.979367603190286;//Info.nInfo[id].energy;
+  localenergy = Info.nInfo[id].energy;
   unsigned cnt = 0u;
   unsigned terminated = 0u;
   live = 1u;
   while(live){
-    rnd = curand_uniform(&localState);
+    //rnd = curand_uniform(&localState);
 #if defined(__SAMPLE)
     U238.xs_eval_fast(localenergy + 
 		      curand_normal(&localState)*sqrt(300.0*KB)*sqrt(0.5)/U238.dev_doubles[SQRTAWR], 
 		      sigT, sigA, sigF);
 #else
     U238.xs_eval_fast(localenergy, sqrt(300.0*KB), sigT, sigA, sigF);
+    //TODO:remove test version
 #endif
+    rnd = 0.0005 + id/65536.0;
+    //this is a good way to compare, but now i'll go back to previous bug
     localenergy = localenergy * rnd;
     live = (localenergy > 1.0);
-    live = 0u;
     cnt = cnt + 1;
     terminated += !live;
+    live = live &&(cnt < 2);
   }
   /* Copy state back to global memory */
   atomicAdd(Info.num_terminated_neutrons,terminated);
