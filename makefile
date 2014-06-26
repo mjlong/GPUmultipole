@@ -48,7 +48,7 @@ else
 endif   
 #
 ifeq ($(compare),1)
-  W_IDEN += __PROCESS
+  W_IDEN += -D __PROCESS
 endif
 #
 #
