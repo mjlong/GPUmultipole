@@ -8,10 +8,15 @@ DIR_OBJ = ./obj
 DIR_BIN = ./bin
 CC=h5cc #g++ #h5pcc #g++
 NVCC = nvcc
+ifeq ($(ver),debug)
 NCFLAGS=-g -G -dc -arch=sm_20 -I${DIR_SRC} -I${DIR_SRC}/wfunction #-Xptxas="-v"
 CCFLAGS=-c -g -I/home/jlmiao/opt/hdf5/include 
+else
+NCFLAGS=-dc -arch=sm_20 -I${DIR_SRC} -I${DIR_SRC}/wfunction #-Xptxas="-v"
+CCFLAGS=-c -I/home/jlmiao/opt/hdf5/include 
+endif
 LINKLAG=-arch=sm_20 -dlink
-LDFLAGS=-g -L/home/jlmiao/opt/hdf5/lib/ -L/usr/local/cuda-5.5/lib64 -lcudart -lhdf5 
+LDFLAGS=-L/home/jlmiao/opt/hdf5/lib/ -L/usr/local/cuda-5.5/lib64 -lcudart -lhdf5 
 GSOURCES=$(wildcard ${DIR_SRC}/*.cu)
 WSOURCES=
 # Faddeeva function implementation 
