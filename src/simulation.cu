@@ -84,7 +84,7 @@ __global__ void remaining(multipole U238, CMPTYPE *devicearray, MemStruct Info){
   /* Copy state to local memory for efficiency */
   curandState localState = Info.nInfo[id].rndState;
   
-  localenergy = Info.nInfo[id].energy;
+  localenergy = 6.979367603190286;//Info.nInfo[id].energy;
   unsigned cnt = 0u;
   unsigned terminated = 0u;
   live = 1u;
@@ -99,6 +99,7 @@ __global__ void remaining(multipole U238, CMPTYPE *devicearray, MemStruct Info){
 #endif
     localenergy = localenergy * rnd;
     live = (localenergy > 1.0);
+    live = 0u;
     cnt = cnt + 1;
     terminated += !live;
   }

@@ -75,7 +75,7 @@ void anyvalue(struct multipoledata data, unsigned setgridx, unsigned setblockx, 
   */
   gpuErrchk(cudaEventRecord(start, 0));
 
-  active = 1u;
+  active = 0u;
 
   while (active){
     history<<<dimBlock, dimGrid>>>(U238, DeviceMem, num_src, devstep);
