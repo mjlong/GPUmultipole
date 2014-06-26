@@ -107,7 +107,7 @@ void anyvalue(struct multipoledata data, unsigned setgridx, unsigned setblockx, 
   gpuErrchk(cudaMemcpy(cnt, blockcnt, gridx*sizeof(unsigned), cudaMemcpyDeviceToHost));
 
   for(int i=0;i<gridsize;i++){
-    printf("%.15e %.15e %.15e %.15e",
+    printf(" %.15e %.15e %.15e %.15e",
 	   hostarray[4*i],
 	   hostarray[4*i+1],
 	   hostarray[4*i+2],
