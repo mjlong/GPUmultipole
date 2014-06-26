@@ -85,7 +85,7 @@ __global__ void remaining(multipole U238, CMPTYPE *devicearray, MemStruct Info){
   curandState localState = Info.nInfo[id].rndState;
   
 #if defined(__PROCESS)
-  localenergy = 1.0+19999.0/65536.0*id;
+  localenergy = 1.0+19999.0/65536.0*id+0.181317676432466;
 #else
   localenergy = Info.nInfo[id].energy;
 #endif
@@ -109,7 +109,7 @@ __global__ void remaining(multipole U238, CMPTYPE *devicearray, MemStruct Info){
     terminated += !live;
 #else
     live = false;
-#enif
+#endif
   }
   /* Copy state back to global memory */
   atomicAdd(Info.num_terminated_neutrons,terminated);
