@@ -5,7 +5,11 @@
 #WHPW = 2
 DIR_SRC = ./src
 DIR_OBJ = ./obj
+ifeq ($(compare),1)
+DIR_BIN = ./bin/test
+else
 DIR_BIN = ./bin
+endif
 CC=h5cc #g++ #h5pcc #g++
 NVCC = nvcc
 ifeq ($(ver),debug)
