@@ -54,6 +54,9 @@ endif
 ifeq ($(compare),1)
   W_IDEN += -D __PROCESS
 endif
+ifeq ($(compare),2)
+  W_IDEN += -D __TRACK
+endif
 #
 #
 ifeq ($(FLOAT),1)
@@ -79,7 +82,6 @@ ${DIR_OBJ}/%.o : ${DIR_SRC}/%.cu
 	$(NVCC) $(W_IDEN) $(CMPTYPE) $(NCFLAGS)  $^ -o $@
 ${DIR_OBJ}/%.o : ${DIR_SRC}/wfunction/%.cu
 	$(NVCC) $(W_IDEN) $(CMPTYPE) $(NCFLAGS)  $^ -o $@
-#${DIR_OBJ}/$(LINKJECT) : ${DIR_OBJ}/multipole.o
 $(LINKJECT) : $(GOBJECTS) $(WOBJECTS)
 	$(NVCC) $(LINKLAG) $^ -o $@
 remove :
