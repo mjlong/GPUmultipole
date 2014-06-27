@@ -40,6 +40,7 @@ void anyvalue(struct multipoledata data, unsigned setgridx, unsigned setblockx, 
   dim3 dimGrid(blockx, 1, 1);
   gridsize = gridx*blockx;
   gpuErrchk(cudaMalloc((void**)&devicearray, 4*gridsize*sizeof(CMPTYPE)));
+  gpuErrchk(cudaMemset(devicearray, 0, 4*gridsize*sizeof(CMPTYPE)));
   gpuErrchk(cudaMalloc((void**)&(DeviceMem.nInfo), gridsize*sizeof(NeutronInfoStruct)));
   gpuErrchk(cudaMalloc((void**)&(DeviceMem.thread_active), gridsize*sizeof(unsigned int)));
   HostMem.thread_active = (unsigned int *)malloc(gridsize*sizeof(unsigned int));
@@ -67,7 +68,7 @@ void anyvalue(struct multipoledata data, unsigned setgridx, unsigned setblockx, 
 #endif 
 
 
-  initialize<<<dimBlock, dimGrid>>>(DeviceMem, 20000.0);//1.95093e4);
+  initialize<<<dimBlock, dimGrid>>>(DeviceMem, 2000.0);//1.95093e4);
   //  cudaDeviceSynchronize();
   /*
     Note: shared memory size is in unit of Bybe
@@ -75,7 +76,7 @@ void anyvalue(struct multipoledata data, unsigned setgridx, unsigned setblockx, 
   */
   gpuErrchk(cudaEventRecord(start, 0));
 
-#if defined(__PROCESS)
+#if defined(__PROCESS) || defined(__TRACK)
   active = 0u;
 #else
   active = 1u;
