@@ -83,8 +83,10 @@ public:
   __device__  void xs_eval_fast(CMPTYPE E, CMPTYPE sqrtKT, 
 					 CMPTYPE &sigT, CMPTYPE &sigA, CMPTYPE &sigF);
 #endif
+#if defined(__SAMPLE)
   __device__  void xs_eval_fast(CMPTYPE E, 
 					 CMPTYPE &sigT, CMPTYPE &sigA, CMPTYPE &sigF);
+#endif
   /*__device__  void xs_eval_fast(CMPTYPE E, CMPTYPE sqrtKT, CMPTYPE rnd, 
 					 CMPTYPE &sigT, CMPTYPE &sigA, CMPTYPE &sigF);*/
   __device__ void fill_factors(CMPTYPE sqrtE, int numL, CComplex<CMPTYPE> *sigT_factor);

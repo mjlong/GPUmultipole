@@ -240,6 +240,7 @@ __device__  void multipole::xs_eval_fast(CMPTYPE E, CMPTYPE sqrtKT, CComplex<CMP
 */
 
 //xs eval at 0K
+#if defined(__SAMPLE)
 __device__  void multipole::xs_eval_fast(CMPTYPE E,  
                         	 	 CMPTYPE &sigT, CMPTYPE &sigA, CMPTYPE &sigF){
 
@@ -296,7 +297,7 @@ __device__  void multipole::xs_eval_fast(CMPTYPE E,
   }
   
 }
-
+#endif
 //xs eval at 0k but sampled to sqrtKT
 /*
 __device__  void multipole::xs_eval_fast(CMPTYPE E, CMPTYPE sqrtKT, CMPTYPE rnd, 
