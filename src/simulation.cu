@@ -94,6 +94,18 @@ __global__ void remaining(multipole U238, CMPTYPE *devicearray, MemStruct Info){
   live = 1u;
   while(live){
     rnd = curand_uniform(&localState);
+#if defined(__TRACK)
+    unsigned M = gridDim.x*blockDim.x;
+    live = cnt*(cnt<M) + M*(cnt>=M); 
+    if(0==id)
+      devicearray[4*live  ] = localenergy;
+    if(1==id)
+      devicearray[4*live+1] = localenergy;  
+    if(2==id)
+      devicearray[4*live+2] = localenergy;
+    if(3==id)
+      devicearray[4*live+3] = localenergy;
+#endif
 #if defined(__SAMPLE)
     U238.xs_eval_fast(localenergy + 
 		      curand_normal(&localState)*sqrt(300.0*KB)*sqrt(0.5)/U238.dev_doubles[SQRTAWR], 
@@ -116,6 +128,7 @@ __global__ void remaining(multipole U238, CMPTYPE *devicearray, MemStruct Info){
   Info.nInfo[id].rndState = localState;
   Info.tally[id].cnt += cnt;
 
+#if !defined(__TRACK)
 #if defined(__PROCESS)  
   devicearray[4 * id] = localenergy ;
 #else
@@ -124,8 +137,8 @@ __global__ void remaining(multipole U238, CMPTYPE *devicearray, MemStruct Info){
   devicearray[4 * id + 1] = sigT;
   devicearray[4 * id + 2] = sigA;
   devicearray[4 * id + 3] = sigF;
+#endif
 }
-
 
 __global__ void statistics(TallyStruct *threadtally, unsigned* cnt){
   /*reduce tally*/
