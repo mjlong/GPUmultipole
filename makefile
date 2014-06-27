@@ -7,17 +7,17 @@ DIR_SRC = ./src
 DIR_OBJ = ./obj
 ifeq ($(compare),1)
 DIR_BIN = ./bin/test
-else
-DIR_BIN = ./bin
 endif
 CC=h5cc #g++ #h5pcc #g++
 NVCC = nvcc
 ifeq ($(ver),debug)
 NCFLAGS=-g -G -dc -arch=sm_20 -I${DIR_SRC} -I${DIR_SRC}/wfunction #-Xptxas="-v"
 CCFLAGS=-c -g -I/home/jlmiao/opt/hdf5/include 
+DIR_BIN = ./bin/debug
 else
 NCFLAGS=-dc -arch=sm_20 -I${DIR_SRC} -I${DIR_SRC}/wfunction #-Xptxas="-v"
 CCFLAGS=-c -I/home/jlmiao/opt/hdf5/include 
+DIR_BIN = ./bin/release
 endif
 LINKLAG=-arch=sm_20 -dlink
 LDFLAGS=-L/home/jlmiao/opt/hdf5/lib/ -L/usr/local/cuda-5.5/lib64 -lcudart -lhdf5 
