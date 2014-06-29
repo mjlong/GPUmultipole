@@ -8,7 +8,7 @@ __global__ void initialize(MemStruct pInfo, CMPTYPE energy){
   //int id = ((blockDim.x*blockDim.y*blockDim.z)*(blockIdx.y*gridDim.x+blockIdx.x)+(blockDim.x*blockDim.y)*threadIdx.z+blockDim.x*threadIdx.y+threadIdx.x);//THREADID;
   int id = blockDim.x * blockIdx.x + threadIdx.x;
   /* Each thread gets same seed, a different sequence number, no offset */
-  curand_init(1234, id, 0, &(pInfo.nInfo[id].rndState));
+  curand_init(1234, 1234, 0, &(pInfo.nInfo[id].rndState));
   launch(pInfo.nInfo, id, energy);
   //pInfo[id].energy = energy; //id+1.0; //(id + 1)*1.63*energy*0.001;// 
   pInfo.thread_active[id] = 1u;
@@ -41,6 +41,20 @@ __global__ void history(multipole U238, MemStruct Info, unsigned num_src, unsign
   //while(live){
   for (istep = 0; istep < devstep; istep++){
     rnd = curand_uniform(&localState);
+#if defined(__TRACK)
+    unsigned M = gridDim.x*blockDim.x;
+    live = Info.tally[id].cnt + cnt;
+    live = live*(live<M) + M*(live>=M); 
+    if(0==id)
+      devicearray[4*live  ] = localenergy;
+    if(1==id)
+      devicearray[4*live+1] = localenergy;  
+    if(2==id)
+      devicearray[4*live+2] = localenergy;
+    if(3==id)
+      devicearray[4*live+3] = localenergy;
+#endif
+
 #if defined(__SAMPLE)
     U238.xs_eval_fast(localenergy + 
 		      curand_normal(&localState)*sqrt(300.0*KB)*sqrt(0.5)/U238.dev_doubles[SQRTAWR], 
@@ -92,6 +106,7 @@ __global__ void remaining(multipole U238, CMPTYPE *devicearray, MemStruct Info){
     rnd = curand_uniform(&localState);
 #if defined(__TRACK)
     unsigned M = gridDim.x*blockDim.x;
+    live = Info.tally[id].cnt + cnt;
     live = cnt*(cnt<M) + M*(cnt>=M); 
     if(0==id)
       devicearray[4*live  ] = localenergy;
