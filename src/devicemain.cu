@@ -123,7 +123,7 @@ void anyvalue(struct multipoledata data, unsigned setgridx, unsigned setblockx, 
     }
   }
 
-#if !defined(__PROCESS)
+#if !defined(__PROCESS) && !defined(__TRACK)
   unsigned sum = 0;
   for (int i=0;i<gridx;i++){
     printf("%4d\n",cnt[i]);
