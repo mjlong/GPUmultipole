@@ -68,7 +68,7 @@ void anyvalue(struct multipoledata data, unsigned setgridx, unsigned setblockx, 
 #endif 
 
 
-  initialize<<<dimBlock, dimGrid>>>(DeviceMem, 2000.0);//1.95093e4);
+  initialize<<<dimBlock, dimGrid>>>(DeviceMem, 20000.0);//1.95093e4);
   //  cudaDeviceSynchronize();
   /*
     Note: shared memory size is in unit of Bybe
@@ -76,7 +76,7 @@ void anyvalue(struct multipoledata data, unsigned setgridx, unsigned setblockx, 
   */
   gpuErrchk(cudaEventRecord(start, 0));
 
-#if defined(__PROCESS) || defined(__TRACK)
+#if defined(__PROCESS) //|| defined(__TRACK)
   active = 0u;
 #else
   active = 1u;
