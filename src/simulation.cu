@@ -23,7 +23,7 @@ __global__ void initialize_table(CComplex<CMPTYPE> *table){
 #endif
 
 #if defined(__TRACK)
-__global__ void history(multipole U238, CMPTYPE* devicearray, MemStruct Info, unsigned num_src, unsigned devstep{
+__global__ void history(multipole U238, CMPTYPE* devicearray, MemStruct Info, unsigned num_src, unsigned devstep){
 #else
 __global__ void history(multipole U238, MemStruct Info, unsigned num_src, unsigned devstep){
 #endif
