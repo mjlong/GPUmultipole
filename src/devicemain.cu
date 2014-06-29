@@ -120,7 +120,7 @@ void anyvalue(struct multipoledata data, unsigned setgridx, unsigned setblockx, 
     if(hostarray[4*i]<0)
       printf("error-:%d \n",i);
     else{
-      if(hostarray[4*i]>=20000.0)
+      if(hostarray[4*i]>20000.0)
 	printf("error+:%d \n",i);
       else
 	printf("\n");
