@@ -83,7 +83,11 @@ void anyvalue(struct multipoledata data, unsigned setgridx, unsigned setblockx, 
 #endif
 
   while (active){
+#if defined(__TRACK)
+    history<<<dimBlock, dimGrid>>>(U238, devicearray, DeviceMem, num_src, devstep);
+#else
     history<<<dimBlock, dimGrid>>>(U238, DeviceMem, num_src, devstep);
+#endif
     gpuErrchk(cudaMemcpy(HostMem.thread_active, DeviceMem.thread_active, gridsize*sizeof(unsigned int), cudaMemcpyDeviceToHost));
     active = 0u;
     for (i = 0; i < blockx; i++){
