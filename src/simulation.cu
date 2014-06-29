@@ -111,7 +111,7 @@ __global__ void remaining(multipole U238, CMPTYPE *devicearray, MemStruct Info){
 #if defined(__TRACK)
     unsigned M = gridDim.x*blockDim.x;
     live = Info.tally[id].cnt + cnt;
-    live = cnt*(cnt<M) + M*(cnt>=M); 
+    live = live*(live<M) + M*(live>=M); 
     if(0==id)
       devicearray[4*live  ] = localenergy;
     if(1==id)
