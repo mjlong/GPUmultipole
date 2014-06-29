@@ -42,7 +42,7 @@ __global__ void initialize_table(CComplex<CMPTYPE>*);
 #endif
 
 #if defined(__TRACK)
-__global__ void history(multipole, CMPTYPE *, Memstruct, unsigned, unsigned);
+__global__ void history(multipole, CMPTYPE *, MemStruct, unsigned, unsigned);
 #else
 __global__ void history(multipole, MemStruct, unsigned, unsigned );
 #endif
