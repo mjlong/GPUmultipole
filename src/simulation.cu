@@ -7,6 +7,8 @@ __device__ void launch(NeutronInfoStruct* pInfo,int id, CMPTYPE energy){
 __global__ void initialize(MemStruct pInfo, CMPTYPE energy){
   //int id = ((blockDim.x*blockDim.y*blockDim.z)*(blockIdx.y*gridDim.x+blockIdx.x)+(blockDim.x*blockDim.y)*threadIdx.z+blockDim.x*threadIdx.y+threadIdx.x);//THREADID;
   int id = blockDim.x * blockIdx.x + threadIdx.x;
+  /* Each thread gets same seed, a different sequence number, no offset */
+  curand_init(1234, id, 0, &(pInfo.nInfo[id].rndState));
   launch(pInfo.nInfo, id, energy);
   //pInfo[id].energy = energy; //id+1.0; //(id + 1)*1.63*energy*0.001;// 
   pInfo.thread_active[id] = 1u;
@@ -15,8 +17,8 @@ __global__ void initialize(MemStruct pInfo, CMPTYPE energy){
 }
 #if defined(__QUICKW)
 __global__ void initialize_table(CComplex<CMPTYPE> *table){
-	int id = blockDim.x*blockIdx.x + threadIdx.x;
-	fill_w_tabulated(table, id);
+  int id = blockDim.x*blockIdx.x + threadIdx.x;
+  fill_w_tabulated(table, id);
 }
 #endif
 
@@ -29,9 +31,6 @@ __global__ void history(multipole U238, MemStruct Info, unsigned num_src, unsign
   CMPTYPE localenergy;
   CMPTYPE rnd;
   CMPTYPE sigT, sigA, sigF;
-  /* Each thread gets same seed, a different sequence number, no offset */
-  curand_init(1234, id, 0, &(Info.nInfo[id].rndState));
-
   /* Copy state to local memory for efficiency */ 
   curandState localState = Info.nInfo[id].rndState;
 
@@ -78,9 +77,6 @@ __global__ void remaining(multipole U238, CMPTYPE *devicearray, MemStruct Info){
   CMPTYPE rnd;
   CMPTYPE sigT, sigA, sigF;
  
-  /* Each thread gets same seed, a different sequence number, no offset */
-  curand_init(1234, id, 0, &(Info.nInfo[id].rndState));
-  
   /* Copy state to local memory for efficiency */
   curandState localState = Info.nInfo[id].rndState;
   
