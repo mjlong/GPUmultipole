@@ -22,7 +22,11 @@ __global__ void initialize_table(CComplex<CMPTYPE> *table){
 }
 #endif
 
+#if defined(__TRACK)
+__global__ void history(multipole U238, CMPTYPE* devicearray, MemStruct Info, unsigned num_src, unsigned devstep{
+#else
 __global__ void history(multipole U238, MemStruct Info, unsigned num_src, unsigned devstep){
+#endif
   //TODO:this is one scheme to match threads to 1D array, 
   //try others when real simulation structure becomes clear
   int id = blockDim.x * blockIdx.x + threadIdx.x;

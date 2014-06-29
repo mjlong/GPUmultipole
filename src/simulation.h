@@ -41,7 +41,11 @@ typedef struct {
 __global__ void initialize_table(CComplex<CMPTYPE>*);
 #endif
 
+#if defined(__TRACK)
+__global__ void history(multipole, CMPTYPE *, Memstruct, unsigned, unsigned);
+#else
 __global__ void history(multipole, MemStruct, unsigned, unsigned );
+#endif
 __global__ void remaining(multipole, CMPTYPE *, MemStruct );
 __global__ void initialize(MemStruct, CMPTYPE);
 __device__ void launch(NeutronInfoStruct*, int, CMPTYPE);
