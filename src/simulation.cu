@@ -70,7 +70,7 @@ __global__ void history(multipole U238, MemStruct Info, unsigned num_src, unsign
     live = (localenergy > 1.0);
     cnt = cnt + 1;
     /*So far, energy is the only state*/
-    localenergy = localenergy*live + 2000.0*(1u - live);
+    localenergy = localenergy*live + 20000.0*(1u - live);
     terminated += !live;
   }
   //}
