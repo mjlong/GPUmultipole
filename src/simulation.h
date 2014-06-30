@@ -5,6 +5,8 @@
 #include <cuda.h>
 #include <curand_kernel.h>
 
+#define STARTENE 20000.0
+
 //TODO: it has not been determined how to save neutron and simulation state
 
 typedef struct {

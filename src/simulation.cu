@@ -8,7 +8,7 @@ __global__ void initialize(MemStruct pInfo, CMPTYPE energy){
   //int id = ((blockDim.x*blockDim.y*blockDim.z)*(blockIdx.y*gridDim.x+blockIdx.x)+(blockDim.x*blockDim.y)*threadIdx.z+blockDim.x*threadIdx.y+threadIdx.x);//THREADID;
   int id = blockDim.x * blockIdx.x + threadIdx.x;
   /* Each thread gets same seed, a different sequence number, no offset */
-  curand_init(1234, 1234, 0, &(pInfo.nInfo[id].rndState));
+  curand_init(1234, id, 0, &(pInfo.nInfo[id].rndState));
   launch(pInfo.nInfo, id, energy);
   //pInfo[id].energy = energy; //id+1.0; //(id + 1)*1.63*energy*0.001;// 
   pInfo.thread_active[id] = 1u;
@@ -70,7 +70,7 @@ __global__ void history(multipole U238, MemStruct Info, unsigned num_src, unsign
     live = (localenergy > 1.0);
     cnt = cnt + 1;
     /*So far, energy is the only state*/
-    localenergy = localenergy*live + 20000.0*(1u - live);
+    localenergy = localenergy*live + STARTENE*(1u - live);
     terminated += !live;
   }
   //}
