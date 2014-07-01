@@ -68,7 +68,7 @@ public:
   //Contains the fitting function.  (reaction type, coeff index, window index)
   //=========================================================================
 #if defined(__QUICKWG) || defined(__QUICKWT)
-  CComplex<CMPTYPE>* table;
+  CComplex<CMPTYPE>* mtable;
 #endif
 
  public:
