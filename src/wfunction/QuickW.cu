@@ -23,9 +23,9 @@ static __inline__ __device__ CComplex<double> texfetch_complex(texture<int4,2> t
 
 #if defined(__QUICKWC)
 #if defined(__CFLOAT)
-extern __constant__ float2 table[LENGTH][LENGTH];
+__constant__ float2 table[LENGTH][LENGTH];
 #else
-extern __constant__ double2 table[LENGTH][LENGTH];
+__constant__ double2 table[LENGTH][LENGTH];
 #endif
 //extern __constant__ CMPTYPE table[LENGTH*LENGTH*2];
 #endif
@@ -96,26 +96,65 @@ __device__ CComplex<CMPTYPE> w_function(CComplex<CMPTYPE> z){
     CMPTYPE pp = p*p;
     CMPTYPE qq = q*q;
     CMPTYPE pq = p*q;
-    w =  
+    //**********************************************************************
+    CComplex<CMPTYPE> w1,w2,w3,w4,w5,w6;
+    //**********************************************************************
 #if defined(__QUICKWT)
-      (CMPTYPE)0.5*(qq - q)        *texfetch_complex(tex_wtable, m-1, l  ) + 
+    w1 = texfetch_complex(tex_wtable, m-1, l  );
+    w2 = texfetch_complex(tex_wtable, m  , l-1);
+    w3 = texfetch_complex(tex_wtable, m  , l  );
+    w4 = texfetch_complex(tex_wtable, m  , l+1);
+    w5 = texfetch_complex(tex_wtable, m+1, l  );
+    w6 = texfetch_complex(tex_wtable, m+1, l+1);
+    w =  
+      /*(CMPTYPE)0.5*(qq - q)        *texfetch_complex(tex_wtable, m-1, l  ) + 
       (CMPTYPE)0.5*(pp - p)        *texfetch_complex(tex_wtable, m  , l-1) +
       (CMPTYPE)(1.0 + pq - pp - qq)*texfetch_complex(tex_wtable, m  , l  ) +
       (CMPTYPE)(0.5*(pp + p) - pq) *texfetch_complex(tex_wtable, m  , l+1) +
       (CMPTYPE)(0.5*(qq + q) - pq) *texfetch_complex(tex_wtable, m+1, l  ) +
-      (CMPTYPE) pq                 *texfetch_complex(tex_wtable, m+1, l+1);
+      (CMPTYPE) pq                 *texfetch_complex(tex_wtable, m+1, l+1);*/
+      (CMPTYPE)0.5*(qq - q)        *w1 + 
+      (CMPTYPE)0.5*(pp - p)        *w2 +
+      (CMPTYPE)(1.0 + pq - pp - qq)*w3 +
+      (CMPTYPE)(0.5*(pp + p) - pq) *w4 +
+      (CMPTYPE)(0.5*(qq + q) - pq) *w5 +
+      (CMPTYPE) pq                 *w6;
+
 #else    // __QUICKWC
-      (CMPTYPE)0.5*(qq - q)        *CComplex<CMPTYPE>(table[m-1][l  ].x,table[m-1][l  ].y)+	  
+    w1 = CComplex<CMPTYPE>(table[m-1][l  ].x,table[m-1][l  ].y);
+    w2 = CComplex<CMPTYPE>(table[m  ][l-1].x,table[m  ][l-1].y);
+    w3 = CComplex<CMPTYPE>(table[m  ][l  ].x,table[m  ][l  ].y);
+    w4 = CComplex<CMPTYPE>(table[m  ][l+1].x,table[m  ][l+1].y);
+    w5 = CComplex<CMPTYPE>(table[m+1][l  ].x,table[m+1][l  ].y);
+    w6 = CComplex<CMPTYPE>(table[m+1][l+1].x,table[m+1][l+1].y);
+    w = 
+      /*(CMPTYPE)0.5*(qq - q)        *CComplex<CMPTYPE>(table[m-1][l  ].x,table[m-1][l  ].y)+	  
       (CMPTYPE)0.5*(pp - p)        *CComplex<CMPTYPE>(table[m  ][l-1].x,table[m  ][l-1].y)+	  
       (CMPTYPE)(1.0 + pq - pp - qq)*CComplex<CMPTYPE>(table[m  ][l  ].x,table[m  ][l  ].y)+	  
       (CMPTYPE)(0.5*(pp + p) - pq) *CComplex<CMPTYPE>(table[m  ][l+1].x,table[m  ][l+1].y)+	  
       (CMPTYPE)(0.5*(qq + q) - pq) *CComplex<CMPTYPE>(table[m+1][l  ].x,table[m+1][l  ].y)+	  
-      (CMPTYPE) pq                 *CComplex<CMPTYPE>(table[m+1][l+1].x,table[m+1][l+1].y);
+      (CMPTYPE) pq                 *CComplex<CMPTYPE>(table[m+1][l+1].x,table[m+1][l+1].y);*/
+      (CMPTYPE)0.5*(qq - q)        *w1+	  
+      (CMPTYPE)0.5*(pp - p)        *w2+	  
+      (CMPTYPE)(1.0 + pq - pp - qq)*w3+	  
+      (CMPTYPE)(0.5*(pp + p) - pq) *w4+	  
+      (CMPTYPE)(0.5*(qq + q) - pq) *w5+	  
+      (CMPTYPE) pq                 *w6;
 #endif
+    if(blockIdx.x==0 && threadIdx.x==18){
+      printf("w1=%20.16e + i*%20.16e\n",real(w1),imag(w1));
+      printf("w2=%20.16e + i*%20.16e\n",real(w2),imag(w2));
+      printf("w3=%20.16e + i*%20.16e\n",real(w3),imag(w3));
+      printf("w4=%20.16e + i*%20.16e\n",real(w4),imag(w4));
+      printf("w5=%20.16e + i*%20.16e\n",real(w5),imag(w5));
+      printf("w6=%20.16e + i*%20.16e\n",real(w6),imag(w6));
+    }
     if(real(z)<0)
       w = Conjugate(w);
   }
   else
+    if(blockIdx.x==0 && threadIdx.x==18)
+      printf("no interpolation for norm(z) > 6\n");
     w = ONEI * z * (a/(z*z - b) + c/(z*z - d));
   return w;
   
@@ -132,6 +171,7 @@ __device__ CComplex<CMPTYPE> w_function(CComplex<CMPTYPE> z, CComplex<CMPTYPE>* 
   CComplex<CMPTYPE> w;
   
   if(abs(Norm(z)) < 6.0){
+    CComplex<CMPTYPE> w1,w2,w3,w4,w5,w6;
     // Use interpolation for |z| < 6. The interpolation scheme uses a bivariate         
     // six-point quadrature described in Abramowitz and Stegun 25.2.67. This          
     // interpolation is accurate to O(h^3) = O(10^-3).                           
@@ -163,24 +203,39 @@ __device__ CComplex<CMPTYPE> w_function(CComplex<CMPTYPE> z, CComplex<CMPTYPE>* 
     // Use six-point interpolation to calculate real and imaginary parts
     l++;
     m++;
-    w =  
-      /*a_b*w_tabulated[(m-1)*LENGTH+l] + 
-      a_l*w_tabulated[m*LENGTH + l-1] +
-      a_c*w_tabulated[m*LENGTH + l  ] +
-      a_r*w_tabulated[m*LENGTH + l+1] +
-      a_t*w_tabulated[(m+1)*LENGTH+l] +
-      pq *w_tabulated[(m+1)*LENGTH+l+1];*/
-      (CMPTYPE)0.5*(qq - q)        *w_tabulated[(m-1)*LENGTH+l] + 
+    w1 = w_tabulated[(m-1)*LENGTH+l];
+    w2 = w_tabulated[m*LENGTH + l-1];
+    w3 = w_tabulated[m*LENGTH + l  ];
+    w4 = w_tabulated[m*LENGTH + l+1];
+    w5 = w_tabulated[(m+1)*LENGTH+l];
+    w6 = w_tabulated[(m+1)*LENGTH+l+1];
+    /*(CMPTYPE)0.5*(qq - q)        *w_tabulated[(m-1)*LENGTH+l] + 
       (CMPTYPE)0.5*(pp - p)        *w_tabulated[m*LENGTH + l-1] +
       (CMPTYPE)(1.0 + pq - pp - qq)*w_tabulated[m*LENGTH + l  ] +
       (CMPTYPE)(0.5*(pp + p) - pq) *w_tabulated[m*LENGTH + l+1] +
       (CMPTYPE)(0.5*(qq + q) - pq) *w_tabulated[(m+1)*LENGTH+l] +
-      (CMPTYPE) pq                 *w_tabulated[(m+1)*LENGTH+l+1];
-
+      (CMPTYPE) pq                 *w_tabulated[(m+1)*LENGTH+l+1];*/
+    w =  
+      (CMPTYPE)0.5*(qq - q)        *w1+
+      (CMPTYPE)0.5*(pp - p)        *w2+
+      (CMPTYPE)(1.0 + pq - pp - qq)*w3+
+      (CMPTYPE)(0.5*(pp + p) - pq) *w4+
+      (CMPTYPE)(0.5*(qq + q) - pq) *w5+
+      (CMPTYPE) pq                 *w6;
+    if(blockIdx.x==0 && threadIdx.x==18){
+      printf("w1=%20.16e + i*%20.16e\n",real(w1),imag(w1));
+      printf("w2=%20.16e + i*%20.16e\n",real(w2),imag(w2));
+      printf("w3=%20.16e + i*%20.16e\n",real(w3),imag(w3));
+      printf("w4=%20.16e + i*%20.16e\n",real(w4),imag(w4));
+      printf("w5=%20.16e + i*%20.16e\n",real(w5),imag(w5));
+      printf("w6=%20.16e + i*%20.16e\n",real(w6),imag(w6));
+    }
     if(real(z)<0) 
       w = Conjugate(w);
   }
   else
+    if(blockIdx.x==0 && threadIdx.x==18)
+      printf("no interpolation for norm(z) > 6\n");
     w = ONEI * z * (a/(z*z - b) + c/(z*z - d));
 
   return w;
