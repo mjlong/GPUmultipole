@@ -229,13 +229,12 @@ __device__ CComplex<CMPTYPE> w_function(CComplex<CMPTYPE> z, CComplex<CMPTYPE>* 
       printf("w4=%20.16e + i*%20.16e\n",real(w4),imag(w4));
       printf("w5=%20.16e + i*%20.16e\n",real(w5),imag(w5));
       printf("w6=%20.16e + i*%20.16e\n",real(w6),imag(w6));
+      printf("p=%16.12e, q=%16.12e, pp=%16.12e, qq=%16.12e, pq=%16.12e\n",p,q,pp,qq,pq);
     }
     if(real(z)<0) 
       w = Conjugate(w);
   }
   else
-    if(blockIdx.x==0 && threadIdx.x==18)
-      printf("no interpolation for norm(z) > 6\n");
     w = ONEI * z * (a/(z*z - b) + c/(z*z - d));
 
   return w;
