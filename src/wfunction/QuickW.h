@@ -3,8 +3,10 @@
 
 #if defined(__CFLOAT)
 #define CMPTYPE float
+#define CMPTYPE2 float2
 #else
 #define CMPTYPE double 
+#define CMPTYPE2 double2
 #endif
 
 #include <stdio.h>
@@ -37,22 +39,16 @@
 
 #define LENGTH 62
 #define WIDTH  0.1
-#if defined(__QUICKWC)
-#if defined(__CFLOAT)
-extern __constant__ float2 table[LENGTH][LENGTH];
-#else
-extern __constant__ double2 table[LENGTH][LENGTH];
-#endif
-//extern __constant__ CMPTYPE table[LENGTH*LENGTH*2];
-#endif
 
 
 //__device__ void initialize_w_tabulated(CComplex*);
 __device__ void fill_w_tabulated(CComplex<CMPTYPE>*, int);
 #if defined(__QUICKWG)
 __device__ CComplex<CMPTYPE> w_function(CComplex<CMPTYPE>, CComplex<CMPTYPE>*);
-#else //__QUICKWT or __QUICKWC
+#elif defined(__QUICKWT)
 __device__ CComplex<CMPTYPE> w_function(CComplex<CMPTYPE>);
+#else
+__device__ CComplex<CMPTYPE> w_function(CComplex<CMPTYPE>, CMPTYPE2* );
 #endif
 
 
