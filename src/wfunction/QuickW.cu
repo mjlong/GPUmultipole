@@ -144,7 +144,7 @@ __device__ CComplex<CMPTYPE> w_function(CComplex<CMPTYPE> z, CComplex<CMPTYPE>* 
   CComplex<CMPTYPE> w;
   
   if(abs(Norm(z)) < 6.0){
-    CComplex<CMPTYPE> w1,w2,w3,w4,w5,w6;
+    //CComplex<CMPTYPE> w1,w2,w3,w4,w5,w6;
     // Use interpolation for |z| < 6. The interpolation scheme uses a bivariate         
     // six-point quadrature described in Abramowitz and Stegun 25.2.67. This          
     // interpolation is accurate to O(h^3) = O(10^-3).                           
@@ -176,25 +176,26 @@ __device__ CComplex<CMPTYPE> w_function(CComplex<CMPTYPE> z, CComplex<CMPTYPE>* 
     // Use six-point interpolation to calculate real and imaginary parts
     l++;
     m++;
-    w1 = w_tabulated[(m-1)*LENGTH+l];
+    /*w1 = w_tabulated[(m-1)*LENGTH+l];
     w2 = w_tabulated[m*LENGTH + l-1];
     w3 = w_tabulated[m*LENGTH + l  ];
     w4 = w_tabulated[m*LENGTH + l+1];
     w5 = w_tabulated[(m+1)*LENGTH+l];
-    w6 = w_tabulated[(m+1)*LENGTH+l+1];
-    /*(CMPTYPE)0.5*(qq - q)        *w_tabulated[(m-1)*LENGTH+l] + 
+    w6 = w_tabulated[(m+1)*LENGTH+l+1];*/
+    w = 
+      (CMPTYPE)0.5*(qq - q)        *w_tabulated[(m-1)*LENGTH+l] + 
       (CMPTYPE)0.5*(pp - p)        *w_tabulated[m*LENGTH + l-1] +
       (CMPTYPE)(1.0 + pq - pp - qq)*w_tabulated[m*LENGTH + l  ] +
       (CMPTYPE)(0.5*(pp + p) - pq) *w_tabulated[m*LENGTH + l+1] +
       (CMPTYPE)(0.5*(qq + q) - pq) *w_tabulated[(m+1)*LENGTH+l] +
-      (CMPTYPE) pq                 *w_tabulated[(m+1)*LENGTH+l+1];*/
-    w =  
+      (CMPTYPE) pq                 *w_tabulated[(m+1)*LENGTH+l+1];
+    /*w =  
       (CMPTYPE)0.5*(qq - q)        *w1+
       (CMPTYPE)0.5*(pp - p)        *w2+
       (CMPTYPE)(1.0 + pq - pp - qq)*w3+
       (CMPTYPE)(0.5*(pp + p) - pq) *w4+
       (CMPTYPE)(0.5*(qq + q) - pq) *w5+
-      (CMPTYPE) pq                 *w6;
+      (CMPTYPE) pq                 *w6; 
     if(blockIdx.x==0 && threadIdx.x==18){
       printf("w1=%20.16e + i*%20.16e\n",real(w1),imag(w1));
       printf("w2=%20.16e + i*%20.16e\n",real(w2),imag(w2));
@@ -204,7 +205,7 @@ __device__ CComplex<CMPTYPE> w_function(CComplex<CMPTYPE> z, CComplex<CMPTYPE>* 
       printf("w6=%20.16e + i*%20.16e\n",real(w6),imag(w6));
       printf("m=%2d, l=%2d\n", m,l);
       printf("p=%16.12e, q=%16.12e, pp=%16.12e, qq=%16.12e, pq=%16.12e\n",p,q,pp,qq,pq);
-    }
+    }*/
     if(real(z)<0) 
       w = Conjugate(w);
   }
