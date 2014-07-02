@@ -127,13 +127,14 @@ __device__ CComplex<CMPTYPE> w_function(CComplex<CMPTYPE> z){
     w4 = CComplex<CMPTYPE>(table[m  ][l+1].x,table[m  ][l+1].y);
     w5 = CComplex<CMPTYPE>(table[m+1][l  ].x,table[m+1][l  ].y);
     w6 = CComplex<CMPTYPE>(table[m+1][l+1].x,table[m+1][l+1].y);
-    w = 
-      /*(CMPTYPE)0.5*(qq - q)        *CComplex<CMPTYPE>(table[m-1][l  ].x,table[m-1][l  ].y)+	  
+    /*w = 
+      (CMPTYPE)0.5*(qq - q)        *CComplex<CMPTYPE>(table[m-1][l  ].x,table[m-1][l  ].y)+	  
       (CMPTYPE)0.5*(pp - p)        *CComplex<CMPTYPE>(table[m  ][l-1].x,table[m  ][l-1].y)+	  
       (CMPTYPE)(1.0 + pq - pp - qq)*CComplex<CMPTYPE>(table[m  ][l  ].x,table[m  ][l  ].y)+	  
       (CMPTYPE)(0.5*(pp + p) - pq) *CComplex<CMPTYPE>(table[m  ][l+1].x,table[m  ][l+1].y)+	  
       (CMPTYPE)(0.5*(qq + q) - pq) *CComplex<CMPTYPE>(table[m+1][l  ].x,table[m+1][l  ].y)+	  
       (CMPTYPE) pq                 *CComplex<CMPTYPE>(table[m+1][l+1].x,table[m+1][l+1].y);*/
+     w=
       (CMPTYPE)0.5*(qq - q)        *w1+	  
       (CMPTYPE)0.5*(pp - p)        *w2+	  
       (CMPTYPE)(1.0 + pq - pp - qq)*w3+	  
@@ -148,13 +149,13 @@ __device__ CComplex<CMPTYPE> w_function(CComplex<CMPTYPE> z){
       printf("w4=%20.16e + i*%20.16e\n",real(w4),imag(w4));
       printf("w5=%20.16e + i*%20.16e\n",real(w5),imag(w5));
       printf("w6=%20.16e + i*%20.16e\n",real(w6),imag(w6));
+      printf("m=%2d, l=%2d\n", m,l);
+      printf("p=%16.12e, q=%16.12e, pp=%16.12e, qq=%16.12e, pq=%16.12e\n",p,q,pp,qq,pq);
     }
     if(real(z)<0)
       w = Conjugate(w);
   }
   else
-    if(blockIdx.x==0 && threadIdx.x==18)
-      printf("no interpolation for norm(z) > 6\n");
     w = ONEI * z * (a/(z*z - b) + c/(z*z - d));
   return w;
   
@@ -229,6 +230,7 @@ __device__ CComplex<CMPTYPE> w_function(CComplex<CMPTYPE> z, CComplex<CMPTYPE>* 
       printf("w4=%20.16e + i*%20.16e\n",real(w4),imag(w4));
       printf("w5=%20.16e + i*%20.16e\n",real(w5),imag(w5));
       printf("w6=%20.16e + i*%20.16e\n",real(w6),imag(w6));
+      printf("m=%2d, l=%2d\n", m,l);
       printf("p=%16.12e, q=%16.12e, pp=%16.12e, qq=%16.12e, pq=%16.12e\n",p,q,pp,qq,pq);
     }
     if(real(z)<0) 
