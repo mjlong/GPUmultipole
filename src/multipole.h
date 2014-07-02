@@ -20,8 +20,10 @@
 
 #if defined(__CFLOAT)
 #define CMPTYPE float
+#define CMPTYPE2 float2
 #else
 #define CMPTYPE double 
+#define CMPTYPE2 double2
 #endif
 /*
   Mode, set to 0 for linear, 1 for momentum, 2 for logarithmic.
@@ -70,10 +72,14 @@ public:
 #if defined(__QUICKWG) || defined(__QUICKWT)
   CComplex<CMPTYPE>* mtable;
 #endif
-
+#if defined(__QUICKWC)
+  CMPTYPE2 *mtable;
+#endif
  public:
 #if defined(__QUICKWG) || defined(__QUICKWT)
   multipole(struct multipoledata data, CComplex<CMPTYPE> *wtable);
+#elif defined(__QUICKWC)
+  multipole(struct multipoledata data, CMPTYPE2 *wtable);
 #else
   multipole(struct multipoledata data);
 #endif

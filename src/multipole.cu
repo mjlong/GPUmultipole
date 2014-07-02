@@ -7,12 +7,16 @@ texture<double2, 2> tex_wtable;
 #endif
 #endif
 
-#if defined(__QUICKWG) || defined(__QUICKWT)
+#if defined(__QUICKW)
+#if defined(__QUICKWC)
+// __QUICKWC assigns pointer to constant memory to member
+multipole::multipole(struct multipoledata data, CMPTYPE2 *wtable){
+#else 
 // __QUICKWT binds   global memory wtable to texture   
 // __QUICKWG assigns global memory wtable to multipole member
 multipole::multipole(struct multipoledata data, CComplex<CMPTYPE>* wtable){
+#endif //endif __QUICKWC
 #else 
-// __QUICKWC uses constant memory
 // __MITW    uses no wtable
 multipole::multipole(struct multipoledata data){
 #endif
@@ -61,21 +65,16 @@ multipole::multipole(struct multipoledata data){
   size = (FIT_F+data.fissionable)*(data.fitorder+1)*data.windows*sizeof(CMPTYPE);
   cudaMalloc((void**)&fit, size);
   cudaMemcpy(fit, data.fit, size, cudaMemcpyHostToDevice);
-  
+
+#if defined(__QUICKW)  
 #if defined(__QUICKWT)
   //cudaBindTexture(NULL, tex_wtable, wtable, LENGTH*LENGTH*sizeof(CMPTYPE)*2);
-#if defined(__CFLOAT)
-  cudaChannelFormatDesc desc = cudaCreateChannelDesc<float2>();
-#else
-  cudaChannelFormatDesc desc = cudaCreateChannelDesc<double2>();
-#endif
+  cudaChannelFormatDesc desc = cudaCreateChannelDesc<CMPTYPE2>();
   cudaBindTexture2D(NULL, tex_wtable, wtable, desc, LENGTH, LENGTH, sizeof(CMPTYPE)*2*LENGTH);
-#endif
-
-#if defined(__QUICKWG)
+#else //else  = __QUICKWC || __QUICKWG
   mtable = wtable;  
 #endif
-
+#endif
 }
 
 
@@ -147,14 +146,13 @@ __device__  void multipole::xs_eval_fast(CMPTYPE E, CMPTYPE sqrtKT,
     //sigtfactor = sigT_factor[l_value[iP-1]-1];
     //w_val = (sqrtE - mpdata[pindex(iP-1,MP_EA)])*DOPP*DOPP_ECOEF;
 		       
-#if defined(__QUICKWG) 
+#if defined(__QUICKWC) || defined(__QUICKWG) 
     w_val = w_function((sqrtE - mpdata[pindex(iP-1,MP_EA)])*DOPP,mtable)*DOPP_ECOEF;
 #endif
 
-#if defined(__QUICKWC) || defined(__QUICKWT)
+#if defined(__QUICKWT)
     w_val = w_function((sqrtE - mpdata[pindex(iP-1,MP_EA)])*DOPP      )*DOPP_ECOEF;
     // __QUICKWT extern texture in QuickW.cu
-    // __QUICKWC extern array   in QuickW.cu
 #endif
 
 
