@@ -12,7 +12,7 @@
 
 
 #if defined (__QUICKWC)
-__constant__ CMPTYPE2 table[LENGTH*LENGTH];
+__constant__ CMPTYPE2 w_tabulated[LENGTH*LENGTH];
 #endif
 
 void printdevice();
@@ -53,7 +53,7 @@ void anyvalue(struct multipoledata data, unsigned setgridx, unsigned setblockx, 
   CMPTYPE2* wtable;
   gpuErrchk(cudaMalloc((void**)&wtable, LENGTH*LENGTH * 2 * sizeof(CMPTYPE)));
   initialize_table<<<LENGTH,LENGTH>>>(wtable);
-  cudaMemcpyToSymbol(table, wtable, LENGTH*LENGTH*2*sizeof(CMPTYPE));
+  cudaMemcpyToSymbol(w_tabulated, wtable, LENGTH*LENGTH*2*sizeof(CMPTYPE));
   multipole U238(data);
 #else
   CComplex<CMPTYPE> *wtable;
