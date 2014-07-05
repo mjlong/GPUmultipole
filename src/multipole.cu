@@ -9,8 +9,8 @@ texture<double2, 2> tex_wtable;
 
 #if defined(__QUICKW)
 #if defined(__QUICKWC)
-// __QUICKWC assigns pointer to constant memory to member
-multipole::multipole(struct multipoledata data, CMPTYPE2 *wtable){
+// __QUICKWC declares constant memory as extern in QuickW.cu
+multipole::multipole(struct multipoledata data){
 #else 
 // __QUICKWT binds   global memory wtable to texture   
 // __QUICKWG assigns global memory wtable to multipole member
@@ -66,14 +66,13 @@ multipole::multipole(struct multipoledata data){
   cudaMalloc((void**)&fit, size);
   cudaMemcpy(fit, data.fit, size, cudaMemcpyHostToDevice);
 
-#if defined(__QUICKW)  
 #if defined(__QUICKWT)
   //cudaBindTexture(NULL, tex_wtable, wtable, LENGTH*LENGTH*sizeof(CMPTYPE)*2);
   cudaChannelFormatDesc desc = cudaCreateChannelDesc<CMPTYPE2>();
   cudaBindTexture2D(NULL, tex_wtable, wtable, desc, LENGTH, LENGTH, sizeof(CMPTYPE)*2*LENGTH);
-#else //else  = __QUICKWC || __QUICKWG
+#endif 
+#if defined(__QUICKWG)
   mtable = wtable;  
-#endif
 #endif
 }
 
@@ -146,11 +145,11 @@ __device__  void multipole::xs_eval_fast(CMPTYPE E, CMPTYPE sqrtKT,
     //sigtfactor = sigT_factor[l_value[iP-1]-1];
     //w_val = (sqrtE - mpdata[pindex(iP-1,MP_EA)])*DOPP*DOPP_ECOEF;
 		       
-#if defined(__QUICKWC) || defined(__QUICKWG) 
+#if defined(__QUICKWG) 
     w_val = w_function((sqrtE - mpdata[pindex(iP-1,MP_EA)])*DOPP,mtable)*DOPP_ECOEF;
 #endif
 
-#if defined(__QUICKWT)
+#if defined(__QUICKWC) || defined(__QUICKWT)
     w_val = w_function((sqrtE - mpdata[pindex(iP-1,MP_EA)])*DOPP      )*DOPP_ECOEF;
     // __QUICKWT extern texture in QuickW.cu
 #endif
