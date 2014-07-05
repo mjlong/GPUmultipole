@@ -42,13 +42,18 @@
 
 
 //__device__ void initialize_w_tabulated(CComplex*);
+#if defined(__QUICKWC)
+__device__ void fill_w_tabulated(CMPTYPE2*, int);
+#else
 __device__ void fill_w_tabulated(CComplex<CMPTYPE>*, int);
+#endif
+
 #if defined(__QUICKWG)
 __device__ CComplex<CMPTYPE> w_function(CComplex<CMPTYPE>, CComplex<CMPTYPE>*);
 #elif defined(__QUICKWT)
 __device__ CComplex<CMPTYPE> w_function(CComplex<CMPTYPE>);
 #else
-__device__ CComplex<CMPTYPE> w_function(CComplex<CMPTYPE>, CMPTYPE2* );
+__device__ CComplex<CMPTYPE> w_function(CComplex<CMPTYPE> );
 #endif
 
 

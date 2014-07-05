@@ -21,6 +21,9 @@ static __inline__ __device__ CComplex<double> texfetch_complex(texture<int4,2> t
 #endif
 #endif
 
+#if defined (__QUICKWC)
+extern __constant__ CMPTYPE2 w_tabulated[LENGTH*LENGTH];
+#endif
 
 //TODO: load constants on shared memory
 __device__ CMPTYPE b = 0.275255128608410950901357962647054304017026259671664935783653;
@@ -51,7 +54,25 @@ __device__ void initialize_w_tabulated(CComplex* w_tabulated){
   return;
 }
 */
+#if defined(__QUICKWC)
+__device__ void fill_w_tabulated(CMPTYPE2* w_tabulated, int id){
+  double x, y;
+  CComplex<double> z,w;
+  x = WIDTH*(id/LENGTH-1);
+  y = WIDTH*(id%LENGTH-1);
+  z = CComplex<double>(x,y);
+#if defined(__CFLOAT)
+  z=Faddeeva::w(z);
+  w = CComplex<float>((float)real(z),(float)imag(z));
+#else
+  w = Faddeeva::w(z);
+#endif
+  w_tabulated[id].x = real(w);
+  w_tabulated[id].y = imag(w);
+  return;
+}
 
+#else
 __device__ void fill_w_tabulated(CComplex<CMPTYPE>* w_tabulated, int id){
   double x,y;
   CComplex<double> z;
@@ -67,7 +88,7 @@ __device__ void fill_w_tabulated(CComplex<CMPTYPE>* w_tabulated, int id){
   return;
 }
 
-
+#endif
 /*===============================================================================                   
  W_FUNCTION calculates the Faddeeva function, also known as the complex                
  probability integral, for complex arguments. For |z| < 6, it uses a six-point 
@@ -217,7 +238,7 @@ __device__ CComplex<CMPTYPE> w_function(CComplex<CMPTYPE> z, CComplex<CMPTYPE>* 
 #endif
 
 #if defined(__QUICKWC)
-__device__ CComplex<CMPTYPE> w_function(CComplex<CMPTYPE> z, CMPTYPE2* w_tabulated){
+__device__ CComplex<CMPTYPE> w_function(CComplex<CMPTYPE> z){
   CMPTYPE  p;           // interpolation factor on real axis                                   
   CMPTYPE  q;           // interpolation factor on imaginary axis                                  
   CMPTYPE  pp, qq, pq;  // products of p and q                                         
