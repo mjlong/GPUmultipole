@@ -16,7 +16,11 @@ __global__ void initialize(MemStruct pInfo, CMPTYPE energy){
 
 }
 #if defined(__QUICKW)
+#if defined(__QUICKWC)
+__global__ void initialize_table(CMPTYPE2 *table){
+#else
 __global__ void initialize_table(CComplex<CMPTYPE> *table){
+#endif
   int id = blockDim.x*blockIdx.x + threadIdx.x;
   fill_w_tabulated(table, id);
 }

@@ -38,9 +38,13 @@ typedef struct {
   TallyStruct *tally;
 }MemStruct;
 
-#if defined (__QUICKW)
+#if defined(__QUICKW)
 #include "QuickW.h"
+#if defined(__QUICKWC)
+__global__ void initialize_table(CMPTYPE2*);
+#else
 __global__ void initialize_table(CComplex<CMPTYPE>*);
+#endif
 #endif
 
 #if defined(__TRACK)
