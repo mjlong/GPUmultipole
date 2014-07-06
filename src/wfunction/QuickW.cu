@@ -22,7 +22,7 @@ static __inline__ __device__ CComplex<double> texfetch_complex(texture<int4,2> t
 #endif
 
 #if defined (__QUICKWC)
-extern __constant__ CMPTYPE2 w_tabulated[];
+extern __constant__ CMPTYPE2 constwtable[];
 #endif
 
 //TODO: load constants on shared memory
@@ -282,19 +282,19 @@ __device__ CComplex<CMPTYPE> w_function(CComplex<CMPTYPE> z){
     // Use six-point interpolation to calculate real and imaginary parts
     l++;
     m++;
-    w1 = CComplex<CMPTYPE>(w_tabulated[(m-1)*LENGTH+l].x,w_tabulated[(m-1)*LENGTH+l].y);
-    w2 = CComplex<CMPTYPE>(w_tabulated[m*LENGTH + l-1].x,w_tabulated[m*LENGTH + l-1].y);
-    w3 = CComplex<CMPTYPE>(w_tabulated[m*LENGTH + l  ].x,w_tabulated[m*LENGTH + l  ].y);
-    w4 = CComplex<CMPTYPE>(w_tabulated[m*LENGTH + l+1].x,w_tabulated[m*LENGTH + l+1].y);
-    w5 = CComplex<CMPTYPE>(w_tabulated[(m+1)*LENGTH+l].x,w_tabulated[(m+1)*LENGTH+l].y);
-    w6 = CComplex<CMPTYPE>(w_tabulated[(m+1)*LENGTH+l+1].x,w_tabulated[(m+1)*LENGTH+l+1].y);
+    w1 = CComplex<CMPTYPE>(constwtable[(m-1)*LENGTH+l].x,constwtable[(m-1)*LENGTH+l].y);
+    w2 = CComplex<CMPTYPE>(constwtable[m*LENGTH + l-1].x,constwtable[m*LENGTH + l-1].y);
+    w3 = CComplex<CMPTYPE>(constwtable[m*LENGTH + l  ].x,constwtable[m*LENGTH + l  ].y);
+    w4 = CComplex<CMPTYPE>(constwtable[m*LENGTH + l+1].x,constwtable[m*LENGTH + l+1].y);
+    w5 = CComplex<CMPTYPE>(constwtable[(m+1)*LENGTH+l].x,constwtable[(m+1)*LENGTH+l].y);
+    w6 = CComplex<CMPTYPE>(constwtable[(m+1)*LENGTH+l+1].x,constwtable[(m+1)*LENGTH+l+1].y);
     /*w = 
-      (CMPTYPE)0.5*(qq - q)        *CComplex<CMPTYPE>(w_tabulated[].x,w_tabulated[].y)+	  
-      (CMPTYPE)0.5*(pp - p)        *CComplex<CMPTYPE>(w_tabulated[].x,w_tabulated[].y)+	  
-      (CMPTYPE)(1.0 + pq - pp - qq)*CComplex<CMPTYPE>(w_tabulated[].x,w_tabulated[].y)+	  
-      (CMPTYPE)(0.5*(pp + p) - pq) *CComplex<CMPTYPE>(w_tabulated[].x,w_tabulated[].y)+	  
-      (CMPTYPE)(0.5*(qq + q) - pq) *CComplex<CMPTYPE>(w_tabulated[].x,w_tabulated[].y)+	  
-      (CMPTYPE) pq                 *CComplex<CMPTYPE>(w_tabulated[].x,w_tabulated[].y);*/
+      (CMPTYPE)0.5*(qq - q)        *CComplex<CMPTYPE>(constwtable[].x,constwtable[].y)+	  
+      (CMPTYPE)0.5*(pp - p)        *CComplex<CMPTYPE>(constwtable[].x,constwtable[].y)+	  
+      (CMPTYPE)(1.0 + pq - pp - qq)*CComplex<CMPTYPE>(constwtable[].x,constwtable[].y)+	  
+      (CMPTYPE)(0.5*(pp + p) - pq) *CComplex<CMPTYPE>(constwtable[].x,constwtable[].y)+	  
+      (CMPTYPE)(0.5*(qq + q) - pq) *CComplex<CMPTYPE>(constwtable[].x,constwtable[].y)+	  
+      (CMPTYPE) pq                 *CComplex<CMPTYPE>(constwtable[].x,constwtable[].y);*/
      w=
       (CMPTYPE)0.5*(qq - q)        *w1+	  
       (CMPTYPE)0.5*(pp - p)        *w2+	  
