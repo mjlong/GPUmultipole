@@ -55,6 +55,23 @@ void anyvalue(struct multipoledata data, unsigned setgridx, unsigned setblockx, 
   initialize_table<<<LENGTH,LENGTH>>>(wtable);
   cudaMemcpyToSymbol(constwtable, wtable, LENGTH*LENGTH*2*sizeof(CMPTYPE), 0, cudaMemcpyDeviceToDevice);
   multipole U238(data);
+  /*copy to a local array for print*/
+  CPUComplex* wtablel;
+  wtablel = (CPUComplex*)malloc(LENGTH*LENGTH*2*sizeof(CMPTYPE));
+  cudaMemcpy(wtablel,wtable,LENGTH*LENGTH*2*sizeof(CMPTYPE),cudaMemcpyDeviceToHost);
+  FILE *fp = NULL;
+#if defined(__CFLOAT)
+  fp = fopen("wtablf","w");
+#else
+  fp = fopen("wtable","w");
+#endif
+  int row,col;
+  for(row=0;row<LENGTH;row++){
+    for(col=0;col<LENGTH;col++){
+		fprintf(fp,w[%2d][%2d]= %20.16e + i*%20.16e\n, row,col, real(wtablel[row*LENGTH+col]),imag(wtablel[row*LENGTH+col]));	    
+    }
+  }
+  fclose(fp);
 #else
   CComplex<CMPTYPE> *wtable;
   gpuErrchk(cudaMalloc((void**)&wtable, LENGTH*LENGTH * 2 * sizeof(CMPTYPE)));
