@@ -22,7 +22,7 @@ static __inline__ __device__ CComplex<double> texfetch_complex(texture<int4,2> t
 #endif
 
 #if defined (__QUICKWC)
-extern __constant__ CMPTYPE2 w_tabulated[LENGTH*LENGTH];
+extern __constant__ CMPTYPE2 w_tabulated[];
 #endif
 
 //TODO: load constants on shared memory
