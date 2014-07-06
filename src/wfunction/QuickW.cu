@@ -57,7 +57,8 @@ __device__ void initialize_w_tabulated(CComplex* w_tabulated){
 #if defined(__QUICKWC)
 __device__ void fill_w_tabulated(CMPTYPE2* w_tabulated, int id){
   double x, y;
-  CComplex<double> z,w;
+  CComplex<double> z;
+  CComplex<CMPTYPE> w;
   x = WIDTH*(id/LENGTH-1);
   y = WIDTH*(id%LENGTH-1);
   z = CComplex<double>(x,y);
