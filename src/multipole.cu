@@ -168,8 +168,8 @@ __device__  void multipole::xs_eval_fast(CMPTYPE E, CMPTYPE sqrtKT,
 #endif
 #endif
 
-    if(blockIdx.x==0 and threadIdx.x==18)
-      printf("energy = %10.6f, iP=%4d, w = %20.16e + i*%20.16e\n",E,iP, real(w_val),imag(w_val));
+    /*if(blockIdx.x==0 and threadIdx.x==18)
+      printf("energy = %10.6f, iP=%4d, w = %20.16e + i*%20.16e\n",E,iP, real(w_val),imag(w_val));*/
 
     sigT += real(mpdata[pindex(iP-1,MP_RT)]*sigT_factor[l_value[iP-1]-1]*w_val);//sigtfactor);	    
     sigA += real(mpdata[pindex(iP-1,MP_RA)]*w_val);                              
