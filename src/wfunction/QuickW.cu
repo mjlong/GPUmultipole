@@ -68,8 +68,7 @@ __device__ void fill_w_tabulated(CMPTYPE2* w_tabulated, int id){
 #else
   w = Faddeeva::w(z);
 #endif
-  w_tabulated[id].x = real(w);
-  w_tabulated[id].y = imag(w);
+  w_tabulated[id] = CMPTYPE2(real(w),imag(w));
   return;
 }
 
