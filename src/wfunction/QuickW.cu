@@ -58,8 +58,8 @@ __device__ void initialize_w_tabulated(CComplex* w_tabulated){
 __device__ void fill_w_tabulated(CMPTYPE2* w_tabulated, int id){
   double x, y;
   CComplex<double> z;
-  x = WIDTH*(id/LENGTH-1);
-  y = WIDTH*(id%LENGTH-1);
+  y = WIDTH*(id/LENGTH-1);
+  x = WIDTH*(id%LENGTH-1);
   z = CComplex<double>(x,y);
 #if defined(__CFLOAT)
   z=Faddeeva::w(z);
