@@ -54,25 +54,8 @@ __device__ void initialize_w_tabulated(CComplex* w_tabulated){
   return;
 }
 */
-#if defined(__QUICKWC)
-__device__ void fill_w_tabulated(CMPTYPE2* w_tabulated, int id){
-  double x, y;
-  CComplex<double> z;
-  y = WIDTH*(id/LENGTH-1);
-  x = WIDTH*(id%LENGTH-1);
-  z = CComplex<double>(x,y);
-#if defined(__CFLOAT)
-  z=Faddeeva::w(z);
-  w_tabulated[id] = make_float2((float)real(z),(float)imag(z));
-#else
-  w = Faddeeva::w(z);
-  w_tabulated[id] = make_double2(real(w),imag(w));
-#endif
-  
-  return;
-}
 
-#else
+
 __device__ void fill_w_tabulated(CComplex<CMPTYPE>* w_tabulated, int id){
   double x,y;
   CComplex<double> z;
@@ -88,7 +71,7 @@ __device__ void fill_w_tabulated(CComplex<CMPTYPE>* w_tabulated, int id){
   return;
 }
 
-#endif
+
 /*===============================================================================                   
  W_FUNCTION calculates the Faddeeva function, also known as the complex                
  probability integral, for complex arguments. For |z| < 6, it uses a six-point 
@@ -294,12 +277,12 @@ __device__ CComplex<CMPTYPE> w_function(CComplex<CMPTYPE> z){
     w6 = CComplex<CMPTYPE>(constwtable[(m+1)*LENGTH+l+1].x,constwtable[(m+1)*LENGTH+l+1].y);
     */
     w = 
-      (CMPTYPE)0.5*(qq - q)        *CComplex<CMPTYPE>(constwtable[].x,constwtable[].y)+	  
-      (CMPTYPE)0.5*(pp - p)        *CComplex<CMPTYPE>(constwtable[].x,constwtable[].y)+	  
-      (CMPTYPE)(1.0 + pq - pp - qq)*CComplex<CMPTYPE>(constwtable[].x,constwtable[].y)+	  
-      (CMPTYPE)(0.5*(pp + p) - pq) *CComplex<CMPTYPE>(constwtable[].x,constwtable[].y)+	  
-      (CMPTYPE)(0.5*(qq + q) - pq) *CComplex<CMPTYPE>(constwtable[].x,constwtable[].y)+	  
-      (CMPTYPE) pq                 *CComplex<CMPTYPE>(constwtable[].x,constwtable[].y);
+      (CMPTYPE)0.5*(qq - q)        *CComplex<CMPTYPE>(constwtable[(m-1)*LENGTH+l].x,constwtable[(m-1)*LENGTH+l].y)+	  
+      (CMPTYPE)0.5*(pp - p)        *CComplex<CMPTYPE>(constwtable[m*LENGTH + l-1].x,constwtable[m*LENGTH + l-1].y)+	  
+      (CMPTYPE)(1.0 + pq - pp - qq)*CComplex<CMPTYPE>(constwtable[m*LENGTH + l  ].x,constwtable[m*LENGTH + l  ].y)+	  
+      (CMPTYPE)(0.5*(pp + p) - pq) *CComplex<CMPTYPE>(constwtable[m*LENGTH + l+1].x,constwtable[m*LENGTH + l+1].y)+	  
+      (CMPTYPE)(0.5*(qq + q) - pq) *CComplex<CMPTYPE>(constwtable[(m+1)*LENGTH+l].x,constwtable[(m+1)*LENGTH+l].y)+	  
+      (CMPTYPE) pq                 *CComplex<CMPTYPE>(constwtable[(m+1)*LENGTH+l+1].x,constwtable[(m+1)*LENGTH+l+1].y);
     /*
      w=
       (CMPTYPE)0.5*(qq - q)        *w1+	  
