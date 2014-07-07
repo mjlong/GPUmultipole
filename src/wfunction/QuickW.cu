@@ -7,13 +7,13 @@
   }
 */
 #if defined(__CFLOAT)
-extern texture<float2,2> tex_wtable;
+texture<float2,2> tex_wtable;
 static __inline__ __device__ CComplex<float> texfetch_complex(texture<float2,2> t, int i, int j){
   float2 v = tex2D(t, i, j);
   return CComplex<float>(v.x, v.y);
 }
 #else
-extern texture<int4,2> tex_wtable;
+texture<int4,2> tex_wtable;
 static __inline__ __device__ CComplex<double> texfetch_complex(texture<int4,2> t, int i, int j){
   int4 v = tex2D(t, i, j);
   return CComplex<double>(__hiloint2double(v.y, v.x),__hiloint2double(v.w,v.z));
@@ -71,6 +71,17 @@ __device__ void fill_w_tabulated(CComplex<CMPTYPE>* w_tabulated, int id){
   return;
 }
 
+#if defined(__QUICKWT)
+__host__ void bindwtable(CComplex<CMPTYPE>* wtable){
+  //cudaBindTexture(NULL, tex_wtable, wtable, LENGTH*LENGTH*sizeof(CMPTYPE)*2);
+  cudaChannelFormatDesc desc = cudaCreateChannelDesc<CMPTYPE2>();
+  cudaBindTexture2D(NULL, tex_wtable, wtable, desc, LENGTH, LENGTH, sizeof(CMPTYPE)*2*LENGTH);
+}
+
+__host__ void unbindwtable(){
+  cudaUnbindTexture(tex_wtable);
+}
+#endif 
 
 /*===============================================================================                   
  W_FUNCTION calculates the Faddeeva function, also known as the complex                

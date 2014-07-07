@@ -1,21 +1,14 @@
 #include "multipole.h"
-#if defined(__QUICKWT)
-#if defined(__CFLOAT)
-texture<float2, 2> tex_wtable;
-#else
-texture<double2, 2> tex_wtable;
-#endif
-#endif
 
 #if defined(__QUICKW)
-#if defined(__QUICKWC)
-// __QUICKWC declares constant memory as extern in QuickW.cu
-multipole::multipole(struct multipoledata data){
-#else 
-// __QUICKWT binds   global memory wtable to texture   
+#if defined(__QUICKWG)
 // __QUICKWG assigns global memory wtable to multipole member
 multipole::multipole(struct multipoledata data, CComplex<CMPTYPE>* wtable){
-#endif //endif __QUICKWC
+#else 
+// __QUICKWT has bound global memory wtable to texture 
+// __QUICKWC declares constant memory as extern in QuickW.cu
+multipole::multipole(struct multipoledata data){
+#endif //endif __QUICKWG
 #else 
 // __MITW    uses no wtable
 multipole::multipole(struct multipoledata data){
@@ -66,11 +59,6 @@ multipole::multipole(struct multipoledata data){
   cudaMalloc((void**)&fit, size);
   cudaMemcpy(fit, data.fit, size, cudaMemcpyHostToDevice);
 
-#if defined(__QUICKWT)
-  //cudaBindTexture(NULL, tex_wtable, wtable, LENGTH*LENGTH*sizeof(CMPTYPE)*2);
-  cudaChannelFormatDesc desc = cudaCreateChannelDesc<CMPTYPE2>();
-  cudaBindTexture2D(NULL, tex_wtable, wtable, desc, LENGTH, LENGTH, sizeof(CMPTYPE)*2*LENGTH);
-#endif 
 #if defined(__QUICKWG)
   mtable = wtable;  
 #endif
@@ -90,7 +78,7 @@ void multipole::release_pointer(){
   gpuErrchk(cudaFree(w_end));
   gpuErrchk(cudaFree(fit));
 #if defined(__QUICKWT)
-  cudaUnbindTexture(tex_wtable);
+  unbindwtable();
 #endif
 }
 

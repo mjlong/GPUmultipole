@@ -55,10 +55,17 @@ void anyvalue(struct multipoledata data, unsigned setgridx, unsigned setblockx, 
 #if defined(__QUICKWC)
   cudaMemcpyToSymbol(constwtable, wtable, LENGTH*LENGTH*2*sizeof(CMPTYPE), 0, cudaMemcpyDeviceToDevice);
   multipole U238(data);
-#else
+#endif
+
+#if defined(__QUICKWG)
   multipole U238(data, wtable);
-#endif //__QUICKWC
-#else
+#endif 
+
+#if defined(__QUICKWT)
+  multipole U238(data);
+  bindwtable(wtable);
+#endif
+#else //not quickw
   multipole U238(data); //host multipoledata to device
 #endif 
 

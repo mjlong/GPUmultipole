@@ -69,14 +69,14 @@ public:
   CMPTYPE *fit;
   //Contains the fitting function.  (reaction type, coeff index, window index)
   //=========================================================================
-#if defined(__QUICKWG) || defined(__QUICKWT)
+#if defined(__QUICKWG) 
   CComplex<CMPTYPE>* mtable;
 #endif
 /*#if defined(__QUICKWC)
   CMPTYPE2 *mtable;
 #endif*/
  public:
-#if defined(__QUICKWG) || defined(__QUICKWT)
+#if defined(__QUICKWG)
   multipole(struct multipoledata data, CComplex<CMPTYPE> *wtable);
 #else
   multipole(struct multipoledata data);

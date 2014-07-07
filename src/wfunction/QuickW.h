@@ -40,13 +40,14 @@
 #define LENGTH 62
 #define WIDTH  0.1
 
-
 //__device__ void initialize_w_tabulated(CComplex*);
 __device__ void fill_w_tabulated(CComplex<CMPTYPE>*, int);
 
 #if defined(__QUICKWG)
 __device__ CComplex<CMPTYPE> w_function(CComplex<CMPTYPE>, CComplex<CMPTYPE>*);
 #elif defined(__QUICKWT)
+__host__ void bindwtable(CComplex<CMPTYPE>* wtable);
+__host__ void unbindwtable();
 __device__ CComplex<CMPTYPE> w_function(CComplex<CMPTYPE>);
 #else
 __device__ CComplex<CMPTYPE> w_function(CComplex<CMPTYPE> );
