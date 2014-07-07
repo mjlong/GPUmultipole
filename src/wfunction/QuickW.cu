@@ -1,11 +1,19 @@
 #include "QuickW.h"
 #if defined(__QUICKWT)
-//texture<float2> tex_wtable;
-/*static __inline__ __device__ CComplex<float> texfetch_complex8(texture<float2> t, int i){
+#if defined(__CFLOAT)
+texture<float2> tex_wtable;
+static __inline__ __device__ CComplex<float> texfetch_complex(texture<float2> t, int i){
   float2 v = tex1Dfetch(t,i);
   return CComplex<float>(v.x, v.y);
   }
-*/
+#else
+texture<int4> tex_wtable;
+static __inline__ __device__ CComplex<double> texfetch_complex(texture<int4> t, int i){
+  int4 v = tex1Dfetch(t,i);
+  return CComplex<double>(__hiloint2double(v.y, v.x),__hiloint2double(v.w,v.z));
+}
+#endif
+/*
 #if defined(__CFLOAT)
 texture<float2,2> tex_wtable;
 static __inline__ __device__ CComplex<float> texfetch_complex(texture<float2,2> t, int i, int j){
@@ -19,6 +27,7 @@ static __inline__ __device__ CComplex<double> texfetch_complex(texture<int4,2> t
   return CComplex<double>(__hiloint2double(v.y, v.x),__hiloint2double(v.w,v.z));
 }
 #endif
+*/
 #endif
 
 #if defined (__QUICKWC)
@@ -73,9 +82,9 @@ __device__ void fill_w_tabulated(CComplex<CMPTYPE>* w_tabulated, int id){
 
 #if defined(__QUICKWT)
 __host__ void bindwtable(CComplex<CMPTYPE>* wtable){
-  //cudaBindTexture(NULL, tex_wtable, wtable, LENGTH*LENGTH*sizeof(CMPTYPE)*2);
-  cudaChannelFormatDesc desc = cudaCreateChannelDesc<CMPTYPE2>();
-  cudaBindTexture2D(NULL, tex_wtable, wtable, desc, LENGTH, LENGTH, sizeof(CMPTYPE)*2*LENGTH);
+  cudaBindTexture(NULL, tex_wtable, wtable, LENGTH*LENGTH*sizeof(CMPTYPE)*2);
+  //cudaChannelFormatDesc desc = cudaCreateChannelDesc<CMPTYPE2>();
+  //cudaBindTexture2D(NULL, tex_wtable, wtable, desc, LENGTH, LENGTH, sizeof(CMPTYPE)*2*LENGTH);
 }
 
 __host__ void unbindwtable(){
@@ -104,29 +113,50 @@ __device__ CComplex<CMPTYPE> w_function(CComplex<CMPTYPE> z){
     CMPTYPE qq = q*q;
     CMPTYPE pq = p*q;
     //**********************************************************************
-    CComplex<CMPTYPE> w1,w2,w3,w4,w5,w6;
+    //CComplex<CMPTYPE> w1,w2,w3,w4,w5,w6;
     //**********************************************************************
+    //failed test of binding 1d array to 2d texture
+    /*
     w1 = texfetch_complex(tex_wtable, m-1, l  );
     w2 = texfetch_complex(tex_wtable, m  , l-1);
     w3 = texfetch_complex(tex_wtable, m  , l  );
     w4 = texfetch_complex(tex_wtable, m  , l+1);
     w5 = texfetch_complex(tex_wtable, m+1, l  );
     w6 = texfetch_complex(tex_wtable, m+1, l+1);
+    */
+    /*
+    w1 = texfetch_complex(tex_wtable, (m-1)*LENGTH+l);
+    w2 = texfetch_complex(tex_wtable, m*LENGTH + l-1);
+    w3 = texfetch_complex(tex_wtable, m*LENGTH + l  );
+    w4 = texfetch_complex(tex_wtable, m*LENGTH + l+1);
+    w5 = texfetch_complex(tex_wtable, (m+1)*LENGTH+l);
+    w6 = texfetch_complex(tex_wtable, (m+1)*LENGTH+l+1);
+    */
     w =  
-      /*(CMPTYPE)0.5*(qq - q)        *texfetch_complex(tex_wtable, m-1, l  ) + 
+      (CMPTYPE)0.5*(qq - q)        *texfetch_complex(tex_wtable,(m-1)*LENGTH+l ) + 
+      (CMPTYPE)0.5*(pp - p)        *texfetch_complex(tex_wtable,m*LENGTH + l-1 ) +
+      (CMPTYPE)(1.0 + pq - pp - qq)*texfetch_complex(tex_wtable,m*LENGTH + l   ) +
+      (CMPTYPE)(0.5*(pp + p) - pq) *texfetch_complex(tex_wtable,m*LENGTH + l+1 ) +
+      (CMPTYPE)(0.5*(qq + q) - pq) *texfetch_complex(tex_wtable,(m+1)*LENGTH+l ) +
+      (CMPTYPE) pq                 *texfetch_complex(tex_wtable,(m+1)*LENGTH+l+1);
+      /*
+      (CMPTYPE)0.5*(qq - q)        *texfetch_complex(tex_wtable, m-1, l  ) + 
       (CMPTYPE)0.5*(pp - p)        *texfetch_complex(tex_wtable, m  , l-1) +
       (CMPTYPE)(1.0 + pq - pp - qq)*texfetch_complex(tex_wtable, m  , l  ) +
       (CMPTYPE)(0.5*(pp + p) - pq) *texfetch_complex(tex_wtable, m  , l+1) +
       (CMPTYPE)(0.5*(qq + q) - pq) *texfetch_complex(tex_wtable, m+1, l  ) +
-      (CMPTYPE) pq                 *texfetch_complex(tex_wtable, m+1, l+1);*/
+      (CMPTYPE) pq                 *texfetch_complex(tex_wtable, m+1, l+1);
+      */
+      /*
       (CMPTYPE)0.5*(qq - q)        *w1 + 
       (CMPTYPE)0.5*(pp - p)        *w2 +
       (CMPTYPE)(1.0 + pq - pp - qq)*w3 +
       (CMPTYPE)(0.5*(pp + p) - pq) *w4 +
       (CMPTYPE)(0.5*(qq + q) - pq) *w5 +
       (CMPTYPE) pq                 *w6;
+      */
 
-    
+    /*    
     if(blockIdx.x==0 && threadIdx.x==18){
       printf("w1=%20.16e + i*%20.16e\n",real(w1),imag(w1));
       printf("w2=%20.16e + i*%20.16e\n",real(w2),imag(w2));
@@ -137,6 +167,7 @@ __device__ CComplex<CMPTYPE> w_function(CComplex<CMPTYPE> z){
       printf("m=%2d, l=%2d\n", m,l);
       printf("p=%16.12e, q=%16.12e, pp=%16.12e, qq=%16.12e, pq=%16.12e\n",p,q,pp,qq,pq);
     }
+    */
     if(real(z)<0)
       w = Conjugate(w);
   }
