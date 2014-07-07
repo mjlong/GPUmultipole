@@ -65,10 +65,12 @@ __device__ void fill_w_tabulated(CMPTYPE2* w_tabulated, int id){
 #if defined(__CFLOAT)
   z=Faddeeva::w(z);
   w = CComplex<float>((float)real(z),(float)imag(z));
+  w_tabulated[id] = make_float2(real(w),imag(w));
 #else
   w = Faddeeva::w(z);
+  w_tabulated[id] = make_double2(real(w),imag(w));
 #endif
-  w_tabulated[id] = CMPTYPE2(real(w),imag(w));
+  
   return;
 }
 
