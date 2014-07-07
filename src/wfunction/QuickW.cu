@@ -58,14 +58,12 @@ __device__ void initialize_w_tabulated(CComplex* w_tabulated){
 __device__ void fill_w_tabulated(CMPTYPE2* w_tabulated, int id){
   double x, y;
   CComplex<double> z;
-  CComplex<CMPTYPE> w;
   x = WIDTH*(id/LENGTH-1);
   y = WIDTH*(id%LENGTH-1);
   z = CComplex<double>(x,y);
 #if defined(__CFLOAT)
   z=Faddeeva::w(z);
-  w = CComplex<float>((float)real(z),(float)imag(z));
-  w_tabulated[id] = make_float2(real(w),imag(w));
+  w_tabulated[id] = make_float2((float)real(z),(float)imag(z));
 #else
   w = Faddeeva::w(z);
   w_tabulated[id] = make_double2(real(w),imag(w));
