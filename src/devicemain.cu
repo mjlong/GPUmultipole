@@ -49,16 +49,13 @@ void anyvalue(struct multipoledata data, unsigned setgridx, unsigned setblockx, 
   cnt      = (unsigned*)malloc(gridx*sizeof(unsigned));
 
 #if defined(__QUICKW)
-#if defined(__QUICKWC)
-  CMPTYPE2* wtable;
-  gpuErrchk(cudaMalloc((void**)&wtable, LENGTH*LENGTH * 2 * sizeof(CMPTYPE)));
-  initialize_table<<<LENGTH,LENGTH>>>(wtable);
-  cudaMemcpyToSymbol(constwtable, wtable, LENGTH*LENGTH*2*sizeof(CMPTYPE), 0, cudaMemcpyDeviceToDevice);
-  multipole U238(data);
-#else
   CComplex<CMPTYPE> *wtable;
   gpuErrchk(cudaMalloc((void**)&wtable, LENGTH*LENGTH * 2 * sizeof(CMPTYPE)));
   initialize_table<<<LENGTH,LENGTH>>>(wtable);
+#if defined(__QUICKWC)
+  cudaMemcpyToSymbol(constwtable, wtable, LENGTH*LENGTH*2*sizeof(CMPTYPE), 0, cudaMemcpyDeviceToDevice);
+  multipole U238(data);
+#else
   multipole U238(data, wtable);
 #endif //__QUICKWC
 #else
