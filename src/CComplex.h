@@ -152,8 +152,7 @@ __host__ __device__ CComplex<DType> Conjugate(CComplex<DType> c){
 
 template <class DType>
 __host__ __device__ CComplex<DType> exp(CComplex<DType> c){
-  DType y = c.Im();
-  return exp(c.Re())*(cos(y)*sin(y));
+  return CComplex<DType>(exp(c.Re())*cos(c.Im()),exp(c.Re())*sin(c.Im()));
 }
 
 template <class DType>

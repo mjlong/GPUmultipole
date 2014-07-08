@@ -152,8 +152,7 @@ template <class DType>
 
 template <class DType>
   CPUComplex<DType> exp(CPUComplex<DType> c){
-  DType y = c.Im();
-  return exp(c.Re())*(cos(y)*sin(y));
+  return CPUComplex<DType>(exp(c.Re())*cos(c.Im()),exp(c.Re())*sin(c.Im()));
 }
 
 template <class DType>
