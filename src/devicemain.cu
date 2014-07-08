@@ -113,6 +113,8 @@ void anyvalue(struct multipoledata data, unsigned setgridx, unsigned setblockx, 
   statistics<<<dimBlock, dimGrid, sharedmem>>>(DeviceMem.tally, blockcnt);
   gpuErrchk(cudaMemcpy(cnt, blockcnt, gridx*sizeof(unsigned), cudaMemcpyDeviceToHost));
 
+/*print energy & XS (energies for __TRACK)*/
+#if !defined(__PLOT)
   for(int i=0;i<gridsize;i++){
     printf(" %.15e %.15e %.15e %.15e",
 	   hostarray[4*i],
@@ -128,8 +130,10 @@ void anyvalue(struct multipoledata data, unsigned setgridx, unsigned setblockx, 
 	printf("\n");
     }
   }
+#endif
 
-#if !defined(__PROCESS) && !defined(__TRACK)
+/*print collision cnt and time*/
+#if !defined(__PROCESS) && !defined(__TRACK) && !defined(__PLOT)
   unsigned sum = 0;
   for (int i=0;i<gridx;i++){
     printf("%4d\n",cnt[i]);
