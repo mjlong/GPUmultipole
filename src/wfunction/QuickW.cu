@@ -219,8 +219,8 @@ __device__ CComplex<CMPTYPE> w_function(CComplex<CMPTYPE> z){
   else
     w = ONEI * z * (a/(z*z - b) + c/(z*z - d));
   if(lower){
-    w = Conjugate((CMPTYPE)2.0*exp((CMPTYPE)0.0-z*z)-w);
-    //w = -Conjugate(w);
+    //w = Conjugate((CMPTYPE)2.0*exp((CMPTYPE)0.0-z*z)-w);
+    w = -Conjugate(w);
 #if defined(__PLOT)
     printf("hit\n");
 #endif
