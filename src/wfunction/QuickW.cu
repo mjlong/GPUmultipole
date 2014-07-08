@@ -220,6 +220,7 @@ __device__ CComplex<CMPTYPE> w_function(CComplex<CMPTYPE> z){
     w = ONEI * z * (a/(z*z - b) + c/(z*z - d));
   if(lower)
     w = Conjugate((CMPTYPE)2.0*exp((CMPTYPE)0.0-z*z)-w);
+    //w = -Conjugate(w);
   return w;
 }
 
