@@ -101,6 +101,13 @@ __host__ void unbindwtable(){
 ===============================================================================*/ 
 #if defined(__QUICKWT) 
 __device__ CComplex<CMPTYPE> w_function(CComplex<CMPTYPE> z){
+#endif
+#if defined(__QUICKWG) 
+__device__ CComplex<CMPTYPE> w_function(CComplex<CMPTYPE> z, CComplex<CMPTYPE>* w_tabulated){
+#endif 
+#if defined(__QUICKWC)
+__device__ CComplex<CMPTYPE> w_function(CComplex<CMPTYPE> z){
+#endif
   CComplex<CMPTYPE> w;
   if(abs(Norm(z)) < 6.0){
     CMPTYPE p = 10.0*abs(real(z));
@@ -115,6 +122,7 @@ __device__ CComplex<CMPTYPE> w_function(CComplex<CMPTYPE> z){
     //**********************************************************************
     //CComplex<CMPTYPE> w1,w2,w3,w4,w5,w6;
     //**********************************************************************
+#if defined(__QUICKWT)
     //failed test of binding 1d array to 2d texture
     /*
     w1 = texfetch_complex(tex_wtable, m-1, l  );
@@ -147,81 +155,9 @@ __device__ CComplex<CMPTYPE> w_function(CComplex<CMPTYPE> z){
       (CMPTYPE)(0.5*(qq + q) - pq) *texfetch_complex(tex_wtable, m+1, l  ) +
       (CMPTYPE) pq                 *texfetch_complex(tex_wtable, m+1, l+1);
       */
-      /*
-      (CMPTYPE)0.5*(qq - q)        *w1 + 
-      (CMPTYPE)0.5*(pp - p)        *w2 +
-      (CMPTYPE)(1.0 + pq - pp - qq)*w3 +
-      (CMPTYPE)(0.5*(pp + p) - pq) *w4 +
-      (CMPTYPE)(0.5*(qq + q) - pq) *w5 +
-      (CMPTYPE) pq                 *w6;
-      */
-
-    /*    
-    if(blockIdx.x==0 && threadIdx.x==18){
-      printf("w1=%20.16e + i*%20.16e\n",real(w1),imag(w1));
-      printf("w2=%20.16e + i*%20.16e\n",real(w2),imag(w2));
-      printf("w3=%20.16e + i*%20.16e\n",real(w3),imag(w3));
-      printf("w4=%20.16e + i*%20.16e\n",real(w4),imag(w4));
-      printf("w5=%20.16e + i*%20.16e\n",real(w5),imag(w5));
-      printf("w6=%20.16e + i*%20.16e\n",real(w6),imag(w6));
-      printf("m=%2d, l=%2d\n", m,l);
-      printf("p=%16.12e, q=%16.12e, pp=%16.12e, qq=%16.12e, pq=%16.12e\n",p,q,pp,qq,pq);
-    }
-    */
-    if(real(z)<0)
-      w = Conjugate(w);
-  }
-  else
-    w = ONEI * z * (a/(z*z - b) + c/(z*z - d));
-  return w;
-  
-}
 #endif
-
-#if defined(__QUICKWG) 
-__device__ CComplex<CMPTYPE> w_function(CComplex<CMPTYPE> z, CComplex<CMPTYPE>* w_tabulated){
-  CMPTYPE  p;           // interpolation factor on real axis                                   
-  CMPTYPE  q;           // interpolation factor on imaginary axis                                  
-  CMPTYPE  pp, qq, pq;  // products of p and q                                         
-
-  int l;               //interpolation index for real axis
-  int m;               //interpolation index for imaginary axis
-  
-  CComplex<CMPTYPE> w;
-  
-  if(abs(Norm(z)) < 6.0){
-    //CComplex<CMPTYPE> w1,w2,w3,w4,w5,w6;
-    // Use interpolation for |z| < 6. The interpolation scheme uses a bivariate         
-    // six-point quadrature described in Abramowitz and Stegun 25.2.67. This          
-    // interpolation is accurate to O(h^3) = O(10^-3).                           
-    //                          
-    //     l-1  l  l+1            
-    // m+1      +   +                                   
-    //          |                         
-    // m    +---+---+                         
-    //          |                   
-    // m-1      +        
-
-    // Determine indices on grid for interpolation and interpolation factors --
-    // note that in previous implementations it was necessary to add/subtract
-    // two in places because of the indexing on the tabulated function. Because
-    // w_tabulated is indexed from -1 to 60, we don't need to do that here
-
-    p = 10.0*abs(real(z));
-    q = 10.0*imag(z);
-    l = (int)p;
-    m = (int)q;
-    p = p - l;
-    q = q - m;
-
-    //Calculate products
-    pp = p*p;
-    qq = q*q;
-    pq = p*q;
-
-    // Use six-point interpolation to calculate real and imaginary parts
-    l++;
-    m++;
+///////////////////////////////////
+#if defined(__QUICKWG)
     /*
     w1 = w_tabulated[(m-1)*LENGTH+l];
     w2 = w_tabulated[m*LENGTH + l-1];
@@ -237,79 +173,9 @@ __device__ CComplex<CMPTYPE> w_function(CComplex<CMPTYPE> z, CComplex<CMPTYPE>* 
       (CMPTYPE)(0.5*(pp + p) - pq) *w_tabulated[m*LENGTH + l+1] +
       (CMPTYPE)(0.5*(qq + q) - pq) *w_tabulated[(m+1)*LENGTH+l] +
       (CMPTYPE) pq                 *w_tabulated[(m+1)*LENGTH+l+1];
-    /*
-    w =  
-      (CMPTYPE)0.5*(qq - q)        *w1+
-      (CMPTYPE)0.5*(pp - p)        *w2+
-      (CMPTYPE)(1.0 + pq - pp - qq)*w3+
-      (CMPTYPE)(0.5*(pp + p) - pq) *w4+
-      (CMPTYPE)(0.5*(qq + q) - pq) *w5+
-      (CMPTYPE) pq                 *w6; 
-    if(blockIdx.x==0 && threadIdx.x==18){
-      printf("w1=%20.16e + i*%20.16e\n",real(w1),imag(w1));
-      printf("w2=%20.16e + i*%20.16e\n",real(w2),imag(w2));
-      printf("w3=%20.16e + i*%20.16e\n",real(w3),imag(w3));
-      printf("w4=%20.16e + i*%20.16e\n",real(w4),imag(w4));
-      printf("w5=%20.16e + i*%20.16e\n",real(w5),imag(w5));
-      printf("w6=%20.16e + i*%20.16e\n",real(w6),imag(w6));
-      printf("m=%2d, l=%2d\n", m,l);
-      printf("p=%16.12e, q=%16.12e, pp=%16.12e, qq=%16.12e, pq=%16.12e\n",p,q,pp,qq,pq);
-    }
-    */
-    if(real(z)<0) 
-      w = Conjugate(w);
-  }
-  else
-    w = ONEI * z * (a/(z*z - b) + c/(z*z - d));
-
-  return w;
-}
 #endif
-
+////////////////////////////////////////////
 #if defined(__QUICKWC)
-__device__ CComplex<CMPTYPE> w_function(CComplex<CMPTYPE> z){
-  CMPTYPE  p;           // interpolation factor on real axis                                   
-  CMPTYPE  q;           // interpolation factor on imaginary axis                                  
-  CMPTYPE  pp, qq, pq;  // products of p and q                                         
-
-  int l;               //interpolation index for real axis
-  int m;               //interpolation index for imaginary axis
-  
-  CComplex<CMPTYPE> w;
-  
-  if(abs(Norm(z)) < 6.0){
-    //CComplex<CMPTYPE> w1,w2,w3,w4,w5,w6;
-    // Use interpolation for |z| < 6. The interpolation scheme uses a bivariate         
-    // six-point quadrature described in Abramowitz and Stegun 25.2.67. This          
-    // interpolation is accurate to O(h^3) = O(10^-3).                           
-    //                          
-    //     l-1  l  l+1            
-    // m+1      +   +                                   
-    //          |                         
-    // m    +---+---+                         
-    //          |                   
-    // m-1      +        
-
-    // Determine indices on grid for interpolation and interpolation factors --
-    // note that in previous implementations it was necessary to add/subtract
-    // two in places because of the indexing on the tabulated function. Because
-    // w_tabulated is indexed from -1 to 60, we don't need to do that here
-
-    p = 10.0*abs(real(z));
-    q = 10.0*imag(z);
-    l = (int)p;
-    m = (int)q;
-    p = p - l;
-    q = q - m;
-
-    //Calculate products
-    pp = p*p;
-    qq = q*q;
-    pq = p*q;
-
-    // Use six-point interpolation to calculate real and imaginary parts
-    l++;
-    m++;
     /*
     w1 = CComplex<CMPTYPE>(constwtable[(m-1)*LENGTH+l].x,constwtable[(m-1)*LENGTH+l].y);
     w2 = CComplex<CMPTYPE>(constwtable[m*LENGTH + l-1].x,constwtable[m*LENGTH + l-1].y);
@@ -325,6 +191,7 @@ __device__ CComplex<CMPTYPE> w_function(CComplex<CMPTYPE> z){
       (CMPTYPE)(0.5*(pp + p) - pq) *CComplex<CMPTYPE>(constwtable[m*LENGTH + l+1].x,constwtable[m*LENGTH + l+1].y)+	  
       (CMPTYPE)(0.5*(qq + q) - pq) *CComplex<CMPTYPE>(constwtable[(m+1)*LENGTH+l].x,constwtable[(m+1)*LENGTH+l].y)+	  
       (CMPTYPE) pq                 *CComplex<CMPTYPE>(constwtable[(m+1)*LENGTH+l+1].x,constwtable[(m+1)*LENGTH+l+1].y);
+#endif
     /*
      w=
       (CMPTYPE)0.5*(qq - q)        *w1+	  
@@ -352,5 +219,4 @@ __device__ CComplex<CMPTYPE> w_function(CComplex<CMPTYPE> z){
 
   return w;
 }
-#endif
 
