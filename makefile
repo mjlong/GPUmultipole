@@ -57,6 +57,9 @@ endif
 ifeq ($(compare),2)
   W_IDEN += -D __TRACK
 endif
+ifeq ($(compare),3)
+  W_IDEN += -D __PLOT
+endif
 #
 #
 ifeq ($(FLOAT),1)
