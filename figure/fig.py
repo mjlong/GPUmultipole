@@ -44,9 +44,11 @@ energy = energy[order]
 sigt   = mitd[:,1][order]
 siga   = mitd[:,2][order]
 sigf   = mitd[:,3][order]
-fileList = ['proqgld','proqglf']#,'qtxf','qgld','qglf']
-titleist = ['QuickW --double','QuickW --float','QuickW texture --double', 'QuickW constant --double']
+#fileList = ['proqgld','proqglf']#,'qtxf','qgld','qglf']
+#titleist = ['QuickW --double','QuickW --float','QuickW texture --double', 'QuickW constant --double']
 
+fileList = ['mangle0','mangle1']
+titleist = fileList;
 i = 0
 factor = math.sqrt(65536.0)
 for stri in fileList:
