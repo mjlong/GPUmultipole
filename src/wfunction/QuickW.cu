@@ -109,6 +109,8 @@ __device__ CComplex<CMPTYPE> w_function(CComplex<CMPTYPE> z, CComplex<CMPTYPE>* 
 __device__ CComplex<CMPTYPE> w_function(CComplex<CMPTYPE> z){
 #endif
   CComplex<CMPTYPE> w;
+  bool lower = (imag(z)<0);
+  if(lower) z = Conjugate(z);
   if(abs(Norm(z)) < 6.0){
     CMPTYPE p = 10.0*abs(real(z));
     CMPTYPE q = 10.0*imag(z);
@@ -216,7 +218,8 @@ __device__ CComplex<CMPTYPE> w_function(CComplex<CMPTYPE> z){
   }
   else
     w = ONEI * z * (a/(z*z - b) + c/(z*z - d));
-
+  if(lower)
+    w = Conjugate((CMPTYPE)2.0*exp((CMPTYPE)0.0-z*z)-w);
   return w;
 }
 
