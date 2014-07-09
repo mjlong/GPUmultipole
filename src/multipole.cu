@@ -83,7 +83,7 @@ void multipole::release_pointer(){
 }
 
 // xs eval with MIT Faddeeva()
-#if defined(__MITW) || defined(__QUICKW)
+#if defined(__MITW) || defined(__QUICKW) || defined(__FOURIERW)
 __device__  void multipole::xs_eval_fast(CMPTYPE E, CMPTYPE sqrtKT, 
 			                 CMPTYPE &sigT, CMPTYPE &sigA, CMPTYPE &sigF){
 
@@ -158,7 +158,7 @@ __device__  void multipole::xs_eval_fast(CMPTYPE E, CMPTYPE sqrtKT,
 #endif
 
 #if defined(__FOURIERW)
-    w_val = fourierw((sqrtE - mpdata[pindex(iP-1,MP_EA)])*DOPP      )*DOPP_ECOEF;
+    w_val = fourierw((sqrtE - mpdata[pindex(iP-1,MP_EA)])*DOPP, (CMPTYPE)12.0, 23)*DOPP_ECOEF;
 #endif
 
     /*if(blockIdx.x==0 and threadIdx.x==18)
