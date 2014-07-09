@@ -8,7 +8,7 @@
 #define STARTENE 20000.0
 
 //TODO: it has not been determined how to save neutron and simulation state
-
+//TODO: array of struct Vs struct of array
 typedef struct {
   CMPTYPE energy;
 }basicneutronInfo;
