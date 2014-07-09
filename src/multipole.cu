@@ -99,6 +99,7 @@ __device__  void multipole::xs_eval_fast(CMPTYPE E, CMPTYPE sqrtKT,
     iW = (int)((log(E) - log(startE))/spacing);
   else
     iW = (int)(( E - startE )/spacing);
+  //iW =  (int)(((sqrtE - sqrt(startE))*(1==mode) + (log(E) - log(startE))*(2==mode) +  ( E - startE )*(3==mode))/spacing);
   unsigned fitorder    = dev_integers[FITORDER];
   unsigned numL        = dev_integers[NUML];
   unsigned fissionable = dev_integers[FISSIONABLE];
