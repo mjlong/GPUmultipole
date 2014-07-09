@@ -33,7 +33,7 @@ else
   W_IDEN = -D __SAMPLE
   EXENAME=$(DIR_BIN)/gpumr_sample_double
   ifeq ($(WFUN), 3)
-  W_IDEN = -D __FOURIER 
+  W_IDEN = -D __FOURIERW
   WSOURCES += $(DIR_SRC)/wfunction/fourierw.cu
   EXENAME=$(DIR_BIN)/gpumr_fourierw_double
   endif
