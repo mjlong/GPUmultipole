@@ -157,6 +157,10 @@ __device__  void multipole::xs_eval_fast(CMPTYPE E, CMPTYPE sqrtKT,
 #endif
 #endif
 
+#if defined(__FOURIERW)
+    w_val = fourierw((sqrtE - mpdata[pindex(iP-1,MP_EA)])*DOPP      )*DOPP_ECOEF;
+#endif
+
     /*if(blockIdx.x==0 and threadIdx.x==18)
       printf("energy = %10.6f, iP=%4d, w = %20.16e + i*%20.16e\n",E,iP, real(w_val),imag(w_val));*/
 #if defined(__PLOT)

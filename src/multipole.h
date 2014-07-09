@@ -50,6 +50,9 @@
 #include "QuickW.h"
 #endif
 
+#if defined(__FOURIERW)
+#include "fourierw.h"
+#endif
 #include "global.h"
 #include "gpuerrchk.h"
 using namespace std;
@@ -83,7 +86,7 @@ public:
 #endif
   ~multipole();
   void release_pointer();
-#if defined(__MITW) || defined(__QUICKW)
+#if defined(__MITW) || defined(__QUICKW) || defined(__FOURIERW)
   __device__  void xs_eval_fast(CMPTYPE E, CMPTYPE sqrtKT, 
 					 CMPTYPE &sigT, CMPTYPE &sigA, CMPTYPE &sigF);
 #endif
