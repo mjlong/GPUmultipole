@@ -10,3 +10,9 @@
 #if defined(__QUICKW)
 #define LENGTH 62
 #endif
+
+#if defined(__CFLOAT)
+#define CMPTYPE float
+#else
+#define CMPTYPE double
+#endif
