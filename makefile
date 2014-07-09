@@ -3,6 +3,7 @@
 #QUICKW_TEXTURE = 12
 #QUICKW_CONST   = 13
 #WHPW = 2
+#FOURIEREXPANSION = 3
 DIR_SRC = ./src
 DIR_OBJ = ./obj
 ifeq ($(compare),1)
@@ -31,6 +32,11 @@ ifeq ($(WFUN),0)
 else 
   W_IDEN = -D __SAMPLE
   EXENAME=$(DIR_BIN)/gpumr_sample_double
+  ifeq ($(WFUN), 3)
+  W_IDEN = -D __FOURIER 
+  WSOURCES += $(DIR_SRC)/wfunction/fourierw.cu
+  EXENAME=$(DIR_BIN)/gpumr_fourierw_double
+  endif
   ifeq ($(WFUN),11)
   W_IDEN = -D __QUICKW -D __QUICKWG
   WSOURCES += $(DIR_SRC)/wfunction/Faddeeva.cu 
