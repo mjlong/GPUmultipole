@@ -112,6 +112,7 @@ __device__ CComplex<CMPTYPE> w_function(CComplex<CMPTYPE> z){
   CComplex<CMPTYPE> w;
   bool lower = (imag(z)<0);
   if(lower) z = Conjugate(z);
+  //TODO: if(!lower){}else{...} should be faster but isn't
   if(abs(Norm(z)) < 6.0){
     CMPTYPE p = 10.0*abs(real(z));
     CMPTYPE q = 10.0*imag(z);
