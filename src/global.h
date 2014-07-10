@@ -7,9 +7,6 @@
 #define HALFI CComplex<CMPTYPE>(0.0,0.5)
 #define ONEI  CComplex<CMPTYPE>(0.0,1.0)
 
-#if defined(__QUICKW)
-#define LENGTH 62
-#endif
 
 #if defined(__CFLOAT)
 #define CMPTYPE float
