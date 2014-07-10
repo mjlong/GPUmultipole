@@ -131,9 +131,7 @@ __device__  void multipole::xs_eval_fast(CMPTYPE E, CMPTYPE sqrtKT,
   DOPP_ECOEF = DOPP/E*sqrt(PI);
 
   for(iP=startW;iP<=endW;iP++){
-    //sigtfactor = sigT_factor[l_value[iP-1]-1];
     //w_val = (sqrtE - mpdata[pindex(iP-1,MP_EA)])*DOPP*DOPP_ECOEF;
-		       
 #if defined(__QUICKWG) 
     w_val = w_function((sqrtE - mpdata[pindex(iP-1,MP_EA)])*DOPP,mtable)*DOPP_ECOEF;
 #endif
