@@ -47,7 +47,7 @@ sigf   = mitd[:,3][order]
 #fileList = ['proqgld','proqglf']#,'qtxf','qgld','qglf']
 #titleist = ['QuickW --double','QuickW --float','QuickW texture --double', 'QuickW constant --double']
 
-fileList = ['mangle0','mangle1']
+fileList = ['testfourierd','proqgld']
 titleist = fileList;
 i = 0
 factor = math.sqrt(65536.0)
