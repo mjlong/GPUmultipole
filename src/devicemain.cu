@@ -11,8 +11,11 @@
 */
 
 
+#if defined (__QUICKW)
+#include "QuickW.h"
 #if defined (__QUICKWC)
 __constant__ CMPTYPE2 constwtable[LENGTH*LENGTH];
+#endif
 #endif
 
 #if defined (__FOURIERW)
@@ -65,7 +68,7 @@ void anyvalue(struct multipoledata data, unsigned setgridx, unsigned setblockx, 
 #if defined(__QUICKW)
   CComplex<CMPTYPE> *wtable;
   gpuErrchk(cudaMalloc((void**)&wtable, LENGTH*LENGTH * 2 * sizeof(CMPTYPE)));
-  initialize_table<<<LENGTH,LENGTH>>>(wtable);
+  fill_w_tabulated<<<LENGTH,LENGTH>>>(wtable);
 #if defined(__QUICKWC)
   cudaMemcpyToSymbol(constwtable, wtable, LENGTH*LENGTH*2*sizeof(CMPTYPE), 0, cudaMemcpyDeviceToDevice);
   multipole U238(data);
