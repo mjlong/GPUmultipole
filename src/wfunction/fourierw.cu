@@ -14,7 +14,7 @@ __global__ void fill_a(CMPTYPE *a, CMPTYPE *b){
 __device__ CComplex<CMPTYPE> w_function(CComplex<CMPTYPE> z){
   CComplex<CMPTYPE> w;
   CComplex<CMPTYPE> A = taom*z;
-  CComplex<CMPTYPE> B = exp(ONEI*A);
+  CComplex<CMPTYPE> B = exp(ONEI*A);      
   CComplex<CMPTYPE> C = A*A;
   w = CComplex<CMPTYPE>((CMPTYPE)0.0,(CMPTYPE)0.0); 
   for(int n=1;n<M;n++){
