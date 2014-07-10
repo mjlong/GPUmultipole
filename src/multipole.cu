@@ -138,7 +138,7 @@ __device__  void multipole::xs_eval_fast(CMPTYPE E, CMPTYPE sqrtKT,
     w_val = w_function((sqrtE - mpdata[pindex(iP-1,MP_EA)])*DOPP,mtable)*DOPP_ECOEF;
 #endif
 
-#if defined(__QUICKWC) || defined(__QUICKWT)
+#if defined(__QUICKWC) || defined(__QUICKWT) || defined(__FOURIERW)
     w_val = w_function((sqrtE - mpdata[pindex(iP-1,MP_EA)])*DOPP      )*DOPP_ECOEF;
     // __QUICKWT extern texture in QuickW.cu
 #endif
@@ -157,9 +157,6 @@ __device__  void multipole::xs_eval_fast(CMPTYPE E, CMPTYPE sqrtKT,
 #endif
 #endif
 
-#if defined(__FOURIERW)
-    w_val = fourierw((sqrtE - mpdata[pindex(iP-1,MP_EA)])*DOPP, (CMPTYPE)12.0, 23)*DOPP_ECOEF;
-#endif
 
     /*if(blockIdx.x==0 and threadIdx.x==18)
       printf("energy = %10.6f, iP=%4d, w = %20.16e + i*%20.16e\n",E,iP, real(w_val),imag(w_val));*/
