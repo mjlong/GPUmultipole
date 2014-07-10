@@ -15,6 +15,11 @@
 __constant__ CMPTYPE2 constwtable[LENGTH*LENGTH];
 #endif
 
+#if defined (__FOURIERW)
+#include "fourierw.h"
+__constant__ CMPTYPE a[M];
+#endif
+
 void printdevice();
 
 void anyvalue(struct multipoledata data, unsigned setgridx, unsigned setblockx, unsigned num_src, unsigned devstep){
@@ -48,6 +53,15 @@ void anyvalue(struct multipoledata data, unsigned setgridx, unsigned setblockx, 
   hostarray = (CMPTYPE*)malloc(4*gridsize*sizeof(CMPTYPE));
   cnt      = (unsigned*)malloc(gridx*sizeof(unsigned));
 
+// construct coefficients a[n] for fourier expansion w
+#if defined(__FOURIERW)
+  CMPTYPE *da;
+  gpuErrchk(cudaMalloc((void**)&da, M*sizeof(CMPTYPE))); 
+  fill_a<<<1,M>>>(da); 
+  cudaMemcpyToSymbol(a, da, M*sizeof(CMPTYPE), 0, cudaMemcpyDeviceToDevice);
+#endif
+
+// fill w function table for quickw
 #if defined(__QUICKW)
   CComplex<CMPTYPE> *wtable;
   gpuErrchk(cudaMalloc((void**)&wtable, LENGTH*LENGTH * 2 * sizeof(CMPTYPE)));
@@ -163,6 +177,9 @@ void anyvalue(struct multipoledata data, unsigned setgridx, unsigned setblockx, 
   gpuErrchk(cudaFree(DeviceMem.tally));
 #if defined(__QUICKW)
   gpuErrchk(cudaFree(wtable));
+#endif
+#if defined(__FOURIERW)
+  gpuErrchk(cudaFree(da));
 #endif
   U238.release_pointer();
 
