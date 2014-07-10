@@ -38,10 +38,6 @@ typedef struct {
   TallyStruct *tally;
 }MemStruct;
 
-#if defined(__QUICKW)
-#include "QuickW.h"
-__global__ void initialize_table(CComplex<CMPTYPE>*);
-#endif
 
 #if defined(__TRACK)
 __global__ void history(multipole, CMPTYPE *, MemStruct, unsigned, unsigned);

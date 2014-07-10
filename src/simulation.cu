@@ -15,12 +15,6 @@ __global__ void initialize(MemStruct pInfo, CMPTYPE energy){
   pInfo.tally[id].cnt = 0;
 
 }
-#if defined(__QUICKW)
-__global__ void initialize_table(CComplex<CMPTYPE> *table){
-  int id = blockDim.x*blockIdx.x + threadIdx.x;
-  fill_w_tabulated(table, id);
-}
-#endif
 
 #if defined(__TRACK)
 __global__ void history(multipole U238, CMPTYPE* devicearray, MemStruct Info, unsigned num_src, unsigned devstep){
