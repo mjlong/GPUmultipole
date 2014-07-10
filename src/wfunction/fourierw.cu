@@ -25,9 +25,8 @@ __device__ CComplex<CMPTYPE> w_function(CComplex<CMPTYPE> z){
   }
   w = w + a[M] *( -B - (CMPTYPE)1.0)/(b[M]- C);
 
-  w = w*2.0*A;
+  w = (w+w)*A;
   w = w + ((CMPTYPE)1.0-B)/A;
-  w = ONEI*w;
-  return w;
+  return w*ONEI;
 }
 
