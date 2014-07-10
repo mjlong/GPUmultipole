@@ -6,7 +6,9 @@
 #include "global.h"
 #include "CComplex.h"
 
-__device__ CComplex<CMPTYPE> fourierw(CComplex<CMPTYPE> z, CMPTYPE taom, unsigned M);
+#define taom 12.0
+#define M    23
+__device__ CComplex<CMPTYPE> w_function(CComplex<CMPTYPE> z);
 
 
 #endif

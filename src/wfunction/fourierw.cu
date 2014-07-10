@@ -1,6 +1,6 @@
 #include "fourierw.h"
 
-__device__ CComplex<CMPTYPE> fourierw(CComplex<CMPTYPE> z, CMPTYPE taom, unsigned M){
+__device__ CComplex<CMPTYPE> w_function(CComplex<CMPTYPE> z){
   CComplex<CMPTYPE> w;
   CComplex<CMPTYPE> A = taom*z;
   CComplex<CMPTYPE> B = exp(ONEI*A);
