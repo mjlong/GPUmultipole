@@ -4,6 +4,7 @@
 #QUICKW_CONST   = 13
 #WHPW = 2
 #FOURIEREXPANSION = 3
+#QUICKW FOURIER   = 31
 DIR_SRC = ./src
 DIR_OBJ = ./obj
 ifeq ($(compare),1)
@@ -36,6 +37,11 @@ else
   W_IDEN = -D __FOURIERW
   WSOURCES += $(DIR_SRC)/wfunction/fourierw.cu
   EXENAME=$(DIR_BIN)/gpumr_fourierw_double
+  endif
+  ifeq ($(WFUN), 31)
+  W_IDEN = -D __QUICKWF -D __FOURIERW
+  WSOURCES += $(DIR_SRC)/wfunction/fourierw.cu
+  EXENAME=$(DIR_BIN)/gpumr_quickwf_double
   endif
   ifeq ($(WFUN),11)
   W_IDEN = -D __QUICKW -D __QUICKWG
