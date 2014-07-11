@@ -88,11 +88,17 @@ __device__  void multipole::xs_eval_fast(CMPTYPE E, CMPTYPE sqrtKT,
 			                 CMPTYPE &sigT, CMPTYPE &sigA, CMPTYPE &sigF){
 
   // Copy variables to local memory for efficiency 
-  unsigned mode        = dev_integers[MODE];
-  int    iP, iC, iW, startW, endW;
+  CMPTYPE sqrtE = sqrt(E);
   CMPTYPE spacing = dev_doubles[SPACING];
   CMPTYPE startE  = dev_doubles[STARTE];
-  CMPTYPE sqrtE = sqrt(E);
+  CMPTYPE sqrtAWR = dev_doubles[SQRTAWR];
+  CMPTYPE power, DOPP, DOPP_ECOEF;
+  unsigned mode        = dev_integers[MODE];
+  unsigned fitorder    = dev_integers[FITORDER];
+  unsigned numL        = dev_integers[NUML];
+  unsigned fissionable = dev_integers[FISSIONABLE];
+
+  int    iP, iC, iW, startW, endW;
   if(1==mode)
     iW = (int)((sqrtE - sqrt(startE))/spacing);
   else if(2==mode)
@@ -100,12 +106,6 @@ __device__  void multipole::xs_eval_fast(CMPTYPE E, CMPTYPE sqrtKT,
   else
     iW = (int)(( E - startE )/spacing);
   //iW =  (int)(((sqrtE - sqrt(startE))*(1==mode) + (log(E) - log(startE))*(2==mode) +  ( E - startE )*(3==mode))/spacing);
-  unsigned fitorder    = dev_integers[FITORDER];
-  unsigned numL        = dev_integers[NUML];
-  unsigned fissionable = dev_integers[FISSIONABLE];
-
-  CMPTYPE sqrtAWR = dev_doubles[SQRTAWR];
-  CMPTYPE power, DOPP, DOPP_ECOEF;
   CComplex<CMPTYPE> w_val;
 
   startW = w_start[iW];
@@ -131,9 +131,7 @@ __device__  void multipole::xs_eval_fast(CMPTYPE E, CMPTYPE sqrtKT,
   DOPP_ECOEF = DOPP/E*sqrt(PI);
 
   for(iP=startW;iP<=endW;iP++){
-    //sigtfactor = sigT_factor[l_value[iP-1]-1];
     //w_val = (sqrtE - mpdata[pindex(iP-1,MP_EA)])*DOPP*DOPP_ECOEF;
-		       
 #if defined(__QUICKWG) 
     w_val = w_function((sqrtE - mpdata[pindex(iP-1,MP_EA)])*DOPP,mtable)*DOPP_ECOEF;
 #endif

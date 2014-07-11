@@ -51,7 +51,7 @@ else
   endif
   ifeq ($(WFUN),13)
   W_IDEN = -D __QUICKW -D __QUICKWC
-  FLOAT=1
+  #FLOAT=1
   WSOURCES += $(DIR_SRC)/wfunction/Faddeeva.cu 
   WSOURCES += $(DIR_SRC)/wfunction/QuickW.cu
   EXENAME=$(DIR_BIN)/gpumr_quickwc_double
