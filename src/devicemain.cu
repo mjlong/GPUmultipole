@@ -13,7 +13,7 @@
 
 #if defined (__QUICKW)
 #include "QuickW.h"
-#if defined (__QUICKWC)
+#if defined (__QUICKWC) || defined(__INTERPEXP)
 __constant__ CMPTYPE2 constwtable[LENGTH*LENGTH];
 #endif
 #endif
@@ -75,21 +75,17 @@ void anyvalue(struct multipoledata data, unsigned setgridx, unsigned setblockx, 
   fill_w_tabulated<<<LENGTH,LENGTH>>>(wtable);
 #if defined(__QUICKWC)
   cudaMemcpyToSymbol(constwtable, wtable, LENGTH*LENGTH*2*sizeof(CMPTYPE), 0, cudaMemcpyDeviceToDevice);
-  multipole U238(data);
+#endif
+#if defined(__QUICKWT)
+  bindwtable(wtable);
+#endif
 #endif
 
 #if defined(__QUICKWG)
   multipole U238(data, wtable);
-#endif 
-
-#if defined(__QUICKWT)
+#else
   multipole U238(data);
-  bindwtable(wtable);
-#endif
-#else //not quickw
-  multipole U238(data); //host multipoledata to device
 #endif 
-
 
   initialize<<<dimBlock, dimGrid>>>(DeviceMem, STARTENE);//1.95093e4);
   //  cudaDeviceSynchronize();
