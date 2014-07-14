@@ -47,12 +47,12 @@ __global__ void history(multipole U238, MemStruct Info, unsigned num_src, unsign
     U238.xs_eval_fast(localenergy, sqrt(300.0*KB), sigT, sigA, sigF);
 #endif
 #if defined(__TRACK)
-    unsigned M = gridDim.x*blockDim.x;
+    unsigned lies = gridDim.x*blockDim.x;
     live = Info.tally[id].cnt + cnt;
-    live = live*(live<M) + M*(live>=M); 
+    live = live*(live<lies) + lies*(live>=lies); 
     if(0==id){
       devicearray[4*live  ] = localenergy;
-      devicearrau[4*live+1] = sigF;  
+      devicearray[4*live+1] = sigF;  
     }
     if(2==id){
       devicearray[4*live+2] = localenergy;
@@ -110,12 +110,12 @@ __global__ void remaining(multipole U238, CMPTYPE *devicearray, MemStruct Info){
     U238.xs_eval_fast(localenergy, sqrt(300.0*KB), sigT, sigA, sigF);
 #endif
 #if defined(__TRACK)
-    unsigned M = gridDim.x*blockDim.x;
+    unsigned lies = gridDim.x*blockDim.x;
     live = Info.tally[id].cnt + cnt;
-    live = live*(live<M) + M*(live>=M); 
+    live = live*(live<lies) + lies*(live>=lies); 
     if(0==id){
       devicearray[4*live  ] = localenergy;
-      devicearrau[4*live+1] = sigF;  
+      devicearray[4*live+1] = sigF;  
     }
     if(2==id){
       devicearray[4*live+2] = localenergy;
