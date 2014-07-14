@@ -39,6 +39,13 @@ __global__ void history(multipole U238, MemStruct Info, unsigned num_src, unsign
   //while(live){
   for (istep = 0; istep < devstep; istep++){
     rnd = curand_uniform(&localState);
+#if defined(__SAMPLE)
+    U238.xs_eval_fast(localenergy + 
+		      curand_normal(&localState)*sqrt(300.0*KB)*sqrt(0.5)/U238.dev_doubles[SQRTAWR], 
+		      sigT, sigA, sigF);
+#else
+    U238.xs_eval_fast(localenergy, sqrt(300.0*KB), sigT, sigA, sigF);
+#endif
 #if defined(__TRACK)
     unsigned M = gridDim.x*blockDim.x;
     live = Info.tally[id].cnt + cnt;
@@ -53,13 +60,6 @@ __global__ void history(multipole U238, MemStruct Info, unsigned num_src, unsign
       devicearray[4*live+3] = localenergy;
 #endif
 
-#if defined(__SAMPLE)
-    U238.xs_eval_fast(localenergy + 
-		      curand_normal(&localState)*sqrt(300.0*KB)*sqrt(0.5)/U238.dev_doubles[SQRTAWR], 
-		      sigT, sigA, sigF);
-#else
-    U238.xs_eval_fast(localenergy, sqrt(300.0*KB), sigT, sigA, sigF);
-#endif
     localenergy = localenergy * rnd;
     live = (localenergy > 1.0);
     cnt = cnt + 1;
