@@ -7,12 +7,17 @@
 #include "CComplex.h"
 
 #if defined(__CFLOAT)
-#define taom 9.0f //7.1f //6.0f //12.0f
+/* taom and N
+  12.0     23
+   9.0     13
+  8.31     11
+*/
+#define taom 8.31f
 #else
-#define taom 9.0  //7.1 //6.0 // 12.0
+#define taom 8.31
 #endif
 
-#define M    13   //8 //6 //23
+#define M    11
 __global__ void fill_a(CMPTYPE* a, CMPTYPE* b);
 __device__ CComplex<CMPTYPE> w_function(CComplex<CMPTYPE> z);
 
