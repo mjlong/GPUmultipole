@@ -43,6 +43,11 @@ else
   WSOURCES += $(DIR_SRC)/wfunction/fourierw.cu
   EXENAME=$(DIR_BIN)/gpumr_quickwf_double
   endif
+  ifeq ($(WFUN), 33)
+  W_IDEN = -D __INTERPEXP -D __QUICKWF -D __FOURIERW
+  WSOURCES += $(DIR_SRC)/wfunction/fourierw.cu
+  EXENAME=$(DIR_BIN)/gpumr_quickexpf_double
+  endif
   ifeq ($(WFUN),11)
   W_IDEN = -D __QUICKW -D __QUICKWG
   WSOURCES += $(DIR_SRC)/wfunction/Faddeeva.cu 
