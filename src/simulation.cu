@@ -50,14 +50,14 @@ __global__ void history(multipole U238, MemStruct Info, unsigned num_src, unsign
     unsigned M = gridDim.x*blockDim.x;
     live = Info.tally[id].cnt + cnt;
     live = live*(live<M) + M*(live>=M); 
-    if(0==id)
+    if(0==id){
       devicearray[4*live  ] = localenergy;
-    if(1==id)
-      devicearray[4*live+1] = localenergy;  
-    if(2==id)
+      devicearrau[4*live+1] = sigF;  
+    }
+    if(2==id){
       devicearray[4*live+2] = localenergy;
-    if(3==id)
-      devicearray[4*live+3] = localenergy;
+      devicearray[4*live+3] = sigF;
+    }
 #endif
 
     localenergy = localenergy * rnd;
@@ -102,25 +102,25 @@ __global__ void remaining(multipole U238, CMPTYPE *devicearray, MemStruct Info){
   live = 1u;
   while(live){
     rnd = curand_uniform(&localState);
-#if defined(__TRACK)
-    unsigned M = gridDim.x*blockDim.x;
-    live = Info.tally[id].cnt + cnt;
-    live = live*(live<M) + M*(live>=M); 
-    if(0==id)
-      devicearray[4*live  ] = localenergy;
-    if(1==id)
-      devicearray[4*live+1] = localenergy;  
-    if(2==id)
-      devicearray[4*live+2] = localenergy;
-    if(3==id)
-      devicearray[4*live+3] = localenergy;
-#endif
 #if defined(__SAMPLE)
     U238.xs_eval_fast(localenergy + 
 		      curand_normal(&localState)*sqrt(300.0*KB)*sqrt(0.5)/U238.dev_doubles[SQRTAWR], 
 		      sigT, sigA, sigF);
 #else
     U238.xs_eval_fast(localenergy, sqrt(300.0*KB), sigT, sigA, sigF);
+#endif
+#if defined(__TRACK)
+    unsigned M = gridDim.x*blockDim.x;
+    live = Info.tally[id].cnt + cnt;
+    live = live*(live<M) + M*(live>=M); 
+    if(0==id){
+      devicearray[4*live  ] = localenergy;
+      devicearrau[4*live+1] = sigF;  
+    }
+    if(2==id){
+      devicearray[4*live+2] = localenergy;
+      devicearray[4*live+3] = sigF;
+    }
 #endif
 
 #if !defined(__PROCESS)
