@@ -130,6 +130,9 @@ __device__  void multipole::xs_eval_fast(CMPTYPE E, CMPTYPE sqrtKT,
   DOPP = sqrtAWR/sqrtKT;
   DOPP_ECOEF = DOPP/E*sqrt(PI);
 
+#if defined(__TRACK)
+  numL = 0;
+#endif
   for(iP=startW;iP<=endW;iP++){
     //w_val = (sqrtE - mpdata[pindex(iP-1,MP_EA)])*DOPP*DOPP_ECOEF;
 #if defined(__QUICKWG) 
@@ -155,7 +158,9 @@ __device__  void multipole::xs_eval_fast(CMPTYPE E, CMPTYPE sqrtKT,
 #endif
 #endif
 
-
+#if defined(__TRACK)
+    numL++;
+#endif 
     /*if(blockIdx.x==0 and threadIdx.x==18)
       printf("energy = %10.6f, iP=%4d, w = %20.16e + i*%20.16e\n",E,iP, real(w_val),imag(w_val));*/
 #if defined(__PLOT)
@@ -169,6 +174,9 @@ __device__  void multipole::xs_eval_fast(CMPTYPE E, CMPTYPE sqrtKT,
     if(MP_FISS == fissionable)
       sigF += real(mpdata[pindex(iP-1,MP_RF)]*w_val);
   }
+#if defined(__TRACK)
+  sigF = 1.0*numL;
+#endif
 
 }
 #endif
