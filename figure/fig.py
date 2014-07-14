@@ -50,7 +50,7 @@ normf=[]
 #fileList = ['proqgld','proqglf']#,'qtxf','qgld','qglf']
 #titleist = ['QuickW --double','QuickW --float','QuickW texture --double', 'QuickW constant --double']
 
-fileList = ['proqcsd6.0','proqcsd5.5','proqcsd5.0']#['testfourierdsim']#,'testfourierd','testfourierf']
+fileList = ['fourier7.18']#['proqcsd6.0','proqfrd','testfourierdsim']#['testfourierdsim']#,'testfourierd','testfourierf']
 titleist = fileList;
 i = 0
 factor = math.sqrt(65536.0)
@@ -79,8 +79,9 @@ for stri in fileList:
     norma.append(anorm)
     normf.append(fnorm)
     print stri+' done!\n'
-radius=np.array([6.0,5.5,5.0])
-times =np.array([0.057996,0.057905,0.057900])
+'''###
+radius=np.array([1,2,3])
+times =np.array([0.057996,0.126175,0.138520])
 plt.plot(radius,times, radius,normt, radius,norma, radius,normf)
 plt.scatter(radius,times)
 plt.scatter(radius,normt)
@@ -89,9 +90,10 @@ plt.scatter(radius,normf)
 plt.xscale('linear')
 plt.yscale('log')
 plt.legend(('time','norm sigt','norm siga','norm sigf'),loc=2,prop={'size':8})
-plt.title('QuickW radius dont matter')
+plt.title('hybrid fourier and quickw outer region')
 plt.xlabel('radius')
 plt.ylabel('comparison')
 plt.tight_layout()
-plt.savefig('radius comparison.png')
+plt.savefig('hybrid fourier and quickw outer region.png')
 plt.figure()
+'''###
