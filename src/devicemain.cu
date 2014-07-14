@@ -13,9 +13,6 @@
 
 #if defined (__QUICKW)
 #include "QuickW.h"
-#if defined (__QUICKWC) || defined(__INTERPEXP)
-__constant__ CMPTYPE2 constwtable[LENGTH*LENGTH];
-#endif
 #endif
 
 #if defined (__FOURIERW)
@@ -23,6 +20,11 @@ __constant__ CMPTYPE2 constwtable[LENGTH*LENGTH];
 __constant__ CMPTYPE a[M+1];
 __constant__ CMPTYPE b[M+1];
 #endif
+
+#if defined (__QUICKWC) || defined(__INTERPEXP)
+__constant__ CMPTYPE2 constwtable[LENGTH*LENGTH];
+#endif
+
 
 void printdevice();
 
@@ -87,6 +89,13 @@ void anyvalue(struct multipoledata data, unsigned setgridx, unsigned setblockx, 
   multipole U238(data);
 #endif 
 
+// fill exp(z) table for fourierw
+#if defined(__INTERPEXP)
+  CComplex<CMPTYPE> *exptable;
+  gpuErrchk(cudaMalloc((void**)&exptable, LENGTH*LENGTH * 2 * sizeof(CMPTYPE)));
+  fill_exp_table<<<LENGTH,LENGTH>>>(exptable);
+  cudaMemcpyToSymbol(constwtable, exptable, LENGTH*LENGTH*2*sizeof(CMPTYPE), 0, cudaMemcpyDeviceToDevice);
+#endif
   initialize<<<dimBlock, dimGrid>>>(DeviceMem, STARTENE);//1.95093e4);
   //  cudaDeviceSynchronize();
   /*
