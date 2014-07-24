@@ -168,10 +168,26 @@ __device__  void multipole::xs_eval_fast(CMPTYPE E, CMPTYPE sqrtKT,
     printf("%+20.16e %+20.16e\n", real(zout),imag(zout));
 }
 #endif
+#if defined(__CFLOAT)
+    zfloat = mpdata[pindex(iP-1,MP_RT)]*sigT_factor[l_value[iP-1]-1]; 
+    zdouble= CComplex<double>((double)real(zfloat),(double)imag(zfloat));
+    sigT += (CMPTYPE)real(zdouble*w_val);
+
+    zfloat = mpdata[pindex(iP-1,MP_RA)]; 
+    zdouble= CComplex<double>((double)real(zfloat),(double)imag(zfloat));
+    sigA += (CMPTYPE)real(zdouble*w_val);
+    if(MP_FISS == fissionable){
+      zfloat = mpdata[pindex(iP-1,MP_RF)]; 
+      zdouble= CComplex<double>((double)real(zfloat),(double)imag(zfloat));
+      sigF += (CMPTYPE)real(zdouble*w_val);
+    }
+
+#else
     sigT += real(mpdata[pindex(iP-1,MP_RT)]*sigT_factor[l_value[iP-1]-1]*w_val);//sigtfactor);	    
     sigA += real(mpdata[pindex(iP-1,MP_RA)]*w_val);                              
     if(MP_FISS == fissionable)
       sigF += real(mpdata[pindex(iP-1,MP_RF)]*w_val);
+#endif
   }
 #if defined(__TRACK)
   sigF = 1.0*numL;
