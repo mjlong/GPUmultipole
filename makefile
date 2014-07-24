@@ -80,9 +80,13 @@ ifeq ($(compare),3)
 endif
 #
 #
+#NOTE: in current philosophy, QuickW tables should construct complex<double> for all cases
+#      and fourierw should always give complex<double> as w_val
+#TOSUM: never use FLOAT=1
 ifeq ($(FLOAT),1)
   CMPTYPE = -D __CFLOAT
   EXECUTABLE=$(patsubst %_double, %_float, $(EXENAME))
+  epoch = 'NEVER use FLOAT'
 else
   EXECUTABLE=$(EXENAME)
 endif
@@ -96,12 +100,14 @@ all: $(EXECUTABLE)
 
 $(EXECUTABLE): $(COBJECTS) $(GOBJECTS) $(WOBJECTS) $(LINKJECT)
 	$(CC)  $^ $(LDFLAGS) -o $@
-
 ${DIR_OBJ}/%.obj : ${DIR_SRC}/%.cc
+	@echo $(epoch)
 	$(CC)             $(CMPTYPE) $(CCFLAGS) $^ -o $@
 ${DIR_OBJ}/%.o : ${DIR_SRC}/%.cu
+	@echo $(epoch)
 	$(NVCC) $(W_IDEN) $(CMPTYPE) $(NCFLAGS)  $^ -o $@
 ${DIR_OBJ}/%.o : ${DIR_SRC}/wfunction/%.cu
+	@echo $(epoch)
 	$(NVCC) $(W_IDEN) $(CMPTYPE) $(NCFLAGS)  $^ -o $@
 $(LINKJECT) : $(GOBJECTS) $(WOBJECTS)
 	$(NVCC) $(LINKLAG) $^ -o $@
