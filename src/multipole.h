@@ -97,7 +97,7 @@ public:
 #endif
   /*__device__  void xs_eval_fast(CMPTYPE E, CMPTYPE sqrtKT, CMPTYPE rnd, 
 					 CMPTYPE &sigT, CMPTYPE &sigA, CMPTYPE &sigF);*/
-  __device__ void fill_factors(CMPTYPE sqrtE, int numL, CComplex<CMPTYPE> *sigT_factor);
+  __device__ void fill_factors(CMPTYPE sqrtE, int numL, CComplex<double> *sigT_factor);
   __host__ __device__  int findex(int, int, int, int, int);
   __host__ __device__  int pindex(int, int);
 

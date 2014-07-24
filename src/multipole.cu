@@ -111,7 +111,7 @@ __device__  void multipole::xs_eval_fast(CMPTYPE E, CMPTYPE sqrtKT,
 
   startW = w_start[iW];
   endW   = w_end[iW];
-  CComplex<CMPTYPE> sigT_factor[4];
+  CComplex<double> sigT_factor[4];
   //CComplex sigtfactor;
   if(startW <= endW)
     fill_factors(sqrtE,numL,sigT_factor);
@@ -169,8 +169,8 @@ __device__  void multipole::xs_eval_fast(CMPTYPE E, CMPTYPE sqrtKT,
 }
 #endif
 #if defined(__CFLOAT)
-    zfloat = mpdata[pindex(iP-1,MP_RT)]*sigT_factor[l_value[iP-1]-1]; 
-    zdouble= CComplex<double>((double)real(zfloat),(double)imag(zfloat));
+    zfloat = mpdata[pindex(iP-1,MP_RT)]; 
+    zdouble= CComplex<double>((double)real(zfloat),(double)imag(zfloat))*sigT_factor[l_value[iP-1]-1];
     sigT += (CMPTYPE)real(zdouble*w_val);
 
     zfloat = mpdata[pindex(iP-1,MP_RA)]; 
@@ -386,10 +386,10 @@ __host__ __device__ int multipole::pindex(int iP, int type){
 }
 
 __device__ void multipole::fill_factors(CMPTYPE sqrtE, int numL, 
-                                        CComplex<CMPTYPE> *sigT_factor){
+                                        CComplex<double> *sigT_factor){
   int iL;
-  CMPTYPE arg;
-  CMPTYPE twophi; 
+  double arg;
+  double twophi; 
   
   for(iL = 0; iL<numL; iL++){
     twophi = pseudo_rho[iL] * sqrtE; 
@@ -404,7 +404,7 @@ __device__ void multipole::fill_factors(CMPTYPE sqrtE, int numL,
       twophi -= atan(arg);
     }
     twophi *= 2.0;
-    sigT_factor[iL] = CComplex<CMPTYPE>(cos(twophi), -sin(twophi));
+    sigT_factor[iL] = CComplex<double>(cos(twophi), -sin(twophi));
   }
 
 }
