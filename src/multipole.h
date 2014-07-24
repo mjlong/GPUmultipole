@@ -44,6 +44,7 @@
 
 #if defined(__MITW)
 #include "Faddeeva.h"
+#define w_function Faddeeva::w
 #endif
 
 #if defined(__QUICKW)
