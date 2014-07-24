@@ -50,7 +50,7 @@ normf=[]
 #fileList = ['proqgld','proqglf']#,'qtxf','qgld','qglf']
 #titleist = ['QuickW --double','QuickW --float','QuickW texture --double', 'QuickW constant --double']
 
-fileList = ['fourier7.18']#['proqcsd6.0','proqfrd','testfourierdsim']#['testfourierdsim']#,'testfourierd','testfourierf']
+fileList = ['fourier7.93_10']#['proqcsd6.0','proqfrd','testfourierdsim']#['testfourierdsim']#,'testfourierd','testfourierf']
 titleist = fileList;
 i = 0
 factor = math.sqrt(65536.0)
