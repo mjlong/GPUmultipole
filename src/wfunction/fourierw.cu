@@ -70,7 +70,7 @@ __device__ CComplex<CMPTYPE> w_function(CComplex<CMPTYPE> z){
     n++;
     w = w + a[n]*(  B - (CMPTYPE)1.0)/(b[n] - C);
   }
-  w = w + a[M] *( -B - (CMPTYPE)1.0)/(b[M]- C);
+//  w = w + a[M] *( -B - (CMPTYPE)1.0)/(b[M]- C);
 
   w = (w+w)*A;
   w = w + ((CMPTYPE)1.0-B)/A;

@@ -22,15 +22,16 @@
   12.0     23
    9.0     13
   8.31     11
+  7.93     10
   7.52      9
 */
 #if defined(__CFLOAT)
-#define taom 8.31f
+#define taom 7.93f
 #else
-#define taom 8.31
+#define taom 7.93
 #endif
 
-#define M    11
+#define M    10
 #if defined(__INTERPEXP)
 __global__ void fill_exp_table(CComplex<CMPTYPE> *);
 #endif
