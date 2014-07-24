@@ -106,7 +106,8 @@ __device__  void multipole::xs_eval_fast(CMPTYPE E, CMPTYPE sqrtKT,
   else
     iW = (int)(( E - startE )/spacing);
   //iW =  (int)(((sqrtE - sqrt(startE))*(1==mode) + (log(E) - log(startE))*(2==mode) +  ( E - startE )*(3==mode))/spacing);
-  CComplex<CMPTYPE> w_val;
+  //CComplex<CMPTYPE> w_val;
+  CComplex<double> w_val;
 
   startW = w_start[iW];
   endW   = w_end[iW];
@@ -135,28 +136,26 @@ __device__  void multipole::xs_eval_fast(CMPTYPE E, CMPTYPE sqrtKT,
 #endif
   for(iP=startW;iP<=endW;iP++){
     //w_val = (sqrtE - mpdata[pindex(iP-1,MP_EA)])*DOPP*DOPP_ECOEF;
-#if defined(__QUICKWG) 
-    w_val = w_function((sqrtE - mpdata[pindex(iP-1,MP_EA)])*DOPP,mtable)*DOPP_ECOEF;
-#endif
 
-#if defined(__QUICKWC) || defined(__QUICKWT) || defined(__FOURIERW)
-    w_val = w_function((sqrtE - mpdata[pindex(iP-1,MP_EA)])*DOPP      )*DOPP_ECOEF;
-    // __QUICKWT extern texture in QuickW.cu
-#endif
-
-
-#if defined(__MITW)
 #if defined(__CFLOAT)
     CComplex<float>  zfloat  = mpdata[pindex(iP-1,MP_EA)];
     CComplex<double> zdouble = CComplex<double>((double)real(zfloat),(double)imag(zfloat));
-    /*CComplex<double> zdouble = CComplex<double>((double)real(mpdata[pindex(iP-1,MP_EA)]),
-						(double)imag(mpdata[pindex(iP-1,MP_EA)]));*/
-    zdouble = Faddeeva::w(((double)sqrtE - zdouble)*(double)DOPP);
-    w_val = CComplex<float>((float)real(zdouble), (float)imag(zdouble))*DOPP_ECOEF;
+
+#if defined(__QUICKWG) 
+    w_val =  w_function(((double)sqrtE - zdouble)*(double)DOPP,mtable)*(double)DOPP_ECOEF;
 #else
-    w_val = Faddeeva::w((sqrtE - mpdata[pindex(iP-1,MP_EA)])*DOPP,0.0)*DOPP_ECOEF;
-#endif
-#endif
+    w_val =  w_function(((double)sqrtE - zdouble)*(double)DOPP       )*(double)DOPP_ECOEF;
+#endif //end W method
+
+#else //not defined __CFLOAT
+
+#if defined(__QUICKWG) 
+    w_val =  w_function((sqrtE - mpdata[pindex(iP-1,MP_EA)])*DOPP,mtable)*DOPP_ECOEF;
+#else
+    w_val =  w_function((sqrtE - mpdata[pindex(iP-1,MP_EA)])*DOPP       )*DOPP_ECOEF;
+#endif //end W method
+
+#endif //end if __CFLOAT
 
 #if defined(__TRACK)
     numL++;
