@@ -126,7 +126,7 @@ __device__  void multipole::xs_eval_fast(CMPTYPE E, CMPTYPE sqrtKT,
     sigA += fit[findex(iW,iC,FIT_A,fitorder+1,2+fissionable)]*power;
     if(MP_FISS == fissionable)
       sigF += fit[findex(iW,iC,FIT_F,fitorder+1,2+fissionable)]*power;
-  }
+ }
 
   DOPP = sqrtAWR/sqrtKT;
   DOPP_ECOEF = DOPP/E*sqrt(PI);
@@ -160,8 +160,6 @@ __device__  void multipole::xs_eval_fast(CMPTYPE E, CMPTYPE sqrtKT,
 #if defined(__TRACK)
     numL++;
 #endif 
-    /*if(blockIdx.x==0 and threadIdx.x==18)
-      printf("energy = %10.6f, iP=%4d, w = %20.16e + i*%20.16e\n",E,iP, real(w_val),imag(w_val));*/
 #if defined(__PLOT)
   if(threadIdx.x<=50){
     CComplex<CMPTYPE> zout = (sqrtE - mpdata[pindex(iP-1,MP_EA)])*DOPP;
