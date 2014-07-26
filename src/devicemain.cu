@@ -37,9 +37,9 @@ void anyvalue(struct multipoledata data, unsigned setgridx, unsigned setblockx, 
   CMPTYPE *hostarray, *devicearray;
   MemStruct HostMem, DeviceMem;
   cudaEvent_t start, stop;
+  //printdevice();
   gpuErrchk(cudaEventCreate(&start));
   gpuErrchk(cudaEventCreate(&stop));
-  // printdevice();
   gridx = setgridx;
   blockx = setblockx;
   dim3 dimBlock(gridx, 1);
@@ -208,6 +208,7 @@ void printdevice(){
   cudaDeviceProp prop; 
   int count;
   cudaGetDeviceCount(&count);
+  printf("num of devices=%d\n",count);
   for (int i=0; i<count; i++){
     cudaGetDeviceProperties( &prop, i );
     printf( "   --- General Information for device %d ---\n", i );
