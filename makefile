@@ -22,7 +22,7 @@ CCFLAGS=-c -I/home/jlmiao/opt/hdf5/include
 DIR_BIN = ./bin/release
 endif
 LINKLAG=-arch=sm_20 -dlink
-LDFLAGS=-L/home/jlmiao/opt/hdf5/lib/ -L/usr/local/cuda-5.5/lib64 -lcudart -lhdf5 
+LDFLAGS=-L/home/jlmiao/opt/hdf5/lib/ -L/usr/local/cuda-6.0/lib64 -lcudart -lhdf5 
 GSOURCES=$(wildcard ${DIR_SRC}/*.cu)
 WSOURCES=
 # Faddeeva function implementation 
