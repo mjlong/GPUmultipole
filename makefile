@@ -13,7 +13,7 @@ endif
 CC=h5cc #g++ #h5pcc #g++
 NVCC = nvcc
 ifeq ($(ver),debug)
-NCFLAGS=-g -G -dc -arch=sm_20 -I${DIR_SRC} -I${DIR_SRC}/wfunction #-Xptxas="-v"
+NCFLAGS=-g -G -dc -arch=sm_20 -I${DIR_SRC} -I${DIR_SRC}/wfunction -I/home/jlmiao/opt/cudpp-2.1/include/ #-Xptxas="-v"
 CCFLAGS=-c -g -I/home/jlmiao/opt/hdf5/include 
 DIR_BIN = ./bin/debug
 else
@@ -22,7 +22,7 @@ CCFLAGS=-c -I/home/jlmiao/opt/hdf5/include
 DIR_BIN = ./bin/release
 endif
 LINKLAG=-arch=sm_20 -dlink
-LDFLAGS=-L/home/jlmiao/opt/hdf5/lib/ -L/usr/local/cuda-6.0/lib64 -lcudart -lhdf5 
+LDFLAGS=-L/home/jlmiao/opt/hdf5/lib/ -L/usr/local/cuda-6.0/lib64 -L/home/jlmiao/opt/cudpp-2.1/lib/ -lcudpp -lcudart -lhdf5 
 GSOURCES=$(wildcard ${DIR_SRC}/*.cu)
 WSOURCES=
 # Faddeeva function implementation 
