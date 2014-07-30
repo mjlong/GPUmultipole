@@ -118,7 +118,7 @@ void anyvalue(struct multipoledata data, unsigned setgridx, unsigned setblockx, 
 #endif
     gpuErrchk(cudaMemcpy(HostMem.thread_active, DeviceMem.thread_active, gridsize*sizeof(unsigned int), cudaMemcpyDeviceToHost));
     active = 0u;
-    for (i = 0; i < blockx; i++){
+    for (i = 0; i < gridsize; i++){
       active += HostMem.thread_active[i];
     }
   }
