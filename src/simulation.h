@@ -21,8 +21,9 @@ typedef struct {
 }TallyStruct;
 
 typedef struct {
-  CMPTYPE energy;
-  curandState rndState;
+  unsigned *id;
+  CMPTYPE *energy;
+  curandState *rndState;
 }NeutronInfoStruct;
 
 typedef struct {
@@ -33,7 +34,7 @@ typedef struct {
 }XsStruct;
 
 typedef struct {
-  NeutronInfoStruct *nInfo;
+  NeutronInfoStruct nInfo;
   unsigned int *block_terminated_neutrons;
   unsigned int *num_terminated_neutrons;
   XsStruct *sigma;
@@ -48,7 +49,7 @@ __global__ void history(multipole, MemStruct, unsigned, unsigned );
 #endif
 __global__ void remaining(multipole, CMPTYPE *, MemStruct );
 __global__ void initialize(MemStruct, CMPTYPE);
-__device__ void launch(NeutronInfoStruct*, int, CMPTYPE);
+__device__ void launch(NeutronInfoStruct, int, CMPTYPE);
 __global__ void statistics(unsigned*, unsigned*);
 
 #endif
