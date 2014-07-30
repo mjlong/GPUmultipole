@@ -37,7 +37,7 @@ __global__ void history(multipole U238, MemStruct Info, unsigned num_src, unsign
   unsigned terminated = 0u;
   live = 1u;
   //while(live){
-  for (istep = 0; istep < devstep; istep++){
+  //for (istep = 0; istep < devstep; istep++){
     rnd = curand_uniform(&localState);
 #if defined(__SAMPLE)
     U238.xs_eval_fast(localenergy + 
@@ -65,13 +65,13 @@ __global__ void history(multipole U238, MemStruct Info, unsigned num_src, unsign
     cnt = cnt + 1;
     /*So far, energy is the only state*/
     localenergy = localenergy*live + STARTENE*(1u - live);
-    terminated += !live;
-  }
+    //terminated += !live;
+  //}
   //}
   /*Note: from now on, live does not indicate neutron but thread active */
   //live = (((terminated*2)*blockDim.x*gridDim.x + atomicAdd(Info.num_terminated_neutrons, terminated)) < num_src);
-  atomicAdd(Info.num_terminated_neutrons,terminated);
-  Info.thread_active[id] =  (terminated+1)*blockDim.x*gridDim.x + *Info.num_terminated_neutrons < num_src;
+  atomicAdd(Info.num_terminated_neutrons,!live);
+  Info.thread_active[id] =  blockDim.x*gridDim.x + *Info.num_terminated_neutrons < num_src;
   /* Copy state back to global memory */ 
   Info.nInfo[id].rndState = localState; 
   Info.nInfo[id].energy = localenergy;
