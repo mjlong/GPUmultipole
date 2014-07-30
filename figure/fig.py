@@ -74,11 +74,11 @@ for stri in fileList:
     plt.savefig(titleist[i]+' compared with mitd_log.png')
     plt.figure()
     i = i + 1
-    print tnorm, anorm, fnorm
+    print (tnorm, anorm, fnorm)
     normt.append(tnorm)
     norma.append(anorm)
     normf.append(fnorm)
-    print stri+' done!\n'
+    print (stri,' done!\n')
 '''###
 radius=np.array([1,2,3])
 times =np.array([0.057996,0.126175,0.138520])
