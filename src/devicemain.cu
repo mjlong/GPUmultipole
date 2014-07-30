@@ -66,6 +66,26 @@ void anyvalue(struct multipoledata data, unsigned setgridx, unsigned setblockx, 
   hostarray = (CMPTYPE*)malloc(4*gridsize*sizeof(CMPTYPE));
   cnt      = (unsigned*)malloc(gridx*sizeof(unsigned));
 
+  //Initialize CUDPP
+    CUDPPHandle theCudpp;
+    cudppCreate(&theCudpp);
+    CUDPPConfiguration config;
+    //config.op = CUDPP_ADD;
+    config.datatype = CUDPP_FLOAT;
+    config.algorithm = CUDPP_SORT_RADIX;
+    //config.options = CUDPP_OPTION_FORWARD | CUDPP_OPTION_EXCLUSIVE;
+    //config.options=CUDPP_OPTION_KEYS_ONLY;
+
+    CUDPPHandle sortplan = 0;
+    CUDPPResult res = cudppPlan(theCudpp, &sortplan, config, gridsize, 1, 0);
+
+    if (CUDPP_SUCCESS != res)
+    {
+        printf("Error creating CUDPPPlan\n");
+        exit(-1);
+    }
+ 
+
 // construct coefficients a[n] for fourier expansion w
 #if defined(__FOURIERW)
   CMPTYPE *da;
@@ -128,6 +148,7 @@ void anyvalue(struct multipoledata data, unsigned setgridx, unsigned setblockx, 
 		       DeviceMem.num_terminated_neutrons, 
 		       sizeof(unsigned int), 
 		       cudaMemcpyDeviceToHost));
+    //cudppRadixSort(sortplan, d_idata, d_values, numElements);
     active = HostMem.num_terminated_neutrons[0] + gridsize < num_src;  
   }
 
@@ -212,6 +233,17 @@ void anyvalue(struct multipoledata data, unsigned setgridx, unsigned setblockx, 
   free(hostarray);
   free(cnt);
   free(HostMem.num_terminated_neutrons);
+
+  res = cudppDestroyPlan(sortplan);
+  if (CUDPP_SUCCESS != res)
+  {
+      printf("Error destroying CUDPPPlan\n");
+      exit(-1);
+  }
+  // shut down the CUDPP library
+  cudppDestroy(theCudpp);
+
+
   return;
 }
 
