@@ -48,13 +48,21 @@ void anyvalue(struct multipoledata data, unsigned setgridx, unsigned setblockx, 
   gpuErrchk(cudaMalloc((void**)&devicearray, 4*gridsize*sizeof(CMPTYPE)));
   gpuErrchk(cudaMemset(devicearray, 0, 4*gridsize*sizeof(CMPTYPE)));
   gpuErrchk(cudaMalloc((void**)&(DeviceMem.nInfo), gridsize*sizeof(NeutronInfoStruct)));
+
   gpuErrchk(cudaMalloc((void**)&(DeviceMem.num_terminated_neutrons), sizeof(unsigned int)));
+  gpuErrchk(cudaMemset(DeviceMem.num_terminated_neutrons, 0, sizeof(unsigned)));
+
   gpuErrchk(cudaMalloc((void**)&(DeviceMem.block_terminated_neutrons), sizeof(unsigned int)*gridx));
   HostMem.num_terminated_neutrons = (unsigned int *)malloc(sizeof(unsigned int));
   HostMem.num_terminated_neutrons[0] = 0u;
   gpuErrchk(cudaMemcpy(DeviceMem.num_terminated_neutrons, HostMem.num_terminated_neutrons, sizeof(unsigned int), cudaMemcpyHostToDevice));
+
   gpuErrchk(cudaMalloc((void**)&(DeviceMem.tally.cnt), gridsize*sizeof(unsigned)));
+  gpuErrchk(cudaMemset(DeviceMem.tally.cnt, 0, gridsize*sizeof(unsigned)));  
+
   gpuErrchk(cudaMalloc((void**)&(blockcnt), gridx*sizeof(unsigned int)));
+  gpuErrchk(cudaMemset(blockcnt, 0, gridx*sizeof(unsigned int)));
+
   hostarray = (CMPTYPE*)malloc(4*gridsize*sizeof(CMPTYPE));
   cnt      = (unsigned*)malloc(gridx*sizeof(unsigned));
 
