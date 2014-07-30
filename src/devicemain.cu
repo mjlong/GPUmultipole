@@ -42,8 +42,8 @@ void anyvalue(struct multipoledata data, unsigned setgridx, unsigned setblockx, 
   gpuErrchk(cudaEventCreate(&stop));
   gridx = setgridx;
   blockx = setblockx;
-  dim3 dimBlock(gridx, 1);
-  dim3 dimGrid(blockx, 1, 1);
+  dim3 dimGrid(gridx, 1);
+  dim3 dimBlock(blockx, 1, 1);
   gridsize = gridx*blockx;
   gpuErrchk(cudaMalloc((void**)&devicearray, 4*gridsize*sizeof(CMPTYPE)));
   gpuErrchk(cudaMemset(devicearray, 0, 4*gridsize*sizeof(CMPTYPE)));
@@ -96,7 +96,7 @@ void anyvalue(struct multipoledata data, unsigned setgridx, unsigned setblockx, 
   fill_exp_table<<<LENGTH,LENGTH>>>(exptable);
   cudaMemcpyToSymbol(constwtable, exptable, LENGTH*LENGTH*2*sizeof(CMPTYPE), 0, cudaMemcpyDeviceToDevice);
 #endif
-  initialize<<<dimBlock, dimGrid>>>(DeviceMem, STARTENE);//1.95093e4);
+  initialize<<<dimGrid, dimBlock>>>(DeviceMem, STARTENE);//1.95093e4);
   //  cudaDeviceSynchronize();
   /*
     Note: shared memory size is in unit of Bybe
@@ -112,9 +112,9 @@ void anyvalue(struct multipoledata data, unsigned setgridx, unsigned setblockx, 
 
   while (active){
 #if defined(__TRACK)
-    history<<<dimBlock, dimGrid>>>(U238, devicearray, DeviceMem, num_src, devstep);
+    history<<<dimGrid, dimBlock>>>(U238, devicearray, DeviceMem, num_src, devstep);
 #else
-    history<<<dimBlock, dimGrid>>>(U238, DeviceMem, num_src, devstep);
+    history<<<dimGrid, dimBlock>>>(U238, DeviceMem, num_src, devstep);
 #endif
     gpuErrchk(cudaMemcpy(HostMem.thread_active, DeviceMem.thread_active, gridsize*sizeof(unsigned int), cudaMemcpyDeviceToHost));
     active = 0u;
@@ -123,7 +123,7 @@ void anyvalue(struct multipoledata data, unsigned setgridx, unsigned setblockx, 
     }
   }
 
-  remaining<<<dimBlock, dimGrid>>>(U238, devicearray, DeviceMem);
+  remaining<<<dimGrid, dimBlock>>>(U238, devicearray, DeviceMem);
 
   gpuErrchk(cudaEventRecord(stop, 0));
   gpuErrchk(cudaEventSynchronize(stop));
@@ -136,7 +136,7 @@ void anyvalue(struct multipoledata data, unsigned setgridx, unsigned setblockx, 
   
   ints = blockx;
   sharedmem = ints*sizeof(int);
-  statistics<<<dimBlock, dimGrid, sharedmem>>>(DeviceMem.tally, blockcnt);
+  statistics<<<dimGrid, dimBlock, sharedmem>>>(DeviceMem.tally, blockcnt);
   gpuErrchk(cudaMemcpy(cnt, blockcnt, gridx*sizeof(unsigned), cudaMemcpyDeviceToHost));
 
 /*print energy & XS (energies for __TRACK)*/
