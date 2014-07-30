@@ -33,7 +33,6 @@ __global__ void history(multipole U238, MemStruct Info, unsigned num_src, unsign
   curandState localState = Info.nInfo[id].rndState;
 
   localenergy = Info.nInfo[id].energy;
-  unsigned cnt = 0u;
   live = 1u;
   //while(live){
   //for (istep = 0; istep < devstep; istep++){
@@ -61,7 +60,6 @@ __global__ void history(multipole U238, MemStruct Info, unsigned num_src, unsign
 
     localenergy = localenergy * rnd;
     live = (localenergy > 1.0);
-    cnt = cnt + 1;
     /*So far, energy is the only state*/
     localenergy = localenergy*live + STARTENE*(1u - live);
     //terminated += !live;
@@ -89,7 +87,7 @@ __global__ void history(multipole U238, MemStruct Info, unsigned num_src, unsign
   /* Copy state back to global memory */ 
   Info.nInfo[id].rndState = localState; 
   Info.nInfo[id].energy = localenergy;
-  Info.tally.cnt[id] += cnt; 
+  Info.tally.cnt[id] += 1; 
 
 }
 
@@ -187,7 +185,7 @@ __global__ void statistics(unsigned *threadcnt, unsigned* cnt){
   if(0==idl){
     //reduction scheme depends on tally type
     //following is to count moderation times
-    cnt[blockIdx.x] = shared[0];
+    cnt[blockIdx.x] += shared[0];
   }
   
 }
