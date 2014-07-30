@@ -47,14 +47,19 @@ void anyvalue(struct multipoledata data, unsigned setgridx, unsigned setblockx, 
   gridsize = gridx*blockx;
   gpuErrchk(cudaMalloc((void**)&devicearray, 4*gridsize*sizeof(CMPTYPE)));
   gpuErrchk(cudaMemset(devicearray, 0, 4*gridsize*sizeof(CMPTYPE)));
-  gpuErrchk(cudaMalloc((void**)&(DeviceMem.nInfo), gridsize*sizeof(NeutronInfoStruct)));
+
+  gpuErrchk(cudaMalloc((void**)&(DeviceMem.nInfo.rndState), gridsize*sizeof(curandState)));
+  gpuErrchk(cudaMalloc((void**)&(DeviceMem.nInfo.energy),   gridsize*sizeof(CMPTYPE)));
+
   gpuErrchk(cudaMalloc((void**)&(DeviceMem.thread_active), gridsize*sizeof(unsigned int)));
   HostMem.thread_active = (unsigned int *)malloc(gridsize*sizeof(unsigned int));
   gpuErrchk(cudaMalloc((void**)&(DeviceMem.num_terminated_neutrons), sizeof(unsigned int)));
   HostMem.num_terminated_neutrons = (unsigned int *)malloc(sizeof(unsigned int));
   HostMem.num_terminated_neutrons[0] = 0u;
   gpuErrchk(cudaMemcpy(DeviceMem.num_terminated_neutrons, HostMem.num_terminated_neutrons, sizeof(unsigned int), cudaMemcpyHostToDevice));
-  gpuErrchk(cudaMalloc((void**)&(DeviceMem.tally), gridsize*sizeof(TallyStruct)));
+
+  gpuErrchk(cudaMalloc((void**)&(DeviceMem.tally.cnt), gridsize*sizeof(unsigned)));
+
   gpuErrchk(cudaMalloc((void**)&(blockcnt), gridx*sizeof(unsigned int)));
   hostarray = (CMPTYPE*)malloc(4*gridsize*sizeof(CMPTYPE));
   cnt      = (unsigned*)malloc(gridx*sizeof(unsigned));
@@ -136,7 +141,7 @@ void anyvalue(struct multipoledata data, unsigned setgridx, unsigned setblockx, 
   
   ints = blockx;
   sharedmem = ints*sizeof(int);
-  statistics<<<dimBlock, dimGrid, sharedmem>>>(DeviceMem.tally, blockcnt);
+  statistics<<<dimBlock, dimGrid, sharedmem>>>(DeviceMem.tally.cnt, blockcnt);
   gpuErrchk(cudaMemcpy(cnt, blockcnt, gridx*sizeof(unsigned), cudaMemcpyDeviceToHost));
 
 /*print energy & XS (energies for __TRACK)*/
@@ -184,9 +189,10 @@ void anyvalue(struct multipoledata data, unsigned setgridx, unsigned setblockx, 
   gpuErrchk(cudaEventDestroy(stop));
 
   gpuErrchk(cudaFree(devicearray));
-  gpuErrchk(cudaFree(DeviceMem.nInfo));
+  gpuErrchk(cudaFree(DeviceMem.nInfo.energy));
+  gpuErrchk(cudaFree(DeviceMem.nInfo.rndState));
   gpuErrchk(cudaFree(DeviceMem.thread_active));
-  gpuErrchk(cudaFree(DeviceMem.tally));
+  gpuErrchk(cudaFree(DeviceMem.tally.cnt));
 #if defined(__QUICKW)
   gpuErrchk(cudaFree(wtable));
 #endif
