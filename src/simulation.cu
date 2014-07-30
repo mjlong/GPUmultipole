@@ -12,7 +12,7 @@ __global__ void initialize(MemStruct pInfo, CMPTYPE energy){
   launch(pInfo.nInfo, id, energy);
   //pInfo[id].energy = energy; //id+1.0; //(id + 1)*1.63*energy*0.001;// 
   pInfo.thread_active[id] = 1u;
-  pInfo.tally[id].cnt = 0;
+  pInfo.tally.cnt[id] = 0;
 
 }
 
@@ -23,9 +23,10 @@ __global__ void history(multipole U238, MemStruct Info, unsigned num_src, unsign
 #endif
   //TODO:this is one scheme to match threads to 1D array, 
   //try others when real simulation structure becomes clear
+  int idl = threadIdx.x;
   int id = blockDim.x * blockIdx.x + threadIdx.x;
-  unsigned istep;
   unsigned live;
+  extern __shared__ unsigned blockTerminated[];
   CMPTYPE localenergy;
   CMPTYPE rnd;
   CMPTYPE sigT, sigA, sigF;
@@ -34,7 +35,6 @@ __global__ void history(multipole U238, MemStruct Info, unsigned num_src, unsign
 
   localenergy = Info.nInfo[id].energy;
   unsigned cnt = 0u;
-  unsigned terminated = 0u;
   live = 1u;
   //while(live){
   //for (istep = 0; istep < devstep; istep++){
@@ -48,7 +48,7 @@ __global__ void history(multipole U238, MemStruct Info, unsigned num_src, unsign
 #endif
 #if defined(__TRACK)
     unsigned lies = gridDim.x*blockDim.x;
-    live = Info.tally[id].cnt + cnt;
+    live = Info.tally.cnt[id] + cnt;
     live = live*(live<lies) + lies*(live>=lies); 
     if(0==id){
       devicearray[4*live  ] = localenergy;
@@ -68,14 +68,29 @@ __global__ void history(multipole U238, MemStruct Info, unsigned num_src, unsign
     //terminated += !live;
   //}
   //}
+  blockTerminated[idl] = !live;
+   __syncthreads();
+  live = blockDim.x>>1;
+  while(live){
+    if(idl<live)
+      blockTerminated[idl] += blockTerminated[idl+live];
+    __syncthreads();
+    live>>=1;
+  }
+  if(0==idl){
+    //reduction scheme depends on tally type
+    //following is to count moderation times
+    Info.block_terminated_neutrons[blockIdx.x] = blockTerminated[0];
+  }
+  
   /*Note: from now on, live does not indicate neutron but thread active */
-  //live = (((terminated*2)*blockDim.x*gridDim.x + atomicAdd(Info.num_terminated_neutrons, terminated)) < num_src);
-  atomicAdd(Info.num_terminated_neutrons,!live);
-  Info.thread_active[id] =  blockDim.x*gridDim.x + *Info.num_terminated_neutrons < num_src;
+  //blockActive[threadIdx.x] = (((terminated*2)*blockDim.x*gridDim.x + atomicAdd(Info.num_terminated_neutrons, terminated)) < num_src);
+  //atomicAdd(Info.num_terminated_neutrons,!live);
+  //Info.thread_active[id] =  blockDim.x*gridDim.x + *Info.num_terminated_neutrons < num_src;
   /* Copy state back to global memory */ 
   Info.nInfo[id].rndState = localState; 
   Info.nInfo[id].energy = localenergy;
-  Info.tally[id].cnt += cnt; 
+  Info.tally.cnt[id] += cnt; 
 
 }
 
@@ -111,7 +126,7 @@ __global__ void remaining(multipole U238, CMPTYPE *devicearray, MemStruct Info){
 #endif
 #if defined(__TRACK)
     unsigned lies = gridDim.x*blockDim.x;
-    live = Info.tally[id].cnt + cnt;
+    live = Info.tally.cnt[id] + cnt;
     live = live*(live<lies) + lies*(live>=lies); 
     if(0==id){
       devicearray[4*live  ] = localenergy;
@@ -135,7 +150,7 @@ __global__ void remaining(multipole U238, CMPTYPE *devicearray, MemStruct Info){
   /* Copy state back to global memory */
   atomicAdd(Info.num_terminated_neutrons,terminated);
   Info.nInfo[id].rndState = localState;
-  Info.tally[id].cnt += cnt;
+  Info.tally.cnt[id] += cnt;
 
 #if !defined(__TRACK)
 #if defined(__PROCESS)  
@@ -149,7 +164,7 @@ __global__ void remaining(multipole U238, CMPTYPE *devicearray, MemStruct Info){
 #endif
 }
 
-__global__ void statistics(TallyStruct *threadtally, unsigned* cnt){
+__global__ void statistics(unsigned *threadcnt, unsigned* cnt){
   /*reduce tally*/
   /*TODO:
     alternatives:
@@ -161,7 +176,7 @@ __global__ void statistics(TallyStruct *threadtally, unsigned* cnt){
   extern __shared__ unsigned shared[];
   //size of shared[] is given as 3rd parameter while launching the kernel
   int i;
-  shared[idl] = threadtally[id].cnt;
+  shared[idl] = threadcnt[id];
   __syncthreads();
   i = blockDim.x>>1;
   while(i){
