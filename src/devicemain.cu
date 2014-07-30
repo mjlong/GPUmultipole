@@ -77,7 +77,7 @@ void anyvalue(struct multipoledata data, unsigned setgridx, unsigned setblockx, 
     config.datatype = CUDPP_DOUBLE;
     config.algorithm = CUDPP_SORT_RADIX;
     //config.options = CUDPP_OPTION_FORWARD | CUDPP_OPTION_EXCLUSIVE;
-    config.options=CUDPP_OPTION_KEYS_ONLY;
+    //config.options=CUDPP_OPTION_KEYS_ONLY;
 
     CUDPPHandle sortplan = 0;
     CUDPPResult res = cudppPlan(theCudpp, &sortplan, config, gridsize, 1, 0);
@@ -147,12 +147,11 @@ void anyvalue(struct multipoledata data, unsigned setgridx, unsigned setblockx, 
     history<<<dimGrid, dimBlock, blockx*sizeof(unsigned)>>>(U238, DeviceMem, num_src, devstep);
 #endif
     statistics<<<1, dimGrid, gridx*sizeof(unsigned)>>>(DeviceMem.block_terminated_neutrons, DeviceMem.num_terminated_neutrons);
-    cudaDeviceSynchronize(); gpuErrchk(cudaGetLastError());
     gpuErrchk(cudaMemcpy(HostMem.num_terminated_neutrons, 
 		       DeviceMem.num_terminated_neutrons, 
 		       sizeof(unsigned int), 
 		       cudaMemcpyDeviceToHost));
-    //cudppRadixSort(sortplan, DeviceMem.nInfo.energy, DeviceMem.nInfo.id, gridsize);
+    cudppRadixSort(sortplan, DeviceMem.nInfo.energy, DeviceMem.nInfo.id, gridsize);
     //                       keys,                   values,             numElements
     active = HostMem.num_terminated_neutrons[0] + gridsize < num_src;  
   }
