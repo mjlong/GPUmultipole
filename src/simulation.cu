@@ -11,7 +11,6 @@ __global__ void initialize(MemStruct pInfo, CMPTYPE energy){
   curand_init(1234, id, 0, &(pInfo.nInfo[id].rndState));
   launch(pInfo.nInfo, id, energy);
   //pInfo[id].energy = energy; //id+1.0; //(id + 1)*1.63*energy*0.001;// 
-  pInfo.thread_active[id] = 1u;
   pInfo.tally.cnt[id] = 0;
 
 }
@@ -193,7 +192,7 @@ __global__ void statistics(unsigned *threadcnt, unsigned* cnt){
   
 }
 
-
+/*
 __global__ void isActive(MemStruct DevMem, unsigned int *active){
   int id = blockDim.x * blockIdx.x + threadIdx.x;
   unsigned idl = threadIdx.x;
@@ -215,4 +214,4 @@ __global__ void isActive(MemStruct DevMem, unsigned int *active){
 
 
 }
-
+*/

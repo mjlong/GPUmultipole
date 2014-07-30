@@ -48,8 +48,6 @@ void anyvalue(struct multipoledata data, unsigned setgridx, unsigned setblockx, 
   gpuErrchk(cudaMalloc((void**)&devicearray, 4*gridsize*sizeof(CMPTYPE)));
   gpuErrchk(cudaMemset(devicearray, 0, 4*gridsize*sizeof(CMPTYPE)));
   gpuErrchk(cudaMalloc((void**)&(DeviceMem.nInfo), gridsize*sizeof(NeutronInfoStruct)));
-  gpuErrchk(cudaMalloc((void**)&(DeviceMem.thread_active), gridsize*sizeof(unsigned int)));
-  HostMem.thread_active = (unsigned int *)malloc(gridsize*sizeof(unsigned int));
   gpuErrchk(cudaMalloc((void**)&(DeviceMem.num_terminated_neutrons), sizeof(unsigned int)));
   gpuErrchk(cudaMalloc((void**)&(DeviceMem.block_terminated_neutrons), sizeof(unsigned int)*gridx));
   HostMem.num_terminated_neutrons = (unsigned int *)malloc(sizeof(unsigned int));
@@ -117,11 +115,6 @@ void anyvalue(struct multipoledata data, unsigned setgridx, unsigned setblockx, 
 #else
     history<<<dimGrid, dimBlock, blockx*sizeof(unsigned)>>>(U238, DeviceMem, num_src, devstep);
 #endif
-  /*gpuErrchk(cudaMemcpy(HostMem.thread_active, DeviceMem.thread_active, gridsize*sizeof(unsigned int), cudaMemcpyDeviceToHost));
-    active = 0u;
-    for (i = 0; i < gridsize; i++){
-      active += HostMem.thread_active[i];
-    }*/
     statistics<<<1, dimGrid, gridx*sizeof(unsigned)>>>(DeviceMem.block_terminated_neutrons, DeviceMem.num_terminated_neutrons);
     gpuErrchk(cudaMemcpy(HostMem.num_terminated_neutrons, 
 		       DeviceMem.num_terminated_neutrons, 
@@ -192,7 +185,6 @@ void anyvalue(struct multipoledata data, unsigned setgridx, unsigned setblockx, 
 
   gpuErrchk(cudaFree(devicearray));
   gpuErrchk(cudaFree(DeviceMem.nInfo));
-  gpuErrchk(cudaFree(DeviceMem.thread_active));
   gpuErrchk(cudaFree(DeviceMem.num_terminated_neutrons));
   gpuErrchk(cudaFree(DeviceMem.block_terminated_neutrons));
   gpuErrchk(cudaFree(DeviceMem.tally.cnt));
@@ -211,7 +203,6 @@ void anyvalue(struct multipoledata data, unsigned setgridx, unsigned setblockx, 
 
   free(hostarray);
   free(cnt);
-  free(HostMem.thread_active);
   free(HostMem.num_terminated_neutrons);
   return;
 }

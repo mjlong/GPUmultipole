@@ -32,7 +32,6 @@ typedef struct {
 
 typedef struct {
   NeutronInfoStruct *nInfo;
-  unsigned int *thread_active;
   unsigned int *block_terminated_neutrons;
   unsigned int *num_terminated_neutrons;
   XsStruct *sigma;
