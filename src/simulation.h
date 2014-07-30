@@ -4,6 +4,8 @@
 #include "multipole.h"
 #include <cuda.h>
 #include <curand_kernel.h>
+#include <cudpp.h>
+#include <cudpp_config.h>
 
 #define STARTENE 20000.0
 
