@@ -25,13 +25,14 @@ __global__ void history(multipole U238, MemStruct Info, unsigned num_src, unsign
   //try others when real simulation structure becomes clear
   int idl = threadIdx.x;
   int id = blockDim.x * blockIdx.x + threadIdx.x;
+  int nid = Info.nInfo.id[id];
   unsigned live;
   extern __shared__ unsigned blockTerminated[];
   CMPTYPE localenergy;
   CMPTYPE rnd;
   CMPTYPE sigT, sigA, sigF;
   /* Copy state to local memory for efficiency */ 
-  curandState localState = Info.nInfo.rndState[id];
+  curandState localState = Info.nInfo.rndState[nid];
 
   localenergy = Info.nInfo.energy[id];
   live = 1u;
@@ -47,7 +48,7 @@ __global__ void history(multipole U238, MemStruct Info, unsigned num_src, unsign
 #endif
 #if defined(__TRACK)
     unsigned lies = gridDim.x*blockDim.x;
-    live = Info.tally.cnt[id] + cnt;
+    live = Info.tally.cnt[nid] + cnt;
     live = live*(live<lies) + lies*(live>=lies); 
     if(0==id){
       devicearray[4*live  ] = localenergy;
@@ -86,9 +87,9 @@ __global__ void history(multipole U238, MemStruct Info, unsigned num_src, unsign
   //atomicAdd(Info.num_terminated_neutrons,!live);
   //Info.thread_active[id] =  blockDim.x*gridDim.x + *Info.num_terminated_neutrons < num_src;
   /* Copy state back to global memory */ 
-  Info.nInfo.rndState[id] = localState; 
+  Info.nInfo.rndState[nid] = localState; 
   Info.nInfo.energy[id] = localenergy;
-  Info.tally.cnt[id] += 1; 
+  Info.tally.cnt[nid] += 1; 
 
 }
 
@@ -97,13 +98,14 @@ __global__ void remaining(multipole U238, CMPTYPE *devicearray, MemStruct Info){
   //TODO:this is one scheme to match threads to 1D array, 
   //try others when real simulation structure becomes clear
   int id = blockDim.x * blockIdx.x + threadIdx.x;
+  int nid=Info.nInfo.id[id];
   unsigned live = true;
   CMPTYPE localenergy;
   CMPTYPE rnd;
   CMPTYPE sigT, sigA, sigF;
  
   /* Copy state to local memory for efficiency */
-  curandState localState = Info.nInfo.rndState[id];
+  curandState localState = Info.nInfo.rndState[nid];
   
 #if defined(__PROCESS)
   localenergy = 1.0+19999.0/65536.0*id+0.181317676432466;
@@ -124,7 +126,7 @@ __global__ void remaining(multipole U238, CMPTYPE *devicearray, MemStruct Info){
 #endif
 #if defined(__TRACK)
     unsigned lies = gridDim.x*blockDim.x;
-    live = Info.tally.cnt[id] + cnt;
+    live = Info.tally.cnt[nid] + cnt;
     live = live*(live<lies) + lies*(live>=lies); 
     if(0==id){
       devicearray[4*live  ] = localenergy;
@@ -147,18 +149,18 @@ __global__ void remaining(multipole U238, CMPTYPE *devicearray, MemStruct Info){
   }
   /* Copy state back to global memory */
   atomicAdd(Info.num_terminated_neutrons,terminated);
-  Info.nInfo.rndState[id] = localState;
-  Info.tally.cnt[id] += cnt;
+  Info.nInfo.rndState[nid] = localState;
+  Info.tally.cnt[nid] += cnt;
 
 #if !defined(__TRACK)
 #if defined(__PROCESS)  
-  devicearray[4 * id] = localenergy ;
+  devicearray[4 * nid] = localenergy ;
 #else
-  devicearray[4 * id] = localenergy / rnd;
+  devicearray[4 * nid] = localenergy / rnd;
 #endif
-  devicearray[4 * id + 1] = sigT;
-  devicearray[4 * id + 2] = sigA;
-  devicearray[4 * id + 3] = sigF;
+  devicearray[4 * nid + 1] = sigT;
+  devicearray[4 * nid + 2] = sigA;
+  devicearray[4 * nid + 3] = sigF;
 #endif
 }
 
