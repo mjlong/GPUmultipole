@@ -11,6 +11,7 @@ __global__ void initialize(MemStruct pInfo, CMPTYPE energy){
   curand_init(1234, id, 0, &(pInfo.nInfo.rndState[id]));
   launch(pInfo.nInfo, id, energy);
   //pInfo[id].energy = energy; //id+1.0; //(id + 1)*1.63*energy*0.001;// 
+  pInfo.nInfo.id[id] = id;
   pInfo.tally.cnt[id] = 0;
 
 }
