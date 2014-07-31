@@ -164,10 +164,19 @@ __device__  void multipole::xs_eval_fast(CMPTYPE E, CMPTYPE sqrtKT,
   for (iC=0;iC<=fitorder;iC++){
     power = (CMPTYPE)pow((double)E,(double)iC*0.5-1.0);
     sigT += fitT[iC*windows+iW]*power;
+  }
+  for (iC=0;iC<=fitorder;iC++){
+    power = (CMPTYPE)pow((double)E,(double)iC*0.5-1.0);
     sigA += fitA[iC*windows+iW]*power;
-    if(MP_FISS == fissionable)
-      sigF += fitF[iC*windows+iW]*power;
- }
+  }
+
+  if(MP_FISS == fissionable){
+  for (iC=0;iC<=fitorder;iC++){
+    power = (CMPTYPE)pow((double)E,(double)iC*0.5-1.0);
+    sigF += fitF[iC*windows+iW]*power;
+  }
+  }
+
 
   DOPP = sqrtAWR/sqrtKT;
   DOPP_ECOEF = DOPP/E*sqrt(PI);
