@@ -11,7 +11,6 @@ __global__ void initialize(MemStruct pInfo, CMPTYPE energy){
   curand_init(1234, id, 0, &(pInfo.nInfo.rndState[id]));
   launch(pInfo.nInfo, id, energy);
   //pInfo[id].energy = energy; //id+1.0; //(id + 1)*1.63*energy*0.001;// 
-  pInfo.thread_active[id] = 1u;
   pInfo.tally.cnt[id] = 0;
 
 }
@@ -24,8 +23,10 @@ __global__ void history(multipole U238, MemStruct Info, unsigned num_src, unsign
   //TODO:this is one scheme to match threads to 1D array, 
   //try others when real simulation structure becomes clear
   int id = blockDim.x * blockIdx.x + threadIdx.x;
+  int idl = threadIdx.x;
   unsigned istep;
   unsigned live;
+  extern __shared__ unsigned blockTerminated[];
   CMPTYPE localenergy;
   CMPTYPE rnd;
   CMPTYPE sigT, sigA, sigF;
@@ -70,8 +71,23 @@ __global__ void history(multipole U238, MemStruct Info, unsigned num_src, unsign
   //}
   /*Note: from now on, live does not indicate neutron but thread active */
   //live = (((terminated*2)*blockDim.x*gridDim.x + atomicAdd(Info.num_terminated_neutrons, terminated)) < num_src);
-  atomicAdd(Info.num_terminated_neutrons,terminated);
-  Info.thread_active[id] =  (terminated+1)*blockDim.x*gridDim.x + *Info.num_terminated_neutrons < num_src;
+  //atomicAdd(Info.num_terminated_neutrons,terminated);
+  //Info.thread_active[id] =  (terminated+1)*blockDim.x*gridDim.x + *Info.num_terminated_neutrons < num_src;
+  blockTerminated[idl] = terminated;
+  __syncthreads();
+  live = blockDim.x>>1;
+  while(live){
+    if(idl<live)
+      blockTerminated[idl] += blockTerminated[idl+live];
+    __syncthreads();
+    live>>=1;
+  }
+  if(0==idl){
+    //reduction scheme depends on tally type
+    //following is to count moderation times
+    Info.block_terminated_neutrons[blockIdx.x] = blockTerminated[0];
+  }
+
   /* Copy state back to global memory */ 
   Info.nInfo.rndState[id] = localState; 
   Info.nInfo.energy[id] = localenergy;
@@ -178,26 +194,4 @@ __global__ void statistics(unsigned *threadcnt, unsigned* cnt){
   
 }
 
-
-__global__ void isActive(MemStruct DevMem, unsigned int *active){
-  int id = blockDim.x * blockIdx.x + threadIdx.x;
-  unsigned idl = threadIdx.x;
-  extern __shared__ unsigned shared[];
-  //size of shared[] is given as 3rd parameter while launching the kernel
-  int i;
-  shared[idl] = DevMem.thread_active[id]; 
-  __syncthreads();
-  i = blockDim.x>>1;
-  while(i){
-    if(idl<i)
-      shared[idl] += shared[idl+i];
-    __syncthreads();
-    i=i>>1;
-  }
-  if(0==idl){
-    active[blockIdx.x] = shared[0];
-  }
-
-
-}
 
