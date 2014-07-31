@@ -151,8 +151,14 @@ void anyvalue(struct multipoledata data, unsigned setgridx, unsigned setblockx, 
 		       DeviceMem.num_terminated_neutrons, 
 		       sizeof(unsigned int), 
 		       cudaMemcpyDeviceToHost));
-    cudppRadixSort(sortplan, DeviceMem.nInfo.energy, DeviceMem.nInfo.id, gridsize);
+    res = cudppRadixSort(sortplan, DeviceMem.nInfo.energy, DeviceMem.nInfo.id, gridsize);
     //                       keys,                   values,             numElements
+    if (CUDPP_SUCCESS != res)
+    {
+        printf("Error in cudppSort()\n");
+        exit(-1);
+    }
+
     active = HostMem.num_terminated_neutrons[0] + gridsize < num_src;  
   }
 
