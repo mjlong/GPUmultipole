@@ -37,9 +37,42 @@ multipole::multipole(struct multipoledata data){
   /*
     allocate and assign arrays
   */
-  size = data.length*(MP_RF+data.fissionable)*2*sizeof(CMPTYPE);
-  cudaMalloc((void**)&mpdata, size);
-  cudaMemcpy(mpdata, data.mpdata, size, cudaMemcpyHostToDevice);
+  size = data.length*2*sizeof(CMPTYPE);
+  CPUComplex<CMPTYPE> *h_ea = (CPUComplex<CMPTYPE>*)malloc(size);
+  CPUComplex<CMPTYPE> *h_rt = (CPUComplex<CMPTYPE>*)malloc(size);
+  CPUComplex<CMPTYPE> *h_ra = (CPUComplex<CMPTYPE>*)malloc(size);
+  CPUComplex<CMPTYPE> *h_rf;
+  if(data.fissionable){
+  h_rf = (CPUComplex<CMPTYPE>*)malloc(size);
+  }
+
+  unsigned ip;
+  for(ip=0;ip<data.length;ip++){
+    h_ea[ip] = data.mpdata[pindex(ip,MP_EA,MP_RF+data.fissionable)];
+    h_rt[ip] = data.mpdata[pindex(ip,MP_RT,MP_RF+data.fissionable)];
+    h_ra[ip] = data.mpdata[pindex(ip,MP_RA,MP_RF+data.fissionable)];
+    if(data.fissionable){
+    h_ra[ip] = data.mpdata[pindex(ip,MP_RA,MP_RF+data.fissionable)];
+    }
+  }
+
+  cudaMalloc((void**)&mpdata_ea, size);
+  cudaMemcpy(mpdata_ea, h_ea, size, cudaMemcpyHostToDevice);
+  free(h_ea);
+
+  cudaMalloc((void**)&mpdata_rt, size);
+  cudaMemcpy(mpdata_rt, h_rt, size, cudaMemcpyHostToDevice);
+  free(h_rt);
+
+  cudaMalloc((void**)&mpdata_ra, size);
+  cudaMemcpy(mpdata_ra, h_ra, size, cudaMemcpyHostToDevice);
+  free(h_ra);
+
+  if(data.fissionable){
+  cudaMalloc((void**)&mpdata_rf, size);
+  cudaMemcpy(mpdata_rf, h_rf, size, cudaMemcpyHostToDevice);
+  free(h_rf);
+  }
 
   size = data.length*sizeof(unsigned);
   cudaMalloc((void**)&l_value, size);
@@ -62,9 +95,10 @@ multipole::multipole(struct multipoledata data){
   unsigned ic, iw;
   CMPTYPE *h_fitT = (CMPTYPE*)malloc(size);
   CMPTYPE *h_fitA = (CMPTYPE*)malloc(size);
-  CMPTYPE *h_fitF ;
-  if(data.fissionable)
-    h_fitF = (CMPTYPE*)malloc(size);
+  CMPTYPE *h_fitF; 
+  if(data.fissionable){
+  h_fitF = (CMPTYPE*)malloc(size);
+  }
   for(ic=0;ic<=data.fitorder;ic++){
     for(iw=0;iw<data.windows;iw++){
       h_fitT[ic*data.windows+iw] = data.fit[findex(iw,ic,FIT_T,data.fitorder+1,2+data.fissionable)]; 
@@ -90,9 +124,9 @@ multipole::multipole(struct multipoledata data){
   gpuErrchk(cudaMemcpy(fitA,h_fitA,size,cudaMemcpyHostToDevice));
   free(h_fitA);
   if(data.fissionable) {
-    gpuErrchk(cudaMalloc((void**)&fitF, size));
-    gpuErrchk(cudaMemcpy(fitF,h_fitF,size,cudaMemcpyHostToDevice));
-    free(h_fitF);
+  gpuErrchk(cudaMalloc((void**)&fitF, size));
+  gpuErrchk(cudaMemcpy(fitF,h_fitF,size,cudaMemcpyHostToDevice));
+  free(h_fitF);
   }
  
  
@@ -105,18 +139,22 @@ multipole::multipole(struct multipoledata data){
 multipole::~multipole(){
 }
 
-void multipole::release_pointer(){
+void multipole::release_pointer(unsigned fissionable){
   gpuErrchk(cudaFree(dev_integers));
   gpuErrchk(cudaFree(dev_doubles));
-  gpuErrchk(cudaFree(mpdata));
+  gpuErrchk(cudaFree(mpdata_ea));
+  gpuErrchk(cudaFree(mpdata_rt));
+  gpuErrchk(cudaFree(mpdata_ra));
   gpuErrchk(cudaFree(l_value));
   gpuErrchk(cudaFree(pseudo_rho));
   gpuErrchk(cudaFree(w_start));
   gpuErrchk(cudaFree(w_end));
   gpuErrchk(cudaFree(fitT));
   gpuErrchk(cudaFree(fitA));
+if(fissionable){
   gpuErrchk(cudaFree(fitF));
-
+  gpuErrchk(cudaFree(mpdata_rf));
+}
 #if defined(__QUICKWT)
   unbindwtable();
 #endif
@@ -179,7 +217,7 @@ __device__  void multipole::xs_eval_fast(CMPTYPE E, CMPTYPE sqrtKT,
     //w_val = (sqrtE - mpdata[pindex(iP-1,MP_EA)])*DOPP*DOPP_ECOEF;
 
 #if defined(__CFLOAT)
-    CComplex<float>  zfloat  = mpdata[pindex(iP-1,MP_EA)];
+    CComplex<float>  zfloat  = mpdata_ea[iP-1];//mpdata[pindex(iP-1,MP_EA)];
     CComplex<double> zdouble = CComplex<double>((double)real(zfloat),(double)imag(zfloat));
 
 #if defined(__QUICKWG) 
@@ -191,9 +229,9 @@ __device__  void multipole::xs_eval_fast(CMPTYPE E, CMPTYPE sqrtKT,
 #else //not defined __CFLOAT
 
 #if defined(__QUICKWG) 
-    w_val =  w_function((sqrtE - mpdata[pindex(iP-1,MP_EA)])*DOPP,mtable)*DOPP_ECOEF;
+    w_val =  w_function((sqrtE - mpdata_ea[iP-1])*DOPP,mtable)*DOPP_ECOEF;
 #else
-    w_val =  w_function((sqrtE - mpdata[pindex(iP-1,MP_EA)])*DOPP       )*DOPP_ECOEF;
+    w_val =  w_function((sqrtE - mpdata_ea[iP-1])*DOPP       )*DOPP_ECOEF;
 #endif //end W method
 
 #endif //end if __CFLOAT
@@ -203,29 +241,29 @@ __device__  void multipole::xs_eval_fast(CMPTYPE E, CMPTYPE sqrtKT,
 #endif 
 #if defined(__PLOT)
   if(threadIdx.x<=50){
-    CComplex<CMPTYPE> zout = (sqrtE - mpdata[pindex(iP-1,MP_EA)])*DOPP;
+    CComplex<CMPTYPE> zout = (sqrtE - mpdata_ea[iP-1])*DOPP;
     printf("%+20.16e %+20.16e\n", real(zout),imag(zout));
 }
 #endif
 #if defined(__CFLOAT)
-    zfloat = mpdata[pindex(iP-1,MP_RT)]; 
+    zfloat = mpdata_rt[iP-1]; 
     zdouble= CComplex<double>((double)real(zfloat),(double)imag(zfloat))*sigT_factor[l_value[iP-1]-1];
     sigT += (CMPTYPE)real(zdouble*w_val);
 
-    zfloat = mpdata[pindex(iP-1,MP_RA)]; 
+    zfloat = mpdata_ra[iP-1]; 
     zdouble= CComplex<double>((double)real(zfloat),(double)imag(zfloat));
     sigA += (CMPTYPE)real(zdouble*w_val);
     if(MP_FISS == fissionable){
-      zfloat = mpdata[pindex(iP-1,MP_RF)]; 
+      zfloat = mpdata_rf[iP-1]; 
       zdouble= CComplex<double>((double)real(zfloat),(double)imag(zfloat));
       sigF += (CMPTYPE)real(zdouble*w_val);
     }
 
 #else
-    sigT += real(mpdata[pindex(iP-1,MP_RT)]*sigT_factor[l_value[iP-1]-1]*w_val);//sigtfactor);	    
-    sigA += real(mpdata[pindex(iP-1,MP_RA)]*w_val);                              
+    sigT += real(mpdata_rt[iP-1]*sigT_factor[l_value[iP-1]-1]*w_val);//sigtfactor);	    
+    sigA += real(mpdata_ra[iP-1]*w_val);                              
     if(MP_FISS == fissionable)
-      sigF += real(mpdata[pindex(iP-1,MP_RF)]*w_val);
+      sigF += real(mpdata_rf[iP-1]*w_val);
 #endif
   }
 #if defined(__TRACK)
@@ -420,8 +458,8 @@ int multipole::findex(int iW, int iC, int type, int orders, int types){
   return iW*orders*types + iC*types + type; 
 }
 
-__host__ __device__ int multipole::pindex(int iP, int type){
-  return iP*4 + type;
+int multipole::pindex(int iP, int type, int types){
+  return iP*types + type;
 }
 
 __device__ void multipole::fill_factors(CMPTYPE sqrtE, int numL, 

@@ -64,7 +64,11 @@ class multipole{
 public:
   int *dev_integers;
   CMPTYPE *dev_doubles;
-  CComplex<CMPTYPE> *mpdata;
+  //CComplex<CMPTYPE> *mpdata;
+  CComplex<CMPTYPE> *mpdata_ea;
+  CComplex<CMPTYPE> *mpdata_rt;
+  CComplex<CMPTYPE> *mpdata_ra;
+  CComplex<CMPTYPE> *mpdata_rf;
   unsigned *l_value; // l and j index of the pole
   //int w_function; //Which W function to use
   CMPTYPE  *pseudo_rho;  //inherit nomenclature from isotope.h
@@ -90,7 +94,7 @@ public:
   multipole(struct multipoledata data);
 #endif
   ~multipole();
-  void release_pointer();
+  void release_pointer(unsigned);
 #if defined(__MITW) || defined(__QUICKW) || defined(__FOURIERW)
   __device__  void xs_eval_fast(CMPTYPE E, CMPTYPE sqrtKT, 
 					 CMPTYPE &sigT, CMPTYPE &sigA, CMPTYPE &sigF);
@@ -103,7 +107,7 @@ public:
 					 CMPTYPE &sigT, CMPTYPE &sigA, CMPTYPE &sigF);*/
   __device__ void fill_factors(CMPTYPE sqrtE, int numL, CComplex<double> *sigT_factor);
   __host__ __device__  int findex(int, int, int, int, int);
-  __host__ __device__  int pindex(int, int);
+  __host__ __device__  int pindex(int, int, int);
 
 };
 
