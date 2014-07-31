@@ -14,6 +14,7 @@
 #define FITORDER 1
 #define NUML     2
 #define FISSIONABLE  3
+#define WINDOWS  4
 #define STARTE   0
 #define SPACING  1
 #define SQRTAWR  2
@@ -70,7 +71,10 @@ public:
 
   int *w_start;// Contains the index of the pole at the start of the window
   int *w_end;  // Contains the index of the pole at the end of the window
-  CMPTYPE *fit;
+  //CMPTYPE *fit;
+  CMPTYPE *fitT;
+  CMPTYPE *fitA;
+  CMPTYPE *fitF;
   //Contains the fitting function.  (reaction type, coeff index, window index)
   //=========================================================================
 #if defined(__QUICKWG) 

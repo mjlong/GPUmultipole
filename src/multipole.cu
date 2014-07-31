@@ -18,11 +18,12 @@ multipole::multipole(struct multipoledata data){
     allocate and assign integers
   */
   size = sizeof(unsigned);
-  cudaMalloc((void**)&dev_integers, 4*size);
+  cudaMalloc((void**)&dev_integers, 5*size);
   cudaMemcpy(dev_integers+MODE,    &(data.mode), size, cudaMemcpyHostToDevice);
   cudaMemcpy(dev_integers+FITORDER, &(data.fitorder), size, cudaMemcpyHostToDevice);
   cudaMemcpy(dev_integers+NUML, &(data.numL), size, cudaMemcpyHostToDevice);
   cudaMemcpy(dev_integers+FISSIONABLE, &(data.fissionable), size, cudaMemcpyHostToDevice);
+  cudaMemcpy(dev_integers+WINDOWS, &(data.windows),size, cudaMemcpyHostToDevice);
 
   /*
     allocate and assign doubles
@@ -55,10 +56,46 @@ multipole::multipole(struct multipoledata data){
   cudaMalloc((void**)&w_end, size);
   cudaMemcpy(w_end, data.w_end, size, cudaMemcpyHostToDevice);
 
-  size = (FIT_F+data.fissionable)*(data.fitorder+1)*data.windows*sizeof(CMPTYPE);
-  cudaMalloc((void**)&fit, size);
-  cudaMemcpy(fit, data.fit, size, cudaMemcpyHostToDevice);
+  size = (data.fitorder+1)*data.windows*sizeof(CMPTYPE);
+  //cudaMalloc((void**)&fit, size);
+  //cudaMemcpy(fit, data.fit, size, cudaMemcpyHostToDevice);
+  unsigned ic, iw;
+  CMPTYPE *h_fitT = (CMPTYPE*)malloc(size);
+  CMPTYPE *h_fitA = (CMPTYPE*)malloc(size);
+  CMPTYPE *h_fitF ;
+  if(data.fissionable)
+    h_fitF = (CMPTYPE*)malloc(size);
+  for(ic=0;ic<=data.fitorder;ic++){
+    for(iw=0;iw<data.windows;iw++){
+      h_fitT[ic*data.windows+iw] = data.fit[findex(iw,ic,FIT_T,data.fitorder+1,2+data.fissionable)]; 
+   }
+  }
+  for(ic=0;ic<=data.fitorder;ic++){
+    for(iw=0;iw<data.windows;iw++){
+      h_fitA[ic*data.windows+iw] = data.fit[findex(iw,ic,FIT_A,data.fitorder+1,2+data.fissionable)]; 
+   }
+  }
+  if(data.fissionable){
+  for(ic=0;ic<=data.fitorder;ic++){
+    for(iw=0;iw<data.windows;iw++){
+      h_fitF[ic*data.windows+iw] = data.fit[findex(iw,ic,FIT_F,data.fitorder+1,2+data.fissionable)]; 
+   }
+  }
+  }
 
+  gpuErrchk(cudaMalloc((void**)&fitT, size));
+  gpuErrchk(cudaMemcpy(fitT,h_fitT,size,cudaMemcpyHostToDevice));
+  free(h_fitT);
+  gpuErrchk(cudaMalloc((void**)&fitA, size));
+  gpuErrchk(cudaMemcpy(fitA,h_fitA,size,cudaMemcpyHostToDevice));
+  free(h_fitA);
+  if(data.fissionable) {
+    gpuErrchk(cudaMalloc((void**)&fitF, size));
+    gpuErrchk(cudaMemcpy(fitF,h_fitF,size,cudaMemcpyHostToDevice));
+    free(h_fitF);
+  }
+ 
+ 
 #if defined(__QUICKWG)
   mtable = wtable;  
 #endif
@@ -76,7 +113,10 @@ void multipole::release_pointer(){
   gpuErrchk(cudaFree(pseudo_rho));
   gpuErrchk(cudaFree(w_start));
   gpuErrchk(cudaFree(w_end));
-  gpuErrchk(cudaFree(fit));
+  gpuErrchk(cudaFree(fitT));
+  gpuErrchk(cudaFree(fitA));
+  gpuErrchk(cudaFree(fitF));
+
 #if defined(__QUICKWT)
   unbindwtable();
 #endif
@@ -97,6 +137,7 @@ __device__  void multipole::xs_eval_fast(CMPTYPE E, CMPTYPE sqrtKT,
   unsigned fitorder    = dev_integers[FITORDER];
   unsigned numL        = dev_integers[NUML];
   unsigned fissionable = dev_integers[FISSIONABLE];
+  unsigned windows     = dev_integers[WINDOWS];
 
   int    iP, iC, iW, startW, endW;
   if(1==mode)
@@ -122,10 +163,10 @@ __device__  void multipole::xs_eval_fast(CMPTYPE E, CMPTYPE sqrtKT,
 
   for (iC=0;iC<=fitorder;iC++){
     power = (CMPTYPE)pow((double)E,(double)iC*0.5-1.0);
-    sigT += fit[findex(iW,iC,FIT_T,fitorder+1,2+fissionable)]*power;
-    sigA += fit[findex(iW,iC,FIT_A,fitorder+1,2+fissionable)]*power;
+    sigT += fitT[iC*windows+iW]*power;
+    sigA += fitA[iC*windows+iW]*power;
     if(MP_FISS == fissionable)
-      sigF += fit[findex(iW,iC,FIT_F,fitorder+1,2+fissionable)]*power;
+      sigF += fitF[iC*windows+iW]*power;
  }
 
   DOPP = sqrtAWR/sqrtKT;
@@ -375,7 +416,7 @@ __device__  void multipole::xs_eval_fast(CMPTYPE E, CMPTYPE sqrtKT, CMPTYPE rnd,
 }
 */
 
-__host__ __device__ int multipole::findex(int iW, int iC, int type, int orders, int types){
+int multipole::findex(int iW, int iC, int type, int orders, int types){
   return iW*orders*types + iC*types + type; 
 }
 
