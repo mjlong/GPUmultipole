@@ -56,11 +56,22 @@ multipole::multipole(struct multipoledata data){
   cudaMalloc((void**)&w_end, size);
   cudaMemcpy(w_end, data.w_end, size, cudaMemcpyHostToDevice);
 
-  size = (data.fitorder+1)*data.windows*sizeof(CMPTYPE);
-  //cudaMalloc((void**)&fit, size);
-  //cudaMemcpy(fit, data.fit, size, cudaMemcpyHostToDevice);
+  size = (FIT_F+data.fissionable)*(data.fitorder+1)*data.windows*sizeof(CMPTYPE);
+  CMPTYPE *h_fit = (CMPTYPE*)malloc(size);
   unsigned ic, iw;
-  CMPTYPE *h_fitT = (CMPTYPE*)malloc(size);
+  for(ic=0;ic<=data.fitorder;ic++){
+    for(iw=0;iw<=data.windows;iw++){
+      h_fit[ic*data.windows*(FIT_F+data.fissionable)+iw               ] = data.fit[findex(iw,ic,FIT_T,data.fitorder+1,2+data.fissionable)];
+      h_fit[ic*data.windows*(FIT_F+data.fissionable)+iw+data.windows  ] = data.fit[findex(iw,ic,FIT_A,data.fitorder+1,2+data.fissionable)];
+      if(data.fissionable){
+      h_fit[ic*data.windows*(FIT_F+data.fissionable)+iw+data.windows*2] = data.fit[findex(iw,ic,FIT_F,data.fitorder+1,2+data.fissionable)];
+      }
+    }
+  }
+  cudaMalloc((void**)&fit, size);
+  cudaMemcpy(fit, h_fit, size, cudaMemcpyHostToDevice);
+  free(h_fit); 
+  /*CMPTYPE *h_fitT = (CMPTYPE*)malloc(size);
   CMPTYPE *h_fitA = (CMPTYPE*)malloc(size);
   CMPTYPE *h_fitF ;
   if(data.fissionable)
@@ -93,7 +104,7 @@ multipole::multipole(struct multipoledata data){
     gpuErrchk(cudaMalloc((void**)&fitF, size));
     gpuErrchk(cudaMemcpy(fitF,h_fitF,size,cudaMemcpyHostToDevice));
     free(h_fitF);
-  }
+  }*/
  
  
 #if defined(__QUICKWG)
@@ -113,9 +124,10 @@ void multipole::release_pointer(){
   gpuErrchk(cudaFree(pseudo_rho));
   gpuErrchk(cudaFree(w_start));
   gpuErrchk(cudaFree(w_end));
-  gpuErrchk(cudaFree(fitT));
+  /*gpuErrchk(cudaFree(fitT));
   gpuErrchk(cudaFree(fitA));
-  gpuErrchk(cudaFree(fitF));
+  gpuErrchk(cudaFree(fitF));*/
+  gpuErrchk(cudaFree(fit));
 
 #if defined(__QUICKWT)
   unbindwtable();
@@ -163,20 +175,12 @@ __device__  void multipole::xs_eval_fast(CMPTYPE E, CMPTYPE sqrtKT,
 
   for (iC=0;iC<=fitorder;iC++){
     power = (CMPTYPE)pow((double)E,(double)iC*0.5-1.0);
-    sigT += fitT[iC*windows+iW]*power;
+    sigT += fit[iC*windows*(FIT_F+fissionable)+iW]*power;
+    sigA += fit[iC*windows*(FIT_F+fissionable)+iW+windows]*power;
+    if(MP_FISS == fissionable){
+    sigF += fit[iC*windows*(FIT_F+fissionable)+iW+windows*2]*power;
+    }
   }
-  for (iC=0;iC<=fitorder;iC++){
-    power = (CMPTYPE)pow((double)E,(double)iC*0.5-1.0);
-    sigA += fitA[iC*windows+iW]*power;
-  }
-
-  if(MP_FISS == fissionable){
-  for (iC=0;iC<=fitorder;iC++){
-    power = (CMPTYPE)pow((double)E,(double)iC*0.5-1.0);
-    sigF += fitF[iC*windows+iW]*power;
-  }
-  }
-
 
   DOPP = sqrtAWR/sqrtKT;
   DOPP_ECOEF = DOPP/E*sqrt(PI);

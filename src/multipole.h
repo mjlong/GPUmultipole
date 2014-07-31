@@ -71,10 +71,10 @@ public:
 
   int *w_start;// Contains the index of the pole at the start of the window
   int *w_end;  // Contains the index of the pole at the end of the window
-  //CMPTYPE *fit;
-  CMPTYPE *fitT;
+  CMPTYPE *fit;
+  /*CMPTYPE *fitT;
   CMPTYPE *fitA;
-  CMPTYPE *fitF;
+  CMPTYPE *fitF;*/
   //Contains the fitting function.  (reaction type, coeff index, window index)
   //=========================================================================
 #if defined(__QUICKWG) 
