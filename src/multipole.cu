@@ -52,7 +52,7 @@ multipole::multipole(struct multipoledata data){
     h_rt[ip] = data.mpdata[pindex(ip,MP_RT,MP_RF+data.fissionable)];
     h_ra[ip] = data.mpdata[pindex(ip,MP_RA,MP_RF+data.fissionable)];
     if(data.fissionable){
-    h_ra[ip] = data.mpdata[pindex(ip,MP_RA,MP_RF+data.fissionable)];
+    h_rf[ip] = data.mpdata[pindex(ip,MP_RF,MP_RF+data.fissionable)];
     }
   }
 
