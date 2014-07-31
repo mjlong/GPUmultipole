@@ -56,38 +56,38 @@ multipole::multipole(struct multipoledata data){
     }
   }
 
-  cudaMalloc((void**)&mpdata_ea, size);
-  cudaMemcpy(mpdata_ea, h_ea, size, cudaMemcpyHostToDevice);
+  gpuErrchk(cudaMalloc((void**)&mpdata_ea, size));
+  gpuErrchk(cudaMemcpy(mpdata_ea, h_ea, size, cudaMemcpyHostToDevice));
   free(h_ea);
 
-  cudaMalloc((void**)&mpdata_rt, size);
-  cudaMemcpy(mpdata_rt, h_rt, size, cudaMemcpyHostToDevice);
+  gpuErrchk(cudaMalloc((void**)&mpdata_rt, size));
+  gpuErrchk(cudaMemcpy(mpdata_rt, h_rt, size, cudaMemcpyHostToDevice));
   free(h_rt);
 
-  cudaMalloc((void**)&mpdata_ra, size);
-  cudaMemcpy(mpdata_ra, h_ra, size, cudaMemcpyHostToDevice);
+  gpuErrchk(cudaMalloc((void**)&mpdata_ra, size));
+  gpuErrchk(cudaMemcpy(mpdata_ra, h_ra, size, cudaMemcpyHostToDevice));
   free(h_ra);
 
   if(data.fissionable){
-  cudaMalloc((void**)&mpdata_rf, size);
-  cudaMemcpy(mpdata_rf, h_rf, size, cudaMemcpyHostToDevice);
+  gpuErrchk(cudaMalloc((void**)&mpdata_rf, size));
+  gpuErrchk(cudaMemcpy(mpdata_rf, h_rf, size, cudaMemcpyHostToDevice));
   free(h_rf);
   }
 
   size = data.length*sizeof(unsigned);
-  cudaMalloc((void**)&l_value, size);
-  cudaMemcpy(l_value, data.l_value, size, cudaMemcpyHostToDevice);
+  gpuErrchk(cudaMalloc((void**)&l_value, size));
+  gpuErrchk(cudaMemcpy(l_value, data.l_value, size, cudaMemcpyHostToDevice));
 
   size = data.numL*sizeof(CMPTYPE);
-  cudaMalloc((void**)&pseudo_rho, size);
-  cudaMemcpy(pseudo_rho, data.pseudo_rho, size, cudaMemcpyHostToDevice);
+  gpuErrchk(cudaMalloc((void**)&pseudo_rho, size));
+  gpuErrchk(cudaMemcpy(pseudo_rho, data.pseudo_rho, size, cudaMemcpyHostToDevice));
 
 
   size = data.windows*sizeof(int);
-  cudaMalloc((void**)&w_start, size);
-  cudaMemcpy(w_start, data.w_start, size, cudaMemcpyHostToDevice);
-  cudaMalloc((void**)&w_end, size);
-  cudaMemcpy(w_end, data.w_end, size, cudaMemcpyHostToDevice);
+  gpuErrchk(cudaMalloc((void**)&w_start, size));
+  gpuErrchk(cudaMemcpy(w_start, data.w_start, size, cudaMemcpyHostToDevice));
+  gpuErrchk(cudaMalloc((void**)&w_end, size));
+  gpuErrchk(cudaMemcpy(w_end, data.w_end, size, cudaMemcpyHostToDevice));
 
   size = (data.fitorder+1)*data.windows*sizeof(CMPTYPE);
   //cudaMalloc((void**)&fit, size);
