@@ -234,7 +234,7 @@ void anyvalue(struct multipoledata data, unsigned setgridx, unsigned setblockx, 
 #if defined(__INTERPEXP)
   gpuErrchk(cudaFree(exptable));
 #endif
- U238.release_pointer();
+ U238.release_pointer(data.fissionable);
 
   free(hostarray);
   free(cnt);
