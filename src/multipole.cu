@@ -60,7 +60,7 @@ multipole::multipole(struct multipoledata data){
   CMPTYPE *h_fit = (CMPTYPE*)malloc(size);
   unsigned ic, iw;
   for(ic=0;ic<=data.fitorder;ic++){
-    for(iw=0;iw<=data.windows;iw++){
+    for(iw=0;iw<data.windows;iw++){
       h_fit[ic*data.windows*(FIT_F+data.fissionable)+iw               ] = data.fit[findex(iw,ic,FIT_T,data.fitorder+1,2+data.fissionable)];
       h_fit[ic*data.windows*(FIT_F+data.fissionable)+iw+data.windows  ] = data.fit[findex(iw,ic,FIT_A,data.fitorder+1,2+data.fissionable)];
       if(data.fissionable){
