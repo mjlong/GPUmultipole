@@ -3,6 +3,7 @@ multipole
 multipole method on GPU with CUDA
 
 What are the branches?
+
 before  -------- Let me call it reference, though it wasn't intended to be
 
 beforesoa ----- Deviate from before only in NeutronInfo AoS to SoA
