@@ -10,22 +10,25 @@ DIR_OBJ = ./obj
 DIR_CUDPP = /home/jlmiao/opt/cudpp-2.1
 DIR_HDF5  = /home/jlmiao/opt/hdf5
 DIR_CUDA6 = /usr/local/cuda-6.0
+DIR_OPTIX = /home/jlmiao/NVIDIA-OptiX-SDK-3.6.0-linux64
+DIR_SUTIL = ${DIR_SRC}#/home/jlmiao/NVIDIA-Optix-SDK-3.6.0-linux64/SDK/sutil
 ifeq ($(compare),1)
 DIR_BIN = ./bin/test
 endif
 CC=h5cc #g++ #h5pcc #g++
 NVCC = nvcc
 ifeq ($(ver),debug)
-NCFLAGS=-g -G -dc -arch=sm_20 -I${DIR_CUDPP}/include -I${DIR_SRC} -I${DIR_SRC}/wfunction  #-Xptxas="-v"
-CCFLAGS=-c -g -I${DIR_HDF5}/include 
+NCFLAGS=-g -G -dc -arch=sm_20 -I${DIR_CUDPP}/include -I${DIR_OPTIX}/include -I${DIR_SRC} -I${DIR_SRC}/wfunction  #-Xptxas="-v"
+CCFLAGS=-c -g -I${DIR_HDF5}/include  -I${DIR_SUTIL}  -I${DIR_OPTIX}/include
 DIR_BIN = ./bin/debug
 else
-NCFLAGS=      -dc -arch=sm_20 -I${DIR_CUDPP}/include -I${DIR_SRC} -I${DIR_SRC}/wfunction #-Xptxas="-v"
-CCFLAGS=   -c -I${DIR_HDF5}/include 
+NCFLAGS=      -dc -arch=sm_20 -I${DIR_CUDPP}/include -I${DIR_OPTIX}/include -I${DIR_SRC} -I${DIR_SRC}/wfunction #-Xptxas="-v"
+CCFLAGS=   -c -I${DIR_HDF5}/include  -I${DIR_SUTIL}  -I${DIR_OPTIX}/include
+
 DIR_BIN = ./bin/release
 endif
 LINKLAG=-arch=sm_20 -dlink
-LDFLAGS=-L${DIR_HDF5}/lib/ -L${DIR_CUDA6}/lib64 -L${DIR_CUDPP}/lib/ -lcudpp -lcudart -lhdf5 
+LDFLAGS=-L${DIR_HDF5}/lib/ -L${DIR_CUDA6}/lib64 -L${DIR_CUDPP}/lib/ -L${DIR_OPTIX}/lib64/ -loptix -lcudpp -lcudart -lhdf5 
 GSOURCES=$(wildcard ${DIR_SRC}/*.cu)
 WSOURCES=
 # Faddeeva function implementation 
