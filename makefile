@@ -5,29 +5,36 @@
 #WHPW = 2
 #FOURIEREXPANSION = 3
 #QUICKW FOURIER   = 31
+#Directories
 DIR_SRC = ./src
 DIR_OBJ = ./obj
-DIR_CUDPP = /home/jlmiao/opt/cudpp-2.1
 DIR_HDF5  = /home/jlmiao/opt/hdf5
 DIR_CUDA6 = /usr/local/cuda-6.0
+DIR_CUDPP = /home/jlmiao/opt/cudpp-2.1
 DIR_OPTIX = /home/jlmiao/NVIDIA-OptiX-SDK-3.6.0-linux64
-DIR_SUTIL = ${DIR_SRC}#/home/jlmiao/NVIDIA-Optix-SDK-3.6.0-linux64/SDK/sutil
+#Include flags
+INC_SRC   = -I${DIR_SRC} -I${DIR_SRC}/wfunction
+INC_HDF5  = -I${DIR_HDF5}/include
+INC_CUDA6 = -I${DIR_CUDA6}/include
+INC_CUDPP = -I${DIR_CUDPP}/include
+INC_OPTIX = -I${DIR_OPTIX}/include
+NCINCFLAGS  = $(INC_SRC) $(INC_CUDA6) $(INC_CUDPP) $(INC_OPTIX)
+CCINCFLAGS  = $(INC_SRC) $(INC_HDF5) $(INC_OPTIX)
 ifeq ($(compare),1)
 DIR_BIN = ./bin/test
 endif
 CC=h5cc #g++ #h5pcc #g++
 NVCC = nvcc
 ifeq ($(ver),debug)
-NCFLAGS=-g -G -dc -arch=sm_20 -I${DIR_CUDPP}/include -I${DIR_OPTIX}/include -I${DIR_SRC} -I${DIR_SRC}/wfunction  #-Xptxas="-v"
-CCFLAGS=-c -g -I${DIR_HDF5}/include  -I${DIR_SUTIL}  -I${DIR_OPTIX}/include
+NCFLAGS=-g -G -dc -arch=sm_20 $(NCINCFLAGS)  #-Xptxas="-v"
+CCFLAGS=-c -g                 $(CCINCFLAGS) 
 DIR_BIN = ./bin/debug
 else
-NCFLAGS=      -dc -arch=sm_20 -I${DIR_CUDPP}/include -I${DIR_OPTIX}/include -I${DIR_SRC} -I${DIR_SRC}/wfunction #-Xptxas="-v"
-CCFLAGS=   -c -I${DIR_HDF5}/include  -I${DIR_SUTIL}  -I${DIR_OPTIX}/include
-
+NCFLAGS=      -dc -arch=sm_20 $(NCINCFLAGS)  #-Xptxas="-v"
+CCFLAGS=-c                    $(CCINCFLAGS) 
 DIR_BIN = ./bin/release
 endif
-LINKLAG=-arch=sm_20 -dlink
+LINKLAG=   -dlink -arch=sm_20  
 LDFLAGS=-L${DIR_HDF5}/lib/ -L${DIR_CUDA6}/lib64 -L${DIR_CUDPP}/lib/ -L${DIR_OPTIX}/lib64/ -loptix -lcudpp -lcudart -lhdf5 
 GSOURCES=$(wildcard ${DIR_SRC}/*.cu)
 WSOURCES=
