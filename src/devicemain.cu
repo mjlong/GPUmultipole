@@ -28,7 +28,7 @@ __constant__ CMPTYPE2 constwtable[LENGTH*LENGTH];
 
 void printdevice();
 
-void anyvalue(struct multipoledata data, unsigned setgridx, unsigned setblockx, unsigned num_src, unsigned devstep){
+void anyvalue(struct multipoledata* data, unsigned numIsos, unsigned setgridx, unsigned setblockx, unsigned num_src, unsigned devstep){
   unsigned gridx, blockx, gridsize;
   unsigned ints=0, sharedmem;
   float timems = 0.0;
@@ -113,10 +113,15 @@ void anyvalue(struct multipoledata data, unsigned setgridx, unsigned setblockx, 
 #endif
 #endif
 
+  multipole *isotopes = (multipole*)malloc(sizeof(multipole)*numIsos);
 #if defined(__QUICKWG)
-  multipole U238(data, wtable);
+  //multipole U238(data, wtable);
+  for(int i=0;i<numIsos;i++)
+    new(isotopes[i])multipole(data[i],wtable);
 #else
-  multipole U238(data);
+  for(int i=0;i<numIsos;i++)
+    new(&amp;isotopes[i])multipole(data[i],wtable);
+  //multipole U238(data);
 #endif 
 
 // fill exp(z) table for fourierw
@@ -142,7 +147,7 @@ void anyvalue(struct multipoledata data, unsigned setgridx, unsigned setblockx, 
 
   while (active){
 #if defined(__TRACK)
-    history<<<dimGrid, dimBlock, blockx*sizeof(unsigned)>>>(U238, devicearray, DeviceMem, num_src, devstep);
+    history<<<dimGrid, dimBlock, blockx*sizeof(unsigned)>>>(isotopes[0], devicearray, DeviceMem, num_src, devstep);
 #else
     history<<<dimGrid, dimBlock, blockx*sizeof(unsigned)>>>(U238, DeviceMem, num_src, devstep);
 #endif
