@@ -1,17 +1,20 @@
 #include "multipole.h"
 
+multipole::multipole(){
+}
+
 #if defined(__QUICKW)
 #if defined(__QUICKWG)
 // __QUICKWG assigns global memory wtable to multipole member
-multipole::multipole(struct multipoledata data, CComplex<CMPTYPE>* wtable){
+void multipole::set(struct multipoledata data, CComplex<CMPTYPE>* wtable){
 #else 
 // __QUICKWT has bound global memory wtable to texture 
 // __QUICKWC declares constant memory as extern in QuickW.cu
-multipole::multipole(struct multipoledata data){
+void multipole::set(struct multipoledata data){
 #endif //endif __QUICKWG
 #else 
 // __MITW    uses no wtable
-multipole::multipole(struct multipoledata data){
+void multipole::set(struct multipoledata data){
 #endif
   size_t size;
   /*

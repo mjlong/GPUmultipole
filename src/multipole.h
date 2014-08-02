@@ -84,10 +84,11 @@ public:
   CMPTYPE2 *mtable;
 #endif*/
  public:
+  multipole();
 #if defined(__QUICKWG)
-  multipole(struct multipoledata data, CComplex<CMPTYPE> *wtable);
+  void set(struct multipoledata data, CComplex<CMPTYPE> *wtable);
 #else
-  multipole(struct multipoledata data);
+  void set(struct multipoledata data);
 #endif
   ~multipole();
   void release_pointer();
