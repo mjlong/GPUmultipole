@@ -117,10 +117,10 @@ void anyvalue(struct multipoledata* data, unsigned numIsos, unsigned setgridx, u
 #if defined(__QUICKWG)
   //multipole U238(data, wtable);
   for(int i=0;i<numIsos;i++)
-    new(isotopes[i])multipole(data[i],wtable);
+    isotopes[i].set(data[i],wtable);
 #else
   for(int i=0;i<numIsos;i++)
-    new(&amp;isotopes[i])multipole(data[i],wtable);
+    isotopes[i].set(data[i]);
   //multipole U238(data);
 #endif 
 
@@ -149,7 +149,7 @@ void anyvalue(struct multipoledata* data, unsigned numIsos, unsigned setgridx, u
 #if defined(__TRACK)
     history<<<dimGrid, dimBlock, blockx*sizeof(unsigned)>>>(isotopes[0], devicearray, DeviceMem, num_src, devstep);
 #else
-    history<<<dimGrid, dimBlock, blockx*sizeof(unsigned)>>>(U238, DeviceMem, num_src, devstep);
+    history<<<dimGrid, dimBlock, blockx*sizeof(unsigned)>>>(isotopes[0], DeviceMem, num_src, devstep);
 #endif
     statistics<<<1, dimGrid, gridx*sizeof(unsigned)>>>(DeviceMem.block_terminated_neutrons, DeviceMem.num_terminated_neutrons);
     gpuErrchk(cudaMemcpy(HostMem.num_terminated_neutrons, 
@@ -161,7 +161,7 @@ void anyvalue(struct multipoledata* data, unsigned numIsos, unsigned setgridx, u
     active = HostMem.num_terminated_neutrons[0] + gridsize < num_src;  
   }
 
-  remaining<<<dimGrid, dimBlock>>>(U238, devicearray, DeviceMem);
+  remaining<<<dimGrid, dimBlock>>>(isotopes[0], devicearray, DeviceMem);
 
   gpuErrchk(cudaEventRecord(stop, 0));
   gpuErrchk(cudaEventSynchronize(stop));
@@ -239,8 +239,9 @@ void anyvalue(struct multipoledata* data, unsigned numIsos, unsigned setgridx, u
 #if defined(__INTERPEXP)
   gpuErrchk(cudaFree(exptable));
 #endif
- U238.release_pointer();
-
+  for(int i=0;i<numIsos;i++)
+    isotopes[i].release_pointer();
+  free(isotopes);
   free(hostarray);
   free(cnt);
   free(HostMem.num_terminated_neutrons);
