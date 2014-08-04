@@ -64,12 +64,12 @@ void anyvalue(struct multipoledata* data, unsigned numIsos, unsigned setgridx, u
   gpuErrchk(cudaMalloc((void**)&(DeviceMem.nInfo.energy),   gridsize*sizeof(CMPTYPE)));
 
   gpuErrchk(cudaMalloc((void**)&(DeviceMem.num_terminated_neutrons), sizeof(unsigned int)));
-  //gpuErrchk(cudaMemset(DeviceMem.num_terminated_neutrons, 0, sizeof(unsigned)));
+  gpuErrchk(cudaMemset(DeviceMem.num_terminated_neutrons, 0, sizeof(unsigned)));
 
   gpuErrchk(cudaMalloc((void**)&(DeviceMem.block_terminated_neutrons), sizeof(unsigned int)*gridx));
   HostMem.num_terminated_neutrons = (unsigned int *)malloc(sizeof(unsigned int));
   HostMem.num_terminated_neutrons[0] = 0u;
-  gpuErrchk(cudaMemcpy(DeviceMem.num_terminated_neutrons, HostMem.num_terminated_neutrons, sizeof(unsigned int), cudaMemcpyHostToDevice));
+  //gpuErrchk(cudaMemcpy(DeviceMem.num_terminated_neutrons, HostMem.num_terminated_neutrons, sizeof(unsigned int), cudaMemcpyHostToDevice));
 
   gpuErrchk(cudaMalloc((void**)&(DeviceMem.tally.cnt), gridsize*sizeof(unsigned)));
   gpuErrchk(cudaMemset(DeviceMem.tally.cnt, 0, gridsize*sizeof(unsigned)));  
@@ -122,8 +122,8 @@ void anyvalue(struct multipoledata* data, unsigned numIsos, unsigned setgridx, u
 #endif
 #endif
 
-  multipole *isotopes;
-  isotopes = (multipole*)malloc(sizeof(multipole)*numIsos);
+  multipole *isotopes = new multipole[numIsos];
+  //isotopes = (multipole*)malloc(sizeof(multipole)*numIsos);
 #if defined(__QUICKWG)
   //multipole U238(data, wtable);
   for(int i=0;i<numIsos;i++)
