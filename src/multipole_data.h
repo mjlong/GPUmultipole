@@ -13,7 +13,7 @@ struct multipoledata{
   int fissionable;
   CPUComplex<CMPTYPE> *mpdata;
   unsigned      length;
-  unsigned *l_value, *j_value; // l and j index of the pole
+  unsigned *l_value; // l index of the pole
   CMPTYPE   *pseudo_rho;  //inherit nomenclature from isotope.h
 
   int mode;                        // Spacing mode
