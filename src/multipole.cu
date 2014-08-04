@@ -21,7 +21,7 @@ void multipole::set(struct multipoledata data){
     allocate and assign integers
   */
   size = sizeof(unsigned);
-  cudaMalloc((void**)&dev_integers, 5*size);
+  gpuErrchk(cudaMalloc((void**)&dev_integers, 5*size));
   cudaMemcpy(dev_integers+MODE,    &(data.mode), size, cudaMemcpyHostToDevice);
   cudaMemcpy(dev_integers+FITORDER, &(data.fitorder), size, cudaMemcpyHostToDevice);
   cudaMemcpy(dev_integers+NUML, &(data.numL), size, cudaMemcpyHostToDevice);
