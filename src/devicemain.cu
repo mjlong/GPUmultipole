@@ -123,7 +123,7 @@ void anyvalue(struct multipoledata* data, unsigned numIsos, unsigned setgridx, u
 #endif
 
   multipole **pisotopes;
-  pisotopes = (multipole**)malloc(sizeof(multipole)*numIsos); // constructor() is not called
+  pisotopes = (multipole**)malloc(sizeof(multipole*)*numIsos); // constructor() is not called
 #if defined(__QUICKWG)
   //multipole U238(data, wtable);
   for(int i=0;i<numIsos;i++)
