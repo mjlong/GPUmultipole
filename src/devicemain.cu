@@ -158,9 +158,9 @@ void anyvalue(struct multipoledata* data, unsigned numIsos, unsigned setgridx, u
 
   while (active){
 #if defined(__TRACK)
-    history<<<dimGrid, dimBlock, blockx*sizeof(unsigned)>>>(numIsos, pisotopes, devicearray, DeviceMem, num_src, devstep);
+    history<<<dimGrid, dimBlock, blockx*sizeof(unsigned)>>>(numIsos, pisotopes[0], devicearray, DeviceMem, num_src, devstep);
 #else
-    history<<<dimGrid, dimBlock, blockx*sizeof(unsigned)>>>(numIsos, pisotopes, DeviceMem, num_src, devstep);
+    history<<<dimGrid, dimBlock, blockx*sizeof(unsigned)>>>(numIsos, pisotopes[0], DeviceMem, num_src, devstep);
 #endif
     statistics<<<1, dimGrid, gridx*sizeof(unsigned)>>>(DeviceMem.block_terminated_neutrons, DeviceMem.num_terminated_neutrons);
     gpuErrchk(cudaMemcpy(HostMem.num_terminated_neutrons, 
@@ -172,7 +172,7 @@ void anyvalue(struct multipoledata* data, unsigned numIsos, unsigned setgridx, u
     active = HostMem.num_terminated_neutrons[0] + gridsize < num_src;  
   }
 
-  remaining<<<dimGrid, dimBlock>>>(numIsos, pisotopes, devicearray, DeviceMem);
+  remaining<<<dimGrid, dimBlock>>>(numIsos, pisotopes[0], devicearray, DeviceMem);
 
   gpuErrchk(cudaEventRecord(stop, 0));
   gpuErrchk(cudaEventSynchronize(stop));
