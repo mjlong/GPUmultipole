@@ -17,9 +17,9 @@ __global__ void initialize(MemStruct pInfo, CMPTYPE energy){
 }
 
 #if defined(__TRACK)
-__global__ void history(multipole U238, CMPTYPE* devicearray, MemStruct Info, unsigned num_src, unsigned devstep){
+__global__ void history(int numIso, multipole* isotope, CMPTYPE* devicearray, MemStruct Info, unsigned num_src, unsigned devstep){
 #else
-__global__ void history(multipole U238, MemStruct Info, unsigned num_src, unsigned devstep){
+__global__ void history(int numIso, multipole* isotope, MemStruct Info, unsigned num_src, unsigned devstep){
 #endif
   //TODO:this is one scheme to match threads to 1D array, 
   //try others when real simulation structure becomes clear
@@ -39,13 +39,15 @@ __global__ void history(multipole U238, MemStruct Info, unsigned num_src, unsign
   //while(live){
   //for (istep = 0; istep < devstep; istep++){
     rnd = curand_uniform(&localState);
+    for(int i=0;i<numIso;i++){
 #if defined(__SAMPLE)
-    U238.xs_eval_fast(localenergy + 
+    isotope[i].xs_eval_fast(localenergy + 
 		      curand_normal(&localState)*sqrt(300.0*KB)*sqrt(0.5)/U238.dev_doubles[SQRTAWR], 
 		      sigT, sigA, sigF);
 #else
-    U238.xs_eval_fast(localenergy, sqrt(300.0*KB), sigT, sigA, sigF);
+    isotope[i].xs_eval_fast(localenergy, sqrt(300.0*KB), sigT, sigA, sigF);
 #endif
+    }
 #if defined(__TRACK)
     unsigned lies = gridDim.x*blockDim.x;
     live = Info.tally.cnt[nid] + cnt;
@@ -94,7 +96,7 @@ __global__ void history(multipole U238, MemStruct Info, unsigned num_src, unsign
 }
 
 
-__global__ void remaining(multipole U238, CMPTYPE *devicearray, MemStruct Info){
+__global__ void remaining(int numIso,multipole *isotope, CMPTYPE *devicearray, MemStruct Info){
   //TODO:this is one scheme to match threads to 1D array, 
   //try others when real simulation structure becomes clear
   int id = blockDim.x * blockIdx.x + threadIdx.x;
@@ -117,13 +119,15 @@ __global__ void remaining(multipole U238, CMPTYPE *devicearray, MemStruct Info){
   live = 1u;
   while(live){
     rnd = curand_uniform(&localState);
+    for(int i=0;i<numIso;i++){
 #if defined(__SAMPLE)
-    U238.xs_eval_fast(localenergy + 
+    isotope[i].xs_eval_fast(localenergy + 
 		      curand_normal(&localState)*sqrt(300.0*KB)*sqrt(0.5)/U238.dev_doubles[SQRTAWR], 
 		      sigT, sigA, sigF);
 #else
-    U238.xs_eval_fast(localenergy, sqrt(300.0*KB), sigT, sigA, sigF);
+    isotope[i].xs_eval_fast(localenergy, sqrt(300.0*KB), sigT, sigA, sigF);
 #endif
+    }
 #if defined(__TRACK)
     unsigned lies = gridDim.x*blockDim.x;
     live = Info.tally.cnt[nid] + cnt;
