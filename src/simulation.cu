@@ -17,14 +17,15 @@ __global__ void initialize(MemStruct pInfo, CMPTYPE energy){
 }
 
 #if defined(__TRACK)
-__global__ void history(int numIso, multipole* isotope, CMPTYPE* devicearray, MemStruct Info, unsigned num_src, unsigned devstep){
+__global__ void history(int numIso, multipole** isotope, CMPTYPE* devicearray, MemStruct Info, unsigned num_src, unsigned devstep){
 #else
-__global__ void history(int numIso, multipole* isotope, MemStruct Info, unsigned num_src, unsigned devstep){
+__global__ void history(int numIso, multipole** isotope, MemStruct Info, unsigned num_src, unsigned devstep){
 #endif
   //TODO:this is one scheme to match threads to 1D array, 
   //try others when real simulation structure becomes clear
   int idl = threadIdx.x;
   int id = blockDim.x * blockIdx.x + threadIdx.x;
+  printf("i'm thread %d\n",id);
   int nid = Info.nInfo.id[id];
   unsigned live;
   extern __shared__ unsigned blockTerminated[];
@@ -41,11 +42,11 @@ __global__ void history(int numIso, multipole* isotope, MemStruct Info, unsigned
     rnd = curand_uniform(&localState);
     for(int i=0;i<numIso;i++){
 #if defined(__SAMPLE)
-    isotope[i].xs_eval_fast(localenergy + 
+    isotope[i]->xs_eval_fast(localenergy + 
 		      curand_normal(&localState)*sqrt(300.0*KB)*sqrt(0.5)/U238.dev_doubles[SQRTAWR], 
 		      sigT, sigA, sigF);
 #else
-    isotope[i].xs_eval_fast(localenergy, sqrt(300.0*KB), sigT, sigA, sigF);
+    isotope[i]->xs_eval_fast(localenergy, sqrt(300.0*KB), sigT, sigA, sigF);
 #endif
     }
 #if defined(__TRACK)
@@ -96,7 +97,7 @@ __global__ void history(int numIso, multipole* isotope, MemStruct Info, unsigned
 }
 
 
-__global__ void remaining(int numIso,multipole *isotope, CMPTYPE *devicearray, MemStruct Info){
+__global__ void remaining(int numIso,multipole **isotope, CMPTYPE *devicearray, MemStruct Info){
   //TODO:this is one scheme to match threads to 1D array, 
   //try others when real simulation structure becomes clear
   int id = blockDim.x * blockIdx.x + threadIdx.x;
@@ -121,11 +122,11 @@ __global__ void remaining(int numIso,multipole *isotope, CMPTYPE *devicearray, M
     rnd = curand_uniform(&localState);
     for(int i=0;i<numIso;i++){
 #if defined(__SAMPLE)
-    isotope[i].xs_eval_fast(localenergy + 
+    isotope[i]->xs_eval_fast(localenergy + 
 		      curand_normal(&localState)*sqrt(300.0*KB)*sqrt(0.5)/U238.dev_doubles[SQRTAWR], 
 		      sigT, sigA, sigF);
 #else
-    isotope[i].xs_eval_fast(localenergy, sqrt(300.0*KB), sigT, sigA, sigF);
+    isotope[i]->xs_eval_fast(localenergy, sqrt(300.0*KB), sigT, sigA, sigF);
 #endif
     }
 #if defined(__TRACK)
