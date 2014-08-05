@@ -29,6 +29,7 @@ multipole::multipole(struct multipoledata *data, int numIso){
     cudaMemcpy(dev_integers+i*DEVINTS+FISSIONABLE, &(data[i].fissionable), size, cudaMemcpyHostToDevice);
     cudaMemcpy(dev_integers+i*DEVINTS+WINDOWS,     &(data[i].windows),size, cudaMemcpyHostToDevice);
   }
+    cudaMemcpy(dev_numIso, &numIso, sizeof(int), cudaMemcpyHostToDevice);
   /*
     allocate and assign doubles
   */
@@ -213,20 +214,22 @@ void multipole::release_pointer(){
 
 // xs eval with MIT Faddeeva()
 #if defined(__MITW) || defined(__QUICKW) || defined(__FOURIERW)
-__device__  void multipole::xs_eval_fast(CMPTYPE E, CMPTYPE sqrtKT, 
+__device__  void multipole::xs_eval_fast(int iM, CMPTYPE E, CMPTYPE sqrtKT, 
 			                 CMPTYPE &sigT, CMPTYPE &sigA, CMPTYPE &sigF){
 
   // Copy variables to local memory for efficiency 
+  int numIso = dev_numIso[0];
+  int tempOffset=iM*numIso;
   CMPTYPE sqrtE = sqrt(E);
-  CMPTYPE spacing = dev_doubles[SPACING];
-  CMPTYPE startE  = dev_doubles[STARTE];
-  CMPTYPE sqrtAWR = dev_doubles[SQRTAWR];
+  CMPTYPE spacing = dev_doubles[tempOffset+SPACING]; 
+  CMPTYPE startE  = dev_doubles[tempOffset+STARTE];
+  CMPTYPE sqrtAWR = dev_doubles[tempOffset+SQRTAWR];  
   CMPTYPE power, DOPP, DOPP_ECOEF;
-  unsigned mode        = dev_integers[MODE];
-  unsigned fitorder    = dev_integers[FITORDER];
-  unsigned numL        = dev_integers[NUML];
-  unsigned fissionable = dev_integers[FISSIONABLE];
-  unsigned windows     = dev_integers[WINDOWS];
+  unsigned mode        = dev_integers[iM*numIso+MODE];
+  unsigned fitorder    = dev_integers[iM*numIso+FITORDER];
+  unsigned numL        = dev_integers[iM*numIso+NUML];
+  unsigned fissionable = dev_integers[iM*numIso+FISSIONABLE];
+  unsigned windows     = dev_integers[iM*numIso+WINDOWS];      //so far tempOffset = iM*numIso
 
   int    iP, iC, iW, startW, endW;
   if(1==mode)
@@ -239,23 +242,27 @@ __device__  void multipole::xs_eval_fast(CMPTYPE E, CMPTYPE sqrtKT,
   //CComplex<CMPTYPE> w_val;
   CComplex<double> w_val;
 
-  startW = w_start[iW];
-  endW   = w_end[iW];
+  tempOffset = offsets[PWIND*numIso+iM]+iW;
+  startW = w_start[tempOffset];
+  endW   = w_end[tempOffset];
   CComplex<double> sigT_factor[4];
   //CComplex sigtfactor;
+  tempOffset = offsets[PLVAL*numIso+iM];
   if(startW <= endW)
-    fill_factors(sqrtE,numL,sigT_factor);
+    fill_factors(tempOffset,sqrtE,numL,sigT_factor);
   sigT = 0.0;
   sigA = 0.0;
   sigF = 0.0;
   //polynomial fitting
 
+  tempOffset = offsets[PFITS*numIso+iM];
+  mode = offsets[PFITF*numIso+iM]; //to save number of registers, use mode as FITF offset since mode has finished life before
   for (iC=0;iC<=fitorder;iC++){
     power = (CMPTYPE)pow((double)E,(double)iC*0.5-1.0);
-    sigT += fitT[iC*windows+iW]*power;
-    sigA += fitA[iC*windows+iW]*power;
+    sigT += fitT[tempOffset+iC*windows+iW]*power;
+    sigA += fitA[tempOffset+iC*windows+iW]*power;
     if(MP_FISS == fissionable)
-      sigF += fitF[iC*windows+iW]*power;
+      sigF += fitF[mode+iC*windows+iW]*power;
  }
 
   DOPP = sqrtAWR/sqrtKT;
@@ -264,11 +271,13 @@ __device__  void multipole::xs_eval_fast(CMPTYPE E, CMPTYPE sqrtKT,
 #if defined(__TRACK)
   numL = 0;
 #endif
+  tempOffset = offsets[PMPDATA*numIso+iM];
+  mode       = offsets[PLVAL*numIso+iM];
   for(iP=startW;iP<=endW;iP++){
     //w_val = (sqrtE - mpdata[pindex(iP-1,MP_EA)])*DOPP*DOPP_ECOEF;
 
 #if defined(__CFLOAT)
-    CComplex<float>  zfloat  = mpdata[pindex(iP-1,MP_EA)];
+    CComplex<float>  zfloat  = mpdata[tempOffset+pindex(iP-1,MP_EA)];
     CComplex<double> zdouble = CComplex<double>((double)real(zfloat),(double)imag(zfloat));
 
 #if defined(__QUICKWG) 
@@ -280,9 +289,9 @@ __device__  void multipole::xs_eval_fast(CMPTYPE E, CMPTYPE sqrtKT,
 #else //not defined __CFLOAT
 
 #if defined(__QUICKWG) 
-    w_val =  w_function((sqrtE - mpdata[pindex(iP-1,MP_EA)])*DOPP,mtable)*DOPP_ECOEF;
+    w_val =  w_function((sqrtE - mpdata[tempOffset+pindex(iP-1,MP_EA)])*DOPP,mtable)*DOPP_ECOEF;
 #else
-    w_val =  w_function((sqrtE - mpdata[pindex(iP-1,MP_EA)])*DOPP       )*DOPP_ECOEF;
+    w_val =  w_function((sqrtE - mpdata[tempOffset+pindex(iP-1,MP_EA)])*DOPP       )*DOPP_ECOEF;
 #endif //end W method
 
 #endif //end if __CFLOAT
@@ -292,13 +301,13 @@ __device__  void multipole::xs_eval_fast(CMPTYPE E, CMPTYPE sqrtKT,
 #endif 
 #if defined(__PLOT)
   if(threadIdx.x<=50){
-    CComplex<CMPTYPE> zout = (sqrtE - mpdata[pindex(iP-1,MP_EA)])*DOPP;
+    CComplex<CMPTYPE> zout = (sqrtE - mpdata[tempOffset+pindex(iP-1,MP_EA)])*DOPP;
     printf("%+20.16e %+20.16e\n", real(zout),imag(zout));
 }
 #endif
 #if defined(__CFLOAT)
     zfloat = mpdata[pindex(iP-1,MP_RT)]; 
-    zdouble= CComplex<double>((double)real(zfloat),(double)imag(zfloat))*sigT_factor[l_value[iP-1]-1];
+    zdouble= CComplex<double>((double)real(zfloat),(double)imag(zfloat))*sigT_factor[l_value[mode+iP-1]-1];
     sigT += (CMPTYPE)real(zdouble*w_val);
 
     zfloat = mpdata[pindex(iP-1,MP_RA)]; 
@@ -311,10 +320,10 @@ __device__  void multipole::xs_eval_fast(CMPTYPE E, CMPTYPE sqrtKT,
     }
 
 #else
-    sigT += real(mpdata[pindex(iP-1,MP_RT)]*sigT_factor[l_value[iP-1]-1]*w_val);//sigtfactor);	    
-    sigA += real(mpdata[pindex(iP-1,MP_RA)]*w_val);                              
+    sigT += real(mpdata[tempOffset+pindex(iP-1,MP_RT)]*sigT_factor[l_value[mode+iP-1]-1]*w_val);//sigtfactor);	    
+    sigA += real(mpdata[tempOffset+pindex(iP-1,MP_RA)]*w_val);                              
     if(MP_FISS == fissionable)
-      sigF += real(mpdata[pindex(iP-1,MP_RF)]*w_val);
+      sigF += real(mpdata[tempOffset+pindex(iP-1,MP_RF)]*w_val);
 #endif
   }
 #if defined(__TRACK)
@@ -513,14 +522,14 @@ __host__ __device__ int multipole::pindex(int iP, int type){
   return iP*4 + type;
 }
 
-__device__ void multipole::fill_factors(CMPTYPE sqrtE, int numL, 
+__device__ void multipole::fill_factors(int prhoOffset, CMPTYPE sqrtE, int numL,  
                                         CComplex<double> *sigT_factor){
   int iL;
   double arg;
   double twophi; 
   
   for(iL = 0; iL<numL; iL++){
-    twophi = pseudo_rho[iL] * sqrtE; 
+    twophi = pseudo_rho[iL+prhoOffset] * sqrtE; 
     if(1==iL)
       twophi -= atan(twophi);
     else if(2==iL){
