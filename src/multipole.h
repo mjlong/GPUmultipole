@@ -74,6 +74,7 @@ using namespace std;
 class multipole{
 public:
   int *offsets;
+  int *dev_numIso;
   int *dev_integers;
   CMPTYPE *dev_doubles;
   CComplex<CMPTYPE> *mpdata;
@@ -104,7 +105,7 @@ public:
   ~multipole();
   void release_pointer();
 #if defined(__MITW) || defined(__QUICKW) || defined(__FOURIERW)
-  __device__  void xs_eval_fast(CMPTYPE E, CMPTYPE sqrtKT, 
+  __device__  void xs_eval_fast(int iM, CMPTYPE E, CMPTYPE sqrtKT, 
 					 CMPTYPE &sigT, CMPTYPE &sigA, CMPTYPE &sigF);
 #endif
 #if defined(__SAMPLE)
@@ -113,7 +114,8 @@ public:
 #endif
   /*__device__  void xs_eval_fast(CMPTYPE E, CMPTYPE sqrtKT, CMPTYPE rnd, 
 					 CMPTYPE &sigT, CMPTYPE &sigA, CMPTYPE &sigF);*/
-  __device__ void fill_factors(CMPTYPE sqrtE, int numL, CComplex<double> *sigT_factor);
+  __device__ void fill_factors(int prhoOffset, CMPTYPE sqrtE, int numL, CComplex<double> *sigT_factor);
+                              //prhoOffset locates the pseudo_rho(iM,iL) in the long pseudo_rho array
   __host__ __device__  int findex(int, int, int, int, int);
   __host__ __device__  int pindex(int, int);
 
