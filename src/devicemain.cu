@@ -86,7 +86,7 @@ void anyvalue(struct multipoledata* data, unsigned numIsos, unsigned setgridx, u
     CUDPPConfiguration config;
     config.datatype = CUDPP_DOUBLE;
     config.algorithm = CUDPP_SORT_RADIX;
-    config.options=CUDPP_OPTION_KEYS_ONLY;
+    //config.options=CUDPP_OPTION_KEYS_ONLY;
 
     CUDPPHandle sortplan = 0;
     CUDPPResult res = cudppPlan(theCudpp, &sortplan, config, gridsize, 1, 0);
