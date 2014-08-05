@@ -37,9 +37,9 @@ multipole::multipole(struct multipoledata *data, int numIso){
   size = sizeof(CMPTYPE);
   cudaMalloc((void**)&dev_doubles,  DEVREALS*size*numIso);
   for(i=0;i<numIso;i++){
-    cudaMemcpy(dev_doubles+i*DEVINTS+STARTE,  &(data[i].startE),  size, cudaMemcpyHostToDevice);
-    cudaMemcpy(dev_doubles+i*DEVINTS+SPACING ,&(data[i].spacing), size, cudaMemcpyHostToDevice);
-    cudaMemcpy(dev_doubles+i*DEVINTS+SQRTAWR, &(data[i].sqrtAWR), size, cudaMemcpyHostToDevice);
+    cudaMemcpy(dev_doubles+i*DEVREALS+STARTE,  &(data[i].startE),  size, cudaMemcpyHostToDevice);
+    cudaMemcpy(dev_doubles+i*DEVREALS+SPACING ,&(data[i].spacing), size, cudaMemcpyHostToDevice);
+    cudaMemcpy(dev_doubles+i*DEVREALS+SQRTAWR, &(data[i].sqrtAWR), size, cudaMemcpyHostToDevice);
   }
 
   /*
