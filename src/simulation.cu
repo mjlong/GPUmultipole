@@ -46,7 +46,7 @@ __global__ void history(int numIso, multipole isotope, MemStruct Info, unsigned 
 		      curand_normal(&localState)*sqrt(300.0*KB)*sqrt(0.5)/U238.dev_doubles[SQRTAWR], 
 		      sigT, sigA, sigF);
 #else
-    isotope.xs_eval_fast(localenergy, sqrt(300.0*KB), sigT, sigA, sigF);
+    isotope.xs_eval_fast(i,localenergy, sqrt(300.0*KB), sigT, sigA, sigF);
 #endif
     }
 #if defined(__TRACK)
@@ -126,7 +126,7 @@ __global__ void remaining(int numIso,multipole isotope, CMPTYPE *devicearray, Me
 		      curand_normal(&localState)*sqrt(300.0*KB)*sqrt(0.5)/U238.dev_doubles[SQRTAWR], 
 		      sigT, sigA, sigF);
 #else
-    isotope.xs_eval_fast(localenergy, sqrt(300.0*KB), sigT, sigA, sigF);
+    isotope.xs_eval_fast(i, localenergy, sqrt(300.0*KB), sigT, sigA, sigF);
 #endif
     }
 #if defined(__TRACK)
