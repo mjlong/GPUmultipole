@@ -123,11 +123,10 @@ void anyvalue(struct multipoledata* data, unsigned numIsos, unsigned setgridx, u
 #endif
 
 #if defined(__QUICKWG)
-  multipole U238(data, wtable);
+  multipole U238(data[0], wtable);
 #else
-  multipole U238(data);
+  multipole U238(data[0]);
 #endif 
-  gpuErrchk(cudaMemcpy(d_pisotopes, pisotopes, sizeof(multipole*)*numIsos, cudaMemcpyHostToDevice));
   freeMultipoleData(numIsos,data);
 
 // fill exp(z) table for fourierw
@@ -245,9 +244,7 @@ void anyvalue(struct multipoledata* data, unsigned numIsos, unsigned setgridx, u
 #if defined(__INTERPEXP)
   gpuErrchk(cudaFree(exptable));
 #endif
-  for(int i=0;i<numIsos;i++)
-    pisotopes[i]->release_pointer();
-  //free(pisotopes); TODO:if succeed, treat delete etc
+  U238.release_pointer();
   free(hostarray);
   free(cnt);
   free(HostMem.num_terminated_neutrons);
