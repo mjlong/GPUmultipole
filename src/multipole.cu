@@ -5,31 +5,37 @@
 }*/
 
 #if defined(__QUICKWG)
-multipole::multipole(struct multipoledata data, CComplex<CMPTYPE>* wtable){
+multipole::multipole(struct multipoledata *data, int numIso, CComplex<CMPTYPE>* wtable){
 #else 
-multipole::multipole(struct multipoledata data){
-#endif //endif __QUICKWG
+multipole::multipole(struct multipoledata *data, int numIso){
+#endif //Only __QUICWG needs a global wtable
 
   size_t size;
+  // allocate array of offsets
+  size = sizeof(int)*numIso*NUMOFFS;
+  gpuErrchk(cudaMalloc((void**)&offsets, size));
   /*
     allocate and assign integers
   */
   size = sizeof(unsigned);
-  gpuErrchk(cudaMalloc((void**)&dev_integers, 5*size));
-  cudaMemcpy(dev_integers+MODE,    &(data.mode), size, cudaMemcpyHostToDevice);
-  cudaMemcpy(dev_integers+FITORDER, &(data.fitorder), size, cudaMemcpyHostToDevice);
-  cudaMemcpy(dev_integers+NUML, &(data.numL), size, cudaMemcpyHostToDevice);
-  cudaMemcpy(dev_integers+FISSIONABLE, &(data.fissionable), size, cudaMemcpyHostToDevice);
-  cudaMemcpy(dev_integers+WINDOWS, &(data.windows),size, cudaMemcpyHostToDevice);
-
+  gpuErrchk(cudaMalloc((void**)&dev_integers, DEVINTS*size*numIso));
+  for(int i=0;i<numIso;i++){
+    cudaMemcpy(dev_integers+i*DEVINTS+MODE,        &(data[i].mode), size, cudaMemcpyHostToDevice);
+    cudaMemcpy(dev_integers+i*DEVINTS+FITORDER,    &(data[i].fitorder), size, cudaMemcpyHostToDevice);
+    cudaMemcpy(dev_integers+i*DEVINTS+NUML,        &(data[i].numL), size, cudaMemcpyHostToDevice);
+    cudaMemcpy(dev_integers+i*DEVINTS+FISSIONABLE, &(data[i].fissionable), size, cudaMemcpyHostToDevice);
+    cudaMemcpy(dev_integers+i*DEVINTS+WINDOWS,     &(data[i].windows),size, cudaMemcpyHostToDevice);
+  }
   /*
     allocate and assign doubles
   */
   size = sizeof(CMPTYPE);
-  cudaMalloc((void**)&dev_doubles,  3*size);
-  cudaMemcpy(dev_doubles+STARTE, &(data.startE), size, cudaMemcpyHostToDevice);
-  cudaMemcpy(dev_doubles+SPACING,&(data.spacing), size, cudaMemcpyHostToDevice);
-  cudaMemcpy(dev_doubles+SQRTAWR, &(data.sqrtAWR), size, cudaMemcpyHostToDevice);
+  cudaMalloc((void**)&dev_doubles,  DEVREALS*size*numIso);
+  for(int i=0;i<numIso;i++){
+    cudaMemcpy(dev_doubles+i*DEVINTS+STARTE,  &(data[i].startE),  size, cudaMemcpyHostToDevice);
+    cudaMemcpy(dev_doubles+i*DEVINTS+SPACING ,&(data[i].spacing), size, cudaMemcpyHostToDevice);
+    cudaMemcpy(dev_doubles+i*DEVINTS+SQRTAWR, &(data[i].sqrtAWR), size, cudaMemcpyHostToDevice);
+  }
 
   /*
     allocate and assign arrays
