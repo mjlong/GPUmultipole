@@ -29,6 +29,7 @@ multipole::multipole(struct multipoledata *data, int numIso){
     cudaMemcpy(dev_integers+i*DEVINTS+FISSIONABLE, &(data[i].fissionable), size, cudaMemcpyHostToDevice);
     cudaMemcpy(dev_integers+i*DEVINTS+WINDOWS,     &(data[i].windows),size, cudaMemcpyHostToDevice);
   }
+    cudaMalloc((void**)&dev_numIso,sizeof(int));
     cudaMemcpy(dev_numIso, &numIso, sizeof(int), cudaMemcpyHostToDevice);
   /*
     allocate and assign doubles
@@ -147,7 +148,7 @@ multipole::multipole(struct multipoledata *data, int numIso){
      }
     }
     gpuErrchk(cudaMemcpy(fitT+h_offset[i],h_fitT,size,cudaMemcpyHostToDevice));
-    gpuErrchk(cudaMemcpy(fitA+h_offset[i],h_fitT,size,cudaMemcpyHostToDevice));
+    gpuErrchk(cudaMemcpy(fitA+h_offset[i],h_fitA,size,cudaMemcpyHostToDevice));
     free(h_fitT);
     free(h_fitA);
   }
