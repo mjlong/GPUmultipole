@@ -220,17 +220,18 @@ __device__  void multipole::xs_eval_fast(int iM, CMPTYPE E, CMPTYPE sqrtKT,
 
   // Copy variables to local memory for efficiency 
   int numIso = dev_numIso[0];
-  int tempOffset=iM*numIso;
+  int tempOffset=iM*DEVREALS;
   CMPTYPE sqrtE = sqrt(E);
   CMPTYPE spacing = dev_doubles[tempOffset+SPACING]; 
   CMPTYPE startE  = dev_doubles[tempOffset+STARTE];
   CMPTYPE sqrtAWR = dev_doubles[tempOffset+SQRTAWR];  
   CMPTYPE power, DOPP, DOPP_ECOEF;
-  unsigned mode        = dev_integers[iM*numIso+MODE];
-  unsigned fitorder    = dev_integers[iM*numIso+FITORDER];
-  unsigned numL        = dev_integers[iM*numIso+NUML];
-  unsigned fissionable = dev_integers[iM*numIso+FISSIONABLE];
-  unsigned windows     = dev_integers[iM*numIso+WINDOWS];      //so far tempOffset = iM*numIso
+  tempOffset = iM*DEVINTS;
+  unsigned mode        = dev_integers[tempOffset+MODE];
+  unsigned fitorder    = dev_integers[tempOffset+FITORDER];
+  unsigned numL        = dev_integers[tempOffset+NUML];
+  unsigned fissionable = dev_integers[tempOffset+FISSIONABLE];
+  unsigned windows     = dev_integers[tempOffset+WINDOWS];      
 
   int    iP, iC, iW, startW, endW;
   if(1==mode)
