@@ -123,9 +123,9 @@ void anyvalue(struct multipoledata* data, unsigned numIsos, unsigned setgridx, u
 #endif
 
 #if defined(__QUICKWG)
-  multipole U238(data[0], wtable);
+  multipole U238(data, numIsos, wtable);
 #else
-  multipole U238(data[0]);
+  multipole U238(data, numIsos);
 #endif 
   freeMultipoleData(numIsos,data);
 
