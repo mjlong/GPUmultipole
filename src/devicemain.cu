@@ -96,7 +96,7 @@ void anyvalue(struct multipoledata* data, unsigned numIsos, unsigned setgridx, u
         printf("Error creating CUDPPPlan\n");
         exit(-1);
     }
- 
+
 
 // construct coefficients a[n] for fourier expansion w
 #if defined(__FOURIERW)
@@ -248,7 +248,6 @@ void anyvalue(struct multipoledata* data, unsigned numIsos, unsigned setgridx, u
   free(hostarray);
   free(cnt);
   free(HostMem.num_terminated_neutrons);
-
   res = cudppDestroyPlan(sortplan);
   if (CUDPP_SUCCESS != res)
   {
@@ -257,7 +256,6 @@ void anyvalue(struct multipoledata* data, unsigned numIsos, unsigned setgridx, u
   }
   // shut down the CUDPP library
   cudppDestroy(theCudpp);
-
 
   return;
 }
