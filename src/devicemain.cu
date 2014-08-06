@@ -77,7 +77,7 @@ void anyvalue(struct multipoledata data, unsigned setgridx, unsigned setblockx, 
     config.datatype = CUDPP_DOUBLE;
     config.algorithm = CUDPP_SORT_RADIX;
     //config.options = CUDPP_OPTION_FORWARD | CUDPP_OPTION_EXCLUSIVE;
-    //config.options=CUDPP_OPTION_KEYS_ONLY;
+    config.options=CUDPP_OPTION_KEY_VALUE_PAIRS;//CUDPP_OPTION_KEYS_ONLY;
 
     CUDPPHandle sortplan = 0;
     CUDPPResult res = cudppPlan(theCudpp, &sortplan, config, gridsize, 1, 0);
