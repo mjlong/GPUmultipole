@@ -250,7 +250,7 @@ __device__  void multipole::xs_eval_fast(int iM, CMPTYPE E, CMPTYPE sqrtKT,
   endW   = w_end[tempOffset];
   CComplex<double> sigT_factor[4];
   //CComplex sigtfactor;
-  tempOffset = offsets[PLVAL*numIso+iM];
+  tempOffset = offsets[PPRHO*numIso+iM];
   if(startW <= endW)
     fill_factors(tempOffset,sqrtE,numL,sigT_factor);
   sigT = 0.0;
