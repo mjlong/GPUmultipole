@@ -40,15 +40,15 @@ __global__ void history(int numIso, multipole isotope, MemStruct Info, unsigned 
   //while(live){
   //for (istep = 0; istep < devstep; istep++){
     rnd = curand_uniform(&localState);
-    for(int i=0;i<numIso;i++){
+//    for(int i=0;i<numIso;i++){
 #if defined(__SAMPLE)
     isotope.xs_eval_fast(localenergy + 
 		      curand_normal(&localState)*sqrt(300.0*KB)*sqrt(0.5)/U238.dev_doubles[SQRTAWR], 
 		      sigT, sigA, sigF);
 #else
-    isotope.xs_eval_fast(i/*id%2*/,localenergy, sqrt(300.0*KB), sigT, sigA, sigF);
+    isotope.xs_eval_fast(/*i*/id%2,localenergy, sqrt(300.0*KB), sigT, sigA, sigF);
 #endif
-    }
+//    }
 #if defined(__TRACK)
     unsigned lies = gridDim.x*blockDim.x;
     live = Info.tally.cnt[nid] + cnt;
@@ -120,15 +120,15 @@ __global__ void remaining(int numIso,multipole isotope, CMPTYPE *devicearray, Me
   live = 1u;
   while(live){
     rnd = curand_uniform(&localState);
-    for(int i=0;i<numIso;i++){
+//    for(int i=0;i<numIso;i++){
 #if defined(__SAMPLE)
     isotope.xs_eval_fast(localenergy + 
 		      curand_normal(&localState)*sqrt(300.0*KB)*sqrt(0.5)/U238.dev_doubles[SQRTAWR], 
 		      sigT, sigA, sigF);
 #else
-    isotope.xs_eval_fast(i/*id%2*/, localenergy, sqrt(300.0*KB), sigT, sigA, sigF);
+    isotope.xs_eval_fast(/*i*/id%2, localenergy, sqrt(300.0*KB), sigT, sigA, sigF);
 #endif
-    }
+//    }
 #if defined(__TRACK)
     unsigned lies = gridDim.x*blockDim.x;
     live = Info.tally.cnt[nid] + cnt;
