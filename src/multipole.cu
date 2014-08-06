@@ -197,6 +197,7 @@ multipole::~multipole(){
 
 void multipole::release_pointer(){
   gpuErrchk(cudaFree(offsets));
+  gpuErrchk(cudaFree(dev_numIso));
   gpuErrchk(cudaFree(dev_integers));
   gpuErrchk(cudaFree(dev_doubles));
   gpuErrchk(cudaFree(mpdata));
@@ -308,15 +309,15 @@ __device__  void multipole::xs_eval_fast(int iM, CMPTYPE E, CMPTYPE sqrtKT,
 }
 #endif
 #if defined(__CFLOAT)
-    zfloat = mpdata[pindex(iP-1,MP_RT)]; 
+    zfloat = mpdata[tempOffset+pindex(iP-1,MP_RT)]; 
     zdouble= CComplex<double>((double)real(zfloat),(double)imag(zfloat))*sigT_factor[l_value[mode+iP-1]-1];
     sigT += (CMPTYPE)real(zdouble*w_val);
 
-    zfloat = mpdata[pindex(iP-1,MP_RA)]; 
+    zfloat = mpdata[tempOffset+pindex(iP-1,MP_RA)]; 
     zdouble= CComplex<double>((double)real(zfloat),(double)imag(zfloat));
     sigA += (CMPTYPE)real(zdouble*w_val);
     if(MP_FISS == fissionable){
-      zfloat = mpdata[pindex(iP-1,MP_RF)]; 
+      zfloat = mpdata[tempOffset+pindex(iP-1,MP_RF)]; 
       zdouble= CComplex<double>((double)real(zfloat),(double)imag(zfloat));
       sigF += (CMPTYPE)real(zdouble*w_val);
     }
