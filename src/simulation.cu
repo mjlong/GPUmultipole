@@ -12,7 +12,7 @@ __global__ void initialize(MemStruct pInfo, CMPTYPE energy){
   launch(pInfo.nInfo, id, energy);
   //pInfo[id].energy = energy; //id+1.0; //(id + 1)*1.63*energy*0.001;// 
   pInfo.nInfo.id[id] = id;
-  pInfo.nInfo.isotope[id]=id%2;
+  pInfo.nInfo.isotope[id]=id%2;//0;//
   pInfo.nInfo.isoenergy[id]=MAXENERGY*(id%2)+energy;
   pInfo.tally.cnt[id] = 0;
 
@@ -66,7 +66,7 @@ __global__ void history(int numIso, multipole isotope, MemStruct Info, unsigned 
 
     localenergy = localenergy * rnd;
     live = (localenergy > 1.0);
-    isotopeID = rnd<0.5; //an example law to change isotopeID 
+    isotopeID = rnd<0.5; //0;//an example law to change isotopeID 
     /*So far, energy is the only state*/
     localenergy = localenergy*live + STARTENE*(1u - live);
     //terminated += !live;
@@ -149,7 +149,7 @@ __global__ void remaining(int numIso,multipole isotope, CMPTYPE *devicearray, Me
 #if !defined(__PROCESS)
     localenergy = localenergy * rnd;
     live = (localenergy > 1.0);
-    isotopeID = rnd<0.5; //an example law to change isotopeID
+    isotopeID = rnd<0.5; //0;// an example law to change isotopeID
     cnt = cnt + 1;
     terminated += !live;
 #else
@@ -157,7 +157,7 @@ __global__ void remaining(int numIso,multipole isotope, CMPTYPE *devicearray, Me
 #endif
   }
   /* Copy state back to global memory */
-  //atomicAdd(Info.num_terminated_neutrons,terminated);
+  atomicAdd(Info.num_terminated_neutrons,terminated);
   //Info.nInfo.rndState[nid] = localState;
   Info.tally.cnt[nid] += cnt;
 
