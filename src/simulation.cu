@@ -49,6 +49,7 @@ __global__ void history(int numIso, multipole isotope, MemStruct Info, unsigned 
 		      sigT, sigA, sigF);
 #else
     isotope.xs_eval_fast(isotopeID,localenergy, sqrt(300.0*KB), sigT, sigA, sigF);
+    //isotope.xs_eval_fast(1-isotopeID, localenergy, sqrt(300.0*KB), sigT, sigA, sigF);
 #endif
 #if defined(__TRACK)
     unsigned lies = gridDim.x*blockDim.x;
@@ -131,6 +132,7 @@ __global__ void remaining(int numIso,multipole isotope, CMPTYPE *devicearray, Me
 		      sigT, sigA, sigF);
 #else
     isotope.xs_eval_fast(isotopeID, localenergy, sqrt(300.0*KB), sigT, sigA, sigF);
+    //isotope.xs_eval_fast(1-isotopeID, localenergy, sqrt(300.0*KB), sigT, sigA, sigF);
 #endif
 #if defined(__TRACK)
     unsigned lies = gridDim.x*blockDim.x;
