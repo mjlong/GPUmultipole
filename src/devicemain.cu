@@ -27,8 +27,19 @@ __constant__ CMPTYPE2 constwtable[LENGTH*LENGTH];
 
 
 void printdevice();
+void freeMultipoleData(int numIsos, struct multipoledata* data){
+  for(int i=0;i<numIsos;i++){
+    free(data[i].fit);
+    free(data[i].mpdata);
+    free(data[i].l_value);
+    free(data[i].pseudo_rho);
+    free(data[i].w_start);
+    free(data[i].w_end);
+  }
+  free(data);
+}
 
-void anyvalue(struct multipoledata data, unsigned setgridx, unsigned setblockx, unsigned num_src, unsigned devstep){
+void anyvalue(struct multipoledata* data, unsigned numIsos, unsigned setgridx, unsigned setblockx, unsigned num_src, unsigned devstep){
   unsigned gridx, blockx, gridsize;
   unsigned ints=0, sharedmem;
   float timems = 0.0;
@@ -51,6 +62,8 @@ void anyvalue(struct multipoledata data, unsigned setgridx, unsigned setblockx, 
   gpuErrchk(cudaMalloc((void**)&(DeviceMem.nInfo.id),       gridsize*sizeof(unsigned)));
   gpuErrchk(cudaMalloc((void**)&(DeviceMem.nInfo.rndState), gridsize*sizeof(curandState)));
   gpuErrchk(cudaMalloc((void**)&(DeviceMem.nInfo.energy),   gridsize*sizeof(CMPTYPE)));
+  gpuErrchk(cudaMalloc((void**)&(DeviceMem.nInfo.isotope),  gridsize*sizeof(unsigned)));
+  gpuErrchk(cudaMalloc((void**)&(DeviceMem.nInfo.isoenergy),gridsize*sizeof(CMPTYPE)));
 
   gpuErrchk(cudaMalloc((void**)&(DeviceMem.num_terminated_neutrons), sizeof(unsigned int)));
   gpuErrchk(cudaMemset(DeviceMem.num_terminated_neutrons, 0, sizeof(unsigned)));
@@ -58,7 +71,7 @@ void anyvalue(struct multipoledata data, unsigned setgridx, unsigned setblockx, 
   gpuErrchk(cudaMalloc((void**)&(DeviceMem.block_terminated_neutrons), sizeof(unsigned int)*gridx));
   HostMem.num_terminated_neutrons = (unsigned int *)malloc(sizeof(unsigned int));
   HostMem.num_terminated_neutrons[0] = 0u;
-  gpuErrchk(cudaMemcpy(DeviceMem.num_terminated_neutrons, HostMem.num_terminated_neutrons, sizeof(unsigned int), cudaMemcpyHostToDevice));
+  //gpuErrchk(cudaMemcpy(DeviceMem.num_terminated_neutrons, HostMem.num_terminated_neutrons, sizeof(unsigned int), cudaMemcpyHostToDevice));
 
   gpuErrchk(cudaMalloc((void**)&(DeviceMem.tally.cnt), gridsize*sizeof(unsigned)));
   gpuErrchk(cudaMemset(DeviceMem.tally.cnt, 0, gridsize*sizeof(unsigned)));  
@@ -73,11 +86,9 @@ void anyvalue(struct multipoledata data, unsigned setgridx, unsigned setblockx, 
     CUDPPHandle theCudpp;
     cudppCreate(&theCudpp);
     CUDPPConfiguration config;
-    //config.op = CUDPP_ADD;
     config.datatype = CUDPP_DOUBLE;
     config.algorithm = CUDPP_SORT_RADIX;
-    //config.options = CUDPP_OPTION_FORWARD | CUDPP_OPTION_EXCLUSIVE;
-    config.options=CUDPP_OPTION_KEY_VALUE_PAIRS;//CUDPP_OPTION_KEYS_ONLY;
+    config.options=CUDPP_OPTION_KEY_VALUE_PAIRS;
 
     CUDPPHandle sortplan = 0;
     CUDPPResult res = cudppPlan(theCudpp, &sortplan, config, gridsize, 1, 0);
@@ -87,7 +98,6 @@ void anyvalue(struct multipoledata data, unsigned setgridx, unsigned setblockx, 
         printf("Error creating CUDPPPlan\n");
         exit(-1);
     }
- 
 
 // construct coefficients a[n] for fourier expansion w
 #if defined(__FOURIERW)
@@ -114,10 +124,11 @@ void anyvalue(struct multipoledata data, unsigned setgridx, unsigned setblockx, 
 #endif
 
 #if defined(__QUICKWG)
-  multipole U238(data, wtable);
+  multipole U238(data, numIsos, wtable);
 #else
-  multipole U238(data);
+  multipole U238(data, numIsos);
 #endif 
+  freeMultipoleData(numIsos,data);
 
 // fill exp(z) table for fourierw
 #if defined(__INTERPEXP)
@@ -126,6 +137,8 @@ void anyvalue(struct multipoledata data, unsigned setgridx, unsigned setblockx, 
   fill_exp_table<<<LENGTH,LENGTH>>>(exptable);
   cudaMemcpyToSymbol(constwtable, exptable, LENGTH*LENGTH*2*sizeof(CMPTYPE), 0, cudaMemcpyDeviceToDevice);
 #endif
+
+
   initialize<<<dimGrid, dimBlock>>>(DeviceMem, STARTENE);//1.95093e4);
   //  cudaDeviceSynchronize();
   /*
@@ -141,22 +154,23 @@ void anyvalue(struct multipoledata data, unsigned setgridx, unsigned setblockx, 
 #endif
 
   while (active){
+    cudppRadixSort(sortplan, DeviceMem.nInfo.isoenergy, DeviceMem.nInfo.id, gridsize);
+    //                          keys,                   values,             numElements
 #if defined(__TRACK)
-    history<<<dimGrid, dimBlock, blockx*sizeof(unsigned)>>>(U238, devicearray, DeviceMem, num_src, devstep);
+    history<<<dimGrid, dimBlock, blockx*sizeof(unsigned)>>>(numIsos, U238, devicearray, DeviceMem, num_src, devstep);
 #else
-    history<<<dimGrid, dimBlock, blockx*sizeof(unsigned)>>>(U238, DeviceMem, num_src, devstep);
+    history<<<dimGrid, dimBlock, blockx*sizeof(unsigned)>>>(numIsos, U238, DeviceMem, num_src, devstep);
 #endif
     statistics<<<1, dimGrid, gridx*sizeof(unsigned)>>>(DeviceMem.block_terminated_neutrons, DeviceMem.num_terminated_neutrons);
     gpuErrchk(cudaMemcpy(HostMem.num_terminated_neutrons, 
 		       DeviceMem.num_terminated_neutrons, 
 		       sizeof(unsigned int), 
 		       cudaMemcpyDeviceToHost));
-    cudppRadixSort(sortplan, DeviceMem.nInfo.energy, DeviceMem.nInfo.id, gridsize);
-    //                       keys,                   values,             numElements
     active = HostMem.num_terminated_neutrons[0] + gridsize < num_src;  
   }
 
-  remaining<<<dimGrid, dimBlock>>>(U238, devicearray, DeviceMem);
+  cudppRadixSort(sortplan, DeviceMem.nInfo.isoenergy, DeviceMem.nInfo.id, gridsize);
+  remaining<<<dimGrid, dimBlock>>>(numIsos, U238, devicearray, DeviceMem);
 
   gpuErrchk(cudaEventRecord(stop, 0));
   gpuErrchk(cudaEventSynchronize(stop));
@@ -220,6 +234,8 @@ void anyvalue(struct multipoledata data, unsigned setgridx, unsigned setblockx, 
   gpuErrchk(cudaFree(DeviceMem.nInfo.id));
   gpuErrchk(cudaFree(DeviceMem.nInfo.rndState));
   gpuErrchk(cudaFree(DeviceMem.nInfo.energy));
+  gpuErrchk(cudaFree(DeviceMem.nInfo.isotope));
+  gpuErrchk(cudaFree(DeviceMem.nInfo.isoenergy));
   gpuErrchk(cudaFree(DeviceMem.num_terminated_neutrons));
   gpuErrchk(cudaFree(DeviceMem.block_terminated_neutrons));
   gpuErrchk(cudaFree(DeviceMem.tally.cnt));
@@ -234,12 +250,10 @@ void anyvalue(struct multipoledata data, unsigned setgridx, unsigned setblockx, 
 #if defined(__INTERPEXP)
   gpuErrchk(cudaFree(exptable));
 #endif
- U238.release_pointer();
-
+  U238.release_pointer();
   free(hostarray);
   free(cnt);
   free(HostMem.num_terminated_neutrons);
-
   res = cudppDestroyPlan(sortplan);
   if (CUDPP_SUCCESS != res)
   {
@@ -248,7 +262,6 @@ void anyvalue(struct multipoledata data, unsigned setgridx, unsigned setblockx, 
   }
   // shut down the CUDPP library
   cudppDestroy(theCudpp);
-
 
   return;
 }
