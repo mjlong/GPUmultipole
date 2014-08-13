@@ -22,7 +22,9 @@ typedef struct {
 
 typedef struct {
   unsigned *id;
+  unsigned *isotope;
   CMPTYPE *energy;
+  CMPTYPE *isoenergy;
   curandState *rndState;
 }NeutronInfoStruct;
 
