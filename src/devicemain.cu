@@ -137,6 +137,8 @@ void anyvalue(struct multipoledata* data, unsigned numIsos, unsigned setgridx, u
   fill_exp_table<<<LENGTH,LENGTH>>>(exptable);
   cudaMemcpyToSymbol(constwtable, exptable, LENGTH*LENGTH*2*sizeof(CMPTYPE), 0, cudaMemcpyDeviceToDevice);
 #endif
+
+
   initialize<<<dimGrid, dimBlock>>>(DeviceMem, STARTENE);//1.95093e4);
   //  cudaDeviceSynchronize();
   /*
@@ -152,6 +154,8 @@ void anyvalue(struct multipoledata* data, unsigned numIsos, unsigned setgridx, u
 #endif
 
   while (active){
+    cudppRadixSort(sortplan, DeviceMem.nInfo.isoenergy, DeviceMem.nInfo.id, gridsize);
+    //                          keys,                   values,             numElements
 #if defined(__TRACK)
     history<<<dimGrid, dimBlock, blockx*sizeof(unsigned)>>>(numIsos, U238, devicearray, DeviceMem, num_src, devstep);
 #else
@@ -162,11 +166,10 @@ void anyvalue(struct multipoledata* data, unsigned numIsos, unsigned setgridx, u
 		       DeviceMem.num_terminated_neutrons, 
 		       sizeof(unsigned int), 
 		       cudaMemcpyDeviceToHost));
-    cudppRadixSort(sortplan, DeviceMem.nInfo.energy, DeviceMem.nInfo.id, gridsize);
-    //                       keys,                   values,             numElements
     active = HostMem.num_terminated_neutrons[0] + gridsize < num_src;  
   }
 
+  cudppRadixSort(sortplan, DeviceMem.nInfo.isoenergy, DeviceMem.nInfo.id, gridsize);
   remaining<<<dimGrid, dimBlock>>>(numIsos, U238, devicearray, DeviceMem);
 
   gpuErrchk(cudaEventRecord(stop, 0));
