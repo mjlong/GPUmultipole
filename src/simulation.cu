@@ -11,9 +11,7 @@ __global__ void initialize(MemStruct pInfo, CMPTYPE energy){
   curand_init(1234, id, 0, &(pInfo.nInfo.rndState[id]));
   launch(pInfo.nInfo, id, energy);
   //pInfo[id].energy = energy; //id+1.0; //(id + 1)*1.63*energy*0.001;// 
-  pInfo.nInfo.id[id] = id;
-  pInfo.nInfo.isotope[id]=id%2;//0;//
-  pInfo.nInfo.isoenergy[id]=MAXENERGY*(id%2)+energy;
+  pInfo.nInfo.isotope[id]=0;//id%2;//
   pInfo.tally.cnt[id] = 0;
 
 }
@@ -28,20 +26,21 @@ __global__ void history(int numIso, multipole isotope, MemStruct Info, unsigned 
   int idl = threadIdx.x;
   int id = blockDim.x * blockIdx.x + threadIdx.x;
   //printf("i'm thread %d\n",id);
-  int nid = Info.nInfo.id[id];
   unsigned live;
-  unsigned isotopeID=Info.nInfo.isotope[nid];
+  unsigned terminated = 0u;
+  unsigned cnt = 0;
+  unsigned isotopeID=Info.nInfo.isotope[id];
   extern __shared__ unsigned blockTerminated[];
   CMPTYPE localenergy;
   CMPTYPE rnd;
   CMPTYPE sigT, sigA, sigF;
   /* Copy state to local memory for efficiency */ 
-  curandState localState = Info.nInfo.rndState[nid];
+  curandState localState = Info.nInfo.rndState[id];
 
-  localenergy = Info.nInfo.energy[nid];
+  localenergy = Info.nInfo.energy[id];
   live = 1u;
   //while(live){
-  //for (istep = 0; istep < devstep; istep++){
+  for (int istep = 0; istep < devstep; istep++){
     rnd = curand_uniform(&localState);
 #if defined(__SAMPLE)
     isotope.xs_eval_fast(localenergy + 
@@ -52,7 +51,7 @@ __global__ void history(int numIso, multipole isotope, MemStruct Info, unsigned 
 #endif
 #if defined(__TRACK)
     unsigned lies = gridDim.x*blockDim.x;
-    live = Info.tally.cnt[nid] + cnt;
+    live = Info.tally.cnt[id] + cnt;
     live = live*(live<lies) + lies*(live>=lies); 
     if(0==id){
       devicearray[4*live  ] = localenergy;
@@ -66,14 +65,15 @@ __global__ void history(int numIso, multipole isotope, MemStruct Info, unsigned 
 
     localenergy = localenergy * rnd;
     live = (localenergy > 1.0);
-    isotopeID = rnd<0.5; //0;//an example law to change isotopeID 
+    //isotopeID = rnd<0.5; //0;//an example law to change isotopeID 
     /*So far, energy is the only state*/
     localenergy = localenergy*live + STARTENE*(1u - live);
-    //terminated += !live;
+    terminated += !live;
+    cnt = cnt + 1;
+  }
   //}
-  //}
-  blockTerminated[idl] = !live;
-   __syncthreads();
+  blockTerminated[idl] = terminated;
+  __syncthreads();
   live = blockDim.x>>1;
   while(live){
     if(idl<live)
@@ -92,11 +92,10 @@ __global__ void history(int numIso, multipole isotope, MemStruct Info, unsigned 
   //atomicAdd(Info.num_terminated_neutrons,!live);
   //Info.thread_active[id] =  blockDim.x*gridDim.x + *Info.num_terminated_neutrons < num_src;
   /* Copy state back to global memory */ 
-  Info.nInfo.rndState[nid] = localState; 
-  Info.nInfo.energy[nid] = localenergy;
-  Info.nInfo.isoenergy[id] = localenergy+isotopeID*MAXENERGY;
-  Info.nInfo.isotope[nid] = isotopeID;
-  Info.tally.cnt[nid] += 1; 
+  Info.nInfo.rndState[id] = localState; 
+  Info.nInfo.energy[id] = localenergy;
+  //Info.nInfo.isotope[id] = isotopeID;
+  Info.tally.cnt[id] += cnt; 
 
 }
 
@@ -105,20 +104,19 @@ __global__ void remaining(int numIso,multipole isotope, CMPTYPE *devicearray, Me
   //TODO:this is one scheme to match threads to 1D array, 
   //try others when real simulation structure becomes clear
   int id = blockDim.x * blockIdx.x + threadIdx.x;
-  int nid=Info.nInfo.id[id];
   unsigned live = true;
-  unsigned isotopeID=Info.nInfo.isotope[nid];
+  unsigned isotopeID=Info.nInfo.isotope[id];
   CMPTYPE localenergy;
   CMPTYPE rnd;
   CMPTYPE sigT, sigA, sigF;
  
   /* Copy state to local memory for efficiency */
-  curandState localState = Info.nInfo.rndState[nid];
+  curandState localState = Info.nInfo.rndState[id];
   
 #if defined(__PROCESS)
   localenergy = 1.0+19999.0/65536.0*id+0.181317676432466;
 #else
-  localenergy = Info.nInfo.energy[nid];
+  localenergy = Info.nInfo.energy[id];
 #endif
   unsigned cnt = 0u;
   unsigned terminated = 0u;
@@ -134,7 +132,7 @@ __global__ void remaining(int numIso,multipole isotope, CMPTYPE *devicearray, Me
 #endif
 #if defined(__TRACK)
     unsigned lies = gridDim.x*blockDim.x;
-    live = Info.tally.cnt[nid] + cnt;
+    live = Info.tally.cnt[id] + cnt;
     live = live*(live<lies) + lies*(live>=lies); 
     if(0==id){
       devicearray[4*live  ] = localenergy;
@@ -149,7 +147,7 @@ __global__ void remaining(int numIso,multipole isotope, CMPTYPE *devicearray, Me
 #if !defined(__PROCESS)
     localenergy = localenergy * rnd;
     live = (localenergy > 1.0);
-    isotopeID = rnd<0.5; //0;// an example law to change isotopeID
+    //isotopeID = rnd<0.5; //0;// an example law to change isotopeID
     cnt = cnt + 1;
     terminated += !live;
 #else
@@ -158,18 +156,18 @@ __global__ void remaining(int numIso,multipole isotope, CMPTYPE *devicearray, Me
   }
   /* Copy state back to global memory */
   atomicAdd(Info.num_terminated_neutrons,terminated);
-  //Info.nInfo.rndState[nid] = localState;
-  Info.tally.cnt[nid] += cnt;
+  //Info.nInfo.rndState[id] = localState;
+  Info.tally.cnt[id] += cnt;
 
 #if !defined(__TRACK)
 #if defined(__PROCESS)  
-  devicearray[4 * nid] = localenergy ;
+  devicearray[4 * id] = localenergy ;
 #else
-  devicearray[4 * nid] = localenergy / rnd;
+  devicearray[4 * id] = localenergy / rnd;
 #endif
-  devicearray[4 * nid + 1] = sigT;
-  devicearray[4 * nid + 2] = sigA;
-  devicearray[4 * nid + 3] = sigF;
+  devicearray[4 * id + 1] = sigT;
+  devicearray[4 * id + 2] = sigA;
+  devicearray[4 * id + 3] = sigF;
 #endif
 }
 
