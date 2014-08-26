@@ -37,9 +37,9 @@
   WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                
 ===============================================================================*/
 
-#define RADIUS 5.5
+#define RADIUS 6.0
 #define WIDTH  0.1
-#define LENGTH 57
+#define LENGTH 62
 
 //__device__ void initialize_w_tabulated(CComplex*);
 __global__ void fill_w_tabulated(CComplex<CMPTYPE>*);
