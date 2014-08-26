@@ -82,23 +82,6 @@ void anyvalue(struct multipoledata* data, unsigned numIsos, unsigned setgridx, u
   hostarray = (CMPTYPE*)malloc(4*gridsize*sizeof(CMPTYPE));
   cnt      = (unsigned*)malloc(gridx*sizeof(unsigned));
 
-  //Initialize CUDPP
-    CUDPPHandle theCudpp;
-    cudppCreate(&theCudpp);
-    CUDPPConfiguration config;
-    config.datatype = CUDPP_DOUBLE;
-    config.algorithm = CUDPP_SORT_RADIX;
-    config.options=CUDPP_OPTION_KEY_VALUE_PAIRS;
-
-    CUDPPHandle sortplan = 0;
-    CUDPPResult res = cudppPlan(theCudpp, &sortplan, config, gridsize, 1, 0);
-
-    if (CUDPP_SUCCESS != res)
-    {
-        printf("Error creating CUDPPPlan\n");
-        exit(-1);
-    }
-
 // construct coefficients a[n] for fourier expansion w
 #if defined(__FOURIERW)
   CMPTYPE *da;
@@ -154,8 +137,6 @@ void anyvalue(struct multipoledata* data, unsigned numIsos, unsigned setgridx, u
 #endif
 
   while (active){
-    cudppRadixSort(sortplan, DeviceMem.nInfo.isoenergy, DeviceMem.nInfo.id, gridsize);
-    //                          keys,                   values,             numElements
 #if defined(__TRACK)
     history<<<dimGrid, dimBlock, blockx*sizeof(unsigned)>>>(numIsos, U238, devicearray, DeviceMem, num_src, devstep);
 #else
@@ -169,7 +150,6 @@ void anyvalue(struct multipoledata* data, unsigned numIsos, unsigned setgridx, u
     active = HostMem.num_terminated_neutrons[0] + gridsize < num_src;  
   }
 
-  cudppRadixSort(sortplan, DeviceMem.nInfo.isoenergy, DeviceMem.nInfo.id, gridsize);
   remaining<<<dimGrid, dimBlock>>>(numIsos, U238, devicearray, DeviceMem);
 
   gpuErrchk(cudaEventRecord(stop, 0));
@@ -254,15 +234,6 @@ void anyvalue(struct multipoledata* data, unsigned numIsos, unsigned setgridx, u
   free(hostarray);
   free(cnt);
   free(HostMem.num_terminated_neutrons);
-  res = cudppDestroyPlan(sortplan);
-  if (CUDPP_SUCCESS != res)
-  {
-      printf("Error destroying CUDPPPlan\n");
-      exit(-1);
-  }
-  // shut down the CUDPP library
-  cudppDestroy(theCudpp);
-
   return;
 }
 
