@@ -7,7 +7,6 @@
 #QUICKW FOURIER   = 31
 DIR_SRC = ./src
 DIR_OBJ = ./obj
-DIR_CUDPP = /home/jlmiao/cudpp-2.1
 DIR_HDF5  = /opt/hdf5/1.8.10-gnu
 DIR_CUDA6 = /usr/local/cuda
 ifeq ($(compare),1)
@@ -16,16 +15,16 @@ endif
 CC=h5cc #g++ #h5pcc #g++
 NVCC = nvcc
 ifeq ($(ver),debug)
-NCFLAGS=-g -G -dc -arch=sm_20 -I${DIR_CUDPP}/include -I${DIR_SRC} -I${DIR_SRC}/wfunction  #-Xptxas="-v"
+NCFLAGS=-g -G -dc -arch=sm_20 -I${DIR_SRC} -I${DIR_SRC}/wfunction  #-Xptxas="-v"
 CCFLAGS=-c -g -I${DIR_HDF5}/include 
 DIR_BIN = ./bin/debug
 else
-NCFLAGS=      -dc -arch=sm_20 -I${DIR_CUDPP}/include -I${DIR_SRC} -I${DIR_SRC}/wfunction #-Xptxas="-v"
+NCFLAGS=      -dc -arch=sm_20 -I${DIR_SRC} -I${DIR_SRC}/wfunction #-Xptxas="-v"
 CCFLAGS=   -c -I${DIR_HDF5}/include 
 DIR_BIN = ./bin/release
 endif
 LINKLAG=-arch=sm_20 -dlink
-LDFLAGS=-L${DIR_HDF5}/lib/ -L${DIR_CUDA6}/lib64 -L${DIR_CUDPP}/lib/ -lcudpp -lcudart -lhdf5 
+LDFLAGS=-L${DIR_HDF5}/lib/ -L${DIR_CUDA6}/lib64 -lcudart -lhdf5 
 GSOURCES=$(wildcard ${DIR_SRC}/*.cu)
 WSOURCES=
 # Faddeeva function implementation 
