@@ -136,7 +136,7 @@ void anyvalue(struct multipoledata* data, unsigned numIsos, unsigned setgridx, u
 #endif
 
   while (active){
-    last_num_terminated = HostMem.num_terminated_neutron[0];
+    last_num_terminated = HostMem.num_terminated_neutrons[0];
 #if defined(__TRACK)
     history<<<dimGrid, dimBlock, blockx*sizeof(unsigned)>>>(numIsos, U238, devicearray, DeviceMem, num_src, devstep);
 #else
