@@ -67,7 +67,7 @@ __global__ void history(int numIso, multipole isotope, MemStruct Info, unsigned 
 
     localenergy = localenergy * rnd;
     live = (localenergy > 1.0);
-    isotopeID = rnd<0.5; //0;//an example law to change isotopeID 
+    isotopeID = rnd<0.5; //id%2;//0;//an example law to change isotopeID 
     /*So far, energy is the only state*/
     localenergy = localenergy*live + STARTENE*(1u - live);
     //terminated += !live;
