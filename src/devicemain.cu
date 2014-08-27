@@ -45,6 +45,7 @@ void anyvalue(struct multipoledata* data, unsigned numIsos, unsigned setgridx, u
   float timems = 0.0;
   unsigned *cnt, *blockcnt;
   unsigned int active;
+  unsigned int last_num_terminated;
   CMPTYPE *hostarray, *devicearray;
   MemStruct HostMem, DeviceMem;
   cudaEvent_t start, stop;
@@ -135,6 +136,7 @@ void anyvalue(struct multipoledata* data, unsigned numIsos, unsigned setgridx, u
 #endif
 
   while (active){
+    last_num_terminated = HostMem.num_terminated_neutron[0];
 #if defined(__TRACK)
     history<<<dimGrid, dimBlock, blockx*sizeof(unsigned)>>>(numIsos, U238, devicearray, DeviceMem, num_src, devstep);
 #else
@@ -145,7 +147,7 @@ void anyvalue(struct multipoledata* data, unsigned numIsos, unsigned setgridx, u
 		       DeviceMem.num_terminated_neutrons, 
 		       sizeof(unsigned int), 
 		       cudaMemcpyDeviceToHost));
-    active = HostMem.num_terminated_neutrons[0] + gridsize < num_src;  
+    active = HostMem.num_terminated_neutrons[0]*(gridsize+1) - last_num_terminated*gridsize  < num_src;  
   }
 
   remaining<<<dimGrid, dimBlock>>>(numIsos, U238, devicearray, DeviceMem);
