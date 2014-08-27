@@ -11,7 +11,7 @@ __global__ void initialize(MemStruct pInfo, CMPTYPE energy){
   curand_init(1234, id, 0, &(pInfo.nInfo.rndState[id]));
   launch(pInfo.nInfo, id, energy);
   //pInfo[id].energy = energy; //id+1.0; //(id + 1)*1.63*energy*0.001;// 
-  pInfo.nInfo.isotope[id]=0;//id%2;//
+  pInfo.nInfo.isotope[id]=id%2;//0;//
   pInfo.tally.cnt[id] = 0;
 
 }
@@ -65,7 +65,7 @@ __global__ void history(int numIso, multipole isotope, MemStruct Info, unsigned 
 
     localenergy = localenergy * rnd;
     live = (localenergy > 1.0);
-    //isotopeID = rnd<0.5; //0;//an example law to change isotopeID 
+    isotopeID = rnd<0.5; //id%2;//0;//an example law to change isotopeID 
     /*So far, energy is the only state*/
     localenergy = localenergy*live + STARTENE*(1u - live);
     terminated += !live;
@@ -94,7 +94,7 @@ __global__ void history(int numIso, multipole isotope, MemStruct Info, unsigned 
   /* Copy state back to global memory */ 
   Info.nInfo.rndState[id] = localState; 
   Info.nInfo.energy[id] = localenergy;
-  //Info.nInfo.isotope[id] = isotopeID;
+  Info.nInfo.isotope[id] = isotopeID;
   Info.tally.cnt[id] += cnt; 
 
 }
