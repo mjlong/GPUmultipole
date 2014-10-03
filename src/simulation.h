@@ -4,10 +4,9 @@
 #include "multipole.h"
 #include <cuda.h>
 #include <curand_kernel.h>
-#include <cudpp.h>
-#include <cudpp_config.h>
 
 #define STARTENE 20000.0
+#define MAXENERGY 30000.0
 
 //TODO: it has not been determined how to save neutron and simulation state
 //TODO: array of struct Vs struct of array
@@ -21,7 +20,7 @@ typedef struct {
 }TallyStruct;
 
 typedef struct {
-  unsigned *id;
+  unsigned *isotope;
   CMPTYPE *energy;
   curandState *rndState;
 }NeutronInfoStruct;
@@ -43,11 +42,11 @@ typedef struct {
 
 
 #if defined(__TRACK)
-__global__ void history(multipole, CMPTYPE *, MemStruct, unsigned, unsigned);
+__global__ void history(int, multipole, CMPTYPE *, MemStruct, unsigned, unsigned);
 #else
-__global__ void history(multipole, MemStruct, unsigned, unsigned );
+__global__ void history(int, multipole, MemStruct, unsigned, unsigned );
 #endif
-__global__ void remaining(multipole, CMPTYPE *, MemStruct );
+__global__ void remaining(int, multipole, CMPTYPE *, MemStruct );
 __global__ void initialize(MemStruct, CMPTYPE);
 __device__ void launch(NeutronInfoStruct, int, CMPTYPE);
 __global__ void statistics(unsigned*, unsigned*);
