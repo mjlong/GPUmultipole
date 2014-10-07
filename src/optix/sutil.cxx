@@ -20,7 +20,6 @@
  */
 
 #include "sutil.h"
-#include "sampleConfig.h"
 #include <stdio.h>
 #include <math.h>
 #include <stdlib.h>
@@ -86,47 +85,6 @@ void sutilHandleErrorNoContext(RTresult code, const char* file, int line)
   sutilReportError( s );
   exit(1);
 }
-
-const char* sutilSamplesDir(void)
-{
-  const char* dir;
-  static char s[512];
-
-  // Allow for overrides.
-  dir = getenv( "OPTIX_SAMPLES_DIR" );
-  if( dir ) {
-    strcpy( s, dir );
-    return s;
-  }
-
-  // Return hardcoded path if it exists.
-  if( dirExists(SAMPLES_DIR) )
-    return SAMPLES_DIR;
-
-  // Last resort.
-  return ".";
-}
-
-const char* sutilSamplesPtxDir(void)
-{
-  const char* dir;
-  static char s[512];
-
-  // Allow for overrides.
-  dir = getenv( "OPTIX_SAMPLES_PTX_DIR" );
-  if( dir ) {
-    strcpy( s, dir );
-    return s;
-  }
-
-  // Return hardcoded path if it exists.
-  if( dirExists(SAMPLES_PTX_DIR) )
-    return SAMPLES_PTX_DIR;
-
-  // Last resort.
-  return ".";
-}
-
 
 
 
