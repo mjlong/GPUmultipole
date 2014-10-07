@@ -6,16 +6,7 @@
 #include <vector_types.h>
 #include <math.h>
 #include <time.h>
-//Don't know why but including order matters
-//the following is incorrect 
-
-//#include <optix.h>
-//#include <stdlib.h>
-//#include <stdio.h>
-//#include <string.h>
-//#include <sutil.h>
 #include "commonStructs.h"
-//#include <vector_types.h>
 
 #include "sample2.h"
 char path_to_ptx[512];
@@ -27,7 +18,7 @@ char path_to_ptx[512];
 //unsigned int width  = 100000;
 
 
-void tracemain(int width, int n, int m, float *data, float* testm, long long unsigned int myptr)
+void tracemain(int width, int n, int m, float *data, float* testm)
 {
     /* Primary RTAPI objects */
     RTcontext           context;
@@ -45,7 +36,7 @@ void tracemain(int width, int n, int m, float *data, float* testm, long long uns
 #else
     unsigned num_geobj = m*m*n*n*2+1 ;
     createContext( width,sqrt(2.0)*m*0.5*(n+2)*data[3]/*p*/,data[2]/*hh*/,num_geobj, &context, &output_closest_buffer_obj,
-                   &output_current_buffer_obj, &output_next_buffer_obj, testm, myptr);
+                   &output_current_buffer_obj, &output_next_buffer_obj, testm);
 #endif
     printf("%g,%g,%g,%g,%g\n",data[0],data[1],data[2],data[3],data[4]);
     printf("%d,%d,%d,%d,%d\n",width,n,m,0,0);
@@ -72,7 +63,7 @@ void tracemain(int width, int n, int m, float *data, float* testm, long long uns
     RT_CHECK_ERROR( rtContextDestroy( context ) );
 }
 
-void createContext( int width, float R1, float Hh, unsigned num_geo, RTcontext* context, RTbuffer* output_closest_buffer_obj, RTbuffer* output_current_buffer_obj, RTbuffer* output_next_buffer_obj, float* testm, long long unsigned int myptr)
+void createContext( int width, float R1, float Hh, unsigned num_geo, RTcontext* context, RTbuffer* output_closest_buffer_obj, RTbuffer* output_current_buffer_obj, RTbuffer* output_next_buffer_obj, float* testm)
 {
 
     //rtContextSetPrintEnabled(*context, 1 ); 
@@ -153,7 +144,6 @@ void createContext( int width, float R1, float Hh, unsigned num_geo, RTcontext* 
     RT_CHECK_ERROR2( rtBufferCreateForCUDA( *context, RT_BUFFER_INPUT, &input_test_buffer_obj)); 
     RT_CHECK_ERROR2( rtBufferSetFormat( input_test_buffer_obj, RT_FORMAT_FLOAT)); //TODO: there must be enum for float3
     RT_CHECK_ERROR2( rtBufferSetSize1D(input_test_buffer_obj, width));
-    //RT_CHECK_ERROR2( rtBufferSetDevicePointer( input_test_buffer_obj, 0, myptr));
     RT_CHECK_ERROR2( rtBufferSetDevicePointer( input_test_buffer_obj, 0, (CUdeviceptr)testm));
  
     RT_CHECK_ERROR2( rtVariableSetObject( input_test_buffer, input_test_buffer_obj));
