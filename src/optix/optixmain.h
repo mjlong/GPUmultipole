@@ -1,5 +1,5 @@
-#ifndef __SAMPLE2_H__
-#define __SAMPLE2_H__
+#ifndef __OPTIXMAIN_H__
+#define __OPTIXMAIN_H__
 #include <optix_cuda_interop.h>
 
 void createContext( int width, float R1, float Hh,unsigned int num, RTcontext* context, RTbuffer* buffer, RTbuffer*, RTbuffer*, float*);
