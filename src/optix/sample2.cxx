@@ -212,9 +212,9 @@ void createContext( int width, float R1, float Hh, unsigned num_geo, RTcontext* 
 
     /* Ray generation program */
 #if defined(__MANY__)
-    sprintf( path_to_ptx, "%s/%s", ".", "pinhole_camera_many.ptx" );
+    sprintf( path_to_ptx, "%s/%s", "./obj/ptx", "pinhole_camera_many.ptx" );
 #else
-    sprintf( path_to_ptx, "%s/%s", ".", "pinhole_camera_one.ptx" );
+    sprintf( path_to_ptx, "%s/%s", "./obj/ptx", "pinhole_camera_one.ptx" );
 #endif
     RT_CHECK_ERROR2( rtProgramCreateFromPTXFile( *context, path_to_ptx, "generate_ray", &ray_gen_program ) );
     //Declare and Set variables here if needed
@@ -222,9 +222,9 @@ void createContext( int width, float R1, float Hh, unsigned num_geo, RTcontext* 
 
     /* Miss program */
 #if defined(__MANY__)
-    sprintf( path_to_ptx, "%s/%s", ".", "constantbg_many.ptx" );
+    sprintf( path_to_ptx, "%s/%s", "./obj/ptx", "constantbg_many.ptx" );
 #else
-    sprintf( path_to_ptx, "%s/%s", ".", "constantbg_one.ptx" );
+    sprintf( path_to_ptx, "%s/%s", "./obj/ptx", "constantbg_one.ptx" );
 #endif
     RT_CHECK_ERROR2( rtProgramCreateFromPTXFile( *context, path_to_ptx, "miss", &miss_program ) );
     RT_CHECK_ERROR2( rtContextSetMissProgram( *context, 0, miss_program ) );
@@ -242,9 +242,9 @@ void createGeometryBox( RTcontext context, RTgeometry* box, float* box_vertices 
     RT_CHECK_ERROR( rtGeometrySetPrimitiveCount( *box, 1u ) );
 
 #if defined(__MANY__)
-    sprintf( path_to_ptx, "%s/%s", ".", "box_many.ptx" );
+    sprintf( path_to_ptx, "%s/%s", "./obj/ptx", "box_many.ptx" );
 #else
-    sprintf( path_to_ptx, "%s/%s", ".", "box_one.ptx" );
+    sprintf( path_to_ptx, "%s/%s", "./obj/ptx", "box_one.ptx" );
 #endif
     RT_CHECK_ERROR( rtProgramCreateFromPTXFile( context, path_to_ptx, "box_bounds", &box_bounding_box_program ) );
     RT_CHECK_ERROR( rtGeometrySetBoundingBoxProgram( *box, box_bounding_box_program ) );
@@ -273,9 +273,9 @@ void createGeometryCylinder( RTcontext context, RTgeometry* cylinder,
     RT_CHECK_ERROR( rtGeometrySetPrimitiveCount( *cylinder, 1u ) );
 
 #if defined(__MANY__)
-    sprintf( path_to_ptx, "%s/%s", ".", "cyclinder_many.ptx" );
+    sprintf( path_to_ptx, "%s/%s", "./obj/ptx", "cyclinder_many.ptx" );
 #else
-    sprintf( path_to_ptx, "%s/%s", ".", "cyclinder_one.ptx" );
+    sprintf( path_to_ptx, "%s/%s", "./obj/ptx", "cyclinder_one.ptx" );
 #endif
     RT_CHECK_ERROR( rtProgramCreateFromPTXFile( context, path_to_ptx, "cylinder_bounds", &cylinder_bounding_box_program ) );
     RT_CHECK_ERROR( rtGeometrySetBoundingBoxProgram( *cylinder, cylinder_bounding_box_program ) );
@@ -302,9 +302,9 @@ void createGeometrySphere( RTcontext context, RTgeometry* sphere, float* sphere_
     RT_CHECK_ERROR( rtGeometrySetPrimitiveCount( *sphere, 1u ) );
 
 #if defined(__MANY__)
-    sprintf( path_to_ptx, "%s/%s", ".", "sphere_many.ptx" );
+    sprintf( path_to_ptx, "%s/%s", "./obj/ptx", "sphere_many.ptx" );
 #else
-    sprintf( path_to_ptx, "%s/%s", ".", "sphere_one.ptx" );
+    sprintf( path_to_ptx, "%s/%s", "./obj/ptx", "sphere_one.ptx" );
 #endif
     RT_CHECK_ERROR( rtProgramCreateFromPTXFile( context, path_to_ptx, "sphere_bounds", &sphere_bounding_box_program ) );
     RT_CHECK_ERROR( rtGeometrySetBoundingBoxProgram( *sphere, sphere_bounding_box_program ) );
@@ -323,13 +323,13 @@ void createMaterial( RTcontext context, RTmaterial* material )
     /* Create our hit programs to be shared among all materials */
 
 #if defined(__MANY__)
-    sprintf( path_to_ptx, "%s/%s", ".", "phong_many.ptx" );
+    sprintf( path_to_ptx, "%s/%s", "./obj/ptx", "phong_many.ptx" );
     RT_CHECK_ERROR( rtMaterialCreate( context, material ) );
     RTprogram closest_hit_program;
     RT_CHECK_ERROR( rtProgramCreateFromPTXFile( context, path_to_ptx, "closest_hit_radiance", &closest_hit_program ) );
     RT_CHECK_ERROR( rtMaterialSetClosestHitProgram( *material, 0, closest_hit_program ) );
 #else
-    sprintf( path_to_ptx, "%s/%s", ".", "phong_one.ptx" );
+    sprintf( path_to_ptx, "%s/%s", "./obj/ptx", "phong_one.ptx" );
     RT_CHECK_ERROR( rtMaterialCreate( context, material ) );
     RTprogram any_hit_program;
     RT_CHECK_ERROR( rtProgramCreateFromPTXFile( context, path_to_ptx, "any_hit_shadow", &any_hit_program ) );
