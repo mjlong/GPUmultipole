@@ -55,18 +55,16 @@ void anyvalue(struct multipoledata* data, unsigned numIsos, unsigned setgridx, u
   dim3 dimBlock(blockx, 1, 1);
   gridsize = gridx*blockx;
 
-
+/*
   float geoPara[6] = {0.48f,0.5f,50.f,1.2f,100.f,100.f};
   //float geoPara[6] = {0.00048f,0.0005f,0.050f,0.0012f,0.100f,0.100f};
                       //r1,  r2,  h/2, p,   t,    H/2
   float *testmem;
   gpuErrchk(cudaMalloc((void**)&testmem,sizeof(float)*gridsize));
   //cudaSetDeviceFlags(cudaDeviceMapHost|cudaDeviceLmemResizeToMax); 
-  float testmemh[4]={7.2,3.2,4.1,5.9};
-  gpuErrchk(cudaMemcpy(testmem, testmemh, sizeof(float)*gridsize, cudaMemcpyHostToDevice));
   tracemain(gridsize, 2, 2, geoPara,testmem);
   gpuErrchk(cudaFree(testmem));
-
+*/
 
   gpuErrchk(cudaEventCreate(&start));
   gpuErrchk(cudaEventCreate(&stop));
@@ -79,6 +77,12 @@ void anyvalue(struct multipoledata* data, unsigned numIsos, unsigned setgridx, u
   gpuErrchk(cudaMalloc((void**)&(DeviceMem.nInfo.energy),   gridsize*sizeof(CMPTYPE)));
   gpuErrchk(cudaMalloc((void**)&(DeviceMem.nInfo.isotope),  gridsize*sizeof(unsigned)));
   gpuErrchk(cudaMalloc((void**)&(DeviceMem.nInfo.isoenergy),gridsize*sizeof(CMPTYPE)));
+  gpuErrchk(cudaMalloc((void**)&(DeviceMem.nInfo.pos_x),gridsize*sizeof(float)));
+  gpuErrchk(cudaMalloc((void**)&(DeviceMem.nInfo.pos_y),gridsize*sizeof(float)));
+  gpuErrchk(cudaMalloc((void**)&(DeviceMem.nInfo.pos_z),gridsize*sizeof(float)));
+  gpuErrchk(cudaMalloc((void**)&(DeviceMem.nInfo.dir_polar),gridsize*sizeof(float)));
+  gpuErrchk(cudaMalloc((void**)&(DeviceMem.nInfo.dir_azim ),gridsize*sizeof(float)));
+
 
   gpuErrchk(cudaMalloc((void**)&(DeviceMem.num_terminated_neutrons), sizeof(unsigned int)));
   gpuErrchk(cudaMemset(DeviceMem.num_terminated_neutrons, 0, sizeof(unsigned)));

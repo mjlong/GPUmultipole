@@ -9,13 +9,23 @@ __global__ void initialize(MemStruct pInfo, CMPTYPE energy){
   int id = blockDim.x * blockIdx.x + threadIdx.x;
   /* Each thread gets same seed, a different sequence number, no offset */
   curand_init(1234, id, 0, &(pInfo.nInfo.rndState[id]));
+  curandState state = pInfo.nInfo.rndState[id];
   launch(pInfo.nInfo, id, energy);
+
+//TODO: source sampling should take settings dependent on geometry
+  pInfo.nInfo.pos_x[id] = 0.5f+curand_uniform(&state);
+  pInfo.nInfo.pos_y[id] = 0.5f+curand_uniform(&state);
+  pInfo.nInfo.pos_z[id] = 0.5+curand_uniform(&state);
+  pInfo.nInfo.dir_polar[id]= curand_uniform(&state)*PI;
+  pInfo.nInfo.dir_azim[id] = curand_uniform(&state)*PI*2;
+
   //pInfo[id].energy = energy; //id+1.0; //(id + 1)*1.63*energy*0.001;// 
   pInfo.nInfo.id[id] = id;
   pInfo.nInfo.isotope[id]=id%2;//0;//
   pInfo.nInfo.isoenergy[id]=MAXENERGY*(id%2)+energy;
   pInfo.tally.cnt[id] = 0;
 
+  pInfo.nInfo.rndState[id] = state;
 }
 
 #if defined(__TRACK)
