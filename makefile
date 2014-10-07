@@ -6,21 +6,22 @@
 #FOURIEREXPANSION = 3
 #QUICKW FOURIER   = 31
 #Directories
+#TODO: ptx file dir; -use-fast-math;
 DIR_SRC = ./src
 DIR_SRC_PTX = ./src/ptx
 DIR_SRC_OPT = ./src/optix
 DIR_OBJ = ./obj
-DIR_PTX = ./obj/ptx
+DIR_PTX = .#./obj/ptx
 DIR_HDF5  = /home/jlmiao/opt/hdf5
 DIR_CUDA6 = /usr/local/cuda-6.0
 DIR_CUDPP = /home/jlmiao/opt/cudpp-2.1
-DIR_OPTIX = /home/jlmiao/NVIDIA-OptiX-SDK-3.6.0-linux64
+DIR_OPTIX = /home/jlmiao/Documents/NVIDIA-OptiX-SDK-3.6.0-linux64
 #Include flags
 INC_SRC   = -I${DIR_SRC} -I${DIR_SRC}/wfunction
 INC_HDF5  = -I${DIR_HDF5}/include
 INC_CUDA6 = -I${DIR_CUDA6}/include
 INC_CUDPP = -I${DIR_CUDPP}/include
-INC_OPTIX = -I${DIR_OPTIX}/include
+INC_OPTIX = -I${DIR_OPTIX}/include -I${DIR_SRC_OPT}
 NCINCFLAGS  = $(INC_SRC) $(INC_CUDA6) $(INC_CUDPP) $(INC_OPTIX)
 CCINCFLAGS  = $(INC_SRC) $(INC_HDF5) $(INC_OPTIX)
 ifeq ($(compare),1)
@@ -120,18 +121,17 @@ PTXFIX =_one.ptx
 EXEFIX = _one
 endif
 CSOURCES=$(wildcard ${DIR_SRC}/*.cc)
-CNVCCSRC=$(wildcard ${DIR_SRC}/*.cxx)
+CNVCCSRC=$(wildcard ${DIR_SRC_OPT}/*.cxx)
 COBJECTS=$(patsubst %.cc, ${DIR_OBJ}/%.obj, $(notdir ${CSOURCES}))
-GOBJECTS=$(patsubst %.cu, ${DIR_OBJ}/%.o  , $(notdir ${GSOURCES}))
-WOBJECTS=$(patsubst %.cu, ${DIR_OBJ}/%.o  , $(notdir ${WSOURCES}))
-PTXJECTS=$(patsubst ${DIR_SRC_PTX}/%.cu , ${DIR_PTX}/%$(PTXFIX), $(notdir ${PSOURCES}))
-CNVCCOBJ=$(patsubst ${DIR_SRC_OPT}/%.cxx, ${DIR_OBJ}/%.ob, $(notdir ${CNVCCSRC}))
+GOBJECTS=$(patsubst %.cu, ${DIR_OBJ}/%.o, $(notdir ${GSOURCES}))
+WOBJECTS=$(patsubst %.cu, ${DIR_OBJ}/%.o, $(notdir ${WSOURCES}))
+PTXJECTS=$(patsubst ${DIR_SRC_PTX}/%.cu, ${DIR_PTX}/%$(PTXFIX),  ${PSOURCES})
+CNVCCOBJ=$(patsubst %.cxx, ${DIR_OBJ}/%.ob, $(notdir ${CNVCCSRC}))
 LINKJECT=${DIR_OBJ}/dlink.o      
 all: $(PTXJECTS) $(EXECUTABLE)
-
 ${DIR_PTX}/%$(PTXFIX) : ${DIR_SRC_PTX}/%.cu
-	$(NVCC) $(RTMETHOD) $(NCPLAGS) $^ -o $@
-$(EXECUTABLE): $(COBJECTS) $(GOBJECTS) $(WOBJECTS) $(LINKJECT)
+	$(NVCC) $(RTMETHOD) $(NCPLAGS) -use_fast_math $^ -o $@
+$(EXECUTABLE): $(COBJECTS) $(CNVCCOBJ) $(GOBJECTS) $(WOBJECTS) $(LINKJECT)
 	$(CC)  $^ $(LDFLAGS) -o $@
 ${DIR_OBJ}/%.obj : ${DIR_SRC}/%.cc
 	@echo $(epoch)
@@ -142,6 +142,8 @@ ${DIR_OBJ}/%.o : ${DIR_SRC}/%.cu
 ${DIR_OBJ}/%.o : ${DIR_SRC}/wfunction/%.cu
 	@echo $(epoch)
 	$(NVCC) $(W_IDEN) $(CMPTYPE) $(NCFLAGS)  $^ -o $@
+${DIR_OBJ}/%.ob : ${DIR_SRC_OPT}/%.cxx
+	$(NVCC) $(RTMETHOD) $(NCFLAGS) $^ -o $@
 $(LINKJECT) : $(GOBJECTS) $(WOBJECTS)
 	$(NVCC) $(LINKLAG) $^ -o $@
 remove :
@@ -151,3 +153,5 @@ remove :
 clean :  
 	find ${DIR_OBJ} -name *.o   -exec rm -rf {} \;
 	find ${DIR_OBJ} -name *.obj -exec rm -rf {} \;
+	find ${DIR_OBJ} -name *.ob  -exec rm -rf {} \;
+	find ${DIR_PTX} -name *.ptx -exec rm -rf {} \;
