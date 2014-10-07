@@ -55,16 +55,11 @@ void anyvalue(struct multipoledata* data, unsigned numIsos, unsigned setgridx, u
   dim3 dimBlock(blockx, 1, 1);
   gridsize = gridx*blockx;
 
-/*
+
   float geoPara[6] = {0.48f,0.5f,50.f,1.2f,100.f,100.f};
   //float geoPara[6] = {0.00048f,0.0005f,0.050f,0.0012f,0.100f,0.100f};
                       //r1,  r2,  h/2, p,   t,    H/2
-  float *testmem;
-  gpuErrchk(cudaMalloc((void**)&testmem,sizeof(float)*gridsize));
-  //cudaSetDeviceFlags(cudaDeviceMapHost|cudaDeviceLmemResizeToMax); 
-  tracemain(gridsize, 2, 2, geoPara,testmem);
-  gpuErrchk(cudaFree(testmem));
-*/
+
 
   gpuErrchk(cudaEventCreate(&start));
   gpuErrchk(cudaEventCreate(&stop));
@@ -160,6 +155,8 @@ void anyvalue(struct multipoledata* data, unsigned numIsos, unsigned setgridx, u
 
   initialize<<<dimGrid, dimBlock>>>(DeviceMem, STARTENE);//1.95093e4);
   //  cudaDeviceSynchronize();
+
+  tracemain(gridsize, 2, 2, geoPara, DeviceMem.nInfo.pos_x);
   /*
     Note: shared memory size is in unit of Bybe
     And the address can be referred in form of p = pshared + offset
