@@ -8,7 +8,7 @@
 #include <time.h>
 #include "commonStructs.h"
 
-#include "sample2.h"
+#include "optixmain.h"
 char path_to_ptx[512];
 
 
