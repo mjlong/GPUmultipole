@@ -25,7 +25,7 @@ __constant__ CMPTYPE b[M+1];
 __constant__ CMPTYPE2 constwtable[LENGTH*LENGTH];
 #endif
 
-
+extern void tracemain(int num_particle, int, int, float*,float*, long long unsigned int);
 void printdevice();
 void freeMultipoleData(int numIsos, struct multipoledata* data){
   for(int i=0;i<numIsos;i++){
@@ -49,13 +49,31 @@ void anyvalue(struct multipoledata* data, unsigned numIsos, unsigned setgridx, u
   MemStruct HostMem, DeviceMem;
   cudaEvent_t start, stop;
   //printdevice();
-  gpuErrchk(cudaEventCreate(&start));
-  gpuErrchk(cudaEventCreate(&stop));
   gridx = setgridx;
   blockx = setblockx;
   dim3 dimGrid(gridx, 1);
   dim3 dimBlock(blockx, 1, 1);
   gridsize = gridx*blockx;
+
+
+  float geoPara[6] = {0.48f,0.5f,50.f,1.2f,100.f,100.f};
+  //float geoPara[6] = {0.00048f,0.0005f,0.050f,0.0012f,0.100f,0.100f};
+                      //r1,  r2,  h/2, p,   t,    H/2
+  float *testmem;
+  CUdeviceptr my_ptr;
+  gpuErrchk(cudaMalloc((void**)&testmem,sizeof(float)*gridsize));
+  gpuErrchk(cudaMalloc((void**)(&my_ptr), sizeof(float)*gridsize));
+  //cudaSetDeviceFlags(cudaDeviceMapHost|cudaDeviceLmemResizeToMax); 
+  float testmemh[4]={7.2,3.2,4.1,5.9};
+  gpuErrchk(cudaMemcpy(testmem, testmemh, sizeof(float)*gridsize, cudaMemcpyHostToDevice));
+  gpuErrchk(cudaMemcpy((void*)my_ptr, testmemh, sizeof(float)*gridsize, cudaMemcpyHostToDevice));
+  tracemain(gridsize, 2, 2, geoPara,testmem, my_ptr);
+  gpuErrchk(cudaFree(testmem));
+
+
+  gpuErrchk(cudaEventCreate(&start));
+  gpuErrchk(cudaEventCreate(&stop));
+
   gpuErrchk(cudaMalloc((void**)&devicearray, 4*gridsize*sizeof(CMPTYPE)));
   gpuErrchk(cudaMemset(devicearray, 0, 4*gridsize*sizeof(CMPTYPE)));
 
