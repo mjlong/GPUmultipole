@@ -16,11 +16,37 @@ __constant__ double2 table[LENGTH][LENGTH];
 //__constant__ CMPTYPE table[LENGTH*LENGTH*2];
 #endif
 */
+
+#include <cuda.h>
+#include "gpuerrchk.h"
 extern void h5read(struct multipoledata & pole, char filename[]);
 extern void anyvalue(struct multipoledata*,unsigned, unsigned, unsigned, unsigned, unsigned);
 int init_data(char* input, char filenames[][FILENAMELEN]);
 
+extern void tracemain(int num_particle, int, int, float*,float*, long long unsigned int);
+void printbless();
 int main(int argc, char **argv){
+//test optix basic
+
+  printbless();
+  float geoPara[6] = {0.48f,0.5f,50.f,1.2f,100.f,100.f};
+  //float geoPara[6] = {0.00048f,0.0005f,0.050f,0.0012f,0.100f,0.100f};
+                      //r1,  r2,  h/2, p,   t,    H/2
+  
+  float *testmem; 
+  CUdeviceptr my_ptr;
+  unsigned width=atoi(argv[1]);
+  gpuErrchk(cudaMalloc((void**)&testmem,sizeof(float)*width));
+  gpuErrchk(cudaMalloc((void**)(&my_ptr), sizeof(float)*width));
+  //cudaSetDeviceFlags(cudaDeviceMapHost|cudaDeviceLmemResizeToMax); 
+  float testmemh[4]={7.2,3.2,4.1,5.9};
+  gpuErrchk(cudaMemcpy(testmem, testmemh, sizeof(float)*width, cudaMemcpyHostToDevice));
+  gpuErrchk(cudaMemcpy((void*)my_ptr, testmemh, sizeof(float)*width, cudaMemcpyHostToDevice));
+  tracemain(atoi(argv[1]), atoi(argv[2]), atoi(argv[3]), geoPara,testmem, my_ptr);
+  gpuErrchk(cudaFree(testmem));
+
+//end test optix
+/*
   int numIso;
   char filenames[MAXISOTOPES][FILENAMELEN];
   numIso = init_data(argv[5],filenames);
@@ -30,7 +56,7 @@ int main(int argc, char **argv){
     h5read(isotopes[i],filenames[i]);
 
   anyvalue(isotopes,numIso, atoi(argv[1]),atoi(argv[2]),atoi(argv[3]),atoi(argv[4]));
- 
+*/ 
   return 0;
 }
 
@@ -54,3 +80,37 @@ int init_data(char* input, char line[][FILENAMELEN]){
   fclose(fp);
   return numIso;
 }
+
+
+
+
+
+
+
+
+
+void printbless(){
+  printf("                     _oo0oo_                  \n");  
+  printf("                    o8888888o                 \n");
+  printf("                    88\" . \"88                 \n");
+  printf("                    (| -_- |)                 \n"); 
+  printf("                    0\\  =  /0                 \n");
+  printf("                  ___/`---'\\___               \n");
+  printf("                .' \\\\|     |// '.             \n");
+  printf("               / \\\\|||  :  |||// \\            \n");
+  printf("              / _||||| -:- |||||- \\           \n");
+  printf("             |   | \\\\\\  -  /// |   |          \n");  
+  printf("             | \\_|  ''\\---/''  |_/ |          \n");
+  printf("             \\  .-\\__  '-'  ___/-. /          \n");
+  printf("           ___'. .'  /--.--\\  `. .'___        \n");
+  printf("        ."" '<  `.___\\_<|>_/___.' >' "".      \n");
+  printf("       | | :  `- \\`.;`\\ _ /`;.`/ - ` : | |    \n");
+  printf("       \\  \\ `_.   \\_ __\\ /__ _/   .-` /  /    \n");
+  printf("   =====`-.____`.___ \\_____/___.-`___.-'===== \n");
+  printf("                     `=---='                  \n");
+  printf("\n\n\n");
+  printf("   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n");
+  printf("        佛祖镇楼                  BUG辟易     \n");
+}
+
+
