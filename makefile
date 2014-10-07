@@ -7,7 +7,10 @@
 #QUICKW FOURIER   = 31
 #Directories
 DIR_SRC = ./src
+DIR_SRC_PTX = ./src/ptx
+DIR_SRC_OPT = ./src/optix
 DIR_OBJ = ./obj
+DIR_PTX = ./obj/ptx
 DIR_HDF5  = /home/jlmiao/opt/hdf5
 DIR_CUDA6 = /usr/local/cuda-6.0
 DIR_CUDPP = /home/jlmiao/opt/cudpp-2.1
@@ -27,16 +30,19 @@ CC=h5cc #g++ #h5pcc #g++
 NVCC = nvcc
 ifeq ($(ver),debug)
 NCFLAGS=-g -G -dc -arch=sm_20 $(NCINCFLAGS)  #-Xptxas="-v"
+NCPLAGS=-ptx -m64 -arch=sm_20 $(NCINCFLAGS)
 CCFLAGS=-c -g                 $(CCINCFLAGS) 
 DIR_BIN = ./bin/debug
 else
 NCFLAGS=      -dc -arch=sm_20 $(NCINCFLAGS)  #-Xptxas="-v"
+NCPLAGS=-ptx -m64 -arch=sm_20 $(NCINCFLAGS)
 CCFLAGS=-c                    $(CCINCFLAGS) 
 DIR_BIN = ./bin/release
 endif
 LINKLAG=   -dlink -arch=sm_20  
 LDFLAGS=-L${DIR_HDF5}/lib/ -L${DIR_CUDA6}/lib64 -L${DIR_CUDPP}/lib/ -L${DIR_OPTIX}/lib64/ -loptix -lcudpp -lcudart -lhdf5 
 GSOURCES=$(wildcard ${DIR_SRC}/*.cu)
+PSOURCES=$(wildcard ${DIR_SRC_PTX}/*.cu)
 WSOURCES=
 # Faddeeva function implementation 
 ifeq ($(WFUN),0)
@@ -104,13 +110,27 @@ else
   EXECUTABLE=$(EXENAME)
 endif
 #
+ifeq ($(version),many)
+RTMETHOD = -D __MANY__
+PTXFIX =_many.ptx
+EXEFIX = _many
+else
+RTMETHOD=
+PTXFIX =_one.ptx
+EXEFIX = _one
+endif
 CSOURCES=$(wildcard ${DIR_SRC}/*.cc)
+CNVCCSRC=$(wildcard ${DIR_SRC}/*.cxx)
 COBJECTS=$(patsubst %.cc, ${DIR_OBJ}/%.obj, $(notdir ${CSOURCES}))
 GOBJECTS=$(patsubst %.cu, ${DIR_OBJ}/%.o  , $(notdir ${GSOURCES}))
 WOBJECTS=$(patsubst %.cu, ${DIR_OBJ}/%.o  , $(notdir ${WSOURCES}))
+PTXJECTS=$(patsubst ${DIR_SRC_PTX}/%.cu , ${DIR_PTX}/%$(PTXFIX), $(notdir ${PSOURCES}))
+CNVCCOBJ=$(patsubst ${DIR_SRC_OPT}/%.cxx, ${DIR_OBJ}/%.ob, $(notdir ${CNVCCSRC}))
 LINKJECT=${DIR_OBJ}/dlink.o      
-all: $(EXECUTABLE)
+all: $(PTXJECTS) $(EXECUTABLE)
 
+${DIR_PTX}/%$(PTXFIX) : ${DIR_SRC_PTX}/%.cu
+	$(NVCC) $(RTMETHOD) $(NCPLAGS) $^ -o $@
 $(EXECUTABLE): $(COBJECTS) $(GOBJECTS) $(WOBJECTS) $(LINKJECT)
 	$(CC)  $^ $(LDFLAGS) -o $@
 ${DIR_OBJ}/%.obj : ${DIR_SRC}/%.cc
