@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <optix.h>
-#include <sutil.h>
+#include "sutil.h"
 #include <vector_types.h>
 #include <math.h>
 #include <time.h>

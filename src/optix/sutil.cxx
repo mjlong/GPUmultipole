@@ -19,8 +19,8 @@
  * SUCH DAMAGES
  */
 
-#include <sutil.h>
-#include <sampleConfig.h>
+#include "sutil.h"
+#include "sampleConfig.h"
 #include <stdio.h>
 #include <math.h>
 #include <stdlib.h>
