@@ -5,28 +5,45 @@
 #WHPW = 2
 #FOURIEREXPANSION = 3
 #QUICKW FOURIER   = 31
+#Directories
+#TODO: -use-fast-math;
 DIR_SRC = ./src
+DIR_SRC_PTX = ./src/ptx
+DIR_SRC_OPT = ./src/optix
 DIR_OBJ = ./obj
-DIR_CUDPP = /home/jlmiao/opt/cudpp-2.1
+DIR_PTX = ./obj/ptx
 DIR_HDF5  = /home/jlmiao/opt/hdf5
 DIR_CUDA6 = /usr/local/cuda-6.0
+DIR_CUDPP = /home/jlmiao/opt/cudpp-2.1
+DIR_OPTIX = /home/jlmiao/Documents/NVIDIA-OptiX-SDK-3.6.0-linux64
+#Include flags
+INC_SRC   = -I${DIR_SRC} -I${DIR_SRC}/wfunction
+INC_HDF5  = -I${DIR_HDF5}/include
+INC_CUDA6 = -I${DIR_CUDA6}/include
+INC_CUDPP = -I${DIR_CUDPP}/include
+INC_OPTIX = -I${DIR_OPTIX}/include -I${DIR_SRC_OPT}
+NCINCFLAGS  = $(INC_SRC) $(INC_CUDA6) $(INC_CUDPP) $(INC_OPTIX)
+CCINCFLAGS  = $(INC_SRC) $(INC_HDF5) $(INC_OPTIX)
 ifeq ($(compare),1)
 DIR_BIN = ./bin/test
 endif
 CC=h5cc #g++ #h5pcc #g++
 NVCC = nvcc
 ifeq ($(ver),debug)
-NCFLAGS=-g -G -dc -arch=sm_20 -I${DIR_CUDPP}/include -I${DIR_SRC} -I${DIR_SRC}/wfunction  #-Xptxas="-v"
-CCFLAGS=-c -g -I${DIR_HDF5}/include 
+NCFLAGS=-g -G -dc -arch=sm_20 $(NCINCFLAGS)  #-Xptxas="-v"
+NCPLAGS=-ptx -m64 -arch=sm_20 $(NCINCFLAGS)
+CCFLAGS=-c -g                 $(CCINCFLAGS) 
 DIR_BIN = ./bin/debug
 else
-NCFLAGS=      -dc -arch=sm_20 -I${DIR_CUDPP}/include -I${DIR_SRC} -I${DIR_SRC}/wfunction #-Xptxas="-v"
-CCFLAGS=   -c -I${DIR_HDF5}/include 
+NCFLAGS=      -dc -arch=sm_20 $(NCINCFLAGS)  #-Xptxas="-v"
+NCPLAGS=-ptx -m64 -arch=sm_20 $(NCINCFLAGS)
+CCFLAGS=-c                    $(CCINCFLAGS) 
 DIR_BIN = ./bin/release
 endif
-LINKLAG=-arch=sm_20 -dlink
-LDFLAGS=-L${DIR_HDF5}/lib/ -L${DIR_CUDA6}/lib64 -L${DIR_CUDPP}/lib/ -lcudpp -lcudart -lhdf5 
+LINKLAG=   -dlink -arch=sm_20  
+LDFLAGS=-L${DIR_HDF5}/lib/ -L${DIR_CUDA6}/lib64 -L${DIR_CUDPP}/lib/ -L${DIR_OPTIX}/lib64/ -loptix -lcudpp -lcudart -lhdf5 
 GSOURCES=$(wildcard ${DIR_SRC}/*.cu)
+PSOURCES=$(wildcard ${DIR_SRC_PTX}/*.cu)
 WSOURCES=
 # Faddeeva function implementation 
 ifeq ($(WFUN),0)
@@ -94,14 +111,27 @@ else
   EXECUTABLE=$(EXENAME)
 endif
 #
+ifeq ($(version),many)
+RTMETHOD = -D __MANY__
+PTXFIX =_many.ptx
+EXEFIX = _many
+else
+RTMETHOD=
+PTXFIX =_one.ptx
+EXEFIX = _one
+endif
 CSOURCES=$(wildcard ${DIR_SRC}/*.cc)
+CNVCCSRC=$(wildcard ${DIR_SRC_OPT}/*.cxx)
 COBJECTS=$(patsubst %.cc, ${DIR_OBJ}/%.obj, $(notdir ${CSOURCES}))
-GOBJECTS=$(patsubst %.cu, ${DIR_OBJ}/%.o  , $(notdir ${GSOURCES}))
-WOBJECTS=$(patsubst %.cu, ${DIR_OBJ}/%.o  , $(notdir ${WSOURCES}))
+GOBJECTS=$(patsubst %.cu, ${DIR_OBJ}/%.o, $(notdir ${GSOURCES}))
+WOBJECTS=$(patsubst %.cu, ${DIR_OBJ}/%.o, $(notdir ${WSOURCES}))
+PTXJECTS=$(patsubst ${DIR_SRC_PTX}/%.cu, ${DIR_PTX}/%$(PTXFIX),  ${PSOURCES})
+CNVCCOBJ=$(patsubst %.cxx, ${DIR_OBJ}/%.ob, $(notdir ${CNVCCSRC}))
 LINKJECT=${DIR_OBJ}/dlink.o      
-all: $(EXECUTABLE)
-
-$(EXECUTABLE): $(COBJECTS) $(GOBJECTS) $(WOBJECTS) $(LINKJECT)
+all: $(PTXJECTS) $(EXECUTABLE)
+${DIR_PTX}/%$(PTXFIX) : ${DIR_SRC_PTX}/%.cu
+	$(NVCC) $(RTMETHOD) $(NCPLAGS) -use_fast_math $^ -o $@
+$(EXECUTABLE): $(COBJECTS) $(CNVCCOBJ) $(GOBJECTS) $(WOBJECTS) $(LINKJECT)
 	$(CC)  $^ $(LDFLAGS) -o $@
 ${DIR_OBJ}/%.obj : ${DIR_SRC}/%.cc
 	@echo $(epoch)
@@ -112,6 +142,8 @@ ${DIR_OBJ}/%.o : ${DIR_SRC}/%.cu
 ${DIR_OBJ}/%.o : ${DIR_SRC}/wfunction/%.cu
 	@echo $(epoch)
 	$(NVCC) $(W_IDEN) $(CMPTYPE) $(NCFLAGS)  $^ -o $@
+${DIR_OBJ}/%.ob : ${DIR_SRC_OPT}/%.cxx
+	$(NVCC) $(RTMETHOD) $(NCFLAGS) $^ -o $@
 $(LINKJECT) : $(GOBJECTS) $(WOBJECTS)
 	$(NVCC) $(LINKLAG) $^ -o $@
 remove :
@@ -121,3 +153,5 @@ remove :
 clean :  
 	find ${DIR_OBJ} -name *.o   -exec rm -rf {} \;
 	find ${DIR_OBJ} -name *.obj -exec rm -rf {} \;
+	find ${DIR_OBJ} -name *.ob  -exec rm -rf {} \;
+	find ${DIR_PTX} -name *.ptx -exec rm -rf {} \;
