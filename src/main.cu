@@ -32,21 +32,21 @@ int main(int argc, char **argv){
   float geoPara[6] = {0.48f,0.5f,50.f,1.2f,100.f,100.f};
   //float geoPara[6] = {0.00048f,0.0005f,0.050f,0.0012f,0.100f,0.100f};
                       //r1,  r2,  h/2, p,   t,    H/2
-  
+  int argcs=5; 
   float *testmem; 
   CUdeviceptr my_ptr;
-  unsigned width=atoi(argv[1]);
+  unsigned width=atoi(argv[1+argcs]);
   gpuErrchk(cudaMalloc((void**)&testmem,sizeof(float)*width));
   gpuErrchk(cudaMalloc((void**)(&my_ptr), sizeof(float)*width));
   //cudaSetDeviceFlags(cudaDeviceMapHost|cudaDeviceLmemResizeToMax); 
   float testmemh[4]={7.2,3.2,4.1,5.9};
   gpuErrchk(cudaMemcpy(testmem, testmemh, sizeof(float)*width, cudaMemcpyHostToDevice));
   gpuErrchk(cudaMemcpy((void*)my_ptr, testmemh, sizeof(float)*width, cudaMemcpyHostToDevice));
-  tracemain(atoi(argv[1]), atoi(argv[2]), atoi(argv[3]), geoPara,testmem, my_ptr);
+  tracemain(atoi(argv[1+argcs]), atoi(argv[2+argcs]), atoi(argv[3+argcs]), geoPara,testmem, my_ptr);
   gpuErrchk(cudaFree(testmem));
 
 //end test optix
-/*
+
   int numIso;
   char filenames[MAXISOTOPES][FILENAMELEN];
   numIso = init_data(argv[5],filenames);
@@ -56,7 +56,7 @@ int main(int argc, char **argv){
     h5read(isotopes[i],filenames[i]);
 
   anyvalue(isotopes,numIso, atoi(argv[1]),atoi(argv[2]),atoi(argv[3]),atoi(argv[4]));
-*/ 
+
   return 0;
 }
 
