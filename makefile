@@ -6,7 +6,7 @@
 #FOURIEREXPANSION = 3
 #QUICKW FOURIER   = 31
 #Directories
-#TODO: ptx file dir; -use-fast-math;
+#TODO: -use-fast-math;
 DIR_SRC = ./src
 DIR_SRC_PTX = ./src/ptx
 DIR_SRC_OPT = ./src/optix
