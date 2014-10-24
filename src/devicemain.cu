@@ -157,7 +157,6 @@ void anyvalue(struct multipoledata* data, unsigned numIsos, unsigned setgridx, u
   initialize<<<dimGrid, dimBlock>>>(DeviceMem, STARTENE);//1.95093e4);
   //  cudaDeviceSynchronize();
 
-  tracemain(gridsize, 2, 2, geoPara, DeviceMem.nInfo.pos_x);
   /*
     Note: shared memory size is in unit of Bybe
     And the address can be referred in form of p = pshared + offset
@@ -178,6 +177,8 @@ void anyvalue(struct multipoledata* data, unsigned numIsos, unsigned setgridx, u
 #else
     history<<<dimGrid, dimBlock, blockx*sizeof(unsigned)>>>(numIsos, U238, DeviceMem, num_src, devstep);
 #endif
+    tracemain(gridsize, 2, 2, geoPara, DeviceMem.nInfo.pos_x);
+
     statistics<<<1, dimGrid, gridx*sizeof(unsigned)>>>(DeviceMem.block_terminated_neutrons, DeviceMem.num_terminated_neutrons);
     gpuErrchk(cudaMemcpy(HostMem.num_terminated_neutrons,DeviceMem.num_terminated_neutrons,sizeof(unsigned int), cudaMemcpyDeviceToHost));
 
