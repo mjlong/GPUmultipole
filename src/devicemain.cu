@@ -60,6 +60,7 @@ void anyvalue(struct multipoledata* data, unsigned numIsos, unsigned setgridx, u
   //float geoPara[6] = {0.00048f,0.0005f,0.050f,0.0012f,0.100f,0.100f};
                       //r1,  r2,  h/2, p,   t,    H/2
 
+  cudaSetDevice(1);
   gpuErrchk(cudaSetDeviceFlags(cudaDeviceMapHost | cudaDeviceLmemResizeToMax));
   gpuErrchk(cudaEventCreate(&start));
   gpuErrchk(cudaEventCreate(&stop));
@@ -178,10 +179,8 @@ void anyvalue(struct multipoledata* data, unsigned numIsos, unsigned setgridx, u
     history<<<dimGrid, dimBlock, blockx*sizeof(unsigned)>>>(numIsos, U238, DeviceMem, num_src, devstep);
 #endif
     statistics<<<1, dimGrid, gridx*sizeof(unsigned)>>>(DeviceMem.block_terminated_neutrons, DeviceMem.num_terminated_neutrons);
-    gpuErrchk(cudaMemcpy(HostMem.num_terminated_neutrons, 
-		       DeviceMem.num_terminated_neutrons, 
-		       sizeof(unsigned int), 
-		       cudaMemcpyDeviceToHost));
+    gpuErrchk(cudaMemcpy(HostMem.num_terminated_neutrons,DeviceMem.num_terminated_neutrons,sizeof(unsigned int), cudaMemcpyDeviceToHost));
+
     active = HostMem.num_terminated_neutrons[0] + gridsize < num_src;  
   }
 
