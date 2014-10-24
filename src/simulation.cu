@@ -15,7 +15,7 @@ __global__ void initialize(MemStruct pInfo, CMPTYPE energy){
 //TODO: source sampling should take settings dependent on geometry
   pInfo.nInfo.pos_x[id] = 0.5f+curand_uniform(&state);
   pInfo.nInfo.pos_y[id] = 0.5f+curand_uniform(&state);
-  pInfo.nInfo.pos_z[id] = 0.5+curand_uniform(&state);
+  pInfo.nInfo.pos_z[id] = 0.5f+curand_uniform(&state);
   pInfo.nInfo.dir_polar[id]= curand_uniform(&state)*PI;
   pInfo.nInfo.dir_azim[id] = curand_uniform(&state)*PI*2;
 
