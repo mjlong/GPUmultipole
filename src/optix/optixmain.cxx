@@ -1,13 +1,3 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <optix.h>
-#include "sutil.h"
-#include <vector_types.h>
-#include <math.h>
-#include <time.h>
-#include "commonStructs.h"
-
 #include "optixmain.h"
 char path_to_ptx[512];
 
