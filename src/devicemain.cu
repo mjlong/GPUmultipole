@@ -60,7 +60,7 @@ void anyvalue(struct multipoledata* data, unsigned numIsos, unsigned setgridx, u
   //float geoPara[6] = {0.00048f,0.0005f,0.050f,0.0012f,0.100f,0.100f};
                       //r1,  r2,  h/2, p,   t,    H/2
 
-  cudaSetDevice(1);
+  cudaSetDevice(0);
   gpuErrchk(cudaSetDeviceFlags(cudaDeviceMapHost | cudaDeviceLmemResizeToMax));
   gpuErrchk(cudaEventCreate(&start));
   gpuErrchk(cudaEventCreate(&stop));

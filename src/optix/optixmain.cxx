@@ -83,6 +83,8 @@ void createContext( int width, float R1, float Hh, unsigned num_geo, RTcontext* 
 
     /* Setup context */
     RT_CHECK_ERROR2( rtContextCreate( context ) );
+    int id = 0;
+    RT_CHECK_ERROR2( rtContextSetDevices( *context, 1, &id));
     RT_CHECK_ERROR2( rtContextSetRayTypeCount( *context, 2 ) ); /* shadow and radiance */
     RT_CHECK_ERROR2( rtContextSetEntryPointCount( *context, 1 ) );
 
@@ -134,7 +136,7 @@ void createContext( int width, float R1, float Hh, unsigned num_geo, RTcontext* 
     RT_CHECK_ERROR2( rtBufferCreateForCUDA( *context, RT_BUFFER_INPUT, &input_test_buffer_obj)); 
     RT_CHECK_ERROR2( rtBufferSetFormat( input_test_buffer_obj, RT_FORMAT_FLOAT)); //TODO: there must be enum for float3
     RT_CHECK_ERROR2( rtBufferSetSize1D(input_test_buffer_obj, width));
-    RT_CHECK_ERROR2( rtBufferSetDevicePointer( input_test_buffer_obj, 1, (CUdeviceptr)testm));
+    RT_CHECK_ERROR2( rtBufferSetDevicePointer( input_test_buffer_obj, id, (CUdeviceptr)testm));
  
     RT_CHECK_ERROR2( rtVariableSetObject( input_test_buffer, input_test_buffer_obj));
 
