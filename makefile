@@ -149,7 +149,7 @@ $(LINKJECT) : $(GOBJECTS) $(WOBJECTS)
 remove :
 	find ${DIR_OBJ} -name *.o   -exec rm -rf {} \;
 	find ${DIR_OBJ} -name *.obj -exec rm -rf {} \;
-	find ${DIR_BIN} -name gpumr_*   -exec rm -rf {} \;
+	find ${DIR_OBJ} -name *.ob  -exec rm -rf {} \;
 clean :  
 	find ${DIR_OBJ} -name *.o   -exec rm -rf {} \;
 	find ${DIR_OBJ} -name *.obj -exec rm -rf {} \;
