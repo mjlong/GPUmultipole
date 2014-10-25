@@ -25,7 +25,7 @@ __constant__ CMPTYPE b[M+1];
 __constant__ CMPTYPE2 constwtable[LENGTH*LENGTH];
 #endif
 
-extern void tracemain(int num_particle, int, int, float*,float*);
+extern void tracemain(int num_particle, int, int, float*,NeutronInfoStruct);
 void printdevice();
 void freeMultipoleData(int numIsos, struct multipoledata* data){
   for(int i=0;i<numIsos;i++){
@@ -177,7 +177,7 @@ void anyvalue(struct multipoledata* data, unsigned numIsos, unsigned setgridx, u
 #else
     history<<<dimGrid, dimBlock, blockx*sizeof(unsigned)>>>(numIsos, U238, DeviceMem, num_src, devstep);
 #endif
-    tracemain(gridsize, 2, 2, geoPara, DeviceMem.nInfo.pos_x);
+    tracemain(gridsize, 2, 2, geoPara, DeviceMem.nInfo);
 
     statistics<<<1, dimGrid, gridx*sizeof(unsigned)>>>(DeviceMem.block_terminated_neutrons, DeviceMem.num_terminated_neutrons);
     gpuErrchk(cudaMemcpy(HostMem.num_terminated_neutrons,DeviceMem.num_terminated_neutrons,sizeof(unsigned int), cudaMemcpyDeviceToHost));
