@@ -30,13 +30,6 @@
 #define SQRTAWR  2
 #define DEVREALS 4
 
-#if defined(__CFLOAT)
-#define CMPTYPE float
-#define CMPTYPE2 float2
-#else
-#define CMPTYPE double 
-#define CMPTYPE2 double2
-#endif
 /*
   Mode, set to 0 for linear, 1 for momentum, 2 for logarithmic.
   Mode = 0 (linear)
@@ -53,6 +46,7 @@
 #include "multipole_data.h"
 #include "CComplex.h"
 #include <iostream>
+#include "neutron.h"
 
 #if defined(__MITW)
 #include "Faddeeva.h"
