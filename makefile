@@ -120,6 +120,9 @@ RTMETHOD=
 PTXFIX =_one.ptx
 EXEFIX = _one
 endif
+ifeq ($(print),track)
+RTMETHOD += -D __PRINTTRACK__
+endif
 CSOURCES=$(wildcard ${DIR_SRC}/*.cc)
 CNVCCSRC=$(wildcard ${DIR_SRC_OPT}/*.cxx)
 COBJECTS=$(patsubst %.cc, ${DIR_OBJ}/%.obj, $(notdir ${CSOURCES}))
