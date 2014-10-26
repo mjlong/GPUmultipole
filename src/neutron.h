@@ -25,12 +25,14 @@ typedef struct {
 typedef struct {
   unsigned *id;
   unsigned *isotope;
+  unsigned *icell;
   CMPTYPE *energy;
   float* pos_x;
   float* pos_y;
   float* pos_z;
   float* dir_polar;
-  float* dir_azim;
+  float* dir_azimu;
+  float* d_closest;
   CMPTYPE *isoenergy;
   curandState *rndState;
 }NeutronInfoStruct;
