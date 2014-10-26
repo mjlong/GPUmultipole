@@ -11,12 +11,12 @@ rtDeclareVariable(float,         var_R1, , );
 rtDeclareVariable(float,         var_Hh, , );
 rtDeclareVariable(unsigned,      var_num, , );
 
-rtBuffer<float1, 1>              input_pos_x_buffer;
-rtBuffer<float1, 1>              input_pos_y_buffer;
-rtBuffer<float1, 1>              input_pos_z_buffer;
+rtBuffer<float, 1>              input_pos_x_buffer;
+rtBuffer<float, 1>              input_pos_y_buffer;
+rtBuffer<float, 1>              input_pos_z_buffer;
 
-rtBuffer<float1, 1>              input_dir_p_buffer;
-rtBuffer<float1, 1>              input_dir_a_buffer;
+rtBuffer<float, 1>              input_dir_p_buffer;
+rtBuffer<float, 1>              input_dir_a_buffer;
 
 rtBuffer<float,    1>    output_closest_buffer;
 rtBuffer<unsigned, 1> output_current_buffer;
@@ -38,7 +38,7 @@ __device__ unsigned long long intpow(int x, int n){
 RT_PROGRAM void generate_ray()
 {
   float phi = input_dir_a_buffer[launch_index];
-  float mu  = input_dir_p_buffer[launch_index]; 
+  float mu  = cos(input_dir_p_buffer[launch_index]); 
   float3 ray_origin = make_float3(input_pos_x_buffer[launch_index],input_pos_y_buffer[launch_index],input_pos_z_buffer[launch_index]);
   float3 ray_direction = make_float3(sqrt(1.f-mu*mu)*cos(phi),sqrt(1.f-mu*mu)*sin(phi),mu); 
 
