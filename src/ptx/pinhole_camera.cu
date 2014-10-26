@@ -76,6 +76,13 @@ RT_PROGRAM void generate_ray()
   rtTrace(top_object, ray, prd);
   prd.current = prd.closestpID;
 #endif
+#if defined(__PRINTTRACK__)
+  printf("%3d, %3d, %+18.12e,%+18.12e,%+18.12e\n",
+         launch_index,prd.current,ray.origin.x,ray.origin.y,ray.origin.z);
+  ray.origin = ray.origin+(prd.closest_t+scene_epsilon*0.5)*ray.direction;
+  printf("%3d, %3d, %+18.12e,%+18.12e,%+18.12e\n",
+         launch_index,1111,ray.origin.x,ray.origin.y,ray.origin.z); 
+#endif
   output_closest_buffer[launch_index] = prd.closest_t+scene_epsilon*0.5;
   output_current_buffer[launch_index] = prd.current;
   //TODO: not determined whether closestID is needed
