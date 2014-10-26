@@ -14,7 +14,7 @@
 
 #include "neutron.h"
 
-void createContext( int width, float R1, float Hh,unsigned int num, RTcontext* context, RTbuffer* buffer, RTbuffer*, RTbuffer*, NeutronInfoStruct);
+void createContext( int width, float R1, float Hh,unsigned int num, RTcontext* context, NeutronInfoStruct);
 void createMaterial( RTcontext context, RTmaterial* material);
 void createGeometryBox( RTcontext context, RTgeometry* box, float* );
 void createGeometryCylinder( RTcontext context, RTgeometry* cylinder, float,float,float,float,float,float,float);

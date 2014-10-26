@@ -5,8 +5,6 @@ void tracemain(int width, int n, int m, float *data, NeutronInfoStruct nInfo)
 {
     /* Primary RTAPI objects */
     RTcontext           context;
-    RTbuffer            output_closest_buffer_obj;
-    RTbuffer            output_current_buffer_obj;
     RTmaterial          material;
     clock_t clock_start, clock_end;
     float time_elapsed=0.f;
@@ -14,11 +12,10 @@ void tracemain(int width, int n, int m, float *data, NeutronInfoStruct nInfo)
     /* Setup state */
 #if defined(__HEXPRISM__)
     unsigned num_geobj = (1+3*n*(n+1))*(1+3*m*(m+1))+1 ;
-    createContext( width,sqrt(3.f*m*m+3.f*m+1.f)*(n+1)*data[3]/*p*/,data[2]/*hh*/,num_geobj, &context, &output_closest_buffer_obj, &output_current_buffer_obj, &output_next_buffer_obj);
+    createContext( width,sqrt(3.f*m*m+3.f*m+1.f)*(n+1)*data[3]/*p*/,data[2]/*hh*/,num_geobj, &context, nInfo);
 #else
     unsigned num_geobj = m*m*n*n*2+1 ;
-    createContext( width,sqrt(2.0)*m*0.5*(n+2)*data[3]/*p*/,data[2]/*hh*/,num_geobj, &context, &output_closest_buffer_obj,
-                   &output_current_buffer_obj, nInfo);
+    createContext( width,sqrt(2.0)*m*0.5*(n+2)*data[3]/*p*/,data[2]/*hh*/,num_geobj, &context, nInfo);
 #endif
     printf("%g,%g,%g,%g,%g\n",data[0],data[1],data[2],data[3],data[4]);
     printf("%d,%d,%d,%d,%d\n",width,n,m,0,0);
@@ -42,7 +39,7 @@ void tracemain(int width, int n, int m, float *data, NeutronInfoStruct nInfo)
     RT_CHECK_ERROR( rtContextDestroy( context ) );
 }
 
-void createContext( int width, float R1, float Hh, unsigned num_geo, RTcontext* context, RTbuffer* output_closest_buffer_obj, RTbuffer* output_current_buffer_obj, NeutronInfoStruct nInfo)
+void createContext( int width, float R1, float Hh, unsigned num_geo, RTcontext* context, NeutronInfoStruct nInfo)
 {
 
     //rtContextSetPrintEnabled(*context, 1 ); 
@@ -61,6 +58,8 @@ void createContext( int width, float R1, float Hh, unsigned num_geo, RTcontext* 
                input_dir_a_buffer,input_dir_p_buffer;
     RTbuffer   input_pos_x_buffer_obj, input_pos_y_buffer_obj, input_pos_z_buffer_obj,
                input_dir_a_buffer_obj, input_dir_p_buffer_obj;
+    RTbuffer            output_closest_buffer_obj;
+    RTbuffer            output_current_buffer_obj;
 
     /* Setup context */
     RT_CHECK_ERROR2( rtContextCreate( context ) );
@@ -99,16 +98,16 @@ void createContext( int width, float R1, float Hh, unsigned num_geo, RTcontext* 
     RT_CHECK_ERROR2( rtVariableSet1ui( var_num, num_geo+1  ) );
 
     /* Render result buffer */
-    RT_CHECK_ERROR2( rtBufferCreateForCUDA( *context, RT_BUFFER_OUTPUT, output_closest_buffer_obj) );
-    RT_CHECK_ERROR2( rtBufferSetFormat( *output_closest_buffer_obj, RT_FORMAT_FLOAT ) );
-    RT_CHECK_ERROR2( rtBufferSetSize1D( *output_closest_buffer_obj, width) );
+    RT_CHECK_ERROR2( rtBufferCreateForCUDA( *context, RT_BUFFER_INPUT, &output_closest_buffer_obj) );
+    RT_CHECK_ERROR2( rtBufferSetFormat( output_closest_buffer_obj, RT_FORMAT_FLOAT ) );
+    RT_CHECK_ERROR2( rtBufferSetSize1D( output_closest_buffer_obj, width) );
     RT_CHECK_ERROR2( rtBufferSetDevicePointer( output_closest_buffer_obj, id, (CUdeviceptr)(nInfo.d_closest)));
     RT_CHECK_ERROR2( rtVariableSetObject( output_closest_buffer, output_closest_buffer_obj ) );
 
-    RT_CHECK_ERROR2( rtBufferCreateForCUDA( *context, RT_BUFFER_OUTPUT, output_current_buffer_obj) );
-    RT_CHECK_ERROR2( rtBufferSetFormat( *output_current_buffer_obj, RT_FORMAT_UNSIGNED_BYTE4 ) );
-    RT_CHECK_ERROR2( rtBufferSetSize1D( *output_current_buffer_obj, width) );
-    RT_CHECK_ERROR2( rtBufferSetDevicePointer( output_current_buffer_obj, id, (CUdevicept)(nInfo.icell)));
+    RT_CHECK_ERROR2( rtBufferCreateForCUDA( *context, RT_BUFFER_INPUT, &output_current_buffer_obj) );
+    RT_CHECK_ERROR2( rtBufferSetFormat( output_current_buffer_obj, RT_FORMAT_UNSIGNED_BYTE4 ) );
+    RT_CHECK_ERROR2( rtBufferSetSize1D( output_current_buffer_obj, width) );
+    RT_CHECK_ERROR2( rtBufferSetDevicePointer( output_current_buffer_obj, id, (CUdeviceptr)(nInfo.icell)));
     RT_CHECK_ERROR2( rtVariableSetObject( output_current_buffer, output_current_buffer_obj ) );
 
     /* Input position buffer*/
@@ -134,13 +133,13 @@ void createContext( int width, float R1, float Hh, unsigned num_geo, RTcontext* 
     RT_CHECK_ERROR2( rtBufferCreateForCUDA( *context, RT_BUFFER_INPUT, &input_dir_a_buffer_obj)); 
     RT_CHECK_ERROR2( rtBufferSetFormat( input_dir_a_buffer_obj, RT_FORMAT_FLOAT)); 
     RT_CHECK_ERROR2( rtBufferSetSize1D(input_dir_a_buffer_obj, width));
-    RT_CHECK_ERROR2( rtBufferSetDevicePointer( input_dir_a_buffer_obj, id, (CUdeviceptr)(iInfo.dir_r)));
+    RT_CHECK_ERROR2( rtBufferSetDevicePointer( input_dir_a_buffer_obj, id, (CUdeviceptr)(nInfo.dir_azimu)));
     RT_CHECK_ERROR2( rtVariableSetObject( input_dir_a_buffer, input_dir_a_buffer_obj));
  
     RT_CHECK_ERROR2( rtBufferCreateForCUDA( *context, RT_BUFFER_INPUT, &input_dir_p_buffer_obj)); 
     RT_CHECK_ERROR2( rtBufferSetFormat( input_dir_p_buffer_obj, RT_FORMAT_FLOAT)); 
     RT_CHECK_ERROR2( rtBufferSetSize1D(input_dir_p_buffer_obj, width));
-    RT_CHECK_ERROR2( rtBufferSetDevicePointer( input_dir_p_buffer_obj, id, (CUdeviceptr)(iInfo.dir_r)));
+    RT_CHECK_ERROR2( rtBufferSetDevicePointer( input_dir_p_buffer_obj, id, (CUdeviceptr)(nInfo.dir_polar)));
     RT_CHECK_ERROR2( rtVariableSetObject( input_dir_p_buffer, input_dir_p_buffer_obj));
 
     /* Ray generation program */
