@@ -14,5 +14,5 @@ struct matdata{
 };
 
 void clearline(char *line);
-void matread(struct matdata*, char*);
+unsigned matread(struct matdata*, char*);
 #endif
