@@ -124,8 +124,11 @@ ifeq ($(print),track)
 RTMETHOD += -D __PRINTTRACK__
 endif
 CSOURCES=$(wildcard ${DIR_SRC}/*.cc)
+MSOURCES=$(wildcard ${DIR_SRC}/*.cxx)
+#MSOURCES = main.cxx; 
 CNVCCSRC=$(wildcard ${DIR_SRC_OPT}/*.cxx)
 COBJECTS=$(patsubst %.cc, ${DIR_OBJ}/%.obj, $(notdir ${CSOURCES}))
+MOBJECTS=$(patsubst %.cxx, ${DIR_OBJ}/%.ob, $(notdir ${MSOURCES}))
 GOBJECTS=$(patsubst %.cu, ${DIR_OBJ}/%.o, $(notdir ${GSOURCES}))
 WOBJECTS=$(patsubst %.cu, ${DIR_OBJ}/%.o, $(notdir ${WSOURCES}))
 PTXJECTS=$(patsubst ${DIR_SRC_PTX}/%.cu, ${DIR_PTX}/%$(PTXFIX),  ${PSOURCES})
@@ -134,14 +137,17 @@ LINKJECT=${DIR_OBJ}/dlink.o
 all: $(PTXJECTS) $(EXECUTABLE)
 ${DIR_PTX}/%$(PTXFIX) : ${DIR_SRC_PTX}/%.cu
 	$(NVCC) $(RTMETHOD) $(NCPLAGS) -use_fast_math $^ -o $@
-$(EXECUTABLE): $(COBJECTS) $(CNVCCOBJ) $(GOBJECTS) $(WOBJECTS) $(LINKJECT)
+$(EXECUTABLE): $(MOBJECTS) $(COBJECTS) $(CNVCCOBJ) $(GOBJECTS) $(WOBJECTS) $(LINKJECT)
 	$(CC)  $^ $(LDFLAGS) -o $@
 ${DIR_OBJ}/%.obj : ${DIR_SRC}/%.cc
 	@echo $(epoch)
 	$(CC)             $(CMPTYPE) $(CCFLAGS) $^ -o $@
+${DIR_OBJ}/%.ob : ${DIR_SRC}/%.cxx
+	@echo $(epoch)
+	$(NVCC)             $(CMPTYPE) $(NCFLAGS) $^ -o $@
 ${DIR_OBJ}/%.o : ${DIR_SRC}/%.cu
 	@echo $(epoch)
-	$(NVCC) $(W_IDEN) $(CMPTYPE) $(NCFLAGS)  $^ -o $@
+	$(NVCC) $(W_IDEN) $(RTMETHOD) $(CMPTYPE) $(NCFLAGS)  $^ -o $@
 ${DIR_OBJ}/%.o : ${DIR_SRC}/wfunction/%.cu
 	@echo $(epoch)
 	$(NVCC) $(W_IDEN) $(CMPTYPE) $(NCFLAGS)  $^ -o $@
