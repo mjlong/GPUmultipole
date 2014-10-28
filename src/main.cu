@@ -1,8 +1,6 @@
 #include "CPUComplex.h"
-#include "CComplex.h"
 #include "multipole_data.h"
 #include "material_data.h"
-#include "global.h"
 #include <stdio.h>
 #include <string.h>
 
@@ -18,8 +16,6 @@ __constant__ double2 table[LENGTH][LENGTH];
 #endif
 */
 
-#include <cuda.h>
-#include "gpuerrchk.h"
 extern void h5read(struct multipoledata & pole, char filename[]);
 extern void anyvalue(struct multipoledata*,unsigned,struct matdata*, unsigned, unsigned, unsigned, unsigned, unsigned);
 int init_data(char* input, char filenames[][FILENAMELEN]);
