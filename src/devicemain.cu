@@ -2,6 +2,8 @@
 #include "CComplex.h"
 #include "multipole_data.h"
 #include "multipole.h"
+#include "material_data.h"
+#include "material.h"
 #include "simulation.h"
 
 /*
@@ -39,7 +41,15 @@ void freeMultipoleData(int numIsos, struct multipoledata* data){
   free(data);
 }
 
-void anyvalue(struct multipoledata* data, unsigned numIsos, unsigned setgridx, unsigned setblockx, unsigned num_src, unsigned devstep){
+void freeMaterialData(struct matdata* pdata){
+  free(pdata->offsets);
+  free(pdata->N_tot);
+  free(pdata->isotopes);
+  free(pdata->densities);   
+  free(pdata);
+}
+
+void anyvalue(struct multipoledata* data, unsigned numIsos, struct matdata* pmat, unsigned totIsos, unsigned setgridx, unsigned setblockx, unsigned num_src, unsigned devstep){
   unsigned gridx, blockx, gridsize;
   unsigned ints=0, sharedmem;
   float timems = 0.0;
@@ -146,6 +156,8 @@ void anyvalue(struct multipoledata* data, unsigned numIsos, unsigned setgridx, u
   multipole U238(data, numIsos);
 #endif 
   freeMultipoleData(numIsos,data);
+  material mat(pmat, totIsos);
+  freeMaterialData(pmat);
 
 // fill exp(z) table for fourierw
 #if defined(__INTERPEXP)
@@ -277,6 +289,7 @@ void anyvalue(struct multipoledata* data, unsigned numIsos, unsigned setgridx, u
   gpuErrchk(cudaFree(exptable));
 #endif
   U238.release_pointer();
+  mat.release_pointer();
   free(hostarray);
   free(cnt);
   gpuErrchk(cudaFreeHost(HostMem.num_terminated_neutrons));

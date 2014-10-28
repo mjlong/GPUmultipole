@@ -1,6 +1,7 @@
 #include "CPUComplex.h"
 #include "CComplex.h"
 #include "multipole_data.h"
+#include "material_data.h"
 #include "global.h"
 #include <stdio.h>
 #include <string.h>
@@ -20,14 +21,14 @@ __constant__ double2 table[LENGTH][LENGTH];
 #include <cuda.h>
 #include "gpuerrchk.h"
 extern void h5read(struct multipoledata & pole, char filename[]);
-extern void anyvalue(struct multipoledata*,unsigned, unsigned, unsigned, unsigned, unsigned);
+extern void anyvalue(struct multipoledata*,unsigned,struct matdata*, unsigned, unsigned, unsigned, unsigned, unsigned);
 int init_data(char* input, char filenames[][FILENAMELEN]);
 
 void printbless();
 int main(int argc, char **argv){
   printbless();
 
-  int numIso;
+  int numIso,totIso;
   char filenames[MAXISOTOPES][FILENAMELEN];
   numIso = init_data(argv[5],filenames);
   struct multipoledata *isotopes;
@@ -35,7 +36,9 @@ int main(int argc, char **argv){
   for(int i=0;i<numIso;i++)  
     h5read(isotopes[i],filenames[i]);
 
-  anyvalue(isotopes,numIso, atoi(argv[1]),atoi(argv[2]),atoi(argv[3]),atoi(argv[4]));
+  struct matdata *pmat=(struct matdata*)malloc(sizeof(struct matdata));
+  totIso=matread(pmat,argv[6]); 
+  anyvalue(isotopes,numIso,pmat, totIso, atoi(argv[1]),atoi(argv[2]),atoi(argv[3]),atoi(argv[4]));
 
   return 0;
 }
