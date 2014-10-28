@@ -20,7 +20,6 @@ void createGeometryBox( RTcontext context, RTgeometry* box, float* );
 void createGeometryCylinder( RTcontext context, RTgeometry* cylinder, float,float,float,float,float,float,float);
 void createGeometrySphere( RTcontext context, RTgeometry* sphere, float*);
 void createInstances( RTcontext context, RTmaterial material, float*, int n, int m  );
-void printUsageAndExit( const char* argv0 );
 void tracemain(int, int, int, float*, NeutronInfoStruct);
 
 #endif

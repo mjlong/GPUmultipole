@@ -1,6 +1,12 @@
 #include "optixmain.h"
 char path_to_ptx[512];
 
+void materialQuery(RTcontext context, NeutronInfoStruct Info){
+
+}
+void destroyContext(RTcontext context){
+
+}
 void tracemain(int width, int n, int m, float *data, NeutronInfoStruct nInfo)
 {
     /* Primary RTAPI objects */
@@ -540,11 +546,3 @@ void createInstances( RTcontext context, RTmaterial material, float *data, int n
 }
 
 
-void printUsageAndExit( const char* argv0 )
-{
-  fprintf( stderr, "Usage  : %s [options]\n", argv0 );
-  fprintf( stderr, "Options: --file | -f <filename>      Specify file for image output\n" );
-  fprintf( stderr, "Options: --help | -h                 Print this usage message\n" );
-  fprintf( stderr, "         --dim=<width>x<height>      Set image dimensions; defaults to 512x384\n" );
-  exit(1);
-}
