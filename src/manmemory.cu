@@ -1,4 +1,4 @@
-#include "nmemory.h"
+#include "manmemory.h"
 
 //Simulation memory allocate and deallocate
 
