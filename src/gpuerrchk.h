@@ -1,5 +1,6 @@
 #ifndef __GPUERRCHK_H__
 #define __GPUERRCHK_H__
+#include <stdio.h>
 #include <cuda.h>
 
 #define gpuErrchk(ans){gpuAssert((ans),__FILE__, __LINE__);}
