@@ -5,6 +5,7 @@
 #include "material_data.h"
 #include "material.h"
 #include "simulation.h"
+#include "manmemory.h"
 
 /*
   To compile host and device codes separately, 
@@ -75,39 +76,7 @@ void anyvalue(struct multipoledata* data, unsigned numIsos, struct matdata* pmat
   gpuErrchk(cudaEventCreate(&start));
   gpuErrchk(cudaEventCreate(&stop));
 
-  gpuErrchk(cudaMalloc((void**)&devicearray, 4*gridsize*sizeof(CMPTYPE)));
-  gpuErrchk(cudaMemset(devicearray, 0, 4*gridsize*sizeof(CMPTYPE)));
-
-  gpuErrchk(cudaMalloc((void**)&(DeviceMem.nInfo.id),       gridsize*sizeof(unsigned)));
-  gpuErrchk(cudaMalloc((void**)&(DeviceMem.nInfo.rndState), gridsize*sizeof(curandState)));
-  gpuErrchk(cudaMalloc((void**)&(DeviceMem.nInfo.energy),   gridsize*sizeof(CMPTYPE)));
-  gpuErrchk(cudaMalloc((void**)&(DeviceMem.nInfo.isotope),  gridsize*sizeof(unsigned)));
-  gpuErrchk(cudaMalloc((void**)&(DeviceMem.nInfo.icell),  gridsize*sizeof(unsigned)));
-
-  gpuErrchk(cudaMalloc((void**)&(DeviceMem.nInfo.isoenergy),gridsize*sizeof(CMPTYPE)));
-  gpuErrchk(cudaMalloc((void**)&(DeviceMem.nInfo.pos_x),gridsize*sizeof(float)));
-  gpuErrchk(cudaMalloc((void**)&(DeviceMem.nInfo.pos_y),gridsize*sizeof(float)));
-  gpuErrchk(cudaMalloc((void**)&(DeviceMem.nInfo.pos_z),gridsize*sizeof(float)));
-  gpuErrchk(cudaMalloc((void**)&(DeviceMem.nInfo.dir_polar),gridsize*sizeof(float)));
-  gpuErrchk(cudaMalloc((void**)&(DeviceMem.nInfo.dir_azimu),gridsize*sizeof(float)));
-  gpuErrchk(cudaMalloc((void**)&(DeviceMem.nInfo.d_closest ),gridsize*sizeof(float)));
-
-  gpuErrchk(cudaMalloc((void**)&(DeviceMem.num_terminated_neutrons), sizeof(unsigned int)));
-  gpuErrchk(cudaMemset(DeviceMem.num_terminated_neutrons, 0, sizeof(unsigned)));
-
-  gpuErrchk(cudaMalloc((void**)&(DeviceMem.block_terminated_neutrons), sizeof(unsigned int)*gridx));
-  gpuErrchk(cudaMallocHost((void**)&(HostMem.num_terminated_neutrons), sizeof(unsigned int)));
-  HostMem.num_terminated_neutrons[0] = 0u;
-  //gpuErrchk(cudaMemcpy(DeviceMem.num_terminated_neutrons, HostMem.num_terminated_neutrons, sizeof(unsigned int), cudaMemcpyHostToDevice));
-
-  gpuErrchk(cudaMalloc((void**)&(DeviceMem.tally.cnt), gridsize*sizeof(unsigned)));
-  gpuErrchk(cudaMemset(DeviceMem.tally.cnt, 0, gridsize*sizeof(unsigned)));  
-
-  gpuErrchk(cudaMalloc((void**)&(blockcnt), gridx*sizeof(unsigned int)));
-  gpuErrchk(cudaMemset(blockcnt, 0, gridx*sizeof(unsigned int)));
-
-  hostarray = (CMPTYPE*)malloc(4*gridsize*sizeof(CMPTYPE));
-  cnt      = (unsigned*)malloc(gridx*sizeof(unsigned));
+  initialize_memory(&DeviceMem, &HostMem, &devicearray, &hostarray, &cnt, &blockcnt, gridx,blockx);
 
   //Initialize CUDPP
     CUDPPHandle theCudpp;
@@ -260,24 +229,6 @@ void anyvalue(struct multipoledata* data, unsigned numIsos, struct matdata* pmat
   gpuErrchk(cudaEventDestroy(start));
   gpuErrchk(cudaEventDestroy(stop));
 
-  gpuErrchk(cudaFree(devicearray));
-  gpuErrchk(cudaFree(DeviceMem.nInfo.id));
-  gpuErrchk(cudaFree(DeviceMem.nInfo.icell));
-  gpuErrchk(cudaFree(DeviceMem.nInfo.d_closest));
-  gpuErrchk(cudaFree(DeviceMem.nInfo.pos_x));
-  gpuErrchk(cudaFree(DeviceMem.nInfo.pos_y));
-  gpuErrchk(cudaFree(DeviceMem.nInfo.pos_z));
-  gpuErrchk(cudaFree(DeviceMem.nInfo.dir_azimu));
-  gpuErrchk(cudaFree(DeviceMem.nInfo.dir_polar));
-
-  gpuErrchk(cudaFree(DeviceMem.nInfo.rndState));
-  gpuErrchk(cudaFree(DeviceMem.nInfo.energy));
-  gpuErrchk(cudaFree(DeviceMem.nInfo.isotope));
-  gpuErrchk(cudaFree(DeviceMem.nInfo.isoenergy));
-  gpuErrchk(cudaFree(DeviceMem.num_terminated_neutrons));
-  gpuErrchk(cudaFree(DeviceMem.block_terminated_neutrons));
-  gpuErrchk(cudaFree(DeviceMem.tally.cnt));
-  gpuErrchk(cudaFree(blockcnt));
 #if defined(__QUICKW)
   gpuErrchk(cudaFree(wtable));
 #endif
@@ -290,9 +241,8 @@ void anyvalue(struct multipoledata* data, unsigned numIsos, struct matdata* pmat
 #endif
   U238.release_pointer();
   mat.release_pointer();
-  free(hostarray);
-  free(cnt);
-  gpuErrchk(cudaFreeHost(HostMem.num_terminated_neutrons));
+
+  release_memory(DeviceMem, HostMem, devicearray, hostarray, cnt, blockcnt);
   res = cudppDestroyPlan(sortplan);
   if (CUDPP_SUCCESS != res)
   {
