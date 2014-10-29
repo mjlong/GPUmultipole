@@ -7,6 +7,7 @@
 #include "simulation.h"
 #include "manmemory.h"
 
+#include "devicebridge.h"
 /*
   To compile host and device codes separately, 
   this "main" file works as interface 
@@ -29,7 +30,10 @@ __constant__ CMPTYPE2 constwtable[LENGTH*LENGTH];
 #endif
 
 extern void tracemain(int num_particle, int, int, float*,NeutronInfoStruct);
-void printdevice();
+
+void uploadmultipole(struct multipoledata* data, unsigned numIsos){
+
+}
 
 void anyvalue(struct multipoledata* data, unsigned numIsos, struct matdata* pmat, unsigned totIsos, unsigned setgridx, unsigned setblockx, unsigned num_src, unsigned devstep, unsigned* cnt, unsigned* blockcnt, CMPTYPE* hostarray, CMPTYPE* devicearray, MemStruct HostMem, MemStruct DeviceMem){
   unsigned gridx, blockx, gridsize;

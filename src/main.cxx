@@ -9,7 +9,7 @@
 #include <cudpp_config.h>
 #include <neutron.h>
 #include <manmemory.h>
-extern void anyvalue(struct multipoledata* data, unsigned numIsos, struct matdata* pmat, unsigned totIsos, unsigned setgridx, unsigned setblockx, unsigned num_src, unsigned devstep, unsigned*, unsigned*, CMPTYPE*, CMPTYPE*, MemStruct, MemStruct);
+#include "devicebridge.h"
 void printbless();
 int main(int argc, char **argv){
 //calculation dimension
