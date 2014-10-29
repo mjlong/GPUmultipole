@@ -49,9 +49,6 @@ void anyvalue(struct multipoledata* data, unsigned numIsos, struct matdata* pmat
   gridsize = gridx*blockx;
 
 
-  float geoPara[6] = {0.48f,0.5f,50.f,1.2f,100.f,100.f};
-  //float geoPara[6] = {0.00048f,0.0005f,0.050f,0.0012f,0.100f,0.100f};
-                      //r1,  r2,  h/2, p,   t,    H/2
 
   gpuErrchk(cudaEventCreate(&start));
   gpuErrchk(cudaEventCreate(&stop));
