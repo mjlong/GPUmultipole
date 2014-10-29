@@ -1,6 +1,10 @@
 #include "manmemory.h"
 
 //Simulation memory allocate and deallocate
+void initialize_device(){
+  cudaSetDevice(0);
+  gpuErrchk(cudaSetDeviceFlags(cudaDeviceMapHost | cudaDeviceLmemResizeToMax));
+}
 
 void initialize_memory(MemStruct *DeviceMem, MemStruct *HostMem, CMPTYPE** devicearray, CMPTYPE** hostarray, unsigned **cnt, unsigned** blockcnt, unsigned gridx, unsigned blockx ){
   unsigned gridsize;
