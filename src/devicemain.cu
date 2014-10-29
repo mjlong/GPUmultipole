@@ -30,18 +30,6 @@ __constant__ CMPTYPE2 constwtable[LENGTH*LENGTH];
 
 extern void tracemain(int num_particle, int, int, float*,NeutronInfoStruct);
 void printdevice();
-void freeMultipoleData(int numIsos, struct multipoledata* data){
-  for(int i=0;i<numIsos;i++){
-    free(data[i].fit);
-    free(data[i].mpdata);
-    free(data[i].l_value);
-    free(data[i].pseudo_rho);
-    free(data[i].w_start);
-    free(data[i].w_end);
-  }
-  free(data);
-}
-
 
 void anyvalue(struct multipoledata* data, unsigned numIsos, struct matdata* pmat, unsigned totIsos, unsigned setgridx, unsigned setblockx, unsigned num_src, unsigned devstep){
   unsigned gridx, blockx, gridsize;

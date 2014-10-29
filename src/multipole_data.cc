@@ -37,5 +37,22 @@ void isotope_read(char* input, struct multipoledata* isotopes ){
   fclose(fp);
   for(int i=0;i<numIso;i++)  
     h5read(isotopes[i],line[i]);
-
 }
+
+
+void freeMultipoleData(int numIsos, struct multipoledata* data){
+  for(int i=0;i<numIsos;i++){
+    free(data[i].fit);
+    free(data[i].mpdata);
+    free(data[i].l_value);
+    free(data[i].pseudo_rho);
+    free(data[i].w_start);
+    free(data[i].w_end);
+  }
+  free(data);
+}
+
+
+
+
+
