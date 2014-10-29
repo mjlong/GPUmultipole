@@ -1,6 +1,11 @@
 #ifndef __MULTIPOLEDATA_H__
 #define __MULTIPOLEDATA_H__
 
+#define FILENAMELEN 20
+#define MAXISOTOPES 10
+
+#include <stdio.h>
+#include <stdlib.h>
 #include "CPUComplex.h"
 
 #if defined(__CFLOAT)
@@ -36,5 +41,10 @@ struct multipoledata{
   //Contains the fitting function.  (reaction type, coeff index, window index)
   //=========================================================================
 };
+
+//after copy data from multipole_data to device, release memory
+void freeMultipoleData(int numIsos, struct multipoledata* data);
+unsigned count_isotopes(char* inputname);
+void isotope_read(char* input, struct multipoledata* isotopes );
 
 #endif
