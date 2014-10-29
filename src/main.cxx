@@ -4,16 +4,6 @@
 #include <stdio.h>
 #include <string.h>
 
-/*#if defined (__QUICKWC)
-#if defined(__CFLOAT)
-__constant__ float2 table[LENGTH][LENGTH];
-#else
-__constant__ double2 table[LENGTH][LENGTH];
-#endif
-//__constant__ CMPTYPE table[LENGTH*LENGTH*2];
-#endif
-*/
-
 extern void anyvalue(struct multipoledata*,unsigned,struct matdata*, unsigned, unsigned, unsigned, unsigned, unsigned);
 int init_data(char* input, char filenames[][FILENAMELEN]);
 
