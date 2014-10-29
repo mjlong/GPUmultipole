@@ -59,6 +59,14 @@ unsigned matread(struct matdata *pmat, char* filename){
   return nums;
 }
 
+void freeMaterialData(struct matdata* pdata){
+  free(pdata->offsets);
+  free(pdata->N_tot);
+  free(pdata->isotopes);
+  free(pdata->densities);   
+  free(pdata);
+}
+
 
 void clearline(char *line){
   int j;

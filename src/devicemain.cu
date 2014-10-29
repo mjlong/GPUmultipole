@@ -42,13 +42,6 @@ void freeMultipoleData(int numIsos, struct multipoledata* data){
   free(data);
 }
 
-void freeMaterialData(struct matdata* pdata){
-  free(pdata->offsets);
-  free(pdata->N_tot);
-  free(pdata->isotopes);
-  free(pdata->densities);   
-  free(pdata);
-}
 
 void anyvalue(struct multipoledata* data, unsigned numIsos, struct matdata* pmat, unsigned totIsos, unsigned setgridx, unsigned setblockx, unsigned num_src, unsigned devstep){
   unsigned gridx, blockx, gridsize;
