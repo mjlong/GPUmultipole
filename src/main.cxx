@@ -4,12 +4,48 @@
 #include <stdio.h>
 #include <string.h>
 
-extern void anyvalue(struct multipoledata*,unsigned,struct matdata*, unsigned, unsigned, unsigned, unsigned, unsigned);
-int init_data(char* input, char filenames[][FILENAMELEN]);
-
+#include <optix.h>
+#include <cudpp.h>
+#include <cudpp_config.h>
+//extern void anyvalue(struct multipoledata* data, unsigned numIsos, struct matdata* pmat, unsigned totIsos, unsigned setgridx, unsigned setblockx, unsigned num_src, unsigned devstep);
 void printbless();
 int main(int argc, char **argv){
   printbless();
+
+//create context
+  RTcontext context;
+  rtContextCreate(&context);
+  int id=0;
+  rtContextSetDevices(context, 1, &id);
+
+
+//CUDPP
+//Initialize CUDPP
+  CUDPPHandle theCudpp;
+  cudppCreate(&theCudpp);
+  CUDPPConfiguration config;
+  config.datatype = CUDPP_DOUBLE;
+  config.algorithm = CUDPP_SORT_RADIX;
+  config.options=CUDPP_OPTION_KEY_VALUE_PAIRS;
+
+  CUDPPHandle sortplan = 0;
+  CUDPPResult res = cudppPlan(theCudpp, &sortplan, config, atoi(argv[1])*atoi(argv[2]), 1, 0);
+
+  if (CUDPP_SUCCESS != res)
+  {
+      printf("Error creating CUDPPPlan\n");
+      exit(-1);
+  }
+
+  res = cudppDestroyPlan(sortplan);
+  if (CUDPP_SUCCESS != res)
+  {
+      printf("Error destroying CUDPPPlan\n");
+      exit(-1);
+  }
+  // shut down the CUDPP library
+  cudppDestroy(theCudpp);
+
 
   int numIso,totIso;
 //read isotopes
@@ -21,8 +57,10 @@ int main(int argc, char **argv){
   struct matdata *pmat=(struct matdata*)malloc(sizeof(struct matdata));
   totIso=matread(pmat,argv[6]); 
 //move on to device settings
-  anyvalue(isotopes,numIso,pmat, totIso, atoi(argv[1]),atoi(argv[2]),atoi(argv[3]),atoi(argv[4]));
+//  anyvalue( isotopes,numIso,pmat, totIso, atoi(argv[1]),atoi(argv[2]),atoi(argv[3]),atoi(argv[4]));
 
+
+  rtContextDestroy(context); 
   return 0;
 }
 
