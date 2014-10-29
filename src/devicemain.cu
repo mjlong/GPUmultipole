@@ -31,14 +31,11 @@ __constant__ CMPTYPE2 constwtable[LENGTH*LENGTH];
 extern void tracemain(int num_particle, int, int, float*,NeutronInfoStruct);
 void printdevice();
 
-void anyvalue(struct multipoledata* data, unsigned numIsos, struct matdata* pmat, unsigned totIsos, unsigned setgridx, unsigned setblockx, unsigned num_src, unsigned devstep){
+void anyvalue(struct multipoledata* data, unsigned numIsos, struct matdata* pmat, unsigned totIsos, unsigned setgridx, unsigned setblockx, unsigned num_src, unsigned devstep, unsigned* cnt, unsigned* blockcnt, CMPTYPE* hostarray, CMPTYPE* devicearray, MemStruct HostMem, MemStruct DeviceMem){
   unsigned gridx, blockx, gridsize;
   unsigned ints=0, sharedmem;
   float timems = 0.0;
-  unsigned *cnt, *blockcnt;
   unsigned int active;
-  CMPTYPE *hostarray, *devicearray;
-  MemStruct HostMem, DeviceMem;
   cudaEvent_t start, stop;
   //printdevice();
   gridx = setgridx;
@@ -52,29 +49,10 @@ void anyvalue(struct multipoledata* data, unsigned numIsos, struct matdata* pmat
   //float geoPara[6] = {0.00048f,0.0005f,0.050f,0.0012f,0.100f,0.100f};
                       //r1,  r2,  h/2, p,   t,    H/2
 
-  cudaSetDevice(0);
-  gpuErrchk(cudaSetDeviceFlags(cudaDeviceMapHost | cudaDeviceLmemResizeToMax));
   gpuErrchk(cudaEventCreate(&start));
   gpuErrchk(cudaEventCreate(&stop));
 
-  initialize_memory(&DeviceMem, &HostMem, &devicearray, &hostarray, &cnt, &blockcnt, gridx,blockx);
 
-  //Initialize CUDPP
-    CUDPPHandle theCudpp;
-    cudppCreate(&theCudpp);
-    CUDPPConfiguration config;
-    config.datatype = CUDPP_DOUBLE;
-    config.algorithm = CUDPP_SORT_RADIX;
-    config.options=CUDPP_OPTION_KEY_VALUE_PAIRS;
-
-    CUDPPHandle sortplan = 0;
-    CUDPPResult res = cudppPlan(theCudpp, &sortplan, config, gridsize, 1, 0);
-
-    if (CUDPP_SUCCESS != res)
-    {
-        printf("Error creating CUDPPPlan\n");
-        exit(-1);
-    }
 
 // construct coefficients a[n] for fourier expansion w
 #if defined(__FOURIERW)
@@ -117,7 +95,6 @@ void anyvalue(struct multipoledata* data, unsigned numIsos, struct matdata* pmat
   cudaMemcpyToSymbol(constwtable, exptable, LENGTH*LENGTH*2*sizeof(CMPTYPE), 0, cudaMemcpyDeviceToDevice);
 #endif
 
-
   initialize<<<dimGrid, dimBlock>>>(DeviceMem, STARTENE);//1.95093e4);
   //  cudaDeviceSynchronize();
 
@@ -132,24 +109,21 @@ void anyvalue(struct multipoledata* data, unsigned numIsos, struct matdata* pmat
 #else
   active = 1u;
 #endif
+  //tracemain(gridsize, 2, 2, geoPara, DeviceMem.nInfo);
+
 
   while (active){
-    cudppRadixSort(sortplan, DeviceMem.nInfo.isoenergy, DeviceMem.nInfo.id, gridsize);
-    //                          keys,                   values,             numElements
 #if defined(__TRACK)
     history<<<dimGrid, dimBlock, blockx*sizeof(unsigned)>>>(numIsos, U238, devicearray, DeviceMem, num_src, devstep);
 #else
     history<<<dimGrid, dimBlock, blockx*sizeof(unsigned)>>>(numIsos, U238, DeviceMem, num_src, devstep);
 #endif
-    tracemain(gridsize, 2, 2, geoPara, DeviceMem.nInfo);
-
     statistics<<<1, dimGrid, gridx*sizeof(unsigned)>>>(DeviceMem.block_terminated_neutrons, DeviceMem.num_terminated_neutrons);
     gpuErrchk(cudaMemcpy(HostMem.num_terminated_neutrons,DeviceMem.num_terminated_neutrons,sizeof(unsigned int), cudaMemcpyDeviceToHost));
 
     active = HostMem.num_terminated_neutrons[0] + gridsize < num_src;  
   }
 
-  cudppRadixSort(sortplan, DeviceMem.nInfo.isoenergy, DeviceMem.nInfo.id, gridsize);
   remaining<<<dimGrid, dimBlock>>>(numIsos, U238, devicearray, DeviceMem);
 
   gpuErrchk(cudaEventRecord(stop, 0));
@@ -222,16 +196,6 @@ void anyvalue(struct multipoledata* data, unsigned numIsos, struct matdata* pmat
 #endif
   U238.release_pointer();
   mat.release_pointer();
-
-  release_memory(DeviceMem, HostMem, devicearray, hostarray, cnt, blockcnt);
-  res = cudppDestroyPlan(sortplan);
-  if (CUDPP_SUCCESS != res)
-  {
-      printf("Error destroying CUDPPPlan\n");
-      exit(-1);
-  }
-  // shut down the CUDPP library
-  cudppDestroy(theCudpp);
 
   return;
 }

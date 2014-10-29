@@ -7,10 +7,25 @@
 #include <optix.h>
 #include <cudpp.h>
 #include <cudpp_config.h>
-//extern void anyvalue(struct multipoledata* data, unsigned numIsos, struct matdata* pmat, unsigned totIsos, unsigned setgridx, unsigned setblockx, unsigned num_src, unsigned devstep);
+#include <neutron.h>
+#include <manmemory.h>
+extern void anyvalue(struct multipoledata* data, unsigned numIsos, struct matdata* pmat, unsigned totIsos, unsigned setgridx, unsigned setblockx, unsigned num_src, unsigned devstep, unsigned*, unsigned*, CMPTYPE*, CMPTYPE*, MemStruct, MemStruct);
 void printbless();
 int main(int argc, char **argv){
+//calculation dimension
+  unsigned gridx, blockx, gridsize;
+  gridx = atoi(argv[1]);
+  blockx = atoi(argv[2]);
+  gridsize = gridx*blockx;
+
+//memory allocation
+  initialize_device();
+  unsigned *cnt, *blockcnt;
+  CMPTYPE *hostarray, *devicearray;
+  MemStruct HostMem, DeviceMem;
+  initialize_memory(&DeviceMem, &HostMem, &devicearray, &hostarray, &cnt, &blockcnt, gridx,blockx);
   printbless();
+
 
 //create context
   RTcontext context;
@@ -29,7 +44,7 @@ int main(int argc, char **argv){
   config.options=CUDPP_OPTION_KEY_VALUE_PAIRS;
 
   CUDPPHandle sortplan = 0;
-  CUDPPResult res = cudppPlan(theCudpp, &sortplan, config, atoi(argv[1])*atoi(argv[2]), 1, 0);
+  CUDPPResult res = cudppPlan(theCudpp, &sortplan, config, gridsize, 1, 0);
 
   if (CUDPP_SUCCESS != res)
   {
@@ -57,8 +72,9 @@ int main(int argc, char **argv){
   struct matdata *pmat=(struct matdata*)malloc(sizeof(struct matdata));
   totIso=matread(pmat,argv[6]); 
 //move on to device settings
-//  anyvalue( isotopes,numIso,pmat, totIso, atoi(argv[1]),atoi(argv[2]),atoi(argv[3]),atoi(argv[4]));
+  anyvalue( isotopes,numIso,pmat, totIso, gridx,blockx,atoi(argv[3]),atoi(argv[4]),cnt,blockcnt, hostarray,devicearray, HostMem,DeviceMem);
 
+  release_memory(DeviceMem, HostMem, devicearray, hostarray, cnt, blockcnt);
 
   rtContextDestroy(context); 
   return 0;
