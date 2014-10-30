@@ -127,9 +127,13 @@ initialize_neutrons(gridx, blockx, DeviceMem);
 clock_start = clock();
 
 while(active){
+  cudppRadixSort(sortplan, DeviceMem.nInfo.isoenergy, DeviceMem.nInfo.id, gridsize);
+    //                          keys,                   values,             numElements
   start_neutrons(gridx, blockx, numIso, U238, devicearray, DeviceMem, num_src, devstep);
+  //tracemain2(context, gridsize, 2, 2, geoPara, DeviceMem.nInfo);
   active = count_neutrons(gridx, blockx, DeviceMem, HostMem,num_src);
 }
+  cudppRadixSort(sortplan, DeviceMem.nInfo.isoenergy, DeviceMem.nInfo.id, gridsize);
   remain_neutrons(gridx, blockx,numIso, U238, devicearray, DeviceMem);
 clock_end   = clock();
 time_elapsed = (float)(clock_end-clock_start)/CLOCKS_PER_SEC*1000.f;
