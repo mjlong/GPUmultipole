@@ -3,6 +3,7 @@
 
 #include "gpuerrchk.h"
 #include "neutron.h"
+#include "CComplex.h"
 
 //initialize device
 void initialize_device();
