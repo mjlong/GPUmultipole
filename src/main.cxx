@@ -12,6 +12,7 @@
 #include "devicebridge.h"
 
 #include "multipole.h"
+#include "material.h"
 #include "optixmain.h"
 
 void printbless();
@@ -36,6 +37,22 @@ int main(int argc, char **argv){
 //
 //Faddeeva tables
 //
+// construct coefficients a[n] for fourier expansion w
+#if defined(__FOURIERW)
+  CMPTYPE *da;
+  CMPTYPE *db;
+  fill_wtables(&da,&db);
+#endif
+// fill exp(z) table for fourierw
+#if defined(__INTERPEXP)
+  CComplex<CMPTYPE> *exptable;
+  fill_wtables(&exptable);
+#endif
+// fill w function table for Quick W
+#if defined(__QUICKW)
+  CComplex<CMPTYPE> *wtable;
+  fill_wtables(&wtable);
+#endif
 
 //create context
   RTcontext context;
@@ -82,17 +99,35 @@ int main(int argc, char **argv){
   struct multipoledata *isotopes;
   isotopes = (struct multipoledata*)malloc(sizeof(struct multipoledata)*numIso);
   isotope_read(argv[5],isotopes);
-  multipole U92238(isotopes, numIso);
-  U92238.release_pointer();
+#if defined(__QUICKWG)
+  multipole U238(isotopes, numIso, wtable);
+#else
+  multipole U238(isotopes, numIso);
+#endif 
+  freeMultipoleData(numIso,isotopes);
+
 //read materials
   struct matdata *pmat=(struct matdata*)malloc(sizeof(struct matdata));
   totIso=matread(pmat,argv[6]); 
+  material mat(pmat, totIso);
+  freeMaterialData(pmat);
+
 //move on to device settings
-  anyvalue( isotopes,numIso,pmat, totIso, gridx,blockx,atoi(argv[3]),atoi(argv[4]),cnt,blockcnt, hostarray,devicearray, HostMem,DeviceMem);
+//  anyvalue( isotopes,numIso,pmat, totIso, gridx,blockx,atoi(argv[3]),atoi(argv[4]),cnt,blockcnt, hostarray,devicearray, HostMem,DeviceMem);
 
  cudppRadixSort(sortplan, DeviceMem.nInfo.isoenergy, DeviceMem.nInfo.id, gridsize);
   printf("tested cudppSort\n");
+
   release_memory(DeviceMem, HostMem, devicearray, hostarray, cnt, blockcnt);
+#if defined(__FOURIERW)
+  release_wtables(da,db);
+#endif
+#if defined(__INTERPEXP)
+  release_wtables(exptable);
+#endif
+#if defined(__QUICKW)
+  release_wtables(wtable);
+#endif
 
   rtContextDestroy(context); 
   return 0;
