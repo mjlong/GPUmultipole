@@ -18,9 +18,10 @@
 #include <time.h>
 void printbless();
 int main(int argc, char **argv){
-// 
-//calculation dimension
-//
+  printbless();
+//============================================================ 
+//====================calculation dimension===================
+//============================================================
   unsigned gridx, blockx, gridsize;
   unsigned num_src, devstep;
   gridx = atoi(argv[1]);
@@ -28,38 +29,43 @@ int main(int argc, char **argv){
   gridsize = gridx*blockx;
   num_src = atoi(argv[3]);
   devstep = atoi(argv[4]);
-
-//
-//simulation memory allocation
-//
+//============================================================ 
+//=============simulation memory allocation===================
+//============================================================
   initialize_device();
   unsigned *cnt, *blockcnt;
   CMPTYPE *hostarray, *devicearray;
   MemStruct HostMem, DeviceMem;
   initialize_memory(&DeviceMem, &HostMem, &devicearray, &hostarray, &cnt, &blockcnt, gridx,blockx);
-  printbless();
-
+//============================================================ 
+//===============Faddeeva tables==============================
+//============================================================
 //
-//Faddeeva tables
+//===construct coefficients a[n] for fourier expansion w======
 //
-// construct coefficients a[n] for fourier expansion w
 #if defined(__FOURIERW)
   CMPTYPE *da;
   CMPTYPE *db;
   fill_wtables(&da,&db);
 #endif
-// fill exp(z) table for fourierw
+//
+//=============fill exp(z) table for fourierw=================
+//
 #if defined(__INTERPEXP)
   CComplex<CMPTYPE> *exptable;
   fill_wtables(&exptable);
 #endif
-// fill w function table for Quick W
+//
+//==========fill w function table for Quick W=================
+//
 #if defined(__QUICKW)
   CComplex<CMPTYPE> *wtable;
   fill_wtables(&wtable);
 #endif
 
-//create context
+//============================================================ 
+//===============Optix Ray Tracing Context====================
+//============================================================
   RTcontext context;
   rtContextCreate(&context);
   int id=0;
@@ -67,54 +73,54 @@ int main(int argc, char **argv){
   float geoPara[6] = {0.48f,0.5f,50.f,1.2f,100.f,100.f};
   //float geoPara[6] = {0.00048f,0.0005f,0.050f,0.0012f,0.100f,0.100f};
                       //r1,  r2,  h/2, p,   t,    H/2
-  tracemain2(context, gridsize, 2, 2, geoPara, DeviceMem.nInfo);
-  //rtContextDestroy( context );
+  tracemain2(context, gridsize, 3, 3, geoPara, DeviceMem.nInfo);
 
-//CUDPP
-//Initialize CUDPP
+//============================================================ 
+//=============CUDPP Initialization===========================
+//============================================================
   CUDPPHandle theCudpp;
   cudppCreate(&theCudpp);
   CUDPPConfiguration config;
   config.datatype = CUDPP_DOUBLE;
   config.algorithm = CUDPP_SORT_RADIX;
   config.options=CUDPP_OPTION_KEY_VALUE_PAIRS;
-
   CUDPPHandle sortplan = 0;
   CUDPPResult res = cudppPlan(theCudpp, &sortplan, config, gridsize, 1, 0);
-
   if (CUDPP_SUCCESS != res)
   {
       printf("Error creating CUDPPPlan\n");
       exit(-1);
   }
-
-
-
+//============================================================ 
+//=============Read Isotopes(multipole data)==================
+//============================================================
   int numIso,totIso;
-//read isotopes
+//read from hdf5 file to host memory
   numIso = count_isotopes(argv[5]);
   struct multipoledata *isotopes;
   isotopes = (struct multipoledata*)malloc(sizeof(struct multipoledata)*numIso);
   isotope_read(argv[5],isotopes);
+//copy host isotope data to device
 #if defined(__QUICKWG)
   multipole U238(isotopes, numIso, wtable);
 #else
   multipole U238(isotopes, numIso);
 #endif 
+//release host isotope data memory
   freeMultipoleData(numIso,isotopes);
-
-//read materials
+//============================================================ 
+//=======Read Materials([isotope, density] pairs)=============
+//============================================================
+//read from text setting file to host memory 
   struct matdata *pmat=(struct matdata*)malloc(sizeof(struct matdata));
   totIso=matread(pmat,argv[6]); 
+//copy host material setting to device
   material mat(pmat, totIso);
+//release host material memory
   freeMaterialData(pmat);
-
-//move on to device settings
-//  anyvalue( isotopes,numIso,pmat, totIso, gridx,blockx,atoi(argv[3]),atoi(argv[4]),cnt,blockcnt, hostarray,devicearray, HostMem,DeviceMem);
-
-//
-//main simulation body
-//
+//============================================================ 
+//===============main simulation body=========================
+//============================================================
 clock_t clock_start, clock_end;
 float time_elapsed = 0.f;
 unsigned active;
@@ -125,10 +131,9 @@ unsigned active;
 #endif
 initialize_neutrons(gridx, blockx, DeviceMem); 
 clock_start = clock();
-
 while(active){
   cudppRadixSort(sortplan, DeviceMem.nInfo.isoenergy, DeviceMem.nInfo.id, gridsize);
-    //                          keys,                   values,             numElements
+  //                          keys,                   values,             numElements
   start_neutrons(gridx, blockx, numIso, U238, devicearray, DeviceMem, num_src, devstep);
   //tracemain2(context, gridsize, 2, 2, geoPara, DeviceMem.nInfo);
   active = count_neutrons(gridx, blockx, DeviceMem, HostMem,num_src);
@@ -139,10 +144,12 @@ clock_end   = clock();
 time_elapsed = (float)(clock_end-clock_start)/CLOCKS_PER_SEC*1000.f;
 print_results(gridx, blockx, num_src, devstep, DeviceMem, HostMem, hostarray, devicearray, blockcnt,cnt, time_elapsed);
  
+//============================================================ 
+//=============simulation shut down===========================
+//============================================================
   release_memory(DeviceMem, HostMem, devicearray, hostarray, cnt, blockcnt);
   U238.release_pointer();
   mat.release_pointer();
-
 #if defined(__FOURIERW)
   release_wtables(da,db);
 #endif
@@ -158,9 +165,10 @@ print_results(gridx, blockx, num_src, devstep, DeviceMem, HostMem, hostarray, de
       printf("Error destroying CUDPPPlan\n");
       exit(-1);
   }
-  // shut down the CUDPP library
-  cudppDestroy(theCudpp);
 
+// shut down the CUDPP library
+  cudppDestroy(theCudpp);
+// destroy the optix ray tracing context
   rtContextDestroy(context); 
   return 0;
 }
