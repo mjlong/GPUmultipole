@@ -103,9 +103,9 @@ int main(int argc, char **argv){
   isotope_read(argv[7],isotopes);
 //copy host isotope data to device
 #if defined(__QUICKWG)
-  multipole U238(isotopes, numIso, wtable);
+  multipole mp_para(isotopes, numIso, wtable);
 #else
-  multipole U238(isotopes, numIso);
+  multipole mp_para(isotopes, numIso);
 #endif 
 //release host isotope data memory
   freeMultipoleData(numIso,isotopes);
@@ -135,12 +135,12 @@ clock_start = clock();
 while(active){
   cudppRadixSort(sortplan, DeviceMem.nInfo.isoenergy, DeviceMem.nInfo.id, gridsize);
   //                          keys,                   values,             numElements
-  start_neutrons(gridx, blockx, numIso, U238, devicearray, DeviceMem, num_src, devstep);
+  start_neutrons(gridx, blockx, numIso, mp_para, devicearray, DeviceMem, num_src, devstep);
   RT_CHECK_ERROR(rtContextLaunch1D(context, 0, gridsize));
   active = count_neutrons(gridx, blockx, DeviceMem, HostMem,num_src);
 }
   cudppRadixSort(sortplan, DeviceMem.nInfo.isoenergy, DeviceMem.nInfo.id, gridsize);
-  remain_neutrons(gridx, blockx,numIso, U238, devicearray, DeviceMem);
+  remain_neutrons(gridx, blockx,numIso, mp_para, devicearray, DeviceMem);
 clock_end   = clock();
 time_elapsed = (float)(clock_end-clock_start)/CLOCKS_PER_SEC*1000.f;
 print_results(gridx, blockx, num_src, devstep, DeviceMem, HostMem, hostarray, devicearray, blockcnt,cnt, time_elapsed);
@@ -149,7 +149,7 @@ print_results(gridx, blockx, num_src, devstep, DeviceMem, HostMem, hostarray, de
 //=============simulation shut down===========================
 //============================================================
   release_memory(DeviceMem, HostMem, devicearray, hostarray, cnt, blockcnt);
-  U238.release_pointer();
+  mp_para.release_pointer();
   mat.release_pointer();
 #if defined(__FOURIERW)
   release_wtables(da,db);

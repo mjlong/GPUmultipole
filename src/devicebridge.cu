@@ -14,11 +14,11 @@ void initialize_neutrons(unsigned gridx, unsigned blockx,MemStruct DeviceMem){
   initialize<<<gridx, blockx>>>(DeviceMem, STARTENE);//1.95093e4);
 }
 
-void start_neutrons(unsigned gridx, unsigned blockx, unsigned numIsos, multipole U238, CMPTYPE* devicearray, MemStruct DeviceMem, unsigned num_src, unsigned devstep){
+void start_neutrons(unsigned gridx, unsigned blockx, unsigned numIsos, multipole mp_data, CMPTYPE* devicearray, MemStruct DeviceMem, unsigned num_src, unsigned devstep){
 #if defined(__TRACK)
-    history<<<gridx, blockx, blockx*sizeof(unsigned)>>>(numIsos, U238, devicearray, DeviceMem, num_src, devstep);
+    history<<<gridx, blockx, blockx*sizeof(unsigned)>>>(numIsos, mp_data, devicearray, DeviceMem, num_src, devstep);
 #else
-    history<<<gridx, blockx, blockx*sizeof(unsigned)>>>(numIsos, U238, DeviceMem, num_src, devstep);
+    history<<<gridx, blockx, blockx*sizeof(unsigned)>>>(numIsos, mp_data, DeviceMem, num_src, devstep);
 #endif
 } 
 
@@ -30,8 +30,8 @@ unsigned count_neutrons(unsigned gridx, unsigned blockx, MemStruct DeviceMem, Me
   return active;
 }
 
-void remain_neutrons(unsigned gridx, unsigned blockx, unsigned numIsos, multipole U238, CMPTYPE* devicearray, MemStruct DeviceMem){
-  remaining<<<gridx, blockx>>>(numIsos, U238, devicearray, DeviceMem);
+void remain_neutrons(unsigned gridx, unsigned blockx, unsigned numIsos, multipole mp_data, CMPTYPE* devicearray, MemStruct DeviceMem){
+  remaining<<<gridx, blockx>>>(numIsos, mp_data, devicearray, DeviceMem);
 }
 
 void print_results(unsigned gridx, unsigned blockx, unsigned num_src, unsigned devstep, MemStruct DeviceMem, MemStruct HostMem, CMPTYPE* hostarray, CMPTYPE* devicearray, unsigned* blockcnt,unsigned* cnt, float timems){
