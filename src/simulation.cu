@@ -28,9 +28,10 @@ __global__ void initialize(MemStruct pInfo, CMPTYPE energy){
   pInfo.nInfo.rndState[id] = state;
 }
 
-__global__ void transport(MemStruct Info){
+__global__ void transport(MemStruct Info, material mat){
   int id = blockDim.x * blockIdx.x + threadIdx.x;
   int nid = Info.nInfo.id[id];
+  
 
 }
 #if defined(__TRACK)
