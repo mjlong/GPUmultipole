@@ -21,5 +21,7 @@ void createGeometryCylinder( RTcontext context, RTgeometry* cylinder, float,floa
 void createGeometrySphere( RTcontext context, RTgeometry* sphere, float*);
 void createInstances( RTcontext context, RTmaterial material, float*, int n, int m  );
 void tracemain(int, int, int, float*, NeutronInfoStruct);
+void initialize_context(RTcontext, int, int, int, float*, NeutronInfoStruct);
+void createContext2( int width, float R1, float Hh, unsigned num_geo, RTcontext context, NeutronInfoStruct nInfo);
 
 #endif
