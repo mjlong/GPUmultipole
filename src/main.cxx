@@ -67,14 +67,15 @@ int main(int argc, char **argv){
 //===============Optix Ray Tracing Context====================
 //============================================================
   RTcontext context;
-  rtContextCreate(&context);
+  RT_CHECK_ERROR(rtContextCreate(&context));
   int id=0;
   rtContextSetDevices(context, 1, &id);
   float geoPara[6] = {0.48f,0.5f,50.f,1.2f,100.f,100.f};
   //float geoPara[6] = {0.00048f,0.0005f,0.050f,0.0012f,0.100f,0.100f};
                       //r1,  r2,  h/2, p,   t,    H/2
-  tracemain2(context, gridsize, 3, 3, geoPara, DeviceMem.nInfo);
-
+  initialize_context(context, gridsize, 
+                     atoi(argv[5]),atoi(argv[6]), 
+                     geoPara, DeviceMem.nInfo);
 //============================================================ 
 //=============CUDPP Initialization===========================
 //============================================================
@@ -96,10 +97,10 @@ int main(int argc, char **argv){
 //============================================================
   int numIso,totIso;
 //read from hdf5 file to host memory
-  numIso = count_isotopes(argv[5]);
+  numIso = count_isotopes(argv[7]);
   struct multipoledata *isotopes;
   isotopes = (struct multipoledata*)malloc(sizeof(struct multipoledata)*numIso);
-  isotope_read(argv[5],isotopes);
+  isotope_read(argv[7],isotopes);
 //copy host isotope data to device
 #if defined(__QUICKWG)
   multipole U238(isotopes, numIso, wtable);
@@ -113,7 +114,7 @@ int main(int argc, char **argv){
 //============================================================
 //read from text setting file to host memory 
   struct matdata *pmat=(struct matdata*)malloc(sizeof(struct matdata));
-  totIso=matread(pmat,argv[6]); 
+  totIso=matread(pmat,argv[8]); 
 //copy host material setting to device
   material mat(pmat, totIso);
 //release host material memory
@@ -135,7 +136,7 @@ while(active){
   cudppRadixSort(sortplan, DeviceMem.nInfo.isoenergy, DeviceMem.nInfo.id, gridsize);
   //                          keys,                   values,             numElements
   start_neutrons(gridx, blockx, numIso, U238, devicearray, DeviceMem, num_src, devstep);
-  //tracemain2(context, gridsize, 2, 2, geoPara, DeviceMem.nInfo);
+  RT_CHECK_ERROR(rtContextLaunch1D(context, 0, gridsize));
   active = count_neutrons(gridx, blockx, DeviceMem, HostMem,num_src);
 }
   cudppRadixSort(sortplan, DeviceMem.nInfo.isoenergy, DeviceMem.nInfo.id, gridsize);
