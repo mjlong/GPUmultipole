@@ -1,9 +1,5 @@
 #include "CPUComplex.h"
 #include "CComplex.h"
-#include "multipole_data.h"
-#include "multipole.h"
-#include "material_data.h"
-#include "material.h"
 #include "simulation.h"
 #include "manmemory.h"
 
@@ -14,136 +10,39 @@
   allocating device memory, transfering data and partitioning computation sources
 */
 
-
-#if defined (__QUICKW)
-#include "QuickW.h"
-#endif
-
-#if defined (__FOURIERW)
-#include "fourierw.h"
-__constant__ CMPTYPE a[M+1];
-__constant__ CMPTYPE b[M+1];
-#endif
-
-#if defined (__QUICKWC) || defined(__INTERPEXP)
-__constant__ CMPTYPE2 constwtable[LENGTH*LENGTH];
-#endif
-
-extern void tracemain(int num_particle, int, int, float*,NeutronInfoStruct);
-
-void uploadmultipole(struct multipoledata* data, unsigned numIsos){
-
+void initialize_neutrons(unsigned gridx, unsigned blockx,MemStruct DeviceMem){
+  initialize<<<gridx, blockx>>>(DeviceMem, STARTENE);//1.95093e4);
 }
 
-void anyvalue(struct multipoledata* data, unsigned numIsos, struct matdata* pmat, unsigned totIsos, unsigned setgridx, unsigned setblockx, unsigned num_src, unsigned devstep, unsigned* cnt, unsigned* blockcnt, CMPTYPE* hostarray, CMPTYPE* devicearray, MemStruct HostMem, MemStruct DeviceMem){
-  unsigned gridx, blockx, gridsize;
-  unsigned ints=0, sharedmem;
-  float timems = 0.0;
-  unsigned int active;
-  cudaEvent_t start, stop;
-  //printdevice();
-  gridx = setgridx;
-  blockx = setblockx;
-  dim3 dimGrid(gridx, 1);
-  dim3 dimBlock(blockx, 1, 1);
-  gridsize = gridx*blockx;
-
-
-
-  gpuErrchk(cudaEventCreate(&start));
-  gpuErrchk(cudaEventCreate(&stop));
-
-
-
-// construct coefficients a[n] for fourier expansion w
-#if defined(__FOURIERW)
-  CMPTYPE *da;
-  CMPTYPE *db;
-  gpuErrchk(cudaMalloc((void**)&da, (M+1)*sizeof(CMPTYPE))); 
-  gpuErrchk(cudaMalloc((void**)&db, (M+1)*sizeof(CMPTYPE))); 
-  fill_a<<<1,M+1>>>(da,db); 
-  cudaMemcpyToSymbol(a, da, M*sizeof(CMPTYPE), 0, cudaMemcpyDeviceToDevice);
-  cudaMemcpyToSymbol(b, db, M*sizeof(CMPTYPE), 0, cudaMemcpyDeviceToDevice);
-#endif
-
-// fill w function table for quickw
-#if defined(__QUICKW)
-  CComplex<CMPTYPE> *wtable;
-  gpuErrchk(cudaMalloc((void**)&wtable, LENGTH*LENGTH * 2 * sizeof(CMPTYPE)));
-  fill_w_tabulated<<<LENGTH,LENGTH>>>(wtable);
-#if defined(__QUICKWC)
-  cudaMemcpyToSymbol(constwtable, wtable, LENGTH*LENGTH*2*sizeof(CMPTYPE), 0, cudaMemcpyDeviceToDevice);
-#endif
-#if defined(__QUICKWT)
-  bindwtable(wtable);
-#endif
-#endif
-
-#if defined(__QUICKWG)
-  multipole U238(data, numIsos, wtable);
-#else
-  multipole U238(data, numIsos);
-#endif 
-  freeMultipoleData(numIsos,data);
-  material mat(pmat, totIsos);
-  freeMaterialData(pmat);
-
-// fill exp(z) table for fourierw
-#if defined(__INTERPEXP)
-  CComplex<CMPTYPE> *exptable;
-  gpuErrchk(cudaMalloc((void**)&exptable, LENGTH*LENGTH * 2 * sizeof(CMPTYPE)));
-  fill_exp_table<<<LENGTH,LENGTH>>>(exptable);
-  cudaMemcpyToSymbol(constwtable, exptable, LENGTH*LENGTH*2*sizeof(CMPTYPE), 0, cudaMemcpyDeviceToDevice);
-#endif
-
-  initialize<<<dimGrid, dimBlock>>>(DeviceMem, STARTENE);//1.95093e4);
-  //  cudaDeviceSynchronize();
-
-  /*
-    Note: shared memory size is in unit of Bybe
-    And the address can be referred in form of p = pshared + offset
-  */
-  gpuErrchk(cudaEventRecord(start, 0));
-
-#if defined(__PROCESS) //|| defined(__TRACK)
-  active = 0u;
-#else
-  active = 1u;
-#endif
-  //tracemain(gridsize, 2, 2, geoPara, DeviceMem.nInfo);
-
-
-  while (active){
+void start_neutrons(unsigned gridx, unsigned blockx, unsigned numIsos, multipole U238, CMPTYPE* devicearray, MemStruct DeviceMem, unsigned num_src, unsigned devstep){
 #if defined(__TRACK)
-    history<<<dimGrid, dimBlock, blockx*sizeof(unsigned)>>>(numIsos, U238, devicearray, DeviceMem, num_src, devstep);
+    history<<<gridx, blockx, blockx*sizeof(unsigned)>>>(numIsos, U238, devicearray, DeviceMem, num_src, devstep);
 #else
-    history<<<dimGrid, dimBlock, blockx*sizeof(unsigned)>>>(numIsos, U238, DeviceMem, num_src, devstep);
+    history<<<gridx, blockx, blockx*sizeof(unsigned)>>>(numIsos, U238, DeviceMem, num_src, devstep);
 #endif
-    statistics<<<1, dimGrid, gridx*sizeof(unsigned)>>>(DeviceMem.block_terminated_neutrons, DeviceMem.num_terminated_neutrons);
-    gpuErrchk(cudaMemcpy(HostMem.num_terminated_neutrons,DeviceMem.num_terminated_neutrons,sizeof(unsigned int), cudaMemcpyDeviceToHost));
+} 
 
-    active = HostMem.num_terminated_neutrons[0] + gridsize < num_src;  
-  }
+unsigned count_neutrons(unsigned gridx, unsigned blockx, MemStruct DeviceMem, MemStruct HostMem, unsigned num_src){
+  unsigned active;
+  statistics<<<1, gridx, gridx*sizeof(unsigned)>>>(DeviceMem.block_terminated_neutrons, DeviceMem.num_terminated_neutrons);
+  gpuErrchk(cudaMemcpy(HostMem.num_terminated_neutrons,DeviceMem.num_terminated_neutrons,sizeof(unsigned int), cudaMemcpyDeviceToHost));
+  active = HostMem.num_terminated_neutrons[0] + gridx*blockx < num_src;  
+  return active;
+}
 
-  remaining<<<dimGrid, dimBlock>>>(numIsos, U238, devicearray, DeviceMem);
+void remain_neutrons(unsigned gridx, unsigned blockx, unsigned numIsos, multipole U238, CMPTYPE* devicearray, MemStruct DeviceMem){
+  remaining<<<gridx, blockx>>>(numIsos, U238, devicearray, DeviceMem);
+}
 
-  gpuErrchk(cudaEventRecord(stop, 0));
-  gpuErrchk(cudaEventSynchronize(stop));
-  gpuErrchk(cudaEventElapsedTime(&timems, start, stop));
-
-  printf("time elapsed:%3.1f ms\n", timems);
- 
-  gpuErrchk(cudaMemcpy(hostarray, devicearray, 4*gridsize*sizeof(CMPTYPE), cudaMemcpyDeviceToHost));
-
+void print_results(unsigned gridx, unsigned blockx, unsigned num_src, unsigned devstep, MemStruct DeviceMem, MemStruct HostMem, CMPTYPE* hostarray, CMPTYPE* devicearray, unsigned* blockcnt,unsigned* cnt, float timems){
+  gpuErrchk(cudaMemcpy(hostarray, devicearray, 4*gridx*blockx*sizeof(CMPTYPE), cudaMemcpyDeviceToHost));
   
-  ints = blockx;
-  sharedmem = ints*sizeof(int);
-  statistics<<<dimGrid, dimBlock, sharedmem>>>(DeviceMem.tally.cnt, blockcnt);
+  statistics<<<gridx, blockx, blockx*sizeof(int)>>>(DeviceMem.tally.cnt, blockcnt);
   gpuErrchk(cudaMemcpy(cnt, blockcnt, gridx*sizeof(unsigned), cudaMemcpyDeviceToHost));
 
 /*print energy & XS (energies for __TRACK)*/
 #if !defined(__PLOT)
-  for(int i=0;i<gridsize;i++){
+  for(int i=0;i<gridx*blockx;i++){
     printf(" %.15e %.15e %.15e %.15e",
 	   hostarray[4*i],
 	   hostarray[4*i+1],
@@ -178,29 +77,7 @@ void anyvalue(struct multipoledata* data, unsigned numIsos, struct matdata* pmat
   fprintf(fp,"%-4d,%-4d,%-.6f,%-8d,%-4d,%-2d M\n", gridx, blockx,timems*1000/sum, *HostMem.num_terminated_neutrons, devstep, num_src/1000000);
   fclose(fp);
 #endif
-  //cudaEventRecord(stop, 0);
-  //cudaEventSynchronize(stop);
-  //cudaEventElapsedTime(&timems, start, stop);
-
-  gpuErrchk(cudaEventDestroy(start));
-  gpuErrchk(cudaEventDestroy(stop));
-
-#if defined(__QUICKW)
-  gpuErrchk(cudaFree(wtable));
-#endif
-#if defined(__FOURIERW)
-  gpuErrchk(cudaFree(da));
-  gpuErrchk(cudaFree(db));
-#endif
-#if defined(__INTERPEXP)
-  gpuErrchk(cudaFree(exptable));
-#endif
-  U238.release_pointer();
-  mat.release_pointer();
-
-  return;
 }
-
 
 void printdevice(){
   cudaDeviceProp prop; 

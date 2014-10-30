@@ -15,15 +15,20 @@
 #include "material.h"
 #include "optixmain.h"
 
+#include <time.h>
 void printbless();
 int main(int argc, char **argv){
 // 
 //calculation dimension
 //
   unsigned gridx, blockx, gridsize;
+  unsigned num_src, devstep;
   gridx = atoi(argv[1]);
   blockx = atoi(argv[2]);
   gridsize = gridx*blockx;
+  num_src = atoi(argv[3]);
+  devstep = atoi(argv[4]);
+
 //
 //simulation memory allocation
 //
@@ -83,14 +88,6 @@ int main(int argc, char **argv){
       exit(-1);
   }
 
-  res = cudppDestroyPlan(sortplan);
-  if (CUDPP_SUCCESS != res)
-  {
-      printf("Error destroying CUDPPPlan\n");
-      exit(-1);
-  }
-  // shut down the CUDPP library
-  cudppDestroy(theCudpp);
 
 
   int numIso,totIso;
@@ -115,10 +112,33 @@ int main(int argc, char **argv){
 //move on to device settings
 //  anyvalue( isotopes,numIso,pmat, totIso, gridx,blockx,atoi(argv[3]),atoi(argv[4]),cnt,blockcnt, hostarray,devicearray, HostMem,DeviceMem);
 
- cudppRadixSort(sortplan, DeviceMem.nInfo.isoenergy, DeviceMem.nInfo.id, gridsize);
-  printf("tested cudppSort\n");
+//
+//main simulation body
+//
+clock_t clock_start, clock_end;
+float time_elapsed = 0.f;
+unsigned active;
+#if defined(__PROCESS) //|| defined(__TRACK)
+  active = 0u;
+#else
+  active = 1u;
+#endif
+initialize_neutrons(gridx, blockx, DeviceMem); 
+clock_start = clock();
 
+while(active){
+  start_neutrons(gridx, blockx, numIso, U238, devicearray, DeviceMem, num_src, devstep);
+  active = count_neutrons(gridx, blockx, DeviceMem, HostMem,num_src);
+}
+  remain_neutrons(gridx, blockx,numIso, U238, devicearray, DeviceMem);
+clock_end   = clock();
+time_elapsed = (float)(clock_end-clock_start)/CLOCKS_PER_SEC*1000.f;
+print_results(gridx, blockx, num_src, devstep, DeviceMem, HostMem, hostarray, devicearray, blockcnt,cnt, time_elapsed);
+ 
   release_memory(DeviceMem, HostMem, devicearray, hostarray, cnt, blockcnt);
+  U238.release_pointer();
+  mat.release_pointer();
+
 #if defined(__FOURIERW)
   release_wtables(da,db);
 #endif
@@ -128,6 +148,14 @@ int main(int argc, char **argv){
 #if defined(__QUICKW)
   release_wtables(wtable);
 #endif
+  res = cudppDestroyPlan(sortplan);
+  if (CUDPP_SUCCESS != res)
+  {
+      printf("Error destroying CUDPPPlan\n");
+      exit(-1);
+  }
+  // shut down the CUDPP library
+  cudppDestroy(theCudpp);
 
   rtContextDestroy(context); 
   return 0;
