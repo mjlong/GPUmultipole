@@ -91,7 +91,8 @@ void createContext( int width, float R1, float Hh, unsigned num_geo, RTcontext c
     RT_CHECK_ERROR( rtBufferCreateForCUDA( context, RT_BUFFER_INPUT, &output_current_buffer_obj) );
     RT_CHECK_ERROR( rtBufferSetFormat( output_current_buffer_obj, RT_FORMAT_UNSIGNED_BYTE4 ) );
     RT_CHECK_ERROR( rtBufferSetSize1D( output_current_buffer_obj, width) );
-    RT_CHECK_ERROR( rtBufferSetDevicePointer( output_current_buffer_obj, id, (CUdeviceptr)(nInfo.icell)));
+    RT_CHECK_ERROR( rtBufferSetDevicePointer( output_current_buffer_obj, id, (CUdeviceptr)(nInfo.imat)));
+    //TODO: instances have not been assigned the materialID, instead cell ID is used
     RT_CHECK_ERROR( rtVariableSetObject( output_current_buffer, output_current_buffer_obj ) );
 
     /* Input position buffer*/

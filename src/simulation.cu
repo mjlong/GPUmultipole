@@ -32,15 +32,13 @@ __global__ void transport(MemStruct Info, material mat){
   int id = blockDim.x * blockIdx.x + threadIdx.x;
   int nid = Info.nInfo.id[id];
   float d = Info.nInfo.d_closest[nid];
-  float s = -log(curand_uniform(&Info.nInfo.rndState[nid]))/mat.N_tot[Info.icell[nid]]*sigT;   
+  float s = -log(curand_uniform(&Info.nInfo.rndState[nid]))/mat.N_tot[Info.imat[nid]]*sigT;   
   float mu = Info.nInfo.dir_polar[nid];
   float phi= Info.nInfo.dir_azimu[nid];
   s = (d<s)*d+(d>=s)*s;
   Info.nInfo.pos_x[nid]+=s*sqrt(1-mu*mu)*cos(phi);
   Info.nInfo.pos_y[nid]+=s*sqrt(1-mu*mu)*sin(phi);
   Info.nInfo.pos_z[nid]+=s*mu;
- 
-
 }
 #if defined(__TRACK)
 __global__ void history(int numIso, multipole isotope, CMPTYPE* devicearray, MemStruct Info, unsigned num_src, unsigned devstep){
