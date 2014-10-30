@@ -20,5 +20,6 @@ __global__ void remaining(int, multipole, CMPTYPE *, MemStruct );
 __global__ void initialize(MemStruct, CMPTYPE);
 __device__ void launch(NeutronInfoStruct, int, CMPTYPE);
 __global__ void statistics(unsigned*, unsigned*);
+__global__ void transport(MemStruct);
 
 #endif
