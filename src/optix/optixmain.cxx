@@ -1,13 +1,6 @@
 #include "optixmain.h"
 char path_to_ptx[512];
 
-void materialQuery(RTcontext context, NeutronInfoStruct Info){
-
-}
-void destroyContext(RTcontext context){
-
-}
-
 void initialize_context(RTcontext context, int width, int n, int m, float *data, NeutronInfoStruct nInfo)
 {
     /* Primary RTAPI objects */
@@ -16,10 +9,10 @@ void initialize_context(RTcontext context, int width, int n, int m, float *data,
     /* Setup state */
 #if defined(__HEXPRISM__)
     unsigned num_geobj = (1+3*n*(n+1))*(1+3*m*(m+1))+1 ;
-    createContext2( width,sqrt(3.f*m*m+3.f*m+1.f)*(n+1)*data[3]/*p*/,data[2]/*hh*/,num_geobj, context, nInfo);
+    createContext( width,sqrt(3.f*m*m+3.f*m+1.f)*(n+1)*data[3]/*p*/,data[2]/*hh*/,num_geobj, context, nInfo);
 #else
     unsigned num_geobj = m*m*n*n*2+1 ;
-    createContext2( width,sqrt(2.0)*m*0.5*(n+2)*data[3]/*p*/,data[2]/*hh*/,num_geobj, context, nInfo);
+    createContext( width,sqrt(2.0)*m*0.5*(n+2)*data[3]/*p*/,data[2]/*hh*/,num_geobj, context, nInfo);
 #endif
     printf("%g,%g,%g,%g,%g\n",data[0],data[1],data[2],data[3],data[4]);
     printf("%d,%d,%d,%d,%d\n",width,n,m,0,0);
@@ -36,7 +29,7 @@ void initialize_context(RTcontext context, int width, int n, int m, float *data,
     // time cost (ms), average (us/geometry/ray)  
 }
 
-void createContext2( int width, float R1, float Hh, unsigned num_geo, RTcontext context, NeutronInfoStruct nInfo)
+void createContext( int width, float R1, float Hh, unsigned num_geo, RTcontext context, NeutronInfoStruct nInfo)
 {
 
     int id=0;
@@ -155,166 +148,6 @@ void createContext2( int width, float R1, float Hh, unsigned num_geo, RTcontext 
 
 
 
-void tracemain(int width, int n, int m, float *data, NeutronInfoStruct nInfo)
-{
-    /* Primary RTAPI objects */
-    RTcontext           context;
-    RTmaterial          material;
-    clock_t clock_start, clock_end;
-    float time_elapsed=0.f;
-  
-    /* Setup state */
-#if defined(__HEXPRISM__)
-    unsigned num_geobj = (1+3*n*(n+1))*(1+3*m*(m+1))+1 ;
-    createContext( width,sqrt(3.f*m*m+3.f*m+1.f)*(n+1)*data[3]/*p*/,data[2]/*hh*/,num_geobj, &context, nInfo);
-#else
-    unsigned num_geobj = m*m*n*n*2+1 ;
-    createContext( width,sqrt(2.0)*m*0.5*(n+2)*data[3]/*p*/,data[2]/*hh*/,num_geobj, &context, nInfo);
-#endif
-    printf("%g,%g,%g,%g,%g\n",data[0],data[1],data[2],data[3],data[4]);
-    printf("%d,%d,%d,%d,%d\n",width,n,m,0,0);
-
-    createMaterial( context, &material);
-    createInstances( context, material, data, n, m);
-
-    /* Run */
-    clock_start = clock();
-    RT_CHECK_ERROR( rtContextValidate( context ) );
-    RT_CHECK_ERROR( rtContextCompile( context ) );
-
-    RT_CHECK_ERROR( rtContextLaunch1D( context, 0, width/*, height*/ ) );
-    //The rtContextLaunch*D methods block until the kernel finishes.
-    clock_end = clock();
-    time_elapsed = (float)(clock_end-clock_start)/CLOCKS_PER_SEC*1000.f;
-    printf("%g, %g, %g, %g, %g\n", time_elapsed, time_elapsed*1000.f/width/num_geobj, 0.f,0.f,0.f);
-    // time cost (ms), average (us/geometry/ray)  
-  
-    /* Clean up */
-    RT_CHECK_ERROR( rtContextDestroy( context ) );
-}
-
-void createContext( int width, float R1, float Hh, unsigned num_geo, RTcontext* context, NeutronInfoStruct nInfo)
-{
-
-    //rtContextSetPrintEnabled(*context, 1 ); 
-    //rtContextSetPrintLaunchIndex(*context, 0,0,0 ); 
-    //rtContextSetPrintBufferSize( *context, 4096 ); 
-
-    RTprogram  ray_gen_program;
-    RTprogram  miss_program;
-    RTvariable only_one_ray_type;
-    RTvariable epsilon;
-    RTvariable max_depth;
-    RTvariable var_R1, var_Hh, var_num; 
-
-    RTvariable output_closest_buffer, output_current_buffer;
-    RTvariable input_pos_x_buffer,input_pos_y_buffer,input_pos_z_buffer,
-               input_dir_a_buffer,input_dir_p_buffer;
-    RTbuffer   input_pos_x_buffer_obj, input_pos_y_buffer_obj, input_pos_z_buffer_obj,
-               input_dir_a_buffer_obj, input_dir_p_buffer_obj;
-    RTbuffer            output_closest_buffer_obj;
-    RTbuffer            output_current_buffer_obj;
-
-    /* Setup context */
-    RT_CHECK_ERROR2( rtContextCreate( context ) );
-    int id = 0;
-    RT_CHECK_ERROR2( rtContextSetDevices( *context, 1, &id));
-    RT_CHECK_ERROR2( rtContextSetRayTypeCount( *context, 2 ) );//TODO:type count /* shadow and radiance */
-    RT_CHECK_ERROR2( rtContextSetEntryPointCount( *context, 1 ) );
-
-    /*Declare variables*/
-    RT_CHECK_ERROR2( rtContextDeclareVariable( *context, "input_pos_x_buffer", &input_pos_x_buffer));
-    RT_CHECK_ERROR2( rtContextDeclareVariable( *context, "input_pos_y_buffer", &input_pos_y_buffer));
-    RT_CHECK_ERROR2( rtContextDeclareVariable( *context, "input_pos_z_buffer", &input_pos_z_buffer));
-    RT_CHECK_ERROR2( rtContextDeclareVariable( *context, "input_dir_p_buffer", &input_dir_p_buffer));
-    RT_CHECK_ERROR2( rtContextDeclareVariable( *context, "input_dir_a_buffer", &input_dir_a_buffer));
-
-    RT_CHECK_ERROR2( rtContextDeclareVariable( *context, "output_closest_buffer", &output_closest_buffer ) );
-    RT_CHECK_ERROR2( rtContextDeclareVariable( *context, "output_current_buffer", &output_current_buffer ) );
-
-    RT_CHECK_ERROR2( rtContextDeclareVariable( *context, "max_depth", &max_depth ) );
-    RT_CHECK_ERROR2( rtContextDeclareVariable( *context, "only_one_ray_type", &only_one_ray_type ) );
-    RT_CHECK_ERROR2( rtContextDeclareVariable( *context, "scene_epsilon", &epsilon ) );
-    RT_CHECK_ERROR2( rtContextDeclareVariable( *context, "var_R1", &var_R1));
-    RT_CHECK_ERROR2( rtContextDeclareVariable( *context, "var_Hh", &var_Hh));
-    RT_CHECK_ERROR2( rtContextDeclareVariable( *context, "var_num", &var_num));
-
-    /*set variables: built-in types, rtVariableSetTYPE*/
-    RT_CHECK_ERROR2( rtVariableSet1i( max_depth, 10u ) );
-    RT_CHECK_ERROR2( rtVariableSet1ui( only_one_ray_type, 0u ) );
-#if defined(__MANY__)
-    RT_CHECK_ERROR2( rtVariableSet1f( epsilon, 1.e-3f ) );
-#else
-    RT_CHECK_ERROR2( rtVariableSet1f( epsilon, 1.e-3f ) );
-#endif
-    RT_CHECK_ERROR2( rtVariableSet1f( var_R1, R1*0.9 ) );
-    RT_CHECK_ERROR2( rtVariableSet1f( var_Hh, Hh*0.9 ) );
-    RT_CHECK_ERROR2( rtVariableSet1ui( var_num, num_geo+1  ) );
-
-    /* Render result buffer */
-    RT_CHECK_ERROR2( rtBufferCreateForCUDA( *context, RT_BUFFER_INPUT, &output_closest_buffer_obj) );
-    RT_CHECK_ERROR2( rtBufferSetFormat( output_closest_buffer_obj, RT_FORMAT_FLOAT ) );
-    RT_CHECK_ERROR2( rtBufferSetSize1D( output_closest_buffer_obj, width) );
-    RT_CHECK_ERROR2( rtBufferSetDevicePointer( output_closest_buffer_obj, id, (CUdeviceptr)(nInfo.d_closest)));
-    RT_CHECK_ERROR2( rtVariableSetObject( output_closest_buffer, output_closest_buffer_obj ) );
-
-    RT_CHECK_ERROR2( rtBufferCreateForCUDA( *context, RT_BUFFER_INPUT, &output_current_buffer_obj) );
-    RT_CHECK_ERROR2( rtBufferSetFormat( output_current_buffer_obj, RT_FORMAT_UNSIGNED_BYTE4 ) );
-    RT_CHECK_ERROR2( rtBufferSetSize1D( output_current_buffer_obj, width) );
-    RT_CHECK_ERROR2( rtBufferSetDevicePointer( output_current_buffer_obj, id, (CUdeviceptr)(nInfo.icell)));
-    RT_CHECK_ERROR2( rtVariableSetObject( output_current_buffer, output_current_buffer_obj ) );
-
-    /* Input position buffer*/
-    RT_CHECK_ERROR2( rtBufferCreateForCUDA( *context, RT_BUFFER_INPUT, &input_pos_x_buffer_obj)); 
-    RT_CHECK_ERROR2( rtBufferSetFormat( input_pos_x_buffer_obj, RT_FORMAT_FLOAT)); 
-    RT_CHECK_ERROR2( rtBufferSetSize1D(input_pos_x_buffer_obj, width));
-    RT_CHECK_ERROR2( rtBufferSetDevicePointer( input_pos_x_buffer_obj, id, (CUdeviceptr)(nInfo.pos_x)));
-    RT_CHECK_ERROR2( rtVariableSetObject( input_pos_x_buffer, input_pos_x_buffer_obj));
-
-    RT_CHECK_ERROR2( rtBufferCreateForCUDA( *context, RT_BUFFER_INPUT, &input_pos_y_buffer_obj)); 
-    RT_CHECK_ERROR2( rtBufferSetFormat( input_pos_y_buffer_obj, RT_FORMAT_FLOAT)); 
-    RT_CHECK_ERROR2( rtBufferSetSize1D(input_pos_y_buffer_obj, width));
-    RT_CHECK_ERROR2( rtBufferSetDevicePointer( input_pos_y_buffer_obj, id, (CUdeviceptr)(nInfo.pos_y)));
-    RT_CHECK_ERROR2( rtVariableSetObject( input_pos_y_buffer, input_pos_y_buffer_obj));
-
-    RT_CHECK_ERROR2( rtBufferCreateForCUDA( *context, RT_BUFFER_INPUT, &input_pos_z_buffer_obj)); 
-    RT_CHECK_ERROR2( rtBufferSetFormat( input_pos_z_buffer_obj, RT_FORMAT_FLOAT)); 
-    RT_CHECK_ERROR2( rtBufferSetSize1D(input_pos_z_buffer_obj, width));
-    RT_CHECK_ERROR2( rtBufferSetDevicePointer( input_pos_z_buffer_obj, id, (CUdeviceptr)(nInfo.pos_z)));
-    RT_CHECK_ERROR2( rtVariableSetObject( input_pos_z_buffer, input_pos_z_buffer_obj));
-
-    /* Input direction buffer*/
-    RT_CHECK_ERROR2( rtBufferCreateForCUDA( *context, RT_BUFFER_INPUT, &input_dir_a_buffer_obj)); 
-    RT_CHECK_ERROR2( rtBufferSetFormat( input_dir_a_buffer_obj, RT_FORMAT_FLOAT)); 
-    RT_CHECK_ERROR2( rtBufferSetSize1D(input_dir_a_buffer_obj, width));
-    RT_CHECK_ERROR2( rtBufferSetDevicePointer( input_dir_a_buffer_obj, id, (CUdeviceptr)(nInfo.dir_azimu)));
-    RT_CHECK_ERROR2( rtVariableSetObject( input_dir_a_buffer, input_dir_a_buffer_obj));
- 
-    RT_CHECK_ERROR2( rtBufferCreateForCUDA( *context, RT_BUFFER_INPUT, &input_dir_p_buffer_obj)); 
-    RT_CHECK_ERROR2( rtBufferSetFormat( input_dir_p_buffer_obj, RT_FORMAT_FLOAT)); 
-    RT_CHECK_ERROR2( rtBufferSetSize1D(input_dir_p_buffer_obj, width));
-    RT_CHECK_ERROR2( rtBufferSetDevicePointer( input_dir_p_buffer_obj, id, (CUdeviceptr)(nInfo.dir_polar)));
-    RT_CHECK_ERROR2( rtVariableSetObject( input_dir_p_buffer, input_dir_p_buffer_obj));
-
-    /* Ray generation program */
-#if defined(__MANY__)
-    sprintf( path_to_ptx, "%s/%s", "./obj/ptx", "pinhole_camera_many.ptx" );
-#else
-    sprintf( path_to_ptx, "%s/%s", "./obj/ptx", "pinhole_camera_one.ptx" );
-#endif
-    RT_CHECK_ERROR2( rtProgramCreateFromPTXFile( *context, path_to_ptx, "generate_ray", &ray_gen_program ) );
-    //Declare and Set variables here if needed
-    RT_CHECK_ERROR2( rtContextSetRayGenerationProgram( *context, 0, ray_gen_program ) );
-
-    /* Miss program */
-#if defined(__MANY__)
-    sprintf( path_to_ptx, "%s/%s", "./obj/ptx", "constantbg_many.ptx" );
-#else
-    sprintf( path_to_ptx, "%s/%s", "./obj/ptx", "constantbg_one.ptx" );
-#endif
-    RT_CHECK_ERROR2( rtProgramCreateFromPTXFile( *context, path_to_ptx, "miss", &miss_program ) );
-    RT_CHECK_ERROR2( rtContextSetMissProgram( *context, 0, miss_program ) );
-}
 
 void createGeometryBox( RTcontext context, RTgeometry* box, float* box_vertices )
 {
