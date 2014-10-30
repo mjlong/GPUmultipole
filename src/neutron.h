@@ -27,6 +27,9 @@ typedef struct {
   unsigned *isotope;
   unsigned *icell;
   CMPTYPE *energy;
+  CMPTYPE *sigT;
+  CMPTYPE *sigA;
+  CMPTYPE *sigF;
   float* pos_x;
   float* pos_y;
   float* pos_z;
@@ -38,17 +41,9 @@ typedef struct {
 }NeutronInfoStruct;
 
 typedef struct {
-  CMPTYPE energy;
-  CMPTYPE sigT;
-  CMPTYPE sigA;
-  CMPTYPE sigF;
-}XsStruct;
-
-typedef struct {
   NeutronInfoStruct nInfo;
   unsigned int *block_terminated_neutrons;
   unsigned int *num_terminated_neutrons;
-  XsStruct *sigma;
   TallyStruct tally;
 }MemStruct;
 
