@@ -84,7 +84,7 @@ RT_PROGRAM void generate_ray()
          launch_index,1111,ray.origin.x,ray.origin.y,ray.origin.z); 
 #endif
   output_closest_buffer[launch_index] = prd.closest_t+scene_epsilon*0.5;
-  output_current_buffer[launch_index] = prd.current;
+  output_current_buffer[launch_index] = prd.imat;
   //TODO: not determined whether closestID is needed
 }
 
