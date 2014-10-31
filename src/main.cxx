@@ -23,12 +23,11 @@ int main(int argc, char **argv){
 //====================calculation dimension===================
 //============================================================
   unsigned gridx, blockx, gridsize;
-  unsigned num_src, devstep;
+  unsigned num_src;
   gridx = atoi(argv[1]);
   blockx = atoi(argv[2]);
   gridsize = gridx*blockx;
   num_src = atoi(argv[3]);
-  devstep = atoi(argv[4]);
 //============================================================ 
 //=============simulation memory allocation===================
 //============================================================
@@ -135,7 +134,7 @@ clock_start = clock();
 while(active){
   cudppRadixSort(sortplan, DeviceMem.nInfo.isoenergy, DeviceMem.nInfo.id, gridsize);
   //                          keys,                   values,             numElements
-  start_neutrons(gridx, blockx, numIso, mp_para, devicearray, DeviceMem, num_src, devstep);
+  start_neutrons(gridx, blockx, numIso, mp_para, devicearray, DeviceMem, num_src);
   RT_CHECK_ERROR(rtContextLaunch1D(context, 0, gridsize));
   active = count_neutrons(gridx, blockx, DeviceMem, HostMem,num_src);
 }
@@ -143,7 +142,7 @@ while(active){
   remain_neutrons(gridx, blockx,numIso, mp_para, devicearray, DeviceMem);
 clock_end   = clock();
 time_elapsed = (float)(clock_end-clock_start)/CLOCKS_PER_SEC*1000.f;
-print_results(gridx, blockx, num_src, devstep, DeviceMem, HostMem, hostarray, devicearray, blockcnt,cnt, time_elapsed);
+print_results(gridx, blockx, num_src, DeviceMem, HostMem, hostarray, devicearray, blockcnt,cnt, time_elapsed);
  
 //============================================================ 
 //=============simulation shut down===========================

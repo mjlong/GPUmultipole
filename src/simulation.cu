@@ -41,9 +41,9 @@ __global__ void transport(MemStruct DeviceMem, material mat){
   DeviceMem.nInfo.pos_z[id]+=s*mu;
 }
 #if defined(__TRACK)
-__global__ void history(int numIso, multipole isotope, CMPTYPE* devicearray, MemStruct DeviceMem, unsigned num_src, unsigned devstep){
+__global__ void history(int numIso, multipole isotope, CMPTYPE* devicearray, MemStruct DeviceMem, unsigned num_src){
 #else
-__global__ void history(int numIso, multipole isotope, MemStruct DeviceMem, unsigned num_src, unsigned devstep){
+__global__ void history(int numIso, multipole isotope, MemStruct DeviceMem, unsigned num_src){
 #endif
   //try others when real simulation structure becomes clear
   int idl = threadIdx.x;
@@ -62,7 +62,6 @@ __global__ void history(int numIso, multipole isotope, MemStruct DeviceMem, unsi
   localenergy = DeviceMem.nInfo.energy[nid];
   live = 1u;
   //while(live){
-  //for (istep = 0; istep < devstep; istep++){
     rnd = curand_uniform(&localState);
 #if defined(__SAMPLE)
     isotope.xs_eval_fast(localenergy + 

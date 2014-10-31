@@ -13,9 +13,9 @@
 #define MAXENERGY 30000.0
 
 #if defined(__TRACK)
-__global__ void history(int, multipole, CMPTYPE *, MemStruct, unsigned, unsigned);
+__global__ void history(int, multipole, CMPTYPE *, MemStruct, unsigned);
 #else
-__global__ void history(int, multipole, MemStruct, unsigned, unsigned );
+__global__ void history(int, multipole, MemStruct, unsigned);
 #endif
 __global__ void remaining(int, multipole, CMPTYPE *, MemStruct );
 __global__ void initialize(MemStruct, CMPTYPE);

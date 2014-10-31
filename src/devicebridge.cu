@@ -14,11 +14,11 @@ void initialize_neutrons(unsigned gridx, unsigned blockx,MemStruct DeviceMem){
   initialize<<<gridx, blockx>>>(DeviceMem, STARTENE);//1.95093e4);
 }
 
-void start_neutrons(unsigned gridx, unsigned blockx, unsigned numIsos, multipole mp_data, CMPTYPE* devicearray, MemStruct DeviceMem, unsigned num_src, unsigned devstep){
+void start_neutrons(unsigned gridx, unsigned blockx, unsigned numIsos, multipole mp_data, CMPTYPE* devicearray, MemStruct DeviceMem, unsigned num_src){
 #if defined(__TRACK)
-    history<<<gridx, blockx, blockx*sizeof(unsigned)>>>(numIsos, mp_data, devicearray, DeviceMem, num_src, devstep);
+    history<<<gridx, blockx, blockx*sizeof(unsigned)>>>(numIsos, mp_data, devicearray, DeviceMem, num_src);
 #else
-    history<<<gridx, blockx, blockx*sizeof(unsigned)>>>(numIsos, mp_data, DeviceMem, num_src, devstep);
+    history<<<gridx, blockx, blockx*sizeof(unsigned)>>>(numIsos, mp_data, DeviceMem, num_src);
 #endif
 } 
 
@@ -34,7 +34,7 @@ void remain_neutrons(unsigned gridx, unsigned blockx, unsigned numIsos, multipol
   remaining<<<gridx, blockx>>>(numIsos, mp_data, devicearray, DeviceMem);
 }
 
-void print_results(unsigned gridx, unsigned blockx, unsigned num_src, unsigned devstep, MemStruct DeviceMem, MemStruct HostMem, CMPTYPE* hostarray, CMPTYPE* devicearray, unsigned* blockcnt,unsigned* cnt, float timems){
+void print_results(unsigned gridx, unsigned blockx, unsigned num_src, MemStruct DeviceMem, MemStruct HostMem, CMPTYPE* hostarray, CMPTYPE* devicearray, unsigned* blockcnt,unsigned* cnt, float timems){
   gpuErrchk(cudaMemcpy(hostarray, devicearray, 4*gridx*blockx*sizeof(CMPTYPE), cudaMemcpyDeviceToHost));
   
   statistics<<<gridx, blockx, blockx*sizeof(int)>>>(DeviceMem.tally.cnt, blockcnt);
@@ -74,7 +74,7 @@ void print_results(unsigned gridx, unsigned blockx, unsigned num_src, unsigned d
 		       DeviceMem.num_terminated_neutrons, 
 		       sizeof(unsigned int), 
 		       cudaMemcpyDeviceToHost));
-  fprintf(fp,"%-4d,%-4d,%-.6f,%-8d,%-4d,%-2d M\n", gridx, blockx,timems*1000/sum, *HostMem.num_terminated_neutrons, devstep, num_src/1000000);
+  fprintf(fp,"%-4d,%-4d,%-.6f,%-8d,%-4d,%-2d M\n", gridx, blockx,timems*1000/sum, *HostMem.num_terminated_neutrons, 1, num_src/1000000);
   fclose(fp);
 #endif
 }
