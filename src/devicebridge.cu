@@ -14,11 +14,11 @@ void initialize_neutrons(unsigned gridx, unsigned blockx,MemStruct DeviceMem){
   initialize<<<gridx, blockx>>>(DeviceMem, STARTENE);//1.95093e4);
 }
 
-void start_neutrons(unsigned gridx, unsigned blockx, unsigned numIsos, multipole mp_data, CMPTYPE* devicearray, MemStruct DeviceMem, unsigned num_src){
+void start_neutrons(unsigned gridx, unsigned blockx, material mat, multipole mp_data, CMPTYPE* devicearray, MemStruct DeviceMem, unsigned num_src){
 #if defined(__TRACK)
-    history<<<gridx, blockx, blockx*sizeof(unsigned)>>>(numIsos, mp_data, devicearray, DeviceMem, num_src);
+    history<<<gridx, blockx, blockx*sizeof(unsigned)>>>(mat, mp_data, devicearray, DeviceMem, num_src);
 #else
-    history<<<gridx, blockx, blockx*sizeof(unsigned)>>>(numIsos, mp_data, DeviceMem, num_src);
+    history<<<gridx, blockx, blockx*sizeof(unsigned)>>>(mat, mp_data, DeviceMem, num_src);
 #endif
 } 
 
@@ -37,8 +37,8 @@ void sort_prepare(unsigned gridx, unsigned blockx,MemStruct DeviceMem, material 
 void transport_neutrons(unsigned gridx, unsigned blockx,MemStruct DeviceMem, material mat){
   transport<<<gridx, blockx>>>(DeviceMem, mat);
 }
-void remain_neutrons(unsigned gridx, unsigned blockx, unsigned numIsos, multipole mp_data, CMPTYPE* devicearray, MemStruct DeviceMem){
-  remaining<<<gridx, blockx>>>(numIsos, mp_data, devicearray, DeviceMem);
+void remain_neutrons(unsigned gridx, unsigned blockx, material mat, multipole mp_data, CMPTYPE* devicearray, MemStruct DeviceMem){
+  remaining<<<gridx, blockx>>>(mat, mp_data, devicearray, DeviceMem);
 }
 
 void print_results(unsigned gridx, unsigned blockx, unsigned num_src, MemStruct DeviceMem, MemStruct HostMem, CMPTYPE* hostarray, CMPTYPE* devicearray, unsigned* blockcnt,unsigned* cnt, float timems){
