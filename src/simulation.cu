@@ -21,11 +21,17 @@ __global__ void initialize(MemStruct pInfo, CMPTYPE energy){
 
   //pInfo[id].energy = energy; //id+1.0; //(id + 1)*1.63*energy*0.001;// 
   pInfo.nInfo.id[id] = id;
-  pInfo.nInfo.isotope[id]=id%2;//0;//
-  pInfo.nInfo.isoenergy[id]=MAXENERGY*(id%2)+energy;
   pInfo.tally.cnt[id] = 0;
 
   pInfo.nInfo.rndState[id] = state;
+}
+
+__global__ void update_sort_key(MemStruct DeviceMem, material mat){
+  unsigned id = blockDim.x * blockIdx.x + threadIdx.x;
+  unsigned isoID = mat.isotopes[mat.offsets[DeviceMem.nInfo.imat[id]]+0];
+                                            //matID
+  DeviceMem.nInfo.isotope[id]=isoID;
+  DeviceMem.nInfo.isoenergy[id] = MAXENERGY*isoID+DeviceMem.nInfo.energy[id];
 }
 
 __global__ void transport(MemStruct DeviceMem, material mat){
@@ -63,14 +69,8 @@ __global__ void history(int numIso, multipole isotope, MemStruct DeviceMem, unsi
   live = 1u;
   //while(live){
     rnd = curand_uniform(&localState);
-#if defined(__SAMPLE)
-    isotope.xs_eval_fast(localenergy + 
-		      curand_normal(&localState)*sqrt(300.0*KB)*sqrt(0.5)/mp_para.dev_doubles[SQRTAWR], 
-		      sigT, sigA, sigF);
-#else
     isotope.xs_eval_fast(isotopeID,localenergy, sqrt(300.0*KB), sigT, sigA, sigF);
     //isotope.xs_eval_fast(1-isotopeID, localenergy, sqrt(300.0*KB), sigT, sigA, sigF);
-#endif
 #if defined(__TRACK)
     unsigned lies = gridDim.x*blockDim.x;
     live = Info.tally.cnt[nid] + cnt;
