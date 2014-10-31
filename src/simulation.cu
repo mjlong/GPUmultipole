@@ -16,7 +16,7 @@ __global__ void initialize(MemStruct pInfo, CMPTYPE energy){
   pInfo.nInfo.pos_x[id] = 0.5f+curand_uniform(&state);
   pInfo.nInfo.pos_y[id] = 0.5f+curand_uniform(&state);
   pInfo.nInfo.pos_z[id] = 0.5f+curand_uniform(&state);
-  pInfo.nInfo.dir_polar[id] = curand_uniform(&state)*PI;
+  pInfo.nInfo.dir_polar[id] = curand_uniform(&state)*2-1;
   pInfo.nInfo.dir_azimu[id] = curand_uniform(&state)*PI*2;
 
   //pInfo[id].energy = energy; //id+1.0; //(id + 1)*1.63*energy*0.001;// 
