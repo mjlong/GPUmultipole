@@ -10,9 +10,14 @@ rtDeclareVariable(unsigned,var_num, ,);
 
 //rtDeclareVariable(unsigned int, launch_index, rtLaunchIndex, );
 rtDeclareVariable(int, geometryInstanceID, , );
+rtDeclareVariable(int, geometryMaterialID, , );
+
 rtDeclareVariable(PerRayData_radiance, prd,rtPayload , );
 
 #if defined(__MANY__)
+//TODO:for __MANY__, matID can not replace geometryInstanceID, 
+//my acceleration method requires a new N-base number storing imat's 
+//or an external [icell, imat] table
 RT_PROGRAM void closest_hit_radiance()
 {
   prd.hitID = geometryInstanceID;
@@ -35,10 +40,12 @@ RT_PROGRAM void any_hit_shadow()
   if(prd.closest_t> t_hit){
     prd.closest_t = t_hit;
     prd.closestID = geometryInstanceID;
+    prd.imat = geometryMaterialID;
   }
   if(prd.onlyonce && (prd.closestp_t > t_hit)){
     prd.closestp_t = t_hit;
     prd.closestpID = geometryInstanceID;
+    prd.imat = geometryMaterialID;
   }
   rtIgnoreIntersection();
 }

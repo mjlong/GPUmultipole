@@ -15,6 +15,7 @@ struct PerRayData_radiance
   unsigned closestID;
   float    closest_t;
   unsigned current;
+  unsigned imat;
 #if defined(__MANY__)
   unsigned long long key;
   unsigned out;

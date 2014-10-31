@@ -265,7 +265,7 @@ void createInstances( RTcontext context, RTmaterial material, float *data, int n
     RTgeometrygroup geometrygroup;
     RTgeometryinstance instance;
     RTvariable      top_object;
-    RTvariable      varID;
+    RTvariable      varID, matID;
     RTacceleration  acceleration,top_level_acceleration;
  
 #if defined(__HEXPRISM__)
@@ -298,8 +298,12 @@ void createInstances( RTcontext context, RTmaterial material, float *data, int n
     RT_CHECK_ERROR( rtGeometryInstanceSetMaterialCount( instance, 1 ) );
     RT_CHECK_ERROR( rtGeometryInstanceSetMaterial( instance, 0, material ) );
     rtGeometryInstanceDeclareVariable(instance, "geometryInstanceID", &varID);
+    rtGeometryInstanceDeclareVariable(instance, "geometryMaterialID", &matID);
+
     RT_CHECK_ERROR( rtGeometryGroupSetChild( geometrygroup, index, instance ) );
     rtVariableSet1i(varID, ++index); 
+    rtVariableSet1i(matID, 0); 
+
     //printf("cylinder: %d, x=%g, y=%g.\n", index,x0,y0);//pppp
 
     RT_CHECK_ERROR( rtGeometryGroupSetChild( geometrygroup, 0, instance ) );
@@ -313,8 +317,11 @@ void createInstances( RTcontext context, RTmaterial material, float *data, int n
       RT_CHECK_ERROR( rtGeometryInstanceSetMaterialCount( instance, 1 ) );
       RT_CHECK_ERROR( rtGeometryInstanceSetMaterial( instance, 0, material ) );
       rtGeometryInstanceDeclareVariable(instance, "geometryInstanceID", &varID);
+      rtGeometryInstanceDeclareVariable(instance, "geometryMaterialID", &matID);
+
       RT_CHECK_ERROR( rtGeometryGroupSetChild( geometrygroup, index, instance ) );
       rtVariableSet1i(varID, ++index); 
+      rtVariableSet1i(matID, 0); 
 
       for(j=0;j<i*6-1;j++){
         idir=(j+i)/i-1;
@@ -327,8 +334,12 @@ void createInstances( RTcontext context, RTmaterial material, float *data, int n
         RT_CHECK_ERROR( rtGeometryInstanceSetMaterialCount( instance, 1 ) );
         RT_CHECK_ERROR( rtGeometryInstanceSetMaterial( instance, 0, material ) );
         rtGeometryInstanceDeclareVariable(instance, "geometryInstanceID", &varID);
+        rtGeometryInstanceDeclareVariable(instance, "geometryMaterialID", &matID);
+
         RT_CHECK_ERROR( rtGeometryGroupSetChild( geometrygroup, index, instance ) );
         rtVariableSet1i(varID, ++index); 
+        rtVariableSet1i(matID, 0); 
+
         ////printf("cylinder: %d, x=%g, y=%g.\n", index,x,y);//pppp
       } 
     }
@@ -349,8 +360,11 @@ void createInstances( RTcontext context, RTmaterial material, float *data, int n
       RT_CHECK_ERROR( rtGeometryInstanceSetMaterialCount( instance, 1 ) );
       RT_CHECK_ERROR( rtGeometryInstanceSetMaterial( instance, 0, material ) );
       rtGeometryInstanceDeclareVariable(instance, "geometryInstanceID", &varID);
+      rtGeometryInstanceDeclareVariable(instance, "geometryMaterialID", &matID);
+
       RT_CHECK_ERROR( rtGeometryGroupSetChild( geometrygroup, index, instance ) );
       rtVariableSet1i(varID, ++index); 
+      rtVariableSet1i(matID, 0); 
 
       for(i=1;i<=n;i++){
         x=xp+p*i;
@@ -361,9 +375,12 @@ void createInstances( RTcontext context, RTmaterial material, float *data, int n
         RT_CHECK_ERROR( rtGeometryInstanceSetMaterialCount( instance, 1 ) );
         RT_CHECK_ERROR( rtGeometryInstanceSetMaterial( instance, 0, material ) );
         rtGeometryInstanceDeclareVariable(instance, "geometryInstanceID", &varID);
+        rtGeometryInstanceDeclareVariable(instance, "geometryMaterialID", &matID);
+
         RT_CHECK_ERROR( rtGeometryGroupSetChild( geometrygroup, index, instance ) );
         rtVariableSet1i(varID, ++index); 
-  
+        rtVariableSet1i(matID, 0); 
+ 
         for(j=0;j<i*6-1;j++){
           idir=(j+i)/i-1;
           phi = (120+60*idir)*PI/180.f;
@@ -375,8 +392,12 @@ void createInstances( RTcontext context, RTmaterial material, float *data, int n
           RT_CHECK_ERROR( rtGeometryInstanceSetMaterialCount( instance, 1 ) );
           RT_CHECK_ERROR( rtGeometryInstanceSetMaterial( instance, 0, material ) );
           rtGeometryInstanceDeclareVariable(instance, "geometryInstanceID", &varID);
+          rtGeometryInstanceDeclareVariable(instance, "geometryMaterialID", &matID);
+
           RT_CHECK_ERROR( rtGeometryGroupSetChild( geometrygroup, index, instance ) );
           rtVariableSet1i(varID, ++index); 
+          rtVariableSet1i(matID, 0); 
+
           ////printf("cylinder: %d, x=%g, y=%g.\n", index,x,y);//pppp
         } 
       }
@@ -392,9 +413,12 @@ void createInstances( RTcontext context, RTmaterial material, float *data, int n
         RT_CHECK_ERROR( rtGeometryInstanceSetMaterialCount( instance, 1 ) );
         RT_CHECK_ERROR( rtGeometryInstanceSetMaterial( instance, 0, material ) );
         rtGeometryInstanceDeclareVariable(instance, "geometryInstanceID", &varID);
+        rtGeometryInstanceDeclareVariable(instance, "geometryMaterialID", &matID);
 
         RT_CHECK_ERROR( rtGeometryGroupSetChild( geometrygroup, index, instance ) );
         rtVariableSet1i(varID, ++index); 
+        rtVariableSet1i(matID, 0); 
+
         ////printf("cylinder: %d, x=%g, y=%g.\n", index,xp,yp);//pppp
         for(i=1;i<=n;i++){
           x=xp+p*i;
@@ -405,10 +429,12 @@ void createInstances( RTcontext context, RTmaterial material, float *data, int n
           RT_CHECK_ERROR( rtGeometryInstanceSetMaterialCount( instance, 1 ) );
           RT_CHECK_ERROR( rtGeometryInstanceSetMaterial( instance, 0, material ) );
           rtGeometryInstanceDeclareVariable(instance, "geometryInstanceID", &varID);
+          rtGeometryInstanceDeclareVariable(instance, "geometryMaterialID", &matID);
 
           RT_CHECK_ERROR( rtGeometryGroupSetChild( geometrygroup, index, instance ) );
           rtVariableSet1i(varID, ++index); 
-    
+          rtVariableSet1i(matID, 0); 
+   
           for(j=0;j<i*6-1;j++){
             idir=(j+i)/i-1;
             phi = (120+60*idir)*PI/180.f;
@@ -420,9 +446,12 @@ void createInstances( RTcontext context, RTmaterial material, float *data, int n
             RT_CHECK_ERROR( rtGeometryInstanceSetMaterialCount( instance, 1 ) );
             RT_CHECK_ERROR( rtGeometryInstanceSetMaterial( instance, 0, material ) );
             rtGeometryInstanceDeclareVariable(instance, "geometryInstanceID", &varID);
+            rtGeometryInstanceDeclareVariable(instance, "geometryMaterialID", &matID);
 
             RT_CHECK_ERROR( rtGeometryGroupSetChild( geometrygroup, index, instance ) );
             rtVariableSet1i(varID, ++index); 
+            rtVariableSet1i(matID, 0); 
+
             ////printf("cylinder: %d, x=%g, y=%g.\n", index,x,y);//pppp
           } 
         }
@@ -474,9 +503,11 @@ void createInstances( RTcontext context, RTmaterial material, float *data, int n
             RT_CHECK_ERROR( rtGeometryInstanceSetMaterialCount( instance, 1 ) );
             RT_CHECK_ERROR( rtGeometryInstanceSetMaterial( instance, 0, material ) );
             rtGeometryInstanceDeclareVariable(instance, "geometryInstanceID", &varID);
+            rtGeometryInstanceDeclareVariable(instance, "geometryMaterialID", &matID);
 
             RT_CHECK_ERROR( rtGeometryGroupSetChild( geometrygroup, index, instance ) );
             rtVariableSet1i(varID, ++index); 
+            rtVariableSet1i(matID, 0); 
 
             createGeometryCylinder(context, &cylinder, x,y,-hh, x,y,hh,r2);
             RT_CHECK_ERROR( rtGeometryInstanceCreate( context, &instance ) );
@@ -484,10 +515,12 @@ void createInstances( RTcontext context, RTmaterial material, float *data, int n
             RT_CHECK_ERROR( rtGeometryInstanceSetMaterialCount( instance, 1 ) );
             RT_CHECK_ERROR( rtGeometryInstanceSetMaterial( instance, 0, material ) );
             rtGeometryInstanceDeclareVariable(instance, "geometryInstanceID", &varID);
+            rtGeometryInstanceDeclareVariable(instance, "geometryMaterialID", &matID);
 
             RT_CHECK_ERROR( rtGeometryGroupSetChild( geometrygroup, index, instance ) );
             rtVariableSet1i(varID, ++index); 
- 
+            rtVariableSet1i(matID, 0); 
+
         }  //end for i 
     }      //end for k
     float R1 = sqrt(2.)*m*l*0.5;
@@ -498,9 +531,12 @@ void createInstances( RTcontext context, RTmaterial material, float *data, int n
     RT_CHECK_ERROR( rtGeometryInstanceSetMaterialCount( instance, 1 ) );
     RT_CHECK_ERROR( rtGeometryInstanceSetMaterial( instance, 0, material ) );
     rtGeometryInstanceDeclareVariable(instance, "geometryInstanceID", &varID);
+    rtGeometryInstanceDeclareVariable(instance, "geometryMaterialID", &matID);
+
     RT_CHECK_ERROR( rtGeometryGroupSetChild( geometrygroup, index, instance ) );
     rtVariableSet1i(varID, ++index); 
- 
+    rtVariableSet1i(matID, 1); 
+
     /* create acceleration object for group and specify some build hints*/
     RT_CHECK_ERROR( rtAccelerationCreate(context,&acceleration) );
     RT_CHECK_ERROR( rtAccelerationSetBuilder(acceleration,BUILDER) );
