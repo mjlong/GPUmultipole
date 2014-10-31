@@ -2,7 +2,7 @@
 
 material::material(struct matdata *pmat, unsigned numIso){
   unsigned numMat = pmat->numMat;
-  gpuErrchk(cudaMalloc((void**)&offsets,sizeof(unsigned)*(numMat+1))); 
+  gpuErrchk(cudaMalloc((void**)&offsets,sizeof(unsigned)*(numMat+1)));
   gpuErrchk(cudaMalloc((void**)&N_tot, sizeof(float)*numMat));
   gpuErrchk(cudaMalloc((void**)&densities, sizeof(float)*numIso));
   gpuErrchk(cudaMalloc((void**)&isotopes, sizeof(unsigned)*numIso));
@@ -12,8 +12,7 @@ material::material(struct matdata *pmat, unsigned numIso){
   gpuErrchk(cudaMemcpy(densities, pmat->densities, sizeof(float)*numIso, cudaMemcpyHostToDevice));
   gpuErrchk(cudaMemcpy(isotopes, pmat->isotopes, sizeof(unsigned)*numIso, cudaMemcpyHostToDevice));
 
-  numMat=numMat-1;
-  gpuErrchk(cudaMemcpy(offsets+numMat, &numMat, sizeof(unsigned), cudaMemcpyHostToDevice)); 
+  gpuErrchk(cudaMemcpy(offsets+numMat, &numIso, sizeof(unsigned),cudaMemcpyHostToDevice)); 
 }
 
 material::~material(){
