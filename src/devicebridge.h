@@ -12,6 +12,10 @@ void start_neutrons(unsigned gridx, unsigned blockx, unsigned numIsos, multipole
 
 unsigned count_neutrons(unsigned gridx, unsigned blockx, MemStruct DeviceMem, MemStruct HostMem, unsigned num_src);
 
+void sort_prepare(unsigned gridx, unsigned blockx,MemStruct DeviceMem, material mat);
+
+void transport_neutrons(unsigned gridx, unsigned blockx,MemStruct DeviceMem, material mat);
+
 void remain_neutrons(unsigned gridx, unsigned blockx, unsigned numIsos, multipole mp_para, CMPTYPE* devicearray, MemStruct DeviceMem);
 
 void print_results(unsigned gridx, unsigned blockx, unsigned num_src, MemStruct DeviceMem, MemStruct HostMem, CMPTYPE* hostarray, CMPTYPE* devicearray, unsigned* blockcnt,unsigned* cnt, float timems);

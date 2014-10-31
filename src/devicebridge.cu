@@ -30,6 +30,13 @@ unsigned count_neutrons(unsigned gridx, unsigned blockx, MemStruct DeviceMem, Me
   return active;
 }
 
+void sort_prepare(unsigned gridx, unsigned blockx,MemStruct DeviceMem, material mat){
+  update_sort_key<<<gridx, blockx>>>(DeviceMem, mat);
+}
+
+void transport_neutrons(unsigned gridx, unsigned blockx,MemStruct DeviceMem, material mat){
+  transport<<<gridx, blockx>>>(DeviceMem, mat);
+}
 void remain_neutrons(unsigned gridx, unsigned blockx, unsigned numIsos, multipole mp_data, CMPTYPE* devicearray, MemStruct DeviceMem){
   remaining<<<gridx, blockx>>>(numIsos, mp_data, devicearray, DeviceMem);
 }
