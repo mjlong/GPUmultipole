@@ -30,7 +30,6 @@ __global__ void update_sort_key(MemStruct DeviceMem, material mat){
   unsigned id = blockDim.x * blockIdx.x + threadIdx.x;
   unsigned isoID = mat.isotopes[mat.offsets[DeviceMem.nInfo.imat[id]]+0];
                                             //matID
-  DeviceMem.nInfo.isotope[id]=isoID;
   DeviceMem.nInfo.isoenergy[id] = MAXENERGY*isoID+DeviceMem.nInfo.energy[id];
 }
 
@@ -124,20 +123,17 @@ __global__ void history(material mat, multipole mp_para, MemStruct DeviceMem, un
   DeviceMem.nInfo.sigT[nid]=sigTsum;
   DeviceMem.nInfo.sigA[nid]=sigAsum;
   DeviceMem.nInfo.sigF[nid]=sigFsum;
-  DeviceMem.nInfo.isoenergy[id] = localenergy+isotopeID*MAXENERGY;
-  DeviceMem.nInfo.isotope[nid] = isotopeID;
   DeviceMem.tally.cnt[nid] += 1; 
 
 }
 
 
 __global__ void remaining(material mat,multipole mp_para, CMPTYPE *devicearray, MemStruct Info){
-  //TODO:this is one scheme to match threads to 1D array, 
-  //try others when real simulation structure becomes clear
+//TODO: how to treat remaining is unresolved
   int id = blockDim.x * blockIdx.x + threadIdx.x;
   int nid=Info.nInfo.id[id];
   unsigned live = true;
-  unsigned isotopeID=Info.nInfo.isotope[nid];
+  unsigned isotopeID=0; 
   CMPTYPE localenergy;
   CMPTYPE rnd;
   CMPTYPE sigT, sigA, sigF;

@@ -138,6 +138,7 @@ while(active){
   //                          keys,                   values,             numElements
   start_neutrons(gridx, blockx, mat, mp_para, devicearray, DeviceMem, num_src);
   RT_CHECK_ERROR(rtContextLaunch1D(context, 0, gridsize));
+  sort_prepare(gridx, blockx, DeviceMem, mat);
   active = count_neutrons(gridx, blockx, DeviceMem, HostMem,num_src);
 }
   cudppRadixSort(sortplan, DeviceMem.nInfo.isoenergy, DeviceMem.nInfo.id, gridsize);
