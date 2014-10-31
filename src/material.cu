@@ -8,10 +8,12 @@ material::material(struct matdata *pmat, unsigned numIso){
   gpuErrchk(cudaMalloc((void**)&isotopes, sizeof(unsigned)*numIso));
 
   gpuErrchk(cudaMemcpy(offsets, pmat->offsets, sizeof(unsigned)*numMat, cudaMemcpyHostToDevice)); 
-  shiftoffset<<<1,numMat>>>(offsets,numMat-1-(pmat->offsets[numMat-1]));
   gpuErrchk(cudaMemcpy(N_tot, pmat->N_tot, sizeof(float)*numMat, cudaMemcpyHostToDevice));
   gpuErrchk(cudaMemcpy(densities, pmat->densities, sizeof(float)*numIso, cudaMemcpyHostToDevice));
   gpuErrchk(cudaMemcpy(isotopes, pmat->isotopes, sizeof(unsigned)*numIso, cudaMemcpyHostToDevice));
+
+  numMat=numMat-1;
+  gpuErrchk(cudaMemcpy(offsets+numMat, &numMat, sizeof(unsigned), cudaMemcpyHostToDevice)); 
 }
 
 material::~material(){
@@ -24,8 +26,3 @@ void material::release_pointer(){
   gpuErrchk(cudaFree(isotopes));
 }
 
-__global__ void shiftoffset(unsigned* offsets, unsigned shift)
-{
-  int id = threadIdx.x;
-  offsets[id]+=shift;
-}
