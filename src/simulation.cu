@@ -47,9 +47,9 @@ __global__ void transport(MemStruct DeviceMem, material mat){
   DeviceMem.nInfo.pos_z[id]+=s*mu;
 }
 #if defined(__TRACK)
-__global__ void history(int numIso, multipole isotope, CMPTYPE* devicearray, MemStruct DeviceMem, unsigned num_src){
+__global__ void history(material mat, multipole mp_para, CMPTYPE* devicearray, MemStruct DeviceMem, unsigned num_src){
 #else
-__global__ void history(int numIso, multipole isotope, MemStruct DeviceMem, unsigned num_src){
+__global__ void history(material mat, multipole mp_para, MemStruct DeviceMem, unsigned num_src){
 #endif
   //try others when real simulation structure becomes clear
   int idl = threadIdx.x;
@@ -57,42 +57,48 @@ __global__ void history(int numIso, multipole isotope, MemStruct DeviceMem, unsi
   //printf("i'm thread %d\n",id);
   int nid = DeviceMem.nInfo.id[id];
   unsigned live;
-  unsigned isotopeID=DeviceMem.nInfo.isotope[nid];
+  unsigned isotopeID;
   extern __shared__ unsigned blockTerminated[];
   CMPTYPE localenergy;
   CMPTYPE rnd;
-  CMPTYPE sigT, sigA, sigF;
+  CMPTYPE sigTsum, sigAsum, sigFsum, sigT, sigA, sigF;
+  sigTsum=0;
+  sigAsum=0;
+  sigFsum=0;
+
   /* Copy state to local memory for efficiency */ 
   curandState localState = DeviceMem.nInfo.rndState[nid];
 
   localenergy = DeviceMem.nInfo.energy[nid];
   live = 1u;
-  //while(live){
+  unsigned imat = DeviceMem.nInfo.imat[nid];
+  for(isotopeID=mat.offsets[imat];isotopeID<mat.offsets[imat+1];isotopeID++ ){
     rnd = curand_uniform(&localState);
-    isotope.xs_eval_fast(isotopeID,localenergy, sqrt(300.0*KB), sigT, sigA, sigF);
-    //isotope.xs_eval_fast(1-isotopeID, localenergy, sqrt(300.0*KB), sigT, sigA, sigF);
+    mp_para.xs_eval_fast(mat.isotopes[isotopeID],localenergy, sqrt(300.0*KB), sigT, sigA, sigF);
+    sigTsum += sigT*mat.densities[isotopeID];
+    sigAsum += sigA*mat.densities[isotopeID];
+    sigFsum += sigF*mat.densities[isotopeID];
+  }
 #if defined(__TRACK)
-    unsigned lies = gridDim.x*blockDim.x;
-    live = Info.tally.cnt[nid] + cnt;
-    live = live*(live<lies) + lies*(live>=lies); 
-    if(0==id){
-      devicearray[4*live  ] = localenergy;
-      devicearray[4*live+1] = sigF;  
-    }
-    if(2==id){
-      devicearray[4*live+2] = localenergy;
-      devicearray[4*live+3] = sigF;
-    }
+  unsigned lies = gridDim.x*blockDim.x;
+  live = Info.tally.cnt[nid] + cnt;
+  live = live*(live<lies) + lies*(live>=lies); 
+  if(0==id){
+    devicearray[4*live  ] = localenergy;
+    devicearray[4*live+1] = sigF;  
+  }
+  if(2==id){
+    devicearray[4*live+2] = localenergy;
+    devicearray[4*live+3] = sigF;
+  }
 #endif
+  localenergy = localenergy * rnd;
+  live = (localenergy > 1.0);
+  isotopeID = rnd<0.5; //id%2;//0;//an example law to change isotopeID 
+  /*So far, energy is the only state*/
+  localenergy = localenergy*live + STARTENE*(1u - live);
+  //terminated += !live;
 
-    localenergy = localenergy * rnd;
-    live = (localenergy > 1.0);
-    isotopeID = rnd<0.5; //id%2;//0;//an example law to change isotopeID 
-    /*So far, energy is the only state*/
-    localenergy = localenergy*live + STARTENE*(1u - live);
-    //terminated += !live;
-  //}
-  //}
   blockTerminated[idl] = !live;
    __syncthreads();
   live = blockDim.x>>1;
@@ -115,6 +121,9 @@ __global__ void history(int numIso, multipole isotope, MemStruct DeviceMem, unsi
   /* Copy state back to global memory */ 
   DeviceMem.nInfo.rndState[nid] = localState; 
   DeviceMem.nInfo.energy[nid] = localenergy;
+  DeviceMem.nInfo.sigT[nid]=sigTsum;
+  DeviceMem.nInfo.sigA[nid]=sigAsum;
+  DeviceMem.nInfo.sigF[nid]=sigFsum;
   DeviceMem.nInfo.isoenergy[id] = localenergy+isotopeID*MAXENERGY;
   DeviceMem.nInfo.isotope[nid] = isotopeID;
   DeviceMem.tally.cnt[nid] += 1; 
@@ -122,7 +131,7 @@ __global__ void history(int numIso, multipole isotope, MemStruct DeviceMem, unsi
 }
 
 
-__global__ void remaining(int numIso,multipole isotope, CMPTYPE *devicearray, MemStruct Info){
+__global__ void remaining(material mat,multipole mp_para, CMPTYPE *devicearray, MemStruct Info){
   //TODO:this is one scheme to match threads to 1D array, 
   //try others when real simulation structure becomes clear
   int id = blockDim.x * blockIdx.x + threadIdx.x;
@@ -132,7 +141,7 @@ __global__ void remaining(int numIso,multipole isotope, CMPTYPE *devicearray, Me
   CMPTYPE localenergy;
   CMPTYPE rnd;
   CMPTYPE sigT, sigA, sigF;
- 
+
   /* Copy state to local memory for efficiency */
   curandState localState = Info.nInfo.rndState[nid];
   
@@ -146,14 +155,7 @@ __global__ void remaining(int numIso,multipole isotope, CMPTYPE *devicearray, Me
   live = 1u;
   while(live){
     rnd = curand_uniform(&localState);
-#if defined(__SAMPLE)
-    isotope.xs_eval_fast(localenergy + 
-		      curand_normal(&localState)*sqrt(300.0*KB)*sqrt(0.5)/mp_para.dev_doubles[SQRTAWR], 
-		      sigT, sigA, sigF);
-#else
-    isotope.xs_eval_fast(isotopeID, localenergy, sqrt(300.0*KB), sigT, sigA, sigF);
-    //isotope.xs_eval_fast(1-isotopeID, localenergy, sqrt(300.0*KB), sigT, sigA, sigF);
-#endif
+    mp_para.xs_eval_fast(isotopeID, localenergy, sqrt(300.0*KB), sigT, sigA, sigF);
 #if defined(__TRACK)
     unsigned lies = gridDim.x*blockDim.x;
     live = Info.tally.cnt[nid] + cnt;
