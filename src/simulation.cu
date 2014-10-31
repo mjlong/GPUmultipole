@@ -107,7 +107,7 @@ __global__ void history(int numIso, multipole isotope, MemStruct DeviceMem, unsi
   if(0==idl){
     //reduction scheme depends on tally type
     //following is to count moderation times
-    Info.block_terminated_neutrons[blockIdx.x] = blockTerminated[0];
+    DeviceMem.block_terminated_neutrons[blockIdx.x] = blockTerminated[0];
   }
   
   /*Note: from now on, live does not indicate neutron but thread active */
@@ -115,11 +115,11 @@ __global__ void history(int numIso, multipole isotope, MemStruct DeviceMem, unsi
   //atomicAdd(Info.num_terminated_neutrons,!live);
   //Info.thread_active[id] =  blockDim.x*gridDim.x + *Info.num_terminated_neutrons < num_src;
   /* Copy state back to global memory */ 
-  Info.nInfo.rndState[nid] = localState; 
-  Info.nInfo.energy[nid] = localenergy;
-  Info.nInfo.isoenergy[id] = localenergy+isotopeID*MAXENERGY;
-  Info.nInfo.isotope[nid] = isotopeID;
-  Info.tally.cnt[nid] += 1; 
+  DeviceMem.nInfo.rndState[nid] = localState; 
+  DeviceMem.nInfo.energy[nid] = localenergy;
+  DeviceMem.nInfo.isoenergy[id] = localenergy+isotopeID*MAXENERGY;
+  DeviceMem.nInfo.isotope[nid] = isotopeID;
+  DeviceMem.tally.cnt[nid] += 1; 
 
 }
 
