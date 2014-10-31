@@ -15,5 +15,5 @@ public:
   ~material();
   void release_pointer();
 };
-
+__global__ void shiftoffset(unsigned* offsets, unsigned shift);
 #endif
