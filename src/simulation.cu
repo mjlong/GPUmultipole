@@ -30,16 +30,15 @@ __global__ void initialize(MemStruct pInfo, CMPTYPE energy){
 
 __global__ void transport(MemStruct DeviceMem, material mat){
   int id = blockDim.x * blockIdx.x + threadIdx.x;
-  int nid = DeviceMem.nInfo.id[id];
-  float d = DeviceMem.nInfo.d_closest[nid];
-  CMPTYPE sigT = DeviceMem.nInfo.sigT[nid];
-  float s = -log(curand_uniform(&(DeviceMem.nInfo.rndState[nid])))/mat.N_tot[DeviceMem.nInfo.imat[nid]]*sigT;   
-  float mu = DeviceMem.nInfo.dir_polar[nid];
-  float phi= DeviceMem.nInfo.dir_azimu[nid];
+  float d = DeviceMem.nInfo.d_closest[id];
+  CMPTYPE sigT = DeviceMem.nInfo.sigT[id];
+  float s = -log(curand_uniform(&(DeviceMem.nInfo.rndState[id])))/mat.N_tot[DeviceMem.nInfo.imat[id]]*sigT;   
+  float mu = DeviceMem.nInfo.dir_polar[id];
+  float phi= DeviceMem.nInfo.dir_azimu[id];
   s = (d<s)*d+(d>=s)*s;
-  DeviceMem.nInfo.pos_x[nid]+=s*sqrt(1-mu*mu)*cos(phi);
-  DeviceMem.nInfo.pos_y[nid]+=s*sqrt(1-mu*mu)*sin(phi);
-  DeviceMem.nInfo.pos_z[nid]+=s*mu;
+  DeviceMem.nInfo.pos_x[id]+=s*sqrt(1-mu*mu)*cos(phi);
+  DeviceMem.nInfo.pos_y[id]+=s*sqrt(1-mu*mu)*sin(phi);
+  DeviceMem.nInfo.pos_z[id]+=s*mu;
 }
 #if defined(__TRACK)
 __global__ void history(int numIso, multipole isotope, CMPTYPE* devicearray, MemStruct DeviceMem, unsigned num_src, unsigned devstep){
