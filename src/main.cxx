@@ -130,6 +130,8 @@ unsigned active;
   active = 1u;
 #endif
 initialize_neutrons(gridx, blockx, DeviceMem); 
+RT_CHECK_ERROR(rtContextLaunch1D(context, 0, gridsize));
+sort_prepare(gridx, blockx, DeviceMem, mat);
 clock_start = clock();
 while(active){
   cudppRadixSort(sortplan, DeviceMem.nInfo.isoenergy, DeviceMem.nInfo.id, gridsize);
