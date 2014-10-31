@@ -28,39 +28,39 @@ __global__ void initialize(MemStruct pInfo, CMPTYPE energy){
   pInfo.nInfo.rndState[id] = state;
 }
 
-__global__ void transport(MemStruct Info, material mat){
+__global__ void transport(MemStruct DeviceMem, material mat){
   int id = blockDim.x * blockIdx.x + threadIdx.x;
-  int nid = Info.nInfo.id[id];
-  float d = Info.nInfo.d_closest[nid];
-  CMPTYPE sigT = Info.nInfo.sigT[nid];
-  float s = -log(curand_uniform(&Info.nInfo.rndState[nid]))/mat.N_tot[Info.nInfo.imat[nid]]*sigT;   
-  float mu = Info.nInfo.dir_polar[nid];
-  float phi= Info.nInfo.dir_azimu[nid];
+  int nid = DeviceMem.nInfo.id[id];
+  float d = DeviceMem.nInfo.d_closest[nid];
+  CMPTYPE sigT = DeviceMem.nInfo.sigT[nid];
+  float s = -log(curand_uniform(&(DeviceMem.nInfo.rndState[nid])))/mat.N_tot[DeviceMem.nInfo.imat[nid]]*sigT;   
+  float mu = DeviceMem.nInfo.dir_polar[nid];
+  float phi= DeviceMem.nInfo.dir_azimu[nid];
   s = (d<s)*d+(d>=s)*s;
-  Info.nInfo.pos_x[nid]+=s*sqrt(1-mu*mu)*cos(phi);
-  Info.nInfo.pos_y[nid]+=s*sqrt(1-mu*mu)*sin(phi);
-  Info.nInfo.pos_z[nid]+=s*mu;
+  DeviceMem.nInfo.pos_x[nid]+=s*sqrt(1-mu*mu)*cos(phi);
+  DeviceMem.nInfo.pos_y[nid]+=s*sqrt(1-mu*mu)*sin(phi);
+  DeviceMem.nInfo.pos_z[nid]+=s*mu;
 }
 #if defined(__TRACK)
-__global__ void history(int numIso, multipole isotope, CMPTYPE* devicearray, MemStruct Info, unsigned num_src, unsigned devstep){
+__global__ void history(int numIso, multipole isotope, CMPTYPE* devicearray, MemStruct DeviceMem, unsigned num_src, unsigned devstep){
 #else
-__global__ void history(int numIso, multipole isotope, MemStruct Info, unsigned num_src, unsigned devstep){
+__global__ void history(int numIso, multipole isotope, MemStruct DeviceMem, unsigned num_src, unsigned devstep){
 #endif
   //try others when real simulation structure becomes clear
   int idl = threadIdx.x;
   int id = blockDim.x * blockIdx.x + threadIdx.x;
   //printf("i'm thread %d\n",id);
-  int nid = Info.nInfo.id[id];
+  int nid = DeviceMem.nInfo.id[id];
   unsigned live;
-  unsigned isotopeID=Info.nInfo.isotope[nid];
+  unsigned isotopeID=DeviceMem.nInfo.isotope[nid];
   extern __shared__ unsigned blockTerminated[];
   CMPTYPE localenergy;
   CMPTYPE rnd;
   CMPTYPE sigT, sigA, sigF;
   /* Copy state to local memory for efficiency */ 
-  curandState localState = Info.nInfo.rndState[nid];
+  curandState localState = DeviceMem.nInfo.rndState[nid];
 
-  localenergy = Info.nInfo.energy[nid];
+  localenergy = DeviceMem.nInfo.energy[nid];
   live = 1u;
   //while(live){
   //for (istep = 0; istep < devstep; istep++){
