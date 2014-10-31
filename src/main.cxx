@@ -136,12 +136,12 @@ clock_start = clock();
 while(active){
   cudppRadixSort(sortplan, DeviceMem.nInfo.isoenergy, DeviceMem.nInfo.id, gridsize);
   //                          keys,                   values,             numElements
-  start_neutrons(gridx, blockx, numIso, mp_para, devicearray, DeviceMem, num_src);
+  start_neutrons(gridx, blockx, mat, mp_para, devicearray, DeviceMem, num_src);
   RT_CHECK_ERROR(rtContextLaunch1D(context, 0, gridsize));
   active = count_neutrons(gridx, blockx, DeviceMem, HostMem,num_src);
 }
   cudppRadixSort(sortplan, DeviceMem.nInfo.isoenergy, DeviceMem.nInfo.id, gridsize);
-  remain_neutrons(gridx, blockx,numIso, mp_para, devicearray, DeviceMem);
+  remain_neutrons(gridx, blockx,mat, mp_para, devicearray, DeviceMem);
 clock_end   = clock();
 time_elapsed = (float)(clock_end-clock_start)/CLOCKS_PER_SEC*1000.f;
 print_results(gridx, blockx, num_src, DeviceMem, HostMem, hostarray, devicearray, blockcnt,cnt, time_elapsed);
