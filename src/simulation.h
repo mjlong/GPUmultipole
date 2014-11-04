@@ -23,6 +23,7 @@ __device__ void launch(NeutronInfoStruct, int, CMPTYPE);
 __global__ void statistics(unsigned*, unsigned*);
 __global__ void update_sort_key(MemStruct DeviceMem, material mat);
 __global__ void transport(MemStruct, material);
-__device__ void source_sampling(NeutronInfoStruct nInfo, unsigned id);
+__device__ void neutron_sample(NeutronInfoStruct nInfo, unsigned id);
+__device__ void neutron_move(NeutronInfoStruct nInfo, unsigned id, material mat);
 __global__ void resurrection(NeutronInfoStruct nInfo, unsigned id);
 #endif

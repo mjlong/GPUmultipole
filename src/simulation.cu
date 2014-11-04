@@ -11,7 +11,7 @@ __global__ void initialize(MemStruct pInfo, CMPTYPE energy){
   curand_init(1234, id, 0, &(pInfo.nInfo.rndState[id]));
   launch(pInfo.nInfo, id, energy);
 
-  source_sampling(pInfo.nInfo, id);
+  neutron_sample(pInfo.nInfo, id);
   //pInfo[id].energy = energy; //id+1.0; //(id + 1)*1.63*energy*0.001;// 
   pInfo.nInfo.id[id] = id;
   pInfo.nInfo.live[id] = 1u;
@@ -27,19 +27,22 @@ __global__ void update_sort_key(MemStruct DeviceMem, material mat){
 }
 
 __global__ void transport(MemStruct DeviceMem, material mat){
-  int id = blockDim.x * blockIdx.x + threadIdx.x;
-  float d = DeviceMem.nInfo.d_closest[id];
-  CMPTYPE sigT = DeviceMem.nInfo.sigT[id];
-  float s = -log(curand_uniform(&(DeviceMem.nInfo.rndState[id])))/mat.N_tot[DeviceMem.nInfo.imat[id]]*sigT;   
-  float mu = DeviceMem.nInfo.dir_polar[id];
-  float phi= DeviceMem.nInfo.dir_azimu[id];
-  s = (d<s)*d+(d>=s)*s;
-  DeviceMem.nInfo.pos_x[id]+=s*sqrt(1-mu*mu)*cos(phi);
-  DeviceMem.nInfo.pos_y[id]+=s*sqrt(1-mu*mu)*sin(phi);
-  DeviceMem.nInfo.pos_z[id]+=s*mu;
+  int nid = DeviceMem.nInfo.id[blockDim.x * blockIdx.x + threadIdx.x];
+  unsigned live = DeviceMem.nInfo.live[nid];
+  if(live){
+    neutron_move(DeviceMem.nInfo,nid,mat);
+    nInfo.pos_x[nid]+=s*sqrt(1-mu*mu)*cos(phi);
+    nInfo.pos_y[nid]+=s*sqrt(1-mu*mu)*sin(phi);
+    nInfo.pos_z[nid]+=s*mu;
+
+  }
+  else{
+    neutron_sample(DeviceMem.nInfo,nid);
+  }
+  printf("%d, survive transport\n", nid);
 }
 
-__device__ void source_sampling(NeutronInfoStruct nInfo, unsigned id){
+__device__ void neutron_sample(NeutronInfoStruct nInfo, unsigned id){
   curandState state = nInfo.rndState[id];
 //TODO: source sampling should take settings dependent on geometry
   nInfo.pos_x[id] = 0.5f+curand_uniform(&state);
@@ -50,13 +53,25 @@ __device__ void source_sampling(NeutronInfoStruct nInfo, unsigned id){
   nInfo.rndState[id] = state;
 }
 
+__device__ void neutron_move(NeutronInfoStruct nInfo, unsigned id, material mat){
+  CMPTYPE sigT = nInfo.sigT[id];
+  float s = -log(curand_uniform(&(nInfo.rndState[id])))/mat.N_tot[nInfo.imat[id]]*sigT;   
+  float d = nInfo.d_closest[id];
+  s = (d<s)*d+(d>=s)*s;
+  float mu = nInfo.dir_polar[id];
+  float phi= nInfo.dir_azimu[id];
+  nInfo.pos_x[id]+=s*sqrt(1-mu*mu)*cos(phi);
+  nInfo.pos_y[id]+=s*sqrt(1-mu*mu)*sin(phi);
+  nInfo.pos_z[id]+=s*mu;
+}
+
 __global__ void resurrection(NeutronInfoStruct nInfo){
   //neutron energy has been set in an efficient way after each collison
   //only position and direction are sampled as neutron 
   unsigned nid = nInfo.id[blockDim.x*blockIdx.x + threadIdx.x];
   unsigned live = nInfo.live[nid];
   if(!live)
-    source_sampling(nInfo,nid);
+    neutron_sample(nInfo,nid);
 }
 #if defined(__TRACK)
 __global__ void history(material mat, multipole mp_para, CMPTYPE* devicearray, MemStruct DeviceMem, unsigned num_src){
@@ -66,7 +81,6 @@ __global__ void history(material mat, multipole mp_para, MemStruct DeviceMem, un
   //try others when real simulation structure becomes clear
   int idl = threadIdx.x;
   int id = blockDim.x * blockIdx.x + threadIdx.x;
-  //printf("i'm thread %d\n",id);
   int nid = DeviceMem.nInfo.id[id];
   unsigned live;
   unsigned isotopeID;
