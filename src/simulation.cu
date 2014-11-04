@@ -9,21 +9,13 @@ __global__ void initialize(MemStruct pInfo, CMPTYPE energy){
   int id = blockDim.x * blockIdx.x + threadIdx.x;
   /* Each thread gets same seed, a different sequence number, no offset */
   curand_init(1234, id, 0, &(pInfo.nInfo.rndState[id]));
-  curandState state = pInfo.nInfo.rndState[id];
   launch(pInfo.nInfo, id, energy);
 
-//TODO: source sampling should take settings dependent on geometry
-  pInfo.nInfo.pos_x[id] = 0.5f+curand_uniform(&state);
-  pInfo.nInfo.pos_y[id] = 0.5f+curand_uniform(&state);
-  pInfo.nInfo.pos_z[id] = 0.5f+curand_uniform(&state);
-  pInfo.nInfo.dir_polar[id] = curand_uniform(&state)*2-1;
-  pInfo.nInfo.dir_azimu[id] = curand_uniform(&state)*PI*2;
-
+  source_sampling(pInfo.nInfo, id);
   //pInfo[id].energy = energy; //id+1.0; //(id + 1)*1.63*energy*0.001;// 
   pInfo.nInfo.id[id] = id;
   pInfo.tally.cnt[id] = 0;
 
-  pInfo.nInfo.rndState[id] = state;
 }
 
 __global__ void update_sort_key(MemStruct DeviceMem, material mat){
@@ -44,6 +36,21 @@ __global__ void transport(MemStruct DeviceMem, material mat){
   DeviceMem.nInfo.pos_x[id]+=s*sqrt(1-mu*mu)*cos(phi);
   DeviceMem.nInfo.pos_y[id]+=s*sqrt(1-mu*mu)*sin(phi);
   DeviceMem.nInfo.pos_z[id]+=s*mu;
+}
+
+__device__ void source_sampling(NeutronInfoStruct nInfo, unsigned id){
+  curandState state = nInfo.rndState[id];
+//TODO: source sampling should take settings dependent on geometry
+  nInfo.pos_x[id] = 0.5f+curand_uniform(&state);
+  nInfo.pos_y[id] = 0.5f+curand_uniform(&state);
+  nInfo.pos_z[id] = 0.5f+curand_uniform(&state);
+  nInfo.dir_polar[id] = curand_uniform(&state)*2-1;
+  nInfo.dir_azimu[id] = curand_uniform(&state)*PI*2;
+  nInfo.rndState[id] = state;
+}
+
+__global__ void resurrection(){
+
 }
 #if defined(__TRACK)
 __global__ void history(material mat, multipole mp_para, CMPTYPE* devicearray, MemStruct DeviceMem, unsigned num_src){
