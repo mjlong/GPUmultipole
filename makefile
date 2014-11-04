@@ -144,7 +144,7 @@ ${DIR_OBJ}/%.obj : ${DIR_SRC}/%.cc
 	$(CC)             $(CMPTYPE) $(CCFLAGS) $^ -o $@
 ${DIR_OBJ}/%.ob : ${DIR_SRC}/%.cxx
 	@echo $(epoch)
-	$(NVCC)             $(CMPTYPE) $(NCFLAGS) $^ -o $@
+	$(NVCC) $(W_IDEN)  $(CMPTYPE) $(NCFLAGS) $^ -o $@
 ${DIR_OBJ}/%.o : ${DIR_SRC}/%.cu
 	@echo $(epoch)
 	$(NVCC) $(W_IDEN) $(RTMETHOD) $(CMPTYPE) $(NCFLAGS)  $^ -o $@
