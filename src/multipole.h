@@ -73,12 +73,10 @@ public:
   CMPTYPE *dev_doubles;
   CComplex<CMPTYPE> *mpdata;
   unsigned *l_value; // l and j index of the pole
-  //int w_function; //Which W function to use
   CMPTYPE  *pseudo_rho;  //inherit nomenclature from isotope.h
 
   int *w_start;// Contains the index of the pole at the start of the window
   int *w_end;  // Contains the index of the pole at the end of the window
-  //CMPTYPE *fit;
   CMPTYPE *fitT;
   CMPTYPE *fitA;
   CMPTYPE *fitF;
@@ -87,9 +85,6 @@ public:
 #if defined(__QUICKWG) 
   CComplex<CMPTYPE>* mtable;
 #endif
-/*#if defined(__QUICKWC)
-  CMPTYPE2 *mtable;
-#endif*/
  public:
 #if defined(__QUICKWG)
   multipole(struct multipoledata *data, int, CComplex<CMPTYPE> *wtable);
@@ -106,8 +101,6 @@ public:
   __device__  void xs_eval_fast(CMPTYPE E, 
 					 CMPTYPE &sigT, CMPTYPE &sigA, CMPTYPE &sigF);
 #endif
-  /*__device__  void xs_eval_fast(CMPTYPE E, CMPTYPE sqrtKT, CMPTYPE rnd, 
-					 CMPTYPE &sigT, CMPTYPE &sigA, CMPTYPE &sigF);*/
   __device__ void fill_factors(int prhoOffset, CMPTYPE sqrtE, int numL, CComplex<double> *sigT_factor);
                               //prhoOffset locates the pseudo_rho(iM,iL) in the long pseudo_rho array
   __host__ __device__  int findex(int, int, int, int, int);
