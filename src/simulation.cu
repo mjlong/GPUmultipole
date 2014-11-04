@@ -14,6 +14,7 @@ __global__ void initialize(MemStruct pInfo, CMPTYPE energy){
   source_sampling(pInfo.nInfo, id);
   //pInfo[id].energy = energy; //id+1.0; //(id + 1)*1.63*energy*0.001;// 
   pInfo.nInfo.id[id] = id;
+  pInfo.nInfo.live[id] = 1u;
   pInfo.tally.cnt[id] = 0;
 
 }
