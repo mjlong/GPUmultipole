@@ -131,16 +131,15 @@ unsigned active;
   active = 1u;
 #endif
 initialize_neutrons(gridx, blockx, DeviceMem); 
-RT_CHECK_ERROR(rtContextLaunch1D(context, 0, gridsize));
 clock_start = clock();
 while(active){
+  RT_CHECK_ERROR(rtContextLaunch1D(context, 0, gridsize));
   sort_prepare(gridx, blockx, DeviceMem, mat);
   cudppRadixSort(sortplan, DeviceMem.nInfo.isoenergy, DeviceMem.nInfo.id, gridsize);
   //                          keys,                   values,             numElements
   start_neutrons(gridx, blockx, mat, mp_para, devicearray, DeviceMem, num_src);
   //besides moving, neutrons terminated is initiated as new 
   transport_neutrons(gridx, blockx, DeviceMem, mat); 
-  RT_CHECK_ERROR(rtContextLaunch1D(context, 0, gridsize));
   active = count_neutrons(gridx, blockx, DeviceMem, HostMem,num_src);
 }
   cudppRadixSort(sortplan, DeviceMem.nInfo.isoenergy, DeviceMem.nInfo.id, gridsize);
