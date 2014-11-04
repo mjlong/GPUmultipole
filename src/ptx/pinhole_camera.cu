@@ -18,8 +18,10 @@ rtBuffer<float, 1>              input_pos_z_buffer;
 rtBuffer<float, 1>              input_dir_p_buffer;
 rtBuffer<float, 1>              input_dir_a_buffer;
 
-rtBuffer<float,    1>    output_closest_buffer;
+rtBuffer<float,    1> output_closest_buffer;
 rtBuffer<unsigned, 1> output_current_buffer;
+rtBuffer<unsigned, 1> output_live_buffer;
+
 rtDeclareVariable(rtObject,      top_object, , );
 rtDeclareVariable(unsigned int,  only_one_ray_type, , );
 
@@ -84,8 +86,12 @@ RT_PROGRAM void generate_ray()
          launch_index,1111,ray.origin.x,ray.origin.y,ray.origin.z); 
 #endif
   output_closest_buffer[launch_index] = prd.closest_t+scene_epsilon*0.5;
-  output_current_buffer[launch_index] = prd.imat;
+  output_current_buffer[launch_index] = prd.imat*(1-(0==prd.current));
+  // if prd.current is found to be 0, the neutron leaks
+  output_live_buffer[launch_index] = !(0==prd.current);
   //TODO: not determined whether closestID is needed
+  if(0==prd.current)
+    printf("%d leaks, matid=%d\n", launch_index, prd.imat);
 }
 
 
