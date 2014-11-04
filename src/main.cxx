@@ -84,6 +84,7 @@ int main(int argc, char **argv){
   config.datatype = CUDPP_DOUBLE;
   config.algorithm = CUDPP_SORT_RADIX;
   config.options=CUDPP_OPTION_KEY_VALUE_PAIRS;
+  config.options=CUDPP_OPTION_BACKWARD;
   CUDPPHandle sortplan = 0;
   CUDPPResult res = cudppPlan(theCudpp, &sortplan, config, gridsize, 1, 0);
   if (CUDPP_SUCCESS != res)
