@@ -215,6 +215,7 @@ void multipole::release_pointer(){
 }
 
 __device__ void broaden_n_polynomials(double En, double DOPP, double* factors, unsigned n){
+//!translated from mit-crpg/WHOPPER
   double sqrtE = sqrt(En);
   double beta  = sqrtE*DOPP;  
   double halfinvDOPP2 = 0.5/(DOPP*DOPP);
@@ -243,7 +244,7 @@ __device__ void broaden_n_polynomials(double En, double DOPP, double* factors, u
 #if defined(__MITW) || defined(__QUICKW) || defined(__FOURIERW)
 __device__  void multipole::xs_eval_fast(int iM, CMPTYPE E, CMPTYPE sqrtKT, 
 			                 CMPTYPE &sigT, CMPTYPE &sigA, CMPTYPE &sigF){
-
+//!translated from mit-crpg/WHOPPER
   // Copy variables to local memory for efficiency 
   int numIso = dev_numIso[0];
   int tempOffset=iM*DEVREALS;
@@ -425,7 +426,7 @@ __device__  void multipole::xs_eval_fast(CMPTYPE E, CMPTYPE sqrtKT, CComplex<CMP
 #if defined(__SAMPLE)
 __device__  void multipole::xs_eval_fast(CMPTYPE E,  
                         	 	 CMPTYPE &sigT, CMPTYPE &sigA, CMPTYPE &sigF){
-
+//!translated from mit-crpg/WHOPPER
   // Copy variables to local memory for efficiency 
   unsigned mode        = dev_integers[MODE];
   int    iP, iC, iW, startW, endW;
@@ -552,6 +553,7 @@ __host__ __device__ int multipole::pindex(int iP, int type){
 
 __device__ void multipole::fill_factors(int prhoOffset, CMPTYPE sqrtE, int numL,  
                                         CComplex<double> *sigT_factor){
+//!translated from mit-crpg/WHOPPER
   int iL;
   double arg;
   double twophi; 
