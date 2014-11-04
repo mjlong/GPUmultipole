@@ -40,13 +40,14 @@ void createContext( int width, float R1, float Hh, unsigned num_geo, RTcontext c
     RTvariable max_depth;
     RTvariable var_R1, var_Hh, var_num; 
 
-    RTvariable output_closest_buffer, output_current_buffer;
+    RTvariable output_closest_buffer, output_current_buffer, output_live_buffer;
     RTvariable input_pos_x_buffer,input_pos_y_buffer,input_pos_z_buffer,
                input_dir_a_buffer,input_dir_p_buffer;
     RTbuffer   input_pos_x_buffer_obj, input_pos_y_buffer_obj, input_pos_z_buffer_obj,
                input_dir_a_buffer_obj, input_dir_p_buffer_obj;
     RTbuffer            output_closest_buffer_obj;
     RTbuffer            output_current_buffer_obj;
+    RTbuffer            output_live_buffer_obj;
 
     /* Setup context */
     RT_CHECK_ERROR( rtContextSetRayTypeCount( context, 2 ) );//TODO:type count /* shadow and radiance */
@@ -61,6 +62,7 @@ void createContext( int width, float R1, float Hh, unsigned num_geo, RTcontext c
 
     RT_CHECK_ERROR( rtContextDeclareVariable( context, "output_closest_buffer", &output_closest_buffer ) );
     RT_CHECK_ERROR( rtContextDeclareVariable( context, "output_current_buffer", &output_current_buffer ) );
+    RT_CHECK_ERROR( rtContextDeclareVariable( context, "output_live_buffer", &output_live_buffer ) );
 
     RT_CHECK_ERROR( rtContextDeclareVariable( context, "max_depth", &max_depth ) );
     RT_CHECK_ERROR( rtContextDeclareVariable( context, "only_one_ray_type", &only_one_ray_type ) );
@@ -94,6 +96,12 @@ void createContext( int width, float R1, float Hh, unsigned num_geo, RTcontext c
     RT_CHECK_ERROR( rtBufferSetDevicePointer( output_current_buffer_obj, id, (CUdeviceptr)(nInfo.imat)));
     //TODO: instances have not been assigned the materialID, instead cell ID is used
     RT_CHECK_ERROR( rtVariableSetObject( output_current_buffer, output_current_buffer_obj ) );
+
+    RT_CHECK_ERROR( rtBufferCreateForCUDA( context, RT_BUFFER_INPUT, &output_live_buffer_obj) );
+    RT_CHECK_ERROR( rtBufferSetFormat( output_live_buffer_obj, RT_FORMAT_UNSIGNED_BYTE4 ) );
+    RT_CHECK_ERROR( rtBufferSetSize1D( output_live_buffer_obj, width) );
+    RT_CHECK_ERROR( rtBufferSetDevicePointer( output_live_buffer_obj, id, (CUdeviceptr)(nInfo.live)));
+    RT_CHECK_ERROR( rtVariableSetObject( output_live_buffer, output_live_buffer_obj ) );
 
     /* Input position buffer*/
     RT_CHECK_ERROR( rtBufferCreateForCUDA( context, RT_BUFFER_INPUT, &input_pos_x_buffer_obj)); 
