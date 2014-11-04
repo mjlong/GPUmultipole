@@ -23,7 +23,7 @@ __global__ void update_sort_key(MemStruct DeviceMem, material mat){
   unsigned id = blockDim.x * blockIdx.x + threadIdx.x;
   unsigned isoID = mat.isotopes[mat.offsets[DeviceMem.nInfo.imat[id]]+0];
                                             //matID
-  DeviceMem.nInfo.isoenergy[id] = MAXENERGY*isoID+DeviceMem.nInfo.energy[id];
+  DeviceMem.nInfo.isoenergy[id] = (MAXENERGY*isoID+DeviceMem.nInfo.energy[id])*DeviceMem.nInfo.live[id];
 }
 
 __global__ void transport(MemStruct DeviceMem, material mat){
@@ -50,8 +50,13 @@ __device__ void source_sampling(NeutronInfoStruct nInfo, unsigned id){
   nInfo.rndState[id] = state;
 }
 
-__global__ void resurrection(){
-
+__global__ void resurrection(NeutronInfoStruct nInfo){
+  //neutron energy has been set in an efficient way after each collison
+  //only position and direction are sampled as neutron 
+  unsigned nid = nInfo.id[blockDim.x*blockIdx.x + threadIdx.x];
+  unsigned live = nInfo.live[nid];
+  if(!live)
+    source_sampling(nInfo,nid);
 }
 #if defined(__TRACK)
 __global__ void history(material mat, multipole mp_para, CMPTYPE* devicearray, MemStruct DeviceMem, unsigned num_src){
@@ -101,8 +106,8 @@ __global__ void history(material mat, multipole mp_para, MemStruct DeviceMem, un
 #endif
   localenergy = localenergy * rnd;
   live = (localenergy > 1.0);
-  isotopeID = rnd<0.5; //id%2;//0;//an example law to change isotopeID 
-  /*So far, energy is the only state*/
+  DeviceMem.nInfo.live[nid] = live;  
+  //energy can be updated efficiently here, live state is upated after sorting
   localenergy = localenergy*live + STARTENE*(1u - live);
   //terminated += !live;
 
