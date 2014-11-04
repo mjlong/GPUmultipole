@@ -90,8 +90,6 @@ RT_PROGRAM void generate_ray()
   // if prd.current is found to be 0, the neutron leaks
   output_live_buffer[launch_index] = !(0==prd.current);
   //TODO: not determined whether closestID is needed
-  if(0==prd.current)
-    printf("%d leaks, matid=%d\n", launch_index, prd.imat);
 }
 
 

@@ -43,7 +43,6 @@ __global__ void transport(MemStruct DeviceMem, material mat){
   else{
     neutron_sample(DeviceMem.nInfo,nid);
   }
-  printf("%d, survive transport\n", nid);
 }
 
 __device__ void neutron_sample(NeutronInfoStruct nInfo, unsigned id){
