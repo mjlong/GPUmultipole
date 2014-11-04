@@ -14,7 +14,6 @@ __global__ void initialize(MemStruct pInfo, CMPTYPE energy){
   neutron_sample(pInfo.nInfo, id);
   //pInfo[id].energy = energy; //id+1.0; //(id + 1)*1.63*energy*0.001;// 
   pInfo.nInfo.id[id] = id;
-  pInfo.nInfo.live[id] = 1u;
   pInfo.tally.cnt[id] = 0;
 
 }
@@ -46,6 +45,7 @@ __global__ void transport(MemStruct DeviceMem, material mat){
 }
 
 __device__ void neutron_sample(NeutronInfoStruct nInfo, unsigned id){
+  nInfo.live[id] = 1u;
   curandState state = nInfo.rndState[id];
 //TODO: source sampling should take settings dependent on geometry
   nInfo.pos_x[id] = 0.5f+curand_uniform(&state);
@@ -145,9 +145,6 @@ __global__ void history(material mat, multipole mp_para, MemStruct DeviceMem, un
   DeviceMem.nInfo.sigF[nid]=sigFsum;
   DeviceMem.tally.cnt[nid] += 1; 
   }//end if live
-  else{
-    neutron_sample(DeviceMem.nInfo, nid);
-  }
   
 }
 
