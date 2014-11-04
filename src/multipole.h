@@ -114,5 +114,5 @@ public:
   __host__ __device__  int pindex(int, int);
 
 };
-
+__device__ void broaden_n_polynomials(double En, double DOPP, double* factors, unsigned n);
 #endif

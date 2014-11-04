@@ -214,6 +214,31 @@ void multipole::release_pointer(){
 #endif
 }
 
+__device__ void broaden_n_polynomials(double En, double DOPP, double* factors, unsigned n){
+  double sqrtE = sqrt(En);
+  double beta  = sqrtE*DOPP;  
+  double halfinvDOPP2 = 0.5/(DOPP*DOPP);
+  double quarterinvDOPP4 = 0.25/(DOPP*DOPP*DOPP*DOPP);
+  double erfBeta, exp_m_beta2;
+  if(beta>6.){
+    erfBeta = 1.0;
+    exp_m_beta2 = 0.0;
+  }
+  else{
+    erfBeta = erf(beta); 
+    exp_m_beta2 = exp(-beta*beta);
+  }  
+  factors[0] = erfBeta/En;
+  factors[1] = 1.0/sqrtE;
+  factors[2] = erfBeta/En*(halfinvDOPP2+En)+exp_m_beta2/(beta*sqrt(PI));
+  if(n>=4){
+    factors[3] = 1.0/sqrtE*(En+3.0*halfinvDOPP2);
+    for(int i=1;i<n-3;i++){
+      factors[i+3] = -factors[i-1]*i*(i+1)*quarterinvDOPP4
+                     +factors[i+1]*(En+(3+2*i)*halfinvDOPP2); 
+    } 
+  }
+}
 // xs eval with MIT Faddeeva()
 #if defined(__MITW) || defined(__QUICKW) || defined(__FOURIERW)
 __device__  void multipole::xs_eval_fast(int iM, CMPTYPE E, CMPTYPE sqrtKT, 
