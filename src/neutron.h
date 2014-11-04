@@ -25,6 +25,7 @@ typedef struct {
 typedef struct {
   unsigned *id;
   unsigned *imat;
+  unsigned *live;
   CMPTYPE *energy;
   CMPTYPE *sigT;
   CMPTYPE *sigA;

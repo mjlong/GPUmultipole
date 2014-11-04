@@ -77,6 +77,7 @@ void initialize_memory(MemStruct *DeviceMem, MemStruct *HostMem, CMPTYPE** devic
   gpuErrchk(cudaMemset(*blockcnt, 0, gridx*sizeof(unsigned int)));
 
   gpuErrchk(cudaMalloc((void**)&((*DeviceMem).nInfo.id),       gridsize*sizeof(unsigned)));
+  gpuErrchk(cudaMalloc((void**)&((*DeviceMem).nInfo.live),       gridsize*sizeof(unsigned)));
   gpuErrchk(cudaMalloc((void**)&((*DeviceMem).nInfo.rndState), gridsize*sizeof(curandState)));
   gpuErrchk(cudaMalloc((void**)&((*DeviceMem).nInfo.energy),   gridsize*sizeof(CMPTYPE)));
   gpuErrchk(cudaMalloc((void**)&((*DeviceMem).nInfo.sigT),   gridsize*sizeof(CMPTYPE)));
@@ -114,6 +115,7 @@ void release_memory(MemStruct DeviceMem, MemStruct HostMem, CMPTYPE* devicearray
   gpuErrchk(cudaFree(blockcnt));
 
   gpuErrchk(cudaFree(DeviceMem.nInfo.id));
+  gpuErrchk(cudaFree(DeviceMem.nInfo.live));
   gpuErrchk(cudaFree(DeviceMem.nInfo.rndState));
   gpuErrchk(cudaFree(DeviceMem.nInfo.energy));
   gpuErrchk(cudaFree(DeviceMem.nInfo.sigT));
