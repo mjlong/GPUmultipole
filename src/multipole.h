@@ -28,6 +28,7 @@
 #define STARTE   0
 #define SPACING  1
 #define SQRTAWR  2
+#define ENDE     3
 #define DEVREALS 4
 
 /*

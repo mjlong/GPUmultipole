@@ -40,6 +40,7 @@ multipole::multipole(struct multipoledata *data, int numIso){
     cudaMemcpy(dev_doubles+i*DEVREALS+STARTE,  &(data[i].startE),  size, cudaMemcpyHostToDevice);
     cudaMemcpy(dev_doubles+i*DEVREALS+SPACING ,&(data[i].spacing), size, cudaMemcpyHostToDevice);
     cudaMemcpy(dev_doubles+i*DEVREALS+SQRTAWR, &(data[i].sqrtAWR), size, cudaMemcpyHostToDevice);
+    cudaMemcpy(dev_doubles+i*DEVREALS+ENDE,    &(data[i].endE   ), size, cudaMemcpyHostToDevice);
   }
 
   /*
@@ -248,9 +249,13 @@ __device__  void multipole::xs_eval_fast(int iM, CMPTYPE E, CMPTYPE sqrtKT,
   // Copy variables to local memory for efficiency 
   int numIso = dev_numIso[0];
   int tempOffset=iM*DEVREALS;
+  // Currently neutrons are slown down from 20.0MeV to 1.0E-5 eV, which is wider than
+  // [startE, endE], 
+  CMPTYPE startE  = dev_doubles[tempOffset+STARTE];
+  CMPTYPE endE    = dev_doubles[tempOffset+ENDE];
+  E = (E<startE)*startE + (E>endE)*endE + ((E>=startE)&&(E<=endE))*E;
   CMPTYPE sqrtE = sqrt(E);
   CMPTYPE spacing = dev_doubles[tempOffset+SPACING]; 
-  CMPTYPE startE  = dev_doubles[tempOffset+STARTE];
   CMPTYPE sqrtAWR = dev_doubles[tempOffset+SQRTAWR];  
   CMPTYPE power, DOPP, DOPP_ECOEF;
   tempOffset = iM*DEVINTS;
