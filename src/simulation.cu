@@ -30,11 +30,15 @@ __global__ void transport(MemStruct DeviceMem, material mat){
   int nid = DeviceMem.nInfo.id[blockDim.x * blockIdx.x + threadIdx.x];
   unsigned live = DeviceMem.nInfo.live[nid];
   if(live){
-    neutron_move(DeviceMem.nInfo,nid,mat);
-    nInfo.pos_x[nid]+=s*sqrt(1-mu*mu)*cos(phi);
-    nInfo.pos_y[nid]+=s*sqrt(1-mu*mu)*sin(phi);
-    nInfo.pos_z[nid]+=s*mu;
-
+    CMPTYPE sigT = DeviceMem.nInfo.sigT[nid];
+    float s = -log(curand_uniform(&(DeviceMem.nInfo.rndState[nid])))/mat.N_tot[DeviceMem.nInfo.imat[nid]]*sigT;   
+    float d = DeviceMem.nInfo.d_closest[nid];
+    s = (d<s)*d+(d>=s)*s;
+    float mu = DeviceMem.nInfo.dir_polar[nid];
+    float phi= DeviceMem.nInfo.dir_azimu[nid];
+    DeviceMem.nInfo.pos_x[nid]+=s*sqrt(1-mu*mu)*cos(phi);
+    DeviceMem.nInfo.pos_y[nid]+=s*sqrt(1-mu*mu)*sin(phi);
+    DeviceMem.nInfo.pos_z[nid]+=s*mu;
   }
   else{
     neutron_sample(DeviceMem.nInfo,nid);
@@ -53,17 +57,6 @@ __device__ void neutron_sample(NeutronInfoStruct nInfo, unsigned id){
   nInfo.rndState[id] = state;
 }
 
-__device__ void neutron_move(NeutronInfoStruct nInfo, unsigned id, material mat){
-  CMPTYPE sigT = nInfo.sigT[id];
-  float s = -log(curand_uniform(&(nInfo.rndState[id])))/mat.N_tot[nInfo.imat[id]]*sigT;   
-  float d = nInfo.d_closest[id];
-  s = (d<s)*d+(d>=s)*s;
-  float mu = nInfo.dir_polar[id];
-  float phi= nInfo.dir_azimu[id];
-  nInfo.pos_x[id]+=s*sqrt(1-mu*mu)*cos(phi);
-  nInfo.pos_y[id]+=s*sqrt(1-mu*mu)*sin(phi);
-  nInfo.pos_z[id]+=s*mu;
-}
 
 __global__ void resurrection(NeutronInfoStruct nInfo){
   //neutron energy has been set in an efficient way after each collison
