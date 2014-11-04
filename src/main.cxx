@@ -133,10 +133,13 @@ unsigned active;
 initialize_neutrons(gridx, blockx, DeviceMem); 
 clock_start = clock();
 while(active){
+  //locate neutrons,
   RT_CHECK_ERROR(rtContextLaunch1D(context, 0, gridsize));
+  //sort key = live*(isotopeID*MAXENERGY+energy)
   sort_prepare(gridx, blockx, DeviceMem, mat);
   cudppRadixSort(sortplan, DeviceMem.nInfo.isoenergy, DeviceMem.nInfo.id, gridsize);
   //                          keys,                   values,             numElements
+  //neutrons found leaked in *locate* will not be evaluated 
   start_neutrons(gridx, blockx, mat, mp_para, devicearray, DeviceMem, num_src);
   //besides moving, neutrons terminated is initiated as new 
   transport_neutrons(gridx, blockx, DeviceMem, mat); 
