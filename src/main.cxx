@@ -133,6 +133,11 @@ unsigned active;
 initialize_neutrons(gridx, blockx, DeviceMem); 
 clock_start = clock();
 while(active){
+  sort_prepare(gridx, blockx, DeviceMem, mat);
+  cudppRadixSort(sortplan, DeviceMem.nInfo.isoenergy, DeviceMem.nInfo.id, gridsize);
+  //about twice sort in one loop
+  //1. add extra sort here
+  //2. only sort before xs evaluation, allows thread divergence in ray tracing
   //locate neutrons,
   RT_CHECK_ERROR(rtContextLaunch1D(context, 0, gridsize));
   //sort key = live*(isotopeID*MAXENERGY+energy)
