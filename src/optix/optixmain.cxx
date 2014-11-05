@@ -14,9 +14,11 @@ void initialize_context(RTcontext context, int width, int n, int m, float *data,
     unsigned num_geobj = m*m*n*n*2+1 ;
     createContext( width,sqrt(2.0)*m*0.5*(n+2)*data[3]/*p*/,data[2]/*hh*/,num_geobj, context, nInfo);
 #endif
+
+#if defined(__PRINTTRACK__)
     printf("%g,%g,%g,%g,%g\n",data[0],data[1],data[2],data[3],data[4]);
     printf("%d,%d,%d,%d,%d\n",width,n,m,0,0);
-
+#endif
     createMaterial( context, &material);
     createInstances( context, material, data, n, m);
 
@@ -308,9 +310,10 @@ void createInstances( RTcontext context, RTmaterial material, float *data, int n
     /* create group to hold instances  */
     RT_CHECK_ERROR( rtGeometryGroupCreate( context, &geometrygroup ) );
     RT_CHECK_ERROR( rtGeometryGroupSetChildCount( geometrygroup, (1+3*n*(n+1))*(1+3*m*(m+1))+1 ) );
+#if defined(__PRINTTRACK__)
     printf("%d, %d, %d, %d,%d\n",1+3*m*(m+1), 1+3*n*(n+1), (1+3*n*(n+1))*(1+3*m*(m+1))+1,0,0);
     // "constructing %d assemblies, each has %d fuel pins, which plus boundary sums to %d.
-    
+#endif  
     createGeometryCylinder(context, &cylinder, x0,y0,-hh, x0,y0,hh,r1);
     RT_CHECK_ERROR( rtGeometryInstanceCreate( context, &instance ) );
     RT_CHECK_ERROR( rtGeometryInstanceSetGeometry( instance, cylinder ) );
@@ -499,9 +502,11 @@ void createInstances( RTcontext context, RTmaterial material, float *data, int n
     /* create group to hold instances  */
     RT_CHECK_ERROR( rtGeometryGroupCreate( context, &geometrygroup ) );
     RT_CHECK_ERROR( rtGeometryGroupSetChildCount( geometrygroup, m*m*n*n*2+1 ));
+
+#if defined(__PRINTTRACK__)
     printf("%d, %d, %d, %d,%d\n", m*m, n*n, m*m*n*n*2+1,0,0);
     // "constructing %d assemblies, each has %d fuel pins, which plus boundary sums to %d.
-   
+#endif
     float l = (n+2)*p; 
     float xp = 0.f; 
     float yp = 0.f; 
