@@ -41,7 +41,7 @@ __device__ unsigned long long intpow(int x, int n){
 
 RT_PROGRAM void generate_ray()
 {
-  unsigned live = output_live_buffer[input_id_buffer[launch_index]];
+  unsigned live = output_live_buffer[input_id_buffer[launch_index]%launch_dim];
   if(live){
   float phi = input_dir_a_buffer[launch_index];
   float mu  = input_dir_p_buffer[launch_index]; 
