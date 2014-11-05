@@ -14,12 +14,8 @@ void initialize_neutrons(unsigned gridx, unsigned blockx,MemStruct DeviceMem){
   initialize<<<gridx, blockx>>>(DeviceMem, STARTENE);//1.95093e4);
 }
 
-void start_neutrons(unsigned gridx, unsigned blockx, material mat, multipole mp_data, CMPTYPE* devicearray, MemStruct DeviceMem, unsigned num_src){
-#if defined(__TRACK)
-    history<<<gridx, blockx, blockx*sizeof(unsigned)>>>(mat, mp_data, devicearray, DeviceMem, num_src);
-#else
+void start_neutrons(unsigned gridx, unsigned blockx, material mat, multipole mp_data, MemStruct DeviceMem, unsigned num_src){
     history<<<gridx, blockx, blockx*sizeof(unsigned)>>>(mat, mp_data, DeviceMem, num_src);
-#endif
 } 
 
 unsigned count_neutrons(unsigned gridx, unsigned blockx, MemStruct DeviceMem, MemStruct HostMem, unsigned num_src){
@@ -49,33 +45,12 @@ void transport_neutrons(unsigned gridx, unsigned blockx,MemStruct DeviceMem, mat
   transport<<<gridx, blockx>>>(DeviceMem, mat,renew);
 }
 
-void print_results(unsigned gridx, unsigned blockx, unsigned num_src, MemStruct DeviceMem, MemStruct HostMem, CMPTYPE* hostarray, CMPTYPE* devicearray, unsigned* blockcnt,unsigned* cnt, float timems){
-  gpuErrchk(cudaMemcpy(hostarray, devicearray, 4*gridx*blockx*sizeof(CMPTYPE), cudaMemcpyDeviceToHost));
+void print_results(unsigned gridx, unsigned blockx, unsigned num_src, MemStruct DeviceMem, MemStruct HostMem, unsigned* blockcnt,unsigned* cnt, float timems){
   
   reduce_sum_plus<<<gridx, blockx, blockx*sizeof(int)>>>(DeviceMem.tally.cnt, blockcnt);
   gpuErrchk(cudaMemcpy(cnt, blockcnt, gridx*sizeof(unsigned), cudaMemcpyDeviceToHost));
 
-/*print energy & XS (energies for __TRACK)*/
-#if !defined(__PLOT)
-  for(int i=0;i<gridx*blockx;i++){
-    printf(" %.15e %.15e %.15e %.15e",
-	   hostarray[4*i],
-	   hostarray[4*i+1],
-	   hostarray[4*i+2],
-	   hostarray[4*i+3]);
-    if(hostarray[4*i]<0)
-      printf("error-:%d \n",i);
-    else{
-      if(hostarray[4*i]>20000.0)
-	printf("error+:%d \n",i);
-      else
-	printf("\n");
-    }
-  }
-#endif
-
 /*print collision cnt and time*/
-#if !defined(__PROCESS) && !defined(__TRACK) && !defined(__PLOT)
   unsigned sum = 0;
   for (int i=0;i<gridx;i++){
     printf("%4d\n",cnt[i]);
@@ -91,7 +66,6 @@ void print_results(unsigned gridx, unsigned blockx, unsigned num_src, MemStruct 
 		       cudaMemcpyDeviceToHost));
   fprintf(fp,"%-4d,%-4d,%-.6f,%-8d,%-4d,%-2d M\n", gridx, blockx,timems*1000/sum, *HostMem.num_terminated_neutrons, 1, num_src/1000000);
   fclose(fp);
-#endif
 }
 
 void printdevice(){

@@ -63,15 +63,11 @@ void release_wtables(CComplex<CMPTYPE>* wtable){
 }
 #endif
 
-void initialize_memory(MemStruct *DeviceMem, MemStruct *HostMem, CMPTYPE** devicearray, CMPTYPE** hostarray, unsigned **cnt, unsigned** blockcnt, unsigned gridx, unsigned blockx ){
+void initialize_memory(MemStruct *DeviceMem, MemStruct *HostMem, unsigned **cnt, unsigned** blockcnt, unsigned gridx, unsigned blockx ){
   unsigned gridsize;
   gridsize = gridx*blockx;
 
-  *hostarray = (CMPTYPE*)malloc(4*gridsize*sizeof(CMPTYPE));
   *cnt      = (unsigned*)malloc(gridx*sizeof(unsigned));
-
-  gpuErrchk(cudaMalloc((void**)devicearray, 4*gridsize*sizeof(CMPTYPE)));
-  gpuErrchk(cudaMemset(*devicearray, 0, 4*gridsize*sizeof(CMPTYPE)));
 
   gpuErrchk(cudaMalloc((void**)(blockcnt), gridx*sizeof(unsigned int)));
   gpuErrchk(cudaMemset(*blockcnt, 0, gridx*sizeof(unsigned int)));
@@ -105,14 +101,11 @@ void initialize_memory(MemStruct *DeviceMem, MemStruct *HostMem, CMPTYPE** devic
   gpuErrchk(cudaMalloc((void**)&((*DeviceMem).tally.cnt), gridsize*sizeof(unsigned)));
   gpuErrchk(cudaMemset((*DeviceMem).tally.cnt, 0, gridsize*sizeof(unsigned)));  
 
-
   return;
 }
 
-void release_memory(MemStruct DeviceMem, MemStruct HostMem, CMPTYPE* devicearray, CMPTYPE* hostarray, unsigned *cnt, unsigned* blockcnt ){
-  free(hostarray);
+void release_memory(MemStruct DeviceMem, MemStruct HostMem, unsigned *cnt, unsigned* blockcnt ){
   free(cnt);
-  gpuErrchk(cudaFree(devicearray));
   gpuErrchk(cudaFree(blockcnt));
 
   gpuErrchk(cudaFree(DeviceMem.nInfo.id));

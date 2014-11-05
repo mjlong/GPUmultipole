@@ -33,9 +33,8 @@ int main(int argc, char **argv){
 //============================================================
   initialize_device();
   unsigned *cnt, *blockcnt;
-  CMPTYPE *hostarray, *devicearray;
   MemStruct HostMem, DeviceMem;
-  initialize_memory(&DeviceMem, &HostMem, &devicearray, &hostarray, &cnt, &blockcnt, gridx,blockx);
+  initialize_memory(&DeviceMem, &HostMem, &cnt, &blockcnt, gridx,blockx);
 //============================================================ 
 //===============Faddeeva tables==============================
 //============================================================
@@ -140,7 +139,7 @@ while(active){
   cudppRadixSort(sortplan, DeviceMem.nInfo.isoenergy, DeviceMem.nInfo.id, gridsize);
   //                          keys,                   values,             numElements
   //neutrons found leaked in *locate* will not be evaluated 
-  start_neutrons(gridx, blockx, mat, mp_para, devicearray, DeviceMem, num_src);
+  start_neutrons(gridx, blockx, mat, mp_para, DeviceMem, num_src);
   //besides moving, neutrons terminated is initiated as new 
   active = count_neutrons(gridx, blockx, DeviceMem, HostMem,num_src);
   transport_neutrons(gridx, blockx, DeviceMem, mat, active); 
@@ -158,19 +157,19 @@ while(0!=active){
 
   sort_prepare(gridx, blockx, DeviceMem, mat);
   cudppRadixSort(sortplan, DeviceMem.nInfo.isoenergy, DeviceMem.nInfo.id, gridsize);
-  start_neutrons(gridx, blockx, mat, mp_para, devicearray, DeviceMem, num_src);
+  start_neutrons(gridx, blockx, mat, mp_para, DeviceMem, num_src);
 
   active = count_lives(gridx, blockx, DeviceMem, HostMem);
   transport_neutrons(gridx, blockx, DeviceMem, mat, 0); 
 }
 clock_end   = clock();
 time_elapsed = (float)(clock_end-clock_start)/CLOCKS_PER_SEC*1000.f;
-//print_results(gridx, blockx, num_src, DeviceMem, HostMem, hostarray, devicearray, blockcnt,cnt, time_elapsed);
+print_results(gridx, blockx, num_src, DeviceMem, HostMem, blockcnt,cnt, time_elapsed);
  
 //============================================================ 
 //=============simulation shut down===========================
 //============================================================
-  release_memory(DeviceMem, HostMem, devicearray, hostarray, cnt, blockcnt);
+  release_memory(DeviceMem, HostMem, cnt, blockcnt);
   mp_para.release_pointer();
   mat.release_pointer();
 #if defined(__FOURIERW)
