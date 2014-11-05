@@ -44,6 +44,7 @@ typedef struct {
   NeutronInfoStruct nInfo;
   unsigned int *block_terminated_neutrons;
   unsigned int *num_terminated_neutrons;
+  unsigned int *num_live_neutrons;
   TallyStruct tally;
 }MemStruct;
 
