@@ -147,10 +147,15 @@ while(active){
   //if active=1; transport<<<>>> will renew neutrons with live=0
   //if active=0; transport<<<>>> will leave terminated neutrons
 }
+active = 1;
+while(0!=active){
   RT_CHECK_ERROR(rtContextLaunch1D(context, 0, gridsize));
   sort_prepare(gridx, blockx, DeviceMem, mat);
   cudppRadixSort(sortplan, DeviceMem.nInfo.isoenergy, DeviceMem.nInfo.id, gridsize);
   start_neutrons(gridx, blockx, mat, mp_para, devicearray, DeviceMem, num_src);
+  active = count_lives(gridx, blockx, DeviceMem, HostMem);
+  transport_neutrons(gridx, blockx, DeviceMem, mat, 0); 
+}
 clock_end   = clock();
 time_elapsed = (float)(clock_end-clock_start)/CLOCKS_PER_SEC*1000.f;
 //print_results(gridx, blockx, num_src, DeviceMem, HostMem, hostarray, devicearray, blockcnt,cnt, time_elapsed);
