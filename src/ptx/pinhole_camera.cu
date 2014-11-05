@@ -11,6 +11,8 @@ rtDeclareVariable(float,         var_R1, , );
 rtDeclareVariable(float,         var_Hh, , );
 rtDeclareVariable(unsigned,      var_num, , );
 
+rtBuffer<unsigned, 1>           input_id_buffer;
+
 rtBuffer<float, 1>              input_pos_x_buffer;
 rtBuffer<float, 1>              input_pos_y_buffer;
 rtBuffer<float, 1>              input_pos_z_buffer;
@@ -39,7 +41,8 @@ __device__ unsigned long long intpow(int x, int n){
 
 RT_PROGRAM void generate_ray()
 {
-if(output_live_buffer[launch_index]){
+  unsigned live = output_live_buffer[input_id_buffer[launch_index]];
+  if(live){
   float phi = input_dir_a_buffer[launch_index];
   float mu  = input_dir_p_buffer[launch_index]; 
   float3 ray_origin = make_float3(input_pos_x_buffer[launch_index],input_pos_y_buffer[launch_index],input_pos_z_buffer[launch_index]);

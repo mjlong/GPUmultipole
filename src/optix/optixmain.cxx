@@ -42,9 +42,11 @@ void createContext( int width, float R1, float Hh, unsigned num_geo, RTcontext c
 
     RTvariable output_closest_buffer, output_current_buffer, output_live_buffer;
     RTvariable input_pos_x_buffer,input_pos_y_buffer,input_pos_z_buffer,
-               input_dir_a_buffer,input_dir_p_buffer;
+               input_dir_a_buffer,input_dir_p_buffer,
+               input_id_buffer;
     RTbuffer   input_pos_x_buffer_obj, input_pos_y_buffer_obj, input_pos_z_buffer_obj,
-               input_dir_a_buffer_obj, input_dir_p_buffer_obj;
+               input_dir_a_buffer_obj, input_dir_p_buffer_obj,
+               input_id_buffer_obj;
     RTbuffer            output_closest_buffer_obj;
     RTbuffer            output_current_buffer_obj;
     RTbuffer            output_live_buffer_obj;
@@ -59,6 +61,8 @@ void createContext( int width, float R1, float Hh, unsigned num_geo, RTcontext c
     RT_CHECK_ERROR( rtContextDeclareVariable( context, "input_pos_z_buffer", &input_pos_z_buffer));
     RT_CHECK_ERROR( rtContextDeclareVariable( context, "input_dir_p_buffer", &input_dir_p_buffer));
     RT_CHECK_ERROR( rtContextDeclareVariable( context, "input_dir_a_buffer", &input_dir_a_buffer));
+
+    RT_CHECK_ERROR( rtContextDeclareVariable( context, "input_id_buffer", &input_id_buffer));
 
     RT_CHECK_ERROR( rtContextDeclareVariable( context, "output_closest_buffer", &output_closest_buffer ) );
     RT_CHECK_ERROR( rtContextDeclareVariable( context, "output_current_buffer", &output_current_buffer ) );
@@ -102,6 +106,13 @@ void createContext( int width, float R1, float Hh, unsigned num_geo, RTcontext c
     RT_CHECK_ERROR( rtBufferSetSize1D( output_live_buffer_obj, width) );
     RT_CHECK_ERROR( rtBufferSetDevicePointer( output_live_buffer_obj, id, (CUdeviceptr)(nInfo.live)));
     RT_CHECK_ERROR( rtVariableSetObject( output_live_buffer, output_live_buffer_obj ) );
+
+    /* Input neutron id buffer*/
+    RT_CHECK_ERROR( rtBufferCreateForCUDA( context, RT_BUFFER_INPUT, &input_id_buffer_obj)); 
+    RT_CHECK_ERROR( rtBufferSetFormat( input_id_buffer_obj, RT_FORMAT_UNSIGNED_BYTE4)); 
+    RT_CHECK_ERROR( rtBufferSetSize1D(input_id_buffer_obj, width));
+    RT_CHECK_ERROR( rtBufferSetDevicePointer( input_id_buffer_obj, id, (CUdeviceptr)(nInfo.id)));
+    RT_CHECK_ERROR( rtVariableSetObject( input_id_buffer, input_id_buffer_obj));
 
     /* Input position buffer*/
     RT_CHECK_ERROR( rtBufferCreateForCUDA( context, RT_BUFFER_INPUT, &input_pos_x_buffer_obj)); 
