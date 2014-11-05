@@ -71,13 +71,13 @@ __global__ void history(material mat, multipole mp_para, CMPTYPE* devicearray, M
 __global__ void history(material mat, multipole mp_para, MemStruct DeviceMem, unsigned num_src){
 #endif
   //try others when real simulation structure becomes clear
+  int idl = threadIdx.x;
   int id = blockDim.x * blockIdx.x + threadIdx.x;
   int nid = DeviceMem.nInfo.id[id];
-  if(DeviceMem.nInfo.live[nid]){
-  int idl = threadIdx.x;
   unsigned live;
-  unsigned isotopeID;
   extern __shared__ unsigned blockTerminated[];
+  if(DeviceMem.nInfo.live[nid]){
+  unsigned isotopeID;
   CMPTYPE localenergy;
   CMPTYPE rnd;
   CMPTYPE sigTsum, sigAsum, sigFsum, sigT, sigA, sigF;
