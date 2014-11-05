@@ -133,12 +133,7 @@ unsigned active;
 initialize_neutrons(gridx, blockx, DeviceMem); 
 clock_start = clock();
 while(active){
-  sort_prepare(gridx, blockx, DeviceMem, mat);
-  cudppRadixSort(sortplan, DeviceMem.nInfo.isoenergy, DeviceMem.nInfo.id, gridsize);
-  //about twice sort in one loop
-  //1. add extra sort here
-  //2. only sort before xs evaluation, allows thread divergence in ray tracing
-  //locate neutrons,
+  //since transport_neutrons() surrects all neutrons, rtLaunch always works full load, no need to sort here
   RT_CHECK_ERROR(rtContextLaunch1D(context, 0, gridsize));
   //sort key = live*(isotopeID*MAXENERGY+energy)
   sort_prepare(gridx, blockx, DeviceMem, mat);
@@ -154,10 +149,17 @@ while(active){
 }
 active = 1;
 while(0!=active){
+  //about twice sort in one loop
+  //1. add extra sort here
+  //2. only sort before xs evaluation, allows thread divergence in ray tracing
+  sort_prepare(gridx, blockx, DeviceMem, mat);
+  cudppRadixSort(sortplan, DeviceMem.nInfo.isoenergy, DeviceMem.nInfo.id, gridsize);
   RT_CHECK_ERROR(rtContextLaunch1D(context, 0, gridsize));
+
   sort_prepare(gridx, blockx, DeviceMem, mat);
   cudppRadixSort(sortplan, DeviceMem.nInfo.isoenergy, DeviceMem.nInfo.id, gridsize);
   start_neutrons(gridx, blockx, mat, mp_para, devicearray, DeviceMem, num_src);
+
   active = count_lives(gridx, blockx, DeviceMem, HostMem);
   transport_neutrons(gridx, blockx, DeviceMem, mat, 0); 
 }
