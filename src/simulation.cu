@@ -119,19 +119,6 @@ __global__ void history(material mat, multipole mp_para, MemStruct DeviceMem, un
   //terminated += !live;
 
   blockTerminated[idl] = !live;
-   __syncthreads();
-  live = blockDim.x>>1;
-  while(live){
-    if(idl<live)
-      blockTerminated[idl] += blockTerminated[idl+live];
-    __syncthreads();
-    live>>=1;
-  }
-  if(0==idl){
-    //reduction scheme depends on tally type
-    //following is to count moderation times
-    DeviceMem.block_terminated_neutrons[blockIdx.x] = blockTerminated[0];
-  }
   
   /*Note: from now on, live does not indicate neutron but thread active */
   //blockActive[threadIdx.x] = (((terminated*2)*blockDim.x*gridDim.x + atomicAdd(Info.num_terminated_neutrons, terminated)) < num_src);
@@ -145,7 +132,26 @@ __global__ void history(material mat, multipole mp_para, MemStruct DeviceMem, un
   DeviceMem.nInfo.sigF[nid]=sigFsum;
   DeviceMem.tally.cnt[nid] += 1; 
   }//end if live
-  
+
+  else{
+    blockTerminated[idl] = 0;
+    //those old unlive neutrons must not be counted again
+    //so, 0 instead of !live is used 
+  }
+  __syncthreads();
+  live = blockDim.x>>1;
+  while(live){
+    if(idl<live)
+      blockTerminated[idl] += blockTerminated[idl+live];
+    __syncthreads();
+    live>>=1;
+  }
+  if(0==idl){
+    //reduction scheme depends on tally type
+    //following is to count moderation times
+    DeviceMem.block_terminated_neutrons[blockIdx.x] = blockTerminated[0];
+  }
+
 }
 
 
@@ -214,7 +220,9 @@ __global__ void remaining(material mat,multipole mp_para, CMPTYPE *devicearray, 
 #endif
 }
 
-__global__ void statistics(unsigned *threadcnt, unsigned* cnt){
+__global__ void reduce_sum_plus(unsigned *threadcnt, unsigned* cnt){
+// reduce threadcnt[] to cnt[], cnt is updated by self increase
+// this is used to count terminated neurtons
   /*reduce tally*/
   /*TODO:
     alternatives:
@@ -240,17 +248,17 @@ __global__ void statistics(unsigned *threadcnt, unsigned* cnt){
     //following is to count moderation times
     cnt[blockIdx.x] += shared[0];
   }
-  
 }
 
-/*
-__global__ void isActive(MemStruct DevMem, unsigned int *active){
+__global__ void reduce_sum_equal(unsigned* thread_active, unsigned* active){
+// reduce thread_active to active, active is updated without history
+// this is used to count number of "live" threads
   int id = blockDim.x * blockIdx.x + threadIdx.x;
   unsigned idl = threadIdx.x;
   extern __shared__ unsigned shared[];
   //size of shared[] is given as 3rd parameter while launching the kernel
   int i;
-  shared[idl] = DevMem.thread_active[id]; 
+  shared[idl] = thread_active[id]; 
   __syncthreads();
   i = blockDim.x>>1;
   while(i){
@@ -262,7 +270,4 @@ __global__ void isActive(MemStruct DevMem, unsigned int *active){
   if(0==idl){
     active[blockIdx.x] = shared[0];
   }
-
-
 }
-*/
