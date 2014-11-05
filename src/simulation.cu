@@ -97,7 +97,7 @@ __global__ void history(material mat, multipole mp_para, MemStruct DeviceMem, un
   }
 
 #if defined(__PRINTTRACK__)
-  printf("%7d,%3d,%+.7e, %+.7e, %+.7e, %.14e %.14e %.14e %.1ee\n",
+  printf("%7d,%3d,%+.7e, %+.7e, %+.7e, %.14e %.14e %.14e %.14e\n",
           DeviceMem.nInfo.id[id], DeviceMem.nInfo.imat[nid],
           DeviceMem.nInfo.pos_x[nid], DeviceMem.nInfo.pos_y[nid], DeviceMem.nInfo.pos_z[nid],
           localenergy, sigTsum,sigAsum,sigFsum); 
