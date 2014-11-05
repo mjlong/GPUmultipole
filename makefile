@@ -121,7 +121,7 @@ PTXFIX =_one.ptx
 EXEFIX = _one
 endif
 ifeq ($(print),track)
-RTMETHOD += -D __PRINTTRACK__
+RTMETHOD += -D __PRINTTRACK__=$(printid)
 endif
 CSOURCES=$(wildcard ${DIR_SRC}/*.cc)
 MSOURCES=$(wildcard ${DIR_SRC}/*.cxx)
