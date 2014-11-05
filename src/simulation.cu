@@ -25,7 +25,7 @@ __global__ void update_sort_key(MemStruct DeviceMem, material mat){
   DeviceMem.nInfo.isoenergy[id] = (MAXENERGY*isoID+DeviceMem.nInfo.energy[id])*DeviceMem.nInfo.live[id];
 }
 
-__global__ void transport(MemStruct DeviceMem, material mat){
+__global__ void transport(MemStruct DeviceMem, material mat,unsigned renew){
   int nid = DeviceMem.nInfo.id[blockDim.x * blockIdx.x + threadIdx.x];
   unsigned live = DeviceMem.nInfo.live[nid];
   if(live){
@@ -39,7 +39,7 @@ __global__ void transport(MemStruct DeviceMem, material mat){
     DeviceMem.nInfo.pos_y[nid]+=s*sqrt(1-mu*mu)*sin(phi);
     DeviceMem.nInfo.pos_z[nid]+=s*mu;
   }
-  else{
+  else if(renew){
     neutron_sample(DeviceMem.nInfo,nid);
   }
 }

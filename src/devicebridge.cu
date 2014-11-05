@@ -34,8 +34,8 @@ void sort_prepare(unsigned gridx, unsigned blockx,MemStruct DeviceMem, material 
   update_sort_key<<<gridx, blockx>>>(DeviceMem, mat);
 }
 
-void transport_neutrons(unsigned gridx, unsigned blockx,MemStruct DeviceMem, material mat){
-  transport<<<gridx, blockx>>>(DeviceMem, mat);
+void transport_neutrons(unsigned gridx, unsigned blockx,MemStruct DeviceMem, material mat, unsigned renew){
+  transport<<<gridx, blockx>>>(DeviceMem, mat,renew);
 }
 void remain_neutrons(unsigned gridx, unsigned blockx, material mat, multipole mp_data, CMPTYPE* devicearray, MemStruct DeviceMem){
   remaining<<<gridx, blockx>>>(mat, mp_data, devicearray, DeviceMem);
