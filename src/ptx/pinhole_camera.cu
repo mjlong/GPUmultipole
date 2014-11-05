@@ -39,6 +39,7 @@ __device__ unsigned long long intpow(int x, int n){
 
 RT_PROGRAM void generate_ray()
 {
+if(output_live_buffer[launch_index]){
   float phi = input_dir_a_buffer[launch_index];
   float mu  = input_dir_p_buffer[launch_index]; 
   float3 ray_origin = make_float3(input_pos_x_buffer[launch_index],input_pos_y_buffer[launch_index],input_pos_z_buffer[launch_index]);
@@ -90,6 +91,7 @@ RT_PROGRAM void generate_ray()
   // if prd.current is found to be 0, the neutron leaks
   output_live_buffer[launch_index] = !(0==prd.current);
   //TODO: not determined whether closestID is needed
+}
 }
 
 
