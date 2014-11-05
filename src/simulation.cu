@@ -65,11 +65,7 @@ __global__ void resurrection(NeutronInfoStruct nInfo){
   if(!live)
     neutron_sample(nInfo,nid);
 }
-#if defined(__TRACK)
-__global__ void history(material mat, multipole mp_para, CMPTYPE* devicearray, MemStruct DeviceMem, unsigned num_src){
-#else
 __global__ void history(material mat, multipole mp_para, MemStruct DeviceMem, unsigned num_src){
-#endif
   //try others when real simulation structure becomes clear
   int idl = threadIdx.x;
   int id = blockDim.x * blockIdx.x + threadIdx.x;
@@ -98,18 +94,9 @@ __global__ void history(material mat, multipole mp_para, MemStruct DeviceMem, un
     sigAsum += sigA*mat.densities[isotopeID];
     sigFsum += sigF*mat.densities[isotopeID];
   }
-#if defined(__TRACK)
-  unsigned lies = gridDim.x*blockDim.x;
-  live = Info.tally.cnt[nid] + cnt;
-  live = live*(live<lies) + lies*(live>=lies); 
-  if(0==id){
-    devicearray[4*live  ] = localenergy;
-    devicearray[4*live+1] = sigF;  
-  }
-  if(2==id){
-    devicearray[4*live+2] = localenergy;
-    devicearray[4*live+3] = sigF;
-  }
+
+#if defined(__PRINTTRACK__)
+  printf(
 #endif
   localenergy = localenergy * rnd;
   live = (localenergy > 1.0);
