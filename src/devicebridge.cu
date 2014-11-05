@@ -23,10 +23,21 @@ void start_neutrons(unsigned gridx, unsigned blockx, material mat, multipole mp_
 } 
 
 unsigned count_neutrons(unsigned gridx, unsigned blockx, MemStruct DeviceMem, MemStruct HostMem, unsigned num_src){
+//count terminated neutrons 
   unsigned active;
-  statistics<<<1, gridx, gridx*sizeof(unsigned)>>>(DeviceMem.block_terminated_neutrons, DeviceMem.num_terminated_neutrons);
+  reduce_sum_plus<<<1, gridx, gridx*sizeof(unsigned)>>>(DeviceMem.block_terminated_neutrons, DeviceMem.num_terminated_neutrons);
   gpuErrchk(cudaMemcpy(HostMem.num_terminated_neutrons,DeviceMem.num_terminated_neutrons,sizeof(unsigned int), cudaMemcpyDeviceToHost));
   active = HostMem.num_terminated_neutrons[0] + gridx*blockx < num_src;  
+  return active;
+}
+
+unsigned count_lives(unsigned gridx, unsigned blockx, MemStruct DeviceMem, MemStruct HostMem){
+//count neutrons still marked "live"
+  unsigned active;
+  reduce_sum_plus<<<1, gridx, gridx*sizeof(unsigned)>>>(DeviceMem.block_terminated_neutrons, DeviceMem.num_terminated_neutrons);
+  reduce_sum_equal<<<gridx,blockx,blockx*sizeof(unsigned)>>>(DeviceMem.nInfo.live, DeviceMem.block_terminated_neutrons);
+  reduce_sum_equal<<<1,gridx, gridx*sizeof(unsigned)>>>(DeviceMem.block_terminated_neutrons, DeviceMem.num_live_neutrons);
+  gpuErrchk(cudaMemcpy(&active, DeviceMem.num_live_neutrons, sizeof(unsigned), cudaMemcpyDeviceToHost));  
   return active;
 }
 
@@ -44,7 +55,7 @@ void remain_neutrons(unsigned gridx, unsigned blockx, material mat, multipole mp
 void print_results(unsigned gridx, unsigned blockx, unsigned num_src, MemStruct DeviceMem, MemStruct HostMem, CMPTYPE* hostarray, CMPTYPE* devicearray, unsigned* blockcnt,unsigned* cnt, float timems){
   gpuErrchk(cudaMemcpy(hostarray, devicearray, 4*gridx*blockx*sizeof(CMPTYPE), cudaMemcpyDeviceToHost));
   
-  statistics<<<gridx, blockx, blockx*sizeof(int)>>>(DeviceMem.tally.cnt, blockcnt);
+  reduce_sum_plus<<<gridx, blockx, blockx*sizeof(int)>>>(DeviceMem.tally.cnt, blockcnt);
   gpuErrchk(cudaMemcpy(cnt, blockcnt, gridx*sizeof(unsigned), cudaMemcpyDeviceToHost));
 
 /*print energy & XS (energies for __TRACK)*/

@@ -11,7 +11,7 @@ void initialize_neutrons(unsigned gridx, unsigned blockx,MemStruct DeviceMem);
 void start_neutrons(unsigned gridx, unsigned blockx, material mat, multipole mp_para, CMPTYPE* devicearray, MemStruct DeviceMem, unsigned num_src);
 
 unsigned count_neutrons(unsigned gridx, unsigned blockx, MemStruct DeviceMem, MemStruct HostMem, unsigned num_src);
-
+unsigned count_lives(unsigned gridx, unsigned blockx, MemStruct DeviceMem, MemStruct HostMem);
 void sort_prepare(unsigned gridx, unsigned blockx,MemStruct DeviceMem, material mat);
 
 void transport_neutrons(unsigned gridx, unsigned blockx,MemStruct DeviceMem, material mat,unsigned renew);
