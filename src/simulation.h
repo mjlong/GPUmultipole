@@ -13,7 +13,6 @@
 #define MAXENERGY 30000.0
 
 __global__ void history(material mat, multipole, MemStruct, unsigned);
-__global__ void remaining(material mat, multipole, CMPTYPE *, MemStruct );
 __global__ void initialize(MemStruct, CMPTYPE);
 __device__ void launch(NeutronInfoStruct, int, CMPTYPE);
 __global__ void reduce_sum_plus(unsigned *threadcnt, unsigned* cnt);

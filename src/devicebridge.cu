@@ -48,9 +48,6 @@ void sort_prepare(unsigned gridx, unsigned blockx,MemStruct DeviceMem, material 
 void transport_neutrons(unsigned gridx, unsigned blockx,MemStruct DeviceMem, material mat, unsigned renew){
   transport<<<gridx, blockx>>>(DeviceMem, mat,renew);
 }
-void remain_neutrons(unsigned gridx, unsigned blockx, material mat, multipole mp_data, CMPTYPE* devicearray, MemStruct DeviceMem){
-  remaining<<<gridx, blockx>>>(mat, mp_data, devicearray, DeviceMem);
-}
 
 void print_results(unsigned gridx, unsigned blockx, unsigned num_src, MemStruct DeviceMem, MemStruct HostMem, CMPTYPE* hostarray, CMPTYPE* devicearray, unsigned* blockcnt,unsigned* cnt, float timems){
   gpuErrchk(cudaMemcpy(hostarray, devicearray, 4*gridx*blockx*sizeof(CMPTYPE), cudaMemcpyDeviceToHost));
