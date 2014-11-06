@@ -36,8 +36,7 @@ int main(int argc, char **argv){
   unsigned *h_blockcnt, *d_blockcnt;
   double *h_tallybins, *d_tallybins;
   MemStruct HostMem, DeviceMem;
-  initialize_memory(&DeviceMem, &HostMem, &h_blockcnt, &d_blockcnt, gridx,blockx);
-  assign_tallybins(h_tallybins, &d_tallybins,readbins(&h_tallybins,"tallybins"));
+  initialize_memory(&DeviceMem, &HostMem, &h_blockcnt, &d_blockcnt,h_tallybins, &d_tallybins, readbins(&h_tallybins,"tallybins"), gridx,blockx);
   free(h_tallybins);
 //============================================================ 
 //===============Faddeeva tables==============================

@@ -8,11 +8,8 @@
 //initialize device
 void initialize_device();
 
-void assign_tallybins(double *h_tallybins, double **d_tallybins,unsigned numbin);
-
 //Simulation memory allocate and deallocate
-void initialize_memory(MemStruct* DeviceMem, MemStruct* HostMem, unsigned **cnt, unsigned** blockcnt, unsigned gridx, unsigned blockx );
-
+void initialize_memory(MemStruct *DeviceMem, MemStruct *HostMem, unsigned **h_blockcnt, unsigned** d_blockcnt, double *h_tallybins, double **d_tallybins, unsigned numbin, unsigned gridx, unsigned blockx );
 void release_memory(MemStruct DeviceMem, MemStruct HostMem, unsigned *cnt, unsigned* blockcnt, double* d_tallybins );
 
 //Faddeeva function table management

@@ -70,10 +70,11 @@ void assign_tallybins(double *h_tallybins, double **d_tallybins,unsigned nbin){
   gpuErrchk(cudaMemcpyToSymbol(spectrumbins, *d_tallybins, nbin*sizeof(double), 0, cudaMemcpyDeviceToDevice));
 }
 
-void initialize_memory(MemStruct *DeviceMem, MemStruct *HostMem, unsigned **h_blockcnt, unsigned** d_blockcnt, unsigned gridx, unsigned blockx ){
+void initialize_memory(MemStruct *DeviceMem, MemStruct *HostMem, unsigned **h_blockcnt, unsigned** d_blockcnt, double *h_tallybins, double **d_tallybins, unsigned numbins, unsigned gridx, unsigned blockx ){
   unsigned gridsize;
   gridsize = gridx*blockx;
 
+  assign_tallybins(h_tallybins, d_tallybins, numbins);
   *h_blockcnt      = (unsigned*)malloc(gridx*sizeof(unsigned));
 
   gpuErrchk(cudaMalloc((void**)(d_blockcnt), gridx*sizeof(unsigned int)));
@@ -105,7 +106,7 @@ void initialize_memory(MemStruct *DeviceMem, MemStruct *HostMem, unsigned **h_bl
   gpuErrchk(cudaMallocHost((void**)&((*HostMem).num_terminated_neutrons), sizeof(unsigned int)));
   (*HostMem).num_terminated_neutrons[0] = 0u;
 
-  gpuErrchk(cudaMalloc((void**)&((*DeviceMem).tally.cnt), gridsize*sizeof(unsigned)));
+  gpuErrchk(cudaMalloc((void**)&((*DeviceMem).tally.cnt), gridsize*numbins*sizeof(unsigned)));
   gpuErrchk(cudaMemset((*DeviceMem).tally.cnt, 0, gridsize*sizeof(unsigned)));  
 
   return;
