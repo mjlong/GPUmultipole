@@ -46,6 +46,9 @@ typedef struct {
   unsigned int *block_terminated_neutrons;
   unsigned int *num_terminated_neutrons;
   unsigned int *num_live_neutrons;
+  unsigned int *block_spectrum;
+  unsigned int *spectrum;
+  float *tallybins;
   TallyStruct tally;
 }MemStruct;
 

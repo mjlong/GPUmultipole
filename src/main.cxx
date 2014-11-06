@@ -33,12 +33,10 @@ int main(int argc, char **argv){
 //=============simulation memory allocation===================
 //============================================================
   initialize_device();
-  unsigned *h_blockcnt, *d_blockcnt;
-  float *h_tallybins, *d_tallybins;
   MemStruct HostMem, DeviceMem;
-  unsigned num_bin = readbins(&h_tallybins,"tallybins")-1;
-  initialize_memory(&DeviceMem, &HostMem, &h_blockcnt, &d_blockcnt,h_tallybins, &d_tallybins,num_bin, gridx,blockx);
-  free(h_tallybins);
+  unsigned num_bin = readbins(&(HostMem.tallybins),"tallybins")-1;
+  initialize_memory(&DeviceMem, &HostMem, num_bin, gridx,blockx);
+  free(HostMem.tallybins);
 //============================================================ 
 //===============Faddeeva tables==============================
 //============================================================
@@ -168,12 +166,12 @@ while(0!=active){
 }
 clock_end   = clock();
 time_elapsed = (float)(clock_end-clock_start)/CLOCKS_PER_SEC*1000.f;
-print_results(gridx, blockx, num_src, num_bin, DeviceMem, HostMem, d_blockcnt,h_blockcnt, time_elapsed);
+print_results(gridx, blockx, num_src, num_bin, DeviceMem, HostMem, time_elapsed);
  
 //============================================================ 
 //=============simulation shut down===========================
 //============================================================
-  release_memory(DeviceMem, HostMem, h_blockcnt, d_blockcnt,d_tallybins);
+  release_memory(DeviceMem, HostMem);
   mp_para.release_pointer();
   mat.release_pointer();
 #if defined(__FOURIERW)
