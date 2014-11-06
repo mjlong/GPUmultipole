@@ -1,4 +1,5 @@
 #include "manmemory.h"
+__constant__ unsigned spectrumbins[NUM_BINS+1];
 
 #if defined (__FOURIERW)
 #include "fourierw.h"
@@ -63,14 +64,20 @@ void release_wtables(CComplex<CMPTYPE>* wtable){
 }
 #endif
 
-void initialize_memory(MemStruct *DeviceMem, MemStruct *HostMem, unsigned **cnt, unsigned** blockcnt, unsigned gridx, unsigned blockx ){
+void assign_tallybins(double *h_tallybins, double **d_tallybins){
+  gpuErrchk(cudaMalloc((void**)(d_tallybins), (NUM_BINS+1)*sizeof(double)));
+  gpuErrchk(cudaMemcpy(*d_tallybins,h_tallybins,(NUM_BINS+1)*sizeof(double),cudaMemcpyHostToDevice));
+  gpuErrchk(cudaMemcpyToSymbol(spectrumbins, *d_tallybins, (NUM_BINS+1)*sizeof(double), 0, cudaMemcpyDeviceToDevice));
+}
+
+void initialize_memory(MemStruct *DeviceMem, MemStruct *HostMem, unsigned **h_blockcnt, unsigned** d_blockcnt, unsigned gridx, unsigned blockx ){
   unsigned gridsize;
   gridsize = gridx*blockx;
 
-  *cnt      = (unsigned*)malloc(gridx*sizeof(unsigned));
+  *h_blockcnt      = (unsigned*)malloc(gridx*sizeof(unsigned));
 
-  gpuErrchk(cudaMalloc((void**)(blockcnt), gridx*sizeof(unsigned int)));
-  gpuErrchk(cudaMemset(*blockcnt, 0, gridx*sizeof(unsigned int)));
+  gpuErrchk(cudaMalloc((void**)(d_blockcnt), gridx*sizeof(unsigned int)));
+  gpuErrchk(cudaMemset(*d_blockcnt, 0, gridx*sizeof(unsigned int)));
 
   gpuErrchk(cudaMalloc((void**)&((*DeviceMem).nInfo.id),       gridsize*sizeof(unsigned)));
   gpuErrchk(cudaMalloc((void**)&((*DeviceMem).nInfo.live),       gridsize*sizeof(unsigned)));
@@ -104,9 +111,10 @@ void initialize_memory(MemStruct *DeviceMem, MemStruct *HostMem, unsigned **cnt,
   return;
 }
 
-void release_memory(MemStruct DeviceMem, MemStruct HostMem, unsigned *cnt, unsigned* blockcnt ){
-  free(cnt);
-  gpuErrchk(cudaFree(blockcnt));
+void release_memory(MemStruct DeviceMem, MemStruct HostMem, unsigned *h_blockcnt, unsigned* d_blockcnt, double* d_tallybins ){
+  free(h_blockcnt);
+  gpuErrchk(cudaFree(d_blockcnt));
+  gpuErrchk(cudaFree(d_tallybins));
 
   gpuErrchk(cudaFree(DeviceMem.nInfo.id));
   gpuErrchk(cudaFree(DeviceMem.nInfo.live));

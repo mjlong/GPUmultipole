@@ -1,6 +1,7 @@
 #include "CPUComplex.h"
 #include "multipole_data.h"
 #include "material_data.h"
+#include "tallybin.h"
 #include <stdio.h>
 #include <string.h>
 
@@ -32,9 +33,13 @@ int main(int argc, char **argv){
 //=============simulation memory allocation===================
 //============================================================
   initialize_device();
-  unsigned *cnt, *blockcnt;
+  unsigned *h_blockcnt, *d_blockcnt;
+  double *h_tallybins, *d_tallybins;
+  readbins(&h_tallybins,"tallybins");
   MemStruct HostMem, DeviceMem;
-  initialize_memory(&DeviceMem, &HostMem, &cnt, &blockcnt, gridx,blockx);
+  initialize_memory(&DeviceMem, &HostMem, &h_blockcnt, &d_blockcnt, gridx,blockx);
+  assign_tallybins(h_tallybins, &d_tallybins);
+  free(h_tallybins);
 //============================================================ 
 //===============Faddeeva tables==============================
 //============================================================
@@ -164,12 +169,12 @@ while(0!=active){
 }
 clock_end   = clock();
 time_elapsed = (float)(clock_end-clock_start)/CLOCKS_PER_SEC*1000.f;
-print_results(gridx, blockx, num_src, DeviceMem, HostMem, blockcnt,cnt, time_elapsed);
+print_results(gridx, blockx, num_src, DeviceMem, HostMem, d_blockcnt,h_blockcnt, time_elapsed);
  
 //============================================================ 
 //=============simulation shut down===========================
 //============================================================
-  release_memory(DeviceMem, HostMem, cnt, blockcnt);
+  release_memory(DeviceMem, HostMem, h_blockcnt, d_blockcnt,d_tallybins);
   mp_para.release_pointer();
   mat.release_pointer();
 #if defined(__FOURIERW)
@@ -194,7 +199,6 @@ print_results(gridx, blockx, num_src, DeviceMem, HostMem, blockcnt,cnt, time_ela
   rtContextDestroy(context); 
   return 0;
 }
-
 
 
 

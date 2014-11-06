@@ -1,4 +1,5 @@
 #include "simulation.h" 
+extern __constant__ double spectrumbins[];
 
 __global__ void initialize(MemStruct pInfo){
   //int id = ((blockDim.x*blockDim.y*blockDim.z)*(blockIdx.y*gridDim.x+blockIdx.x)+(blockDim.x*blockDim.y)*threadIdx.z+blockDim.x*threadIdx.y+threadIdx.x);//THREADID;
