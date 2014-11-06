@@ -1,6 +1,6 @@
 #include "tallybin.h"
 
-unsigned readbins(double** binedges, char* input){
+unsigned readbins(float** binedges, char* input){
   FILE* fp = NULL;
   char line[MAXLEN];
   fp = fopen(input,"r");
@@ -8,7 +8,7 @@ unsigned readbins(double** binedges, char* input){
   while(fgets(line,MAXLEN,fp))
     i++;
   fclose(fp);
-  *binedges = (double*)malloc(sizeof(double)*i);
+  *binedges = (float*)malloc(sizeof(float)*i);
   fp = NULL;
   fp = fopen(input,"r");
   for(int j=0;j<i;j++){
