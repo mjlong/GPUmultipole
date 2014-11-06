@@ -1,5 +1,5 @@
 #include "manmemory.h"
-__constant__ unsigned spectrumbins[NUM_BINS+1];
+__constant__ float spectrumbins[NUM_BINS+1];
 
 #if defined (__FOURIERW)
 #include "fourierw.h"
@@ -64,21 +64,21 @@ void release_wtables(CComplex<CMPTYPE>* wtable){
 }
 #endif
 
-void assign_tallybins(double *h_tallybins, double **d_tallybins,unsigned nbin){
-  gpuErrchk(cudaMalloc((void**)(d_tallybins), nbin*sizeof(double)));
-  gpuErrchk(cudaMemcpy(*d_tallybins,h_tallybins,nbin*sizeof(double),cudaMemcpyHostToDevice));
-  gpuErrchk(cudaMemcpyToSymbol(spectrumbins, *d_tallybins, nbin*sizeof(double), 0, cudaMemcpyDeviceToDevice));
+void assign_tallybins(float *h_tallybins, float **d_tallybins,unsigned nbinedge){
+  gpuErrchk(cudaMalloc((void**)(d_tallybins), nbinedge*sizeof(float)));
+  gpuErrchk(cudaMemcpy(*d_tallybins,h_tallybins,nbinedge*sizeof(float),cudaMemcpyHostToDevice));
+  gpuErrchk(cudaMemcpyToSymbol(spectrumbins, *d_tallybins, nbinedge*sizeof(float), 0, cudaMemcpyDeviceToDevice));
 }
 
-void initialize_memory(MemStruct *DeviceMem, MemStruct *HostMem, unsigned **h_blockcnt, unsigned** d_blockcnt, double *h_tallybins, double **d_tallybins, unsigned numbins, unsigned gridx, unsigned blockx ){
+void initialize_memory(MemStruct *DeviceMem, MemStruct *HostMem, unsigned **h_blockcnt, unsigned** d_blockcnt, float *h_tallybins, float **d_tallybins, unsigned numbins, unsigned gridx, unsigned blockx ){
   unsigned gridsize;
   gridsize = gridx*blockx;
 
-  assign_tallybins(h_tallybins, d_tallybins, numbins);
-  *h_blockcnt      = (unsigned*)malloc(gridx*sizeof(unsigned));
+  assign_tallybins(h_tallybins, d_tallybins, numbins+1);
+  *h_blockcnt      = (unsigned*)malloc(numbins*gridx*sizeof(unsigned));
 
-  gpuErrchk(cudaMalloc((void**)(d_blockcnt), gridx*sizeof(unsigned int)));
-  gpuErrchk(cudaMemset(*d_blockcnt, 0, gridx*sizeof(unsigned int)));
+  gpuErrchk(cudaMalloc((void**)(d_blockcnt), numbins*gridx*sizeof(unsigned int)));
+  gpuErrchk(cudaMemset(*d_blockcnt, 0, numbins*gridx*sizeof(unsigned int)));
 
   gpuErrchk(cudaMalloc((void**)&((*DeviceMem).nInfo.id),       gridsize*sizeof(unsigned)));
   gpuErrchk(cudaMalloc((void**)&((*DeviceMem).nInfo.live),       gridsize*sizeof(unsigned)));
@@ -107,12 +107,12 @@ void initialize_memory(MemStruct *DeviceMem, MemStruct *HostMem, unsigned **h_bl
   (*HostMem).num_terminated_neutrons[0] = 0u;
 
   gpuErrchk(cudaMalloc((void**)&((*DeviceMem).tally.cnt), gridsize*numbins*sizeof(unsigned)));
-  gpuErrchk(cudaMemset((*DeviceMem).tally.cnt, 0, gridsize*sizeof(unsigned)));  
+  gpuErrchk(cudaMemset((*DeviceMem).tally.cnt, 0, numbins*gridsize*sizeof(unsigned)));  
 
   return;
 }
 
-void release_memory(MemStruct DeviceMem, MemStruct HostMem, unsigned *h_blockcnt, unsigned* d_blockcnt, double* d_tallybins ){
+void release_memory(MemStruct DeviceMem, MemStruct HostMem, unsigned *h_blockcnt, unsigned* d_blockcnt, float* d_tallybins ){
   free(h_blockcnt);
   gpuErrchk(cudaFree(d_blockcnt));
   gpuErrchk(cudaFree(d_tallybins));
