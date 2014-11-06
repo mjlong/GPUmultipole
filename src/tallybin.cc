@@ -1,6 +1,6 @@
 #include "tallybin.h"
 
-void readbins(double** binedges, char* input){
+unsigned readbins(double** binedges, char* input){
   FILE* fp = NULL;
   char line[MAXLEN];
   fp = fopen(input,"r");
@@ -17,4 +17,5 @@ void readbins(double** binedges, char* input){
     (*binedges)[j]=atof(line); 
   }
   fclose(fp);
+  return i;
 }

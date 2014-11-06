@@ -64,10 +64,10 @@ void release_wtables(CComplex<CMPTYPE>* wtable){
 }
 #endif
 
-void assign_tallybins(double *h_tallybins, double **d_tallybins){
-  gpuErrchk(cudaMalloc((void**)(d_tallybins), (NUM_BINS+1)*sizeof(double)));
-  gpuErrchk(cudaMemcpy(*d_tallybins,h_tallybins,(NUM_BINS+1)*sizeof(double),cudaMemcpyHostToDevice));
-  gpuErrchk(cudaMemcpyToSymbol(spectrumbins, *d_tallybins, (NUM_BINS+1)*sizeof(double), 0, cudaMemcpyDeviceToDevice));
+void assign_tallybins(double *h_tallybins, double **d_tallybins,unsigned nbin){
+  gpuErrchk(cudaMalloc((void**)(d_tallybins), nbin*sizeof(double)));
+  gpuErrchk(cudaMemcpy(*d_tallybins,h_tallybins,nbin*sizeof(double),cudaMemcpyHostToDevice));
+  gpuErrchk(cudaMemcpyToSymbol(spectrumbins, *d_tallybins, nbin*sizeof(double), 0, cudaMemcpyDeviceToDevice));
 }
 
 void initialize_memory(MemStruct *DeviceMem, MemStruct *HostMem, unsigned **h_blockcnt, unsigned** d_blockcnt, unsigned gridx, unsigned blockx ){

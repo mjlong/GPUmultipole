@@ -8,7 +8,7 @@
 //initialize device
 void initialize_device();
 
-void assign_tallybins(double *h_tallybins, double **d_tallybins);
+void assign_tallybins(double *h_tallybins, double **d_tallybins,unsigned numbin);
 
 //Simulation memory allocate and deallocate
 void initialize_memory(MemStruct* DeviceMem, MemStruct* HostMem, unsigned **cnt, unsigned** blockcnt, unsigned gridx, unsigned blockx );
