@@ -16,7 +16,6 @@ void sort_prepare(unsigned gridx, unsigned blockx,MemStruct DeviceMem, material 
 
 void transport_neutrons(unsigned gridx, unsigned blockx,MemStruct DeviceMem, material mat,unsigned renew);
 
-void print_results(unsigned gridx, unsigned blockx, unsigned num_src, MemStruct DeviceMem, MemStruct HostMem, unsigned* blockcnt,unsigned* cnt, float timems);
-
+void print_results(unsigned gridx, unsigned blockx, unsigned num_src, unsigned num_bin, MemStruct DeviceMem, MemStruct HostMem, unsigned* blockcnt,unsigned* cnt, float timems);
 
 #endif

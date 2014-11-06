@@ -45,19 +45,38 @@ void transport_neutrons(unsigned gridx, unsigned blockx,MemStruct DeviceMem, mat
   transport<<<gridx, blockx>>>(DeviceMem, mat,renew);
 }
 
-void print_results(unsigned gridx, unsigned blockx, unsigned num_src, MemStruct DeviceMem, MemStruct HostMem, unsigned* blockcnt,unsigned* cnt, float timems){
+void print_results(unsigned gridx, unsigned blockx, unsigned num_src, unsigned num_bin, MemStruct DeviceMem, MemStruct HostMem, unsigned* blockcnt,unsigned* cnt, float timems){
   
-  reduce_sum_plus<<<gridx, blockx, blockx*sizeof(int)>>>(DeviceMem.tally.cnt, blockcnt);
-  gpuErrchk(cudaMemcpy(cnt, blockcnt, gridx*sizeof(unsigned), cudaMemcpyDeviceToHost));
+  unsigned *d_cnt, *h_cnt;
+  gpuErrchk(cudaMalloc((void**)&d_cnt, num_bin*sizeof(unsigned)));
+  h_cnt = (unsigned*)malloc(num_bin*sizeof(unsigned));
+  for(int i=0;i<num_bin;i++){
+    reduce_sum_plus<<<gridx, blockx, blockx*sizeof(int)>>>(DeviceMem.tally.cnt+i*gridx*blockx, blockcnt+i*gridx);
+  }
+  for(int i=0;i<num_bin;i++){
+    reduce_sum_equal<<<1, gridx, gridx*sizeof(int)>>>(blockcnt+i*gridx, d_cnt+i);
+  }
+  gpuErrchk(cudaMemcpy(h_cnt,d_cnt,sizeof(unsigned)*num_bin, cudaMemcpyDeviceToHost));
+
+  gpuErrchk(cudaMemcpy(cnt, blockcnt, num_bin*gridx*sizeof(unsigned), cudaMemcpyDeviceToHost));
 
 /*print collision cnt and time*/
   unsigned sum = 0;
   for (int i=0;i<gridx;i++){
-    printf("%4d\n",cnt[i]);
-    sum += cnt[i];
+    for(int j=0;j<num_bin;j++){ 
+      printf("%4d ",cnt[i+j*gridx]);
+      sum += cnt[i+j*gridx];
+    }
+    printf("\n");
   }
+  for(int j=0;j<num_bin;j++){ 
+    printf("%4d ",h_cnt[j]);
+  }
+  printf("\n");
   printf("time elapsed:%g mus\n", timems*1000/sum);
-
+  
+  free(h_cnt);
+  gpuErrchk(cudaFree(d_cnt));
   FILE *fp=NULL;
   fp = fopen("timelog","a+");
   gpuErrchk(cudaMemcpy(HostMem.num_terminated_neutrons, 
