@@ -1,21 +1,14 @@
 #include "simulation.h" 
 
-__device__ void launch(NeutronInfoStruct pInfo,int id, CMPTYPE energy){
-  pInfo.energy[id] = energy;
-}
-
-__global__ void initialize(MemStruct pInfo, CMPTYPE energy){
+__global__ void initialize(MemStruct pInfo){
   //int id = ((blockDim.x*blockDim.y*blockDim.z)*(blockIdx.y*gridDim.x+blockIdx.x)+(blockDim.x*blockDim.y)*threadIdx.z+blockDim.x*threadIdx.y+threadIdx.x);//THREADID;
   int id = blockDim.x * blockIdx.x + threadIdx.x;
   /* Each thread gets same seed, a different sequence number, no offset */
   curand_init(1234, id, 0, &(pInfo.nInfo.rndState[id]));
-  launch(pInfo.nInfo, id, energy);
 
   neutron_sample(pInfo.nInfo, id);
-  //pInfo[id].energy = energy; //id+1.0; //(id + 1)*1.63*energy*0.001;// 
   pInfo.nInfo.id[id] = id;
   pInfo.tally.cnt[id] = 0;
-
 }
 
 __global__ void update_sort_key(MemStruct DeviceMem, material mat){
@@ -54,6 +47,7 @@ __device__ void neutron_sample(NeutronInfoStruct nInfo, unsigned id){
   nInfo.pos_z[id] = 0.5f+curand_uniform(&state);
   nInfo.dir_polar[id] = curand_uniform(&state)*2-1;
   nInfo.dir_azimu[id] = curand_uniform(&state)*PI*2;
+  nInfo.energy[id] = STARTENE;
   nInfo.rndState[id] = state;
 }
 
@@ -105,7 +99,7 @@ __global__ void history(material mat, multipole mp_para, MemStruct DeviceMem, un
   }
 #endif
   localenergy = localenergy * rnd;
-  live = (localenergy > 1.0);
+  live = (localenergy > 1.0E-5);
   DeviceMem.nInfo.live[nid] = live;  
   //energy can be updated efficiently here, live state is upated after sorting
   localenergy = localenergy*live + STARTENE*(1u - live);

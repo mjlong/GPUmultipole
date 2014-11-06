@@ -11,7 +11,7 @@
 */
 
 void initialize_neutrons(unsigned gridx, unsigned blockx,MemStruct DeviceMem){
-  initialize<<<gridx, blockx>>>(DeviceMem, STARTENE);//1.95093e4);
+  initialize<<<gridx, blockx>>>(DeviceMem);
 }
 
 void start_neutrons(unsigned gridx, unsigned blockx, material mat, multipole mp_data, MemStruct DeviceMem, unsigned num_src){
