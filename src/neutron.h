@@ -11,6 +11,7 @@
 #define CMPTYPE2 double2
 #endif
 
+#define NUM_BINS 16
 //TODO: it has not been determined how to save neutron and simulation state
 //TODO: array of struct Vs struct of array
 typedef struct {
