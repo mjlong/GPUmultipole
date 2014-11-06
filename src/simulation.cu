@@ -1,5 +1,5 @@
 #include "simulation.h" 
-extern __constant__ double spectrumbins[];
+extern __constant__ float spectrumbins[];
 
 __global__ void initialize(MemStruct pInfo){
   //int id = ((blockDim.x*blockDim.y*blockDim.z)*(blockIdx.y*gridDim.x+blockIdx.x)+(blockDim.x*blockDim.y)*threadIdx.z+blockDim.x*threadIdx.y+threadIdx.x);//THREADID;
@@ -61,6 +61,13 @@ __global__ void resurrection(NeutronInfoStruct nInfo){
   if(!live)
     neutron_sample(nInfo,nid);
 }
+__device__ unsigned search_bin(CMPTYPE energy){
+  for(int i=0;i<NUM_BINS;i++){
+    if( (spectrumbins[i]>=energy)&&(spectrumbins[i+1]<energy) ) 
+      return i;
+  }
+  return 0;
+}
 __global__ void history(material mat, multipole mp_para, MemStruct DeviceMem, unsigned num_src){
   //try others when real simulation structure becomes clear
   int idl = threadIdx.x;
@@ -81,6 +88,7 @@ __global__ void history(material mat, multipole mp_para, MemStruct DeviceMem, un
   curandState localState = DeviceMem.nInfo.rndState[nid];
 
   localenergy = DeviceMem.nInfo.energy[nid];
+  DeviceMem.tally.cnt[search_bin(localenergy)*gridDim.x*blockDim.x+nid]+=1;
   live = 1u;
   unsigned imat = DeviceMem.nInfo.imat[nid];
   for(isotopeID=mat.offsets[imat];isotopeID<mat.offsets[imat+1];isotopeID++ ){
