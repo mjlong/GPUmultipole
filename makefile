@@ -14,15 +14,13 @@ DIR_OBJ = ./obj
 DIR_PTX = ./obj/ptx
 DIR_HDF5  = /home/jlmiao/opt/hdf5
 DIR_CUDA6 = /usr/local/cuda-6.0
-DIR_CUDPP = /home/jlmiao/opt/cudpp-2.1
 DIR_OPTIX = /home/jlmiao/Documents/NVIDIA-OptiX-SDK-3.6.0-linux64
 #Include flags
 INC_SRC   = -I${DIR_SRC} -I${DIR_SRC}/wfunction
 INC_HDF5  = -I${DIR_HDF5}/include
 INC_CUDA6 = -I${DIR_CUDA6}/include
-INC_CUDPP = -I${DIR_CUDPP}/include
 INC_OPTIX = -I${DIR_OPTIX}/include -I${DIR_SRC_OPT}
-NCINCFLAGS  = $(INC_SRC) $(INC_CUDA6) $(INC_CUDPP) $(INC_OPTIX)
+NCINCFLAGS  = $(INC_SRC) $(INC_CUDA6) $(INC_OPTIX)
 CCINCFLAGS  = $(INC_SRC) $(INC_HDF5) $(INC_OPTIX)
 ifeq ($(compare),1)
 DIR_BIN = ./bin/test
@@ -41,7 +39,7 @@ CCFLAGS=-c                    $(CCINCFLAGS)
 DIR_BIN = ./bin/release
 endif
 LINKLAG=   -dlink -arch=sm_20  
-LDFLAGS=-L${DIR_HDF5}/lib/ -L${DIR_CUDA6}/lib64 -L${DIR_CUDPP}/lib/ -L${DIR_OPTIX}/lib64/ -loptix -lcudpp -lcudart -lhdf5 
+LDFLAGS=-L${DIR_HDF5}/lib/ -L${DIR_CUDA6}/lib64  -L${DIR_OPTIX}/lib64/ -loptix -lcudart -lhdf5 
 GSOURCES=$(wildcard ${DIR_SRC}/*.cu)
 PSOURCES=$(wildcard ${DIR_SRC_PTX}/*.cu)
 WSOURCES=

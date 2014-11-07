@@ -5,8 +5,6 @@
 #include "material.h"
 #include <cuda.h>
 #include <curand_kernel.h>
-#include <cudpp.h>
-#include <cudpp_config.h>
 #include "neutron.h"
 
 #define STARTENE 20000000.0

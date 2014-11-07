@@ -6,8 +6,6 @@
 #include <string.h>
 
 #include <optix.h>
-#include <cudpp.h>
-#include <cudpp_config.h>
 #include <neutron.h>
 #include <manmemory.h>
 #include "devicebridge.h"
