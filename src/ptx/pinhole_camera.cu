@@ -41,11 +41,11 @@ __device__ unsigned long long intpow(int x, int n){
 
 RT_PROGRAM void generate_ray()
 {
-  unsigned live = output_live_buffer[input_id_buffer[launch_index]%launch_dim];
-  if(live){
-  float phi = input_dir_a_buffer[launch_index];
-  float mu  = input_dir_p_buffer[launch_index]; 
-  float3 ray_origin = make_float3(input_pos_x_buffer[launch_index],input_pos_y_buffer[launch_index],input_pos_z_buffer[launch_index]);
+  unsigned nid = input_id_buffer[launch_index]%launch_dim;
+  if(output_live_buffer[nid]){
+  float phi = input_dir_a_buffer[nid];
+  float mu  = input_dir_p_buffer[nid]; 
+  float3 ray_origin = make_float3(input_pos_x_buffer[nid],input_pos_y_buffer[nid],input_pos_z_buffer[nid]);
   float3 ray_direction = make_float3(sqrt(1.f-mu*mu)*cos(phi),sqrt(1.f-mu*mu)*sin(phi),mu); 
 
 #if defined(__MANY__)
@@ -89,10 +89,10 @@ RT_PROGRAM void generate_ray()
 //  printf("%3d, %3d, %+18.12e,%+18.12e,%+18.12e\n",
 //         launch_index,1111,ray.origin.x,ray.origin.y,ray.origin.z); 
 //#endif
-  output_closest_buffer[launch_index] = prd.closest_t+scene_epsilon*0.5;
-  output_current_buffer[launch_index] = prd.imat*(1-(0==prd.current));
+  output_closest_buffer[nid] = prd.closest_t+scene_epsilon*0.5;
+  output_current_buffer[nid] = prd.imat*(1-(0==prd.current));
   // if prd.current is found to be 0, the neutron leaks
-  output_live_buffer[launch_index] = !(0==prd.current);
+  output_live_buffer[nid] = !(0==prd.current);
   //TODO: not determined whether closestID is needed
 }
 }
