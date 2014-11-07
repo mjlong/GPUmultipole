@@ -50,10 +50,7 @@ RT_PROGRAM void generate_ray()
   float3 ray_origin = make_float3(input_pos_x_buffer[nid],input_pos_y_buffer[nid],input_pos_z_buffer[nid]);
   float3 ray_direction = make_float3(sqrt(1.f-mu*mu)*cos(phi),sqrt(1.f-mu*mu)*sin(phi),mu); 
 
-  double xs,E;
-  E = 2;
-  xs = xs_eval(E); 
-  printf("xs_eval(%g)=%g\n", E, xs);
+  //xs = xs_eval(E); 
 #if defined(__MANY__)
   float3 direction_z = make_float3(0.f,0.f,1.f);
   optix::Ray rayz = optix::make_Ray(ray_origin, direction_z, only_one_ray_type, scene_epsilon, RT_DEFAULT_MAX);
