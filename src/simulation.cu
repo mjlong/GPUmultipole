@@ -108,7 +108,7 @@ __global__ void history(material mat, multipole mp_para, MemStruct DeviceMem, un
   }
 #endif
   localenergy = localenergy * rnd;
-  live = (localenergy > 1.0E-5);
+  live = (localenergy > ENDENERG);
   DeviceMem.nInfo.live[nid] = live;  
   //energy can be updated efficiently here, live state is upated after sorting
   localenergy = localenergy*live + STARTENE*(1u - live);

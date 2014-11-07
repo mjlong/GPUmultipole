@@ -9,7 +9,8 @@
 #include <cudpp_config.h>
 #include "neutron.h"
 
-#define STARTENE 20000.0
+#define STARTENE 20000000.0
+#define ENDENERG 0.00001
 #define MAXENERGY 30000.0
 
 __global__ void history(material mat, multipole, MemStruct, unsigned num_src,unsigned active);
