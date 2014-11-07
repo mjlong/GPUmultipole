@@ -77,23 +77,6 @@ int main(int argc, char **argv){
                      atoi(argv[5]),atoi(argv[6]), 
                      geoPara, DeviceMem.nInfo);
 //============================================================ 
-//=============CUDPP Initialization===========================
-//============================================================
-  CUDPPHandle theCudpp;
-  cudppCreate(&theCudpp);
-  CUDPPConfiguration config;
-  config.datatype = CUDPP_DOUBLE;
-  config.algorithm = CUDPP_SORT_RADIX;
-  config.options=CUDPP_OPTION_KEY_VALUE_PAIRS;
-  config.options=CUDPP_OPTION_BACKWARD;
-  CUDPPHandle sortplan = 0;
-  CUDPPResult res = cudppPlan(theCudpp, &sortplan, config, gridsize, 1, 0);
-  if (CUDPP_SUCCESS != res)
-  {
-      printf("Error creating CUDPPPlan\n");
-      exit(-1);
-  }
-//============================================================ 
 //=============Read Isotopes(multipole data)==================
 //============================================================
   int numIso,totIso;
@@ -136,10 +119,6 @@ clock_start = clock();
 while(active){
   //since transport_neutrons() surrects all neutrons, rtLaunch always works full load, no need to sort here
   RT_CHECK_ERROR(rtContextLaunch1D(context, 0, gridsize));
-  //sort key = live*(isotopeID*MAXENERGY+energy)
-  sort_prepare(gridx, blockx, DeviceMem, mat);
-  cudppRadixSort(sortplan, DeviceMem.nInfo.isoenergy, DeviceMem.nInfo.id, gridsize);
-  //                          keys,                   values,             numElements
   //neutrons found leaked in *locate* will not be evaluated 
   start_neutrons(gridx, blockx, mat, mp_para, DeviceMem, num_src,1);
   //besides moving, neutrons terminated is initiated as new 
@@ -162,12 +141,8 @@ while(0!=active){
   //about twice sort in one loop
   //1. add extra sort here
   //2. only sort before xs evaluation, allows thread divergence in ray tracing
-  sort_prepare(gridx, blockx, DeviceMem, mat);
-  cudppRadixSort(sortplan, DeviceMem.nInfo.isoenergy, DeviceMem.nInfo.id, gridsize);
   RT_CHECK_ERROR(rtContextLaunch1D(context, 0, gridsize));
 
-  sort_prepare(gridx, blockx, DeviceMem, mat);
-  cudppRadixSort(sortplan, DeviceMem.nInfo.isoenergy, DeviceMem.nInfo.id, gridsize);
   start_neutrons(gridx, blockx, mat, mp_para, DeviceMem, num_src,0);
 
   active = count_lives(gridx, blockx, DeviceMem, HostMem);
@@ -198,15 +173,6 @@ print_results(gridx, blockx, num_src, num_bin, DeviceMem, HostMem, time_elapsed)
 #if defined(__QUICKW)
   release_wtables(wtable);
 #endif
-  res = cudppDestroyPlan(sortplan);
-  if (CUDPP_SUCCESS != res)
-  {
-      printf("Error destroying CUDPPPlan\n");
-      exit(-1);
-  }
-
-// shut down the CUDPP library
-  cudppDestroy(theCudpp);
 // destroy the optix ray tracing context
   rtContextDestroy(context); 
   return 0;
