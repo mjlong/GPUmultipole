@@ -107,54 +107,22 @@ int main(int argc, char **argv){
 clock_t clock_start, clock_end;
 float time_elapsed = 0.f;
 unsigned active;
-#if defined(__PROCESS) //|| defined(__TRACK)
-  active = 0u;
-#else
-  active = 1u;
-#endif
+active = 1u;
 initialize_neutrons(gridx, blockx, DeviceMem); 
 clock_start = clock();
-while(active){
+//while(active){
   //since transport_neutrons() surrects all neutrons, rtLaunch always works full load, no need to sort here
   RT_CHECK_ERROR(rtContextLaunch1D(context, 0, gridsize));
   //neutrons found leaked in *locate* will not be evaluated 
-  start_neutrons(gridx, blockx, mat, mp_para, DeviceMem, num_src,1);
   //besides moving, neutrons terminated is initiated as new 
-  active = count_neutrons(gridx, blockx, DeviceMem, HostMem,num_src);
-  transport_neutrons(gridx, blockx, DeviceMem, mat, active); 
   //if active=1; transport<<<>>> will renew neutrons with live=0
   //if active=0; transport<<<>>> will leave terminated neutrons
   //set active always 1 to make sure number of neutrons simulated exactly equal to num_src
-}
+//}
 clock_end   = clock();
 time_elapsed = (float)(clock_end-clock_start)/CLOCKS_PER_SEC*1000.f;
 printf("[time], active cycles costs %f ms\/%d neutrons\n", time_elapsed, HostMem.num_terminated_neutrons[0]);
-#if defined(__PRINTTRACK__)
-unsigned left = count_lives(gridx,blockx,DeviceMem,HostMem);
-#else
-HostMem.num_terminated_neutrons[0]+=count_lives(gridx,blockx,DeviceMem,HostMem);
-#endif
-active = 1;
-while(0!=active){
-  //about twice sort in one loop
-  //1. add extra sort here
-  //2. only sort before xs evaluation, allows thread divergence in ray tracing
-  RT_CHECK_ERROR(rtContextLaunch1D(context, 0, gridsize));
-
-  start_neutrons(gridx, blockx, mat, mp_para, DeviceMem, num_src,0);
-
-  active = count_lives(gridx, blockx, DeviceMem, HostMem);
-#if defined(__PRINTTRACK__)
-  HostMem.num_terminated_neutrons[0]+=left-active;
-  left = active;
-  printf("[remaining]%d terminated, %d left\n",HostMem.num_terminated_neutrons[0],left);
-#endif
-  transport_neutrons(gridx, blockx, DeviceMem, mat, 0); 
-}
-clock_end   = clock();
-time_elapsed = (float)(clock_end-clock_start)/CLOCKS_PER_SEC*1000.f;
-printf("[time], active + remain cycles costs %f ms\/%d neutrons\n", time_elapsed, HostMem.num_terminated_neutrons[0]);
-print_results(gridx, blockx, num_src, num_bin, DeviceMem, HostMem, time_elapsed);
+//print_results(gridx, blockx, num_src, num_bin, DeviceMem, HostMem, time_elapsed);
  
 //============================================================ 
 //=============simulation shut down===========================
