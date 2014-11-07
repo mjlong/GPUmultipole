@@ -35,17 +35,17 @@ __global__ void transport(MemStruct DeviceMem, material mat,unsigned renew){
   }
   else if(renew){
     neutron_sample(DeviceMem.nInfo,nid);
+    DeviceMem.nInfo.id[blockDim.x * blockIdx.x + threadIdx.x] += gridDim.x*blockDim.x;
   }
 }
 
 __device__ void neutron_sample(NeutronInfoStruct nInfo, unsigned id){
-  nInfo.id[id] += gridDim.x*blockDim.x;
   nInfo.live[id] = 1u;
   curandState state = nInfo.rndState[id];
 //TODO: source sampling should take settings dependent on geometry
-  nInfo.pos_x[id] = 0.5f+curand_uniform(&state);
-  nInfo.pos_y[id] = 0.5f+curand_uniform(&state);
-  nInfo.pos_z[id] = 0.5f+curand_uniform(&state);
+  nInfo.pos_x[id] = 0.5f+0.00*curand_uniform(&state);
+  nInfo.pos_y[id] = 0.5f+0.00*curand_uniform(&state);
+  nInfo.pos_z[id] = 0.5f+0.00*curand_uniform(&state);
   nInfo.dir_polar[id] = curand_uniform(&state)*2-1;
   nInfo.dir_azimu[id] = curand_uniform(&state)*PI*2;
   nInfo.energy[id] = STARTENE;
@@ -68,7 +68,7 @@ __device__ unsigned search_bin(CMPTYPE energy){
   }
   return 0;
 }
-__global__ void history(material mat, multipole mp_para, MemStruct DeviceMem, unsigned num_src){
+__global__ void history(material mat, multipole mp_para, MemStruct DeviceMem, unsigned num_src,unsigned active){
   //try others when real simulation structure becomes clear
   int idl = threadIdx.x;
   int id = blockDim.x * blockIdx.x + threadIdx.x;
@@ -130,10 +130,12 @@ __global__ void history(material mat, multipole mp_para, MemStruct DeviceMem, un
   }//end if live
 
   else{
-    blockTerminated[idl] = 0;
+    blockTerminated[idl] = active;//0;
     //those old unlive neutrons must not be counted again
     //so, 0 instead of !live is used 
+    //it was incorrect, above senario forgot to count leak neutron as terminated
   }
+  //TODO: no need of such within block reduction for remaining()
   __syncthreads();
   live = blockDim.x>>1;
   while(live){
