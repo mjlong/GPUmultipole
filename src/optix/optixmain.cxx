@@ -158,6 +158,14 @@ void createContext( int width, float R1, float Hh, unsigned num_geo, RTcontext c
     //Declare and Set variables here if needed
     RT_CHECK_ERROR( rtContextSetRayGenerationProgram( context, 0, ray_gen_program ) );
 
+    RTprogram  txs_program;
+    RTvariable txs_program_var;
+    sprintf( path_to_ptx, "%s/%s", "./obj/ptx", "txs_one.ptx" );
+    RT_CHECK_ERROR( rtProgramCreateFromPTXFile( context, path_to_ptx, "xs_eval", &txs_program ) );
+    RT_CHECK_ERROR( rtProgramDeclareVariable( ray_gen_program, "xs_eval", &txs_program_var));
+    RT_CHECK_ERROR( rtVariableSetObject( txs_program_var, txs_program));
+
+
     /* Miss program */
 #if defined(__MANY__)
     sprintf( path_to_ptx, "%s/%s", "./obj/ptx", "constantbg_many.ptx" );
