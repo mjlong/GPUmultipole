@@ -218,29 +218,29 @@ print_results(gridx, blockx, num_src, num_bin, DeviceMem, HostMem, time_elapsed)
 
 
 
-
+#define BLESS "[缪]"
 void printbless(){
-  printf("                     _oo0oo_                  \n");  
-  printf("                    o8888888o                 \n");
-  printf("                    88\" . \"88                 \n");
-  printf("                    (| -_- |)                 \n"); 
-  printf("                    0\\  =  /0                 \n");
-  printf("                  ___/`---'\\___               \n");
-  printf("                .' \\\\|     |// '.             \n");
-  printf("               / \\\\|||  :  |||// \\            \n");
-  printf("              / _||||| -:- |||||- \\           \n");
-  printf("             |   | \\\\\\  -  /// |   |          \n");  
-  printf("             | \\_|  ''\\---/''  |_/ |          \n");
-  printf("             \\  .-\\__  '-'  ___/-. /          \n");
-  printf("           ___'. .'  /--.--\\  `. .'___        \n");
-  printf("        .\"\" \'<  `.___\\_<|>_/___.\' >\' \"\".      \n");
-  printf("       | | :  `- \\`.;`\\ _ /`;.`/ - ` : | |    \n");
-  printf("       \\  \\ `_.   \\_ __\\ /__ _/   .-` /  /    \n");
-  printf("   =====`-.____`.___ \\_____/___.-`___.-'===== \n");
-  printf("                     `=---='                  \n");
-  printf("\n\n\n");
-  printf("   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n");
-  printf("        佛祖镇楼                  BUG辟易     \n");
+  printf(BLESS"                     _oo0oo_                  \n");  
+  printf(BLESS"                    o8888888o                 \n");
+  printf(BLESS"                    88\" . \"88                 \n");
+  printf(BLESS"                    (| -_- |)                 \n"); 
+  printf(BLESS"                    0\\  =  /0                 \n");
+  printf(BLESS"                  ___/`---'\\___               \n");
+  printf(BLESS"                .' \\\\|     |// '.             \n");
+  printf(BLESS"               / \\\\|||  :  |||// \\            \n");
+  printf(BLESS"              / _||||| -:- |||||- \\           \n");
+  printf(BLESS"             |   | \\\\\\  -  /// |   |          \n");  
+  printf(BLESS"             | \\_|  ''\\---/''  |_/ |          \n");
+  printf(BLESS"             \\  .-\\__  '-'  ___/-. /          \n");
+  printf(BLESS"           ___'. .'  /--.--\\  `. .'___        \n");
+  printf(BLESS"        .\"\" \'<  `.___\\_<|>_/___.\' >\' \"\".      \n");
+  printf(BLESS"       | | :  `- \\`.;`\\ _ /`;.`/ - ` : | |    \n");
+  printf(BLESS"       \\  \\ `_.   \\_ __\\ /__ _/   .-` /  /    \n");
+  printf(BLESS"   =====`-.____`.___ \\_____/___.-`___.-'===== \n");
+  printf(BLESS"                     `=---='                  \n");
+  printf(BLESS"\n\n\n");
+  printf(BLESS"   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n");
+  printf(BLESS"        佛祖镇楼                  BUG辟易     \n");
 }
 
 
