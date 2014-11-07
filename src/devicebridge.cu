@@ -14,8 +14,8 @@ void initialize_neutrons(unsigned gridx, unsigned blockx,MemStruct DeviceMem){
   initialize<<<gridx, blockx>>>(DeviceMem);
 }
 
-void start_neutrons(unsigned gridx, unsigned blockx, material mat, multipole mp_data, MemStruct DeviceMem, unsigned num_src){
-    history<<<gridx, blockx, blockx*sizeof(unsigned)>>>(mat, mp_data, DeviceMem, num_src);
+void start_neutrons(unsigned gridx, unsigned blockx, material mat, multipole mp_data, MemStruct DeviceMem, unsigned num_src,unsigned active){
+    history<<<gridx, blockx, blockx*sizeof(unsigned)>>>(mat, mp_data, DeviceMem, num_src,active);
 } 
 
 unsigned count_neutrons(unsigned gridx, unsigned blockx, MemStruct DeviceMem, MemStruct HostMem, unsigned num_src){
@@ -24,13 +24,15 @@ unsigned count_neutrons(unsigned gridx, unsigned blockx, MemStruct DeviceMem, Me
   reduce_sum_plus<<<1, gridx, gridx*sizeof(unsigned)>>>(DeviceMem.block_terminated_neutrons, DeviceMem.num_terminated_neutrons);
   gpuErrchk(cudaMemcpy(HostMem.num_terminated_neutrons,DeviceMem.num_terminated_neutrons,sizeof(unsigned int), cudaMemcpyDeviceToHost));
   active = HostMem.num_terminated_neutrons[0] + gridx*blockx < num_src;  
+#if defined(__PRINTTRACK__)
+  printf("[active]%d terminated\n",HostMem.num_terminated_neutrons[0]);
+#endif
   return active;
 }
 
 unsigned count_lives(unsigned gridx, unsigned blockx, MemStruct DeviceMem, MemStruct HostMem){
 //count neutrons still marked "live"
   unsigned active;
-  reduce_sum_plus<<<1, gridx, gridx*sizeof(unsigned)>>>(DeviceMem.block_terminated_neutrons, DeviceMem.num_terminated_neutrons);
   reduce_sum_equal<<<gridx,blockx,blockx*sizeof(unsigned)>>>(DeviceMem.nInfo.live, DeviceMem.block_terminated_neutrons);
   reduce_sum_equal<<<1,gridx, gridx*sizeof(unsigned)>>>(DeviceMem.block_terminated_neutrons, DeviceMem.num_live_neutrons);
   gpuErrchk(cudaMemcpy(&active, DeviceMem.num_live_neutrons, sizeof(unsigned), cudaMemcpyDeviceToHost));  
@@ -65,9 +67,9 @@ void print_results(unsigned gridx, unsigned blockx, unsigned num_src, unsigned n
   unsigned sum=0;
   for(int j=0;j<num_bin;j++){ 
     sum+=h_cnt[j];
-    printf("%4d ",h_cnt[j]);
+    printf("%4d \n",h_cnt[j]);
   }
-  printf("\n");
+  printf("%u\n",HostMem.num_terminated_neutrons[0]);
   printf("time elapsed:%g mus\n", timems*1000/sum);
   
   free(h_cnt);
