@@ -92,12 +92,12 @@ __global__ void history(material mat, multipole mp_para, MemStruct DeviceMem, un
   live = 1u;
   unsigned imat = DeviceMem.nInfo.imat[nid];
   for(isotopeID=mat.offsets[imat];isotopeID<mat.offsets[imat+1];isotopeID++ ){
-    rnd = curand_uniform(&localState);
     mp_para.xs_eval_fast(mat.isotopes[isotopeID],localenergy, sqrt(300.0*KB), sigT, sigA, sigF);
     sigTsum += sigT*mat.densities[isotopeID];
     sigAsum += sigA*mat.densities[isotopeID];
     sigFsum += sigF*mat.densities[isotopeID];
   }
+  rnd = curand_uniform(&localState);
 
 #if defined(__PRINTTRACK__)
   if(__PRINTTRACK__){
@@ -126,7 +126,6 @@ __global__ void history(material mat, multipole mp_para, MemStruct DeviceMem, un
   DeviceMem.nInfo.sigT[nid]=sigTsum;
   DeviceMem.nInfo.sigA[nid]=sigAsum;
   DeviceMem.nInfo.sigF[nid]=sigFsum;
-  DeviceMem.tally.cnt[nid] += 1; 
   }//end if live
 
   else{
