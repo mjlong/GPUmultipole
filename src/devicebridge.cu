@@ -53,12 +53,12 @@ void print_results(unsigned gridx, unsigned blockx, unsigned num_src, unsigned n
   gpuErrchk(cudaMalloc((void**)&d_cnt, num_bin*sizeof(unsigned)));
   h_cnt = (unsigned*)malloc(num_bin*sizeof(unsigned));
   for(int i=0;i<num_bin;i++){
-    reduce_sum_plus<<<gridx, blockx, blockx*sizeof(int)>>>(
+    reduce_sum_equal<<<gridx, blockx, blockx*sizeof(unsigned)>>>(
                    DeviceMem.tally.cnt+i*gridx*blockx, 
                    DeviceMem.block_spectrum+i*gridx);
   }
   for(int i=0;i<num_bin;i++){
-    reduce_sum_equal<<<1, gridx, gridx*sizeof(int)>>>(
+    reduce_sum_equal<<<1, gridx, gridx*sizeof(unsigned)>>>(
                    DeviceMem.block_spectrum+i*gridx, d_cnt+i);
   }
   gpuErrchk(cudaMemcpy(h_cnt,d_cnt,sizeof(unsigned)*num_bin, cudaMemcpyDeviceToHost));
