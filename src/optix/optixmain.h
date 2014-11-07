@@ -12,6 +12,7 @@
 #include <optix_cuda_interop.h>
 
 #include "neutron.h"
+#include "multipole.h"
 
 void createMaterial( RTcontext context, RTmaterial* material);
 void createGeometryBox( RTcontext context, RTgeometry* box, float* );
@@ -19,7 +20,7 @@ void createGeometryCylinder( RTcontext context, RTgeometry* cylinder, float,floa
 void createGeometrySphere( RTcontext context, RTgeometry* sphere, float*);
 void createInstances( RTcontext context, RTmaterial material, float*, int n, int m  );
 void tracemain(int, int, int, float*, NeutronInfoStruct);
-void initialize_context(RTcontext, int, int, int, float*, NeutronInfoStruct);
-void createContext( int width, float R1, float Hh, unsigned num_geo, RTcontext context, NeutronInfoStruct nInfo);
+void initialize_context(RTcontext, int, int, int, float*, NeutronInfoStruct,multipole);
+void createContext( int width, float R1, float Hh, unsigned num_geo, RTcontext context, NeutronInfoStruct nInfo,multipole);
 
 #endif

@@ -62,19 +62,6 @@ int main(int argc, char **argv){
 #endif
 
 //============================================================ 
-//===============Optix Ray Tracing Context====================
-//============================================================
-  RTcontext context;
-  RT_CHECK_ERROR(rtContextCreate(&context));
-  int id=0;
-  rtContextSetDevices(context, 1, &id);
-  float geoPara[6] = {0.48f,0.5f,50.f,1.2f,100.f,100.f};
-  //float geoPara[6] = {0.00048f,0.0005f,0.050f,0.0012f,0.100f,0.100f};
-                      //r1,  r2,  h/2, p,   t,    H/2
-  initialize_context(context, gridsize, 
-                     atoi(argv[5]),atoi(argv[6]), 
-                     geoPara, DeviceMem.nInfo);
-//============================================================ 
 //=============Read Isotopes(multipole data)==================
 //============================================================
   int numIso,totIso;
@@ -91,6 +78,19 @@ int main(int argc, char **argv){
 #endif 
 //release host isotope data memory
   freeMultipoleData(numIso,isotopes);
+//============================================================ 
+//===============Optix Ray Tracing Context====================
+//============================================================
+  RTcontext context;
+  RT_CHECK_ERROR(rtContextCreate(&context));
+  int id=0;
+  rtContextSetDevices(context, 1, &id);
+  float geoPara[6] = {0.48f,0.5f,50.f,1.2f,100.f,100.f};
+  //float geoPara[6] = {0.00048f,0.0005f,0.050f,0.0012f,0.100f,0.100f};
+                      //r1,  r2,  h/2, p,   t,    H/2
+  initialize_context(context, gridsize, 
+                     atoi(argv[5]),atoi(argv[6]), 
+                     geoPara, DeviceMem.nInfo, mp_para);
 //============================================================ 
 //=======Read Materials([isotope, density] pairs)=============
 //============================================================
