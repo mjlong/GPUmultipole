@@ -12,7 +12,7 @@
 #define STARTENE 20000.0
 #define MAXENERGY 30000.0
 
-__global__ void history(material mat, multipole, MemStruct, unsigned);
+__global__ void history(material mat, multipole, MemStruct, unsigned num_src,unsigned active);
 __global__ void initialize(MemStruct);
 __global__ void reduce_sum_plus(unsigned *threadcnt, unsigned* cnt);
 __global__ void reduce_sum_equal(unsigned* thread_active, unsigned* active);
