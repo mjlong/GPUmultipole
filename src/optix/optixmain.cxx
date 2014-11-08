@@ -53,20 +53,33 @@ void createContext( int width, float R1, float Hh, unsigned num_geo, RTcontext c
     RTbuffer            output_current_buffer_obj;
     RTbuffer            output_live_buffer_obj;
 
-    RTvariable dev_integers;
-    RTbuffer   dev_integers_obj;
+    RTvariable dev_integers,
+               mpdata;
+    RTbuffer   dev_integers_obj,
+               mpdata_obj;
 
     /* Setup context */
     RT_CHECK_ERROR( rtContextSetRayTypeCount( context, 2 ) );//TODO:type count /* shadow and radiance */
     RT_CHECK_ERROR( rtContextSetEntryPointCount( context, 1 ) );
 
     /*bind multipole parameters*/
+    //It seems and makes sense that Optix does not care the size of the device memory, 
+    //all multipole data are not available on host including array size, 
+    //so, bufferSize for multipole parameters is meaningless
     RT_CHECK_ERROR( rtContextDeclareVariable( context, "dev_integers", &dev_integers));
     RT_CHECK_ERROR( rtBufferCreateForCUDA( context, RT_BUFFER_INPUT, &dev_integers_obj)); 
     RT_CHECK_ERROR( rtBufferSetFormat( dev_integers_obj, RT_FORMAT_UNSIGNED_BYTE4)); 
     RT_CHECK_ERROR( rtBufferSetSize1D(dev_integers_obj, DEVINTS));
     RT_CHECK_ERROR( rtBufferSetDevicePointer( dev_integers_obj, id, (CUdeviceptr)(mp_para.dev_integers)));
     RT_CHECK_ERROR( rtVariableSetObject( dev_integers, dev_integers_obj));
+
+    RT_CHECK_ERROR( rtContextDeclareVariable( context, "mpdata", &mpdata));
+    RT_CHECK_ERROR( rtBufferCreateForCUDA( context, RT_BUFFER_INPUT, &mpdata_obj)); 
+    RT_CHECK_ERROR( rtBufferSetFormat( mpdata_obj,RT_FORMAT_USER )); 
+    RT_CHECK_ERROR( rtBufferSetElementSize( mpdata_obj, sizeof(double)*2));
+    RT_CHECK_ERROR( rtBufferSetSize1D(mpdata_obj, DEVINTS));
+    RT_CHECK_ERROR( rtBufferSetDevicePointer( mpdata_obj, id, (CUdeviceptr)(mp_para.mpdata)));
+    RT_CHECK_ERROR( rtVariableSetObject( mpdata, mpdata_obj));
 
 
     /*Declare variables*/
