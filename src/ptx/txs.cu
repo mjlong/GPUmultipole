@@ -3,7 +3,7 @@
 #include <optix.h>
 
 #if defined (__QUICKWC) 
-extern __constant__ CMPTYPE2 constwtable[LENGTH*LENGTH];
+extern __constant__ CMPTYPE2 constwtable[];
 #endif
 
 #if defined (__MITW)
@@ -22,8 +22,12 @@ using namespace optix;
 RT_CALLABLE_PROGRAM double xs_eval(double E){
   CComplex<double> z=mpdata[launch_index];
   printf("z=%g i%+g\n",real(z),imag(z));
-  //CComplex<double>z1 = CComplex<double>(constwtable[0].x,constwtable[0].y);
+#if defined(__QUICKWC)
+  CComplex<double>z1 = CComplex<double>(constwtable[0].x,constwtable[0].y);
+#endif
+#if defined(__MITW)
   CComplex<double> z1 = w_function(z,0.00001);
+#endif
   printf("z1=%g i%+g\n",real(z1),imag(z1));
 
   return 1/E;
