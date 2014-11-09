@@ -3,7 +3,7 @@
 #include <optix.h>
 
 #if defined (__QUICKWC) 
-__constant__ CMPTYPE2 constwtable[LENGTH*LENGTH];
+extern __constant__ CMPTYPE2 constwtable[LENGTH*LENGTH];
 #endif
 
 #if defined (__MITW)
