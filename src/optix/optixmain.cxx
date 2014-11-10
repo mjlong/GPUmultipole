@@ -1,5 +1,8 @@
 #include "optixmain.h"
 char path_to_ptx[512];
+#if defined (__QUICKWC) 
+extern __constant__ CMPTYPE2 constwtable[];
+#endif
 
 void initialize_context(RTcontext context, int width, int n, int m, float *data, NeutronInfoStruct nInfo, multipole mp_para, CComplex<double>* wtable)
 {
@@ -88,7 +91,7 @@ void createContext( int width, float R1, float Hh, unsigned num_geo, RTcontext c
     RT_CHECK_ERROR( rtBufferSetFormat( wtable_buffer_obj,RT_FORMAT_USER )); 
     RT_CHECK_ERROR( rtBufferSetElementSize( wtable_buffer_obj, sizeof(double)*2));
     RT_CHECK_ERROR( rtBufferSetSize1D(wtable_buffer_obj, DEVINTS));
-    RT_CHECK_ERROR( rtBufferSetDevicePointer( wtable_buffer_obj, id, (CUdeviceptr)(wtable)));
+    RT_CHECK_ERROR( rtBufferSetDevicePointer( wtable_buffer_obj, id, (CUdeviceptr)(constwtable)));
     RT_CHECK_ERROR( rtVariableSetObject( wtable_buffer, wtable_buffer_obj));
 
 

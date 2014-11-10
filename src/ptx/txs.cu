@@ -13,7 +13,8 @@ extern __constant__ CMPTYPE2 constwtable[];
 rtBuffer<float, 1>              input_pos_x_buffer;
 rtBuffer<unsigned int, 1>       dev_integers;
 rtBuffer<CComplex<double>, 1>   mpdata;
-rtBuffer<CComplex<double>, 1>   wtable_buffer;
+//rtBuffer<CComplex<double>, 1>   wtable_buffer;
+rtBuffer<double2, 1>   wtable_buffer;
 
 rtDeclareVariable(unsigned int, launch_index, rtLaunchIndex, );
 rtDeclareVariable(unsigned int, launch_dim,   rtLaunchDim, );
@@ -25,7 +26,7 @@ RT_CALLABLE_PROGRAM double xs_eval(double E){
   printf("z=%g i%+g\n",real(z),imag(z));
 #if defined(__QUICKWC)
   CComplex<double>z1 = CComplex<double>(constwtable[34].x,constwtable[34].y);
-  CComplex<double>z2 = wtable_buffer[34];
+  CComplex<double>z2 = CComplex<double>(wtable_buffer[34].x,wtable_buffer[34].y);//wtable_buffer[34];
 #endif
 #if defined(__MITW)
   CComplex<double> z1 = w_function(z,0.00001);
