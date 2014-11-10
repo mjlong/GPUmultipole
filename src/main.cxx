@@ -90,7 +90,7 @@ int main(int argc, char **argv){
                       //r1,  r2,  h/2, p,   t,    H/2
   initialize_context(context, gridsize, 
                      atoi(argv[5]),atoi(argv[6]), 
-                     geoPara, DeviceMem.nInfo, mp_para);
+                     geoPara, DeviceMem.nInfo, mp_para, wtable);
 //============================================================ 
 //=======Read Materials([isotope, density] pairs)=============
 //============================================================
