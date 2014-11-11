@@ -58,10 +58,12 @@ void createContext( int width, float R1, float Hh, unsigned num_geo, RTcontext c
 
     RTvariable dev_integers,
                mpdata, 
-               wtable_buffer;
+               wtable_buffer,
+               wtable_here;
     RTbuffer   dev_integers_obj,
                mpdata_obj,
-               wtable_buffer_obj;
+               wtable_buffer_obj,
+               wtable_here_obj;
 
     /* Setup context */
     RT_CHECK_ERROR( rtContextSetRayTypeCount( context, 2 ) );//TODO:type count /* shadow and radiance */
@@ -91,8 +93,16 @@ void createContext( int width, float R1, float Hh, unsigned num_geo, RTcontext c
     RT_CHECK_ERROR( rtBufferSetFormat( wtable_buffer_obj,RT_FORMAT_USER )); 
     RT_CHECK_ERROR( rtBufferSetElementSize( wtable_buffer_obj, sizeof(double)*2));
     RT_CHECK_ERROR( rtBufferSetSize1D(wtable_buffer_obj, DEVINTS));
-    RT_CHECK_ERROR( rtBufferSetDevicePointer( wtable_buffer_obj, id, (CUdeviceptr)(constwtable)));
+    RT_CHECK_ERROR( rtBufferSetDevicePointer( wtable_buffer_obj, id, (CUdeviceptr)(wtable)));
     RT_CHECK_ERROR( rtVariableSetObject( wtable_buffer, wtable_buffer_obj));
+
+    RT_CHECK_ERROR( rtContextDeclareVariable( context, "wtable_here", &wtable_here));
+    RT_CHECK_ERROR( rtBufferCreateForCUDA( context, RT_BUFFER_INPUT, &wtable_here_obj)); 
+    RT_CHECK_ERROR( rtBufferSetFormat( wtable_here_obj,RT_FORMAT_USER )); 
+    RT_CHECK_ERROR( rtBufferSetElementSize( wtable_here_obj, sizeof(double)*2));
+    RT_CHECK_ERROR( rtBufferSetSize1D(wtable_here_obj, DEVINTS));
+    RT_CHECK_ERROR( rtBufferSetDevicePointer( wtable_here_obj, id, (CUdeviceptr)(constwtable)));
+    RT_CHECK_ERROR( rtVariableSetObject( wtable_here, wtable_here_obj));
 
 
     /*Declare variables*/
