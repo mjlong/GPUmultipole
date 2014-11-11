@@ -150,7 +150,7 @@ ${DIR_OBJ}/%.o : ${DIR_SRC}/wfunction/%.cu
 	@echo $(epoch)
 	$(NVCC) $(W_IDEN) $(CMPTYPE) $(NCFLAGS)  $^ -o $@
 ${DIR_OBJ}/%.ob : ${DIR_SRC_OPT}/%.cxx
-	$(NVCC) $(RTMETHOD) $(NCFLAGS) $^ -o $@
+	$(NVCC) $(W_IDEN) $(RTMETHOD) $(NCFLAGS) $^ -o $@
 $(LINKJECT) : $(GOBJECTS) $(WOBJECTS)
 	$(NVCC) $(LINKLAG) $^ -o $@
 remove :
