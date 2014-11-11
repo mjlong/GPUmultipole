@@ -1,8 +1,5 @@
 #include "optixmain.h"
 char path_to_ptx[512];
-#if defined (__QUICKWC) 
-extern __constant__ CMPTYPE2 constwtable[];
-#endif
 
 void initialize_context(RTcontext context, int width, int n, int m, float *data, NeutronInfoStruct nInfo, multipole mp_para, CComplex<double>* wtable)
 {
@@ -95,15 +92,6 @@ void createContext( int width, float R1, float Hh, unsigned num_geo, RTcontext c
     RT_CHECK_ERROR( rtBufferSetSize1D(wtable_buffer_obj, DEVINTS));
     RT_CHECK_ERROR( rtBufferSetDevicePointer( wtable_buffer_obj, id, (CUdeviceptr)(wtable)));
     RT_CHECK_ERROR( rtVariableSetObject( wtable_buffer, wtable_buffer_obj));
-
-    RT_CHECK_ERROR( rtContextDeclareVariable( context, "wtable_here", &wtable_here));
-    RT_CHECK_ERROR( rtBufferCreateForCUDA( context, RT_BUFFER_INPUT, &wtable_here_obj)); 
-    RT_CHECK_ERROR( rtBufferSetFormat( wtable_here_obj,RT_FORMAT_USER )); 
-    RT_CHECK_ERROR( rtBufferSetElementSize( wtable_here_obj, sizeof(double)*2));
-    RT_CHECK_ERROR( rtBufferSetSize1D(wtable_here_obj, DEVINTS));
-    RT_CHECK_ERROR( rtBufferSetDevicePointer( wtable_here_obj, id, (CUdeviceptr)(constwtable)));
-    RT_CHECK_ERROR( rtVariableSetObject( wtable_here, wtable_here_obj));
-
 
     /*Declare variables*/
     RT_CHECK_ERROR( rtContextDeclareVariable( context, "input_pos_x_buffer", &input_pos_x_buffer));
