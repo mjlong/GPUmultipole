@@ -1,7 +1,12 @@
 #include "optixmain.h"
 char path_to_ptx[512];
 
+#if defined(__QUICKW)
 void initialize_context(RTcontext context, int width, int n, int m, float *data, NeutronInfoStruct nInfo, multipole mp_para, CComplex<double>* wtable)
+#endif
+#if defined(__MITW)
+void initialize_context(RTcontext context, int width, int n, int m, float *data, NeutronInfoStruct nInfo, multipole mp_para)
+#endif
 {
     /* Primary RTAPI objects */
     RTmaterial          material;
@@ -9,10 +14,18 @@ void initialize_context(RTcontext context, int width, int n, int m, float *data,
     /* Setup state */
 #if defined(__HEXPRISM__)
     unsigned num_geobj = (1+3*n*(n+1))*(1+3*m*(m+1))+1 ;
-    createContext( width,sqrt(3.f*m*m+3.f*m+1.f)*(n+1)*data[3]/*p*/,data[2]/*hh*/,num_geobj, context, nInfo,mp_para,wtable);
+    float R = sqrt(3.f*m*m+3.f*m+1.f)*(n+1)*data[3]/*p*/;
 #else
     unsigned num_geobj = m*m*n*n*2+1 ;
-    createContext( width,sqrt(2.0)*m*0.5*(n+2)*data[3]/*p*/,data[2]/*hh*/,num_geobj, context, nInfo,mp_para,wtable);
+    float R = sqrt(2.0)*m*0.5*(n+2)*data[3]/*p*/;
+#endif
+
+
+#if defined(__QUICKW)
+    createContext( width,R,data[2]/*hh*/,num_geobj, context, nInfo,mp_para,wtable);
+#endif
+#if defined(__MITW)
+    createContext( width,R,data[2]/*hh*/,num_geobj, context, nInfo,mp_para);
 #endif
 
 #if defined(__PRINTTRACK__)
@@ -31,7 +44,12 @@ void initialize_context(RTcontext context, int width, int n, int m, float *data,
     // time cost (ms), average (us/geometry/ray)  
 }
 
+#if defined(__QUICKW)
 void createContext( int width, float R1, float Hh, unsigned num_geo, RTcontext context, NeutronInfoStruct nInfo, multipole mp_para, CComplex<double>* wtable)
+#endif
+#if defined(__MITW)
+void createContext( int width, float R1, float Hh, unsigned num_geo, RTcontext context, NeutronInfoStruct nInfo, multipole mp_para)
+#endif
 {
 
     int id=0;
@@ -54,13 +72,9 @@ void createContext( int width, float R1, float Hh, unsigned num_geo, RTcontext c
     RTbuffer            output_live_buffer_obj;
 
     RTvariable dev_integers,
-               mpdata, 
-               wtable_buffer,
-               wtable_here;
+               mpdata; 
     RTbuffer   dev_integers_obj,
-               mpdata_obj,
-               wtable_buffer_obj,
-               wtable_here_obj;
+               mpdata_obj;
 
     /* Setup context */
     RT_CHECK_ERROR( rtContextSetRayTypeCount( context, 2 ) );//TODO:type count /* shadow and radiance */
@@ -85,6 +99,9 @@ void createContext( int width, float R1, float Hh, unsigned num_geo, RTcontext c
     RT_CHECK_ERROR( rtBufferSetDevicePointer( mpdata_obj, id, (CUdeviceptr)(mp_para.mpdata)));
     RT_CHECK_ERROR( rtVariableSetObject( mpdata, mpdata_obj));
 
+#if defined(__QUICKW)
+    RTvariable wtable_buffer;
+    RTbuffer   wtable_buffer_obj;
     RT_CHECK_ERROR( rtContextDeclareVariable( context, "wtable_buffer", &wtable_buffer));
     RT_CHECK_ERROR( rtBufferCreateForCUDA( context, RT_BUFFER_INPUT, &wtable_buffer_obj)); 
     RT_CHECK_ERROR( rtBufferSetFormat( wtable_buffer_obj,RT_FORMAT_USER )); 
@@ -92,6 +109,7 @@ void createContext( int width, float R1, float Hh, unsigned num_geo, RTcontext c
     RT_CHECK_ERROR( rtBufferSetSize1D(wtable_buffer_obj, DEVINTS));
     RT_CHECK_ERROR( rtBufferSetDevicePointer( wtable_buffer_obj, id, (CUdeviceptr)(wtable)));
     RT_CHECK_ERROR( rtVariableSetObject( wtable_buffer, wtable_buffer_obj));
+#endif
 
     /*Declare variables*/
     RT_CHECK_ERROR( rtContextDeclareVariable( context, "input_pos_x_buffer", &input_pos_x_buffer));
