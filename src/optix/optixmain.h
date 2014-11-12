@@ -23,8 +23,7 @@ void tracemain(int, int, int, float*, NeutronInfoStruct);
 #if defined(__QUICKW)
 void initialize_context(RTcontext, int, int, int, float*, NeutronInfoStruct,multipole, CComplex<double>*);
 void createContext( int width, float R1, float Hh, unsigned num_geo, RTcontext context, NeutronInfoStruct nInfo,multipole, CComplex<double>*);
-#endif
-#if defined(__MITW)
+#else
 void initialize_context(RTcontext, int, int, int, float*, NeutronInfoStruct,multipole);
 void createContext( int width, float R1, float Hh, unsigned num_geo, RTcontext context, NeutronInfoStruct nInfo,multipole);
 #endif

@@ -3,8 +3,7 @@ char path_to_ptx[512];
 
 #if defined(__QUICKW)
 void initialize_context(RTcontext context, int width, int n, int m, float *data, NeutronInfoStruct nInfo, multipole mp_para, CComplex<double>* wtable)
-#endif
-#if defined(__MITW)
+#else
 void initialize_context(RTcontext context, int width, int n, int m, float *data, NeutronInfoStruct nInfo, multipole mp_para)
 #endif
 {
@@ -23,8 +22,7 @@ void initialize_context(RTcontext context, int width, int n, int m, float *data,
 
 #if defined(__QUICKW)
     createContext( width,R,data[2]/*hh*/,num_geobj, context, nInfo,mp_para,wtable);
-#endif
-#if defined(__MITW)
+#else
     createContext( width,R,data[2]/*hh*/,num_geobj, context, nInfo,mp_para);
 #endif
 
@@ -46,8 +44,7 @@ void initialize_context(RTcontext context, int width, int n, int m, float *data,
 
 #if defined(__QUICKW)
 void createContext( int width, float R1, float Hh, unsigned num_geo, RTcontext context, NeutronInfoStruct nInfo, multipole mp_para, CComplex<double>* wtable)
-#endif
-#if defined(__MITW)
+#else
 void createContext( int width, float R1, float Hh, unsigned num_geo, RTcontext context, NeutronInfoStruct nInfo, multipole mp_para)
 #endif
 {

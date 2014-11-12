@@ -92,8 +92,7 @@ int main(int argc, char **argv){
   initialize_context(context, gridsize, 
                      atoi(argv[5]),atoi(argv[6]), 
                      geoPara, DeviceMem.nInfo, mp_para, wtable);
-#endif
-#if defined(__MITW)
+#else
   initialize_context(context, gridsize, 
                      atoi(argv[5]),atoi(argv[6]), 
                      geoPara, DeviceMem.nInfo, mp_para);
