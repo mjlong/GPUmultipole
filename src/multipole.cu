@@ -215,6 +215,7 @@ void multipole::release_pointer(){
 #endif
 }
 
+/*
 __device__ void broaden_n_polynomials(double En, double DOPP, double* factors, unsigned n){
 //!translated from mit-crpg/WHOPPER
   double sqrtE = sqrt(En);
@@ -241,6 +242,8 @@ __device__ void broaden_n_polynomials(double En, double DOPP, double* factors, u
     } 
   }
 }
+*/
+/*
 // xs eval with MIT Faddeeva()
 #if defined(__MITW) || defined(__QUICKW) || defined(__FOURIERW)
 __device__  void multipole::xs_eval_fast(int iM, CMPTYPE E, CMPTYPE sqrtKT, 
@@ -366,70 +369,7 @@ __device__  void multipole::xs_eval_fast(int iM, CMPTYPE E, CMPTYPE sqrtKT,
 
 }
 #endif
-
-//xs eval at 0K
-//TODO:it has been out dated, not updated because 
-//__SAMPLE proved wrong and has been removed
-//this evaluation at 0K has not been used in my project
-#if defined(__SAMPLE)
-__device__  void multipole::xs_eval_fast(CMPTYPE E,  
-                        	 	 CMPTYPE &sigT, CMPTYPE &sigA, CMPTYPE &sigF){
-//!translated from mit-crpg/WHOPPER
-  // Copy variables to local memory for efficiency 
-  unsigned mode        = dev_integers[MODE];
-  int    iP, iC, iW, startW, endW;
-  CMPTYPE spacing = dev_doubles[SPACING];
-  CMPTYPE startE  = dev_doubles[STARTE];
-  CMPTYPE sqrtE = sqrt(E);
-  if(1==mode)
-    iW = (int)((sqrtE - sqrt(startE))/spacing);
-  else if(2==mode)
-    iW = (int)((log(E) - log(startE))/spacing);
-  else
-    iW = (int)(( E - startE )/spacing);
-  unsigned fitorder    = dev_integers[FITORDER];
-  unsigned fissionable = dev_integers[FISSIONABLE];
-  unsigned numL        = dev_integers[NUML];
-
-  CMPTYPE power;
-  CComplex<CMPTYPE> PSIIKI, CDUM1, w_val;
-
- 
-  startW = w_start[iW];
-  endW   = w_end[iW];
-  CComplex<CMPTYPE> sigT_factor[4];
-  //CComplex sigtfactor;
-  if(startW <= endW)
-    fill_factors(sqrtE,numL,sigT_factor);
-  sigT = 0.0;
-  sigA = 0.0;
-  sigF = 0.0;
-  //polynomial fitting
-
-  for (iC=0;iC<=fitorder;iC++){
-    power = (CMPTYPE)pow((double)E,(double)iC*0.5-1.0);
-    sigT += fit[findex(iW,iC,FIT_T,fitorder+1,FIT_F+fissionable)]*power;
-    sigA += fit[findex(iW,iC,FIT_A,fitorder+1,FIT_F+fissionable)]*power;
-    if(MP_FISS == fissionable)
-      sigF += fit[findex(iW,iC,FIT_F,fitorder+1,FIT_F+fissionable)]*power;
-  }
-
-
-
-
-  for(iP=startW;iP<=endW;iP++){
-    //sigtfactor = sigT_factor[l_value[iP-1]-1];
-    PSIIKI = -ONEI/(mpdata[pindex(iP-1,MP_EA)] - sqrtE);
-    CDUM1  = PSIIKI / E;
-    sigT += real(mpdata[pindex(iP-1,MP_RT)]*CDUM1*sigT_factor[l_value[iP-1]-1]);//sigtfactor);
-    sigA += real(mpdata[pindex(iP-1,MP_RA)]*CDUM1);
-    if(MP_FISS == fissionable)
-      sigF += real(mpdata[pindex(iP-1,MP_RF)]*CDUM1);
-  }
-  
-}
-#endif
-
+*/
 int multipole::findex(int iW, int iC, int type, int orders, int types){
   return iW*orders*types + iC*types + type; 
 }
@@ -438,6 +378,7 @@ __host__ __device__ int multipole::pindex(int iP, int type){
   return iP*4 + type;
 }
 
+/*
 __device__ void multipole::fill_factors(int prhoOffset, CMPTYPE sqrtE, int numL,  
                                         CComplex<double> *sigT_factor){
 //!translated from mit-crpg/WHOPPER
@@ -462,3 +403,4 @@ __device__ void multipole::fill_factors(int prhoOffset, CMPTYPE sqrtE, int numL,
   }
 
 }
+*/

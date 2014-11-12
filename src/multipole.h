@@ -49,18 +49,6 @@
 #include <iostream>
 #include "neutron.h"
 
-#if defined(__MITW)
-#include "Faddeeva.h"
-#define w_function Faddeeva::w
-#endif
-
-#if defined(__QUICKW)
-#include "QuickW.h"
-#endif
-
-#if defined(__FOURIERW)
-#include "fourierw.h"
-#endif
 #include "global.h"
 #include "gpuerrchk.h"
 using namespace std;
@@ -94,6 +82,7 @@ public:
 #endif
   ~multipole();
   void release_pointer();
+/*
 #if defined(__MITW) || defined(__QUICKW) || defined(__FOURIERW)
   __device__  void xs_eval_fast(int iM, CMPTYPE E, CMPTYPE sqrtKT, 
 					 CMPTYPE &sigT, CMPTYPE &sigA, CMPTYPE &sigF);
@@ -104,9 +93,9 @@ public:
 #endif
   __device__ void fill_factors(int prhoOffset, CMPTYPE sqrtE, int numL, CComplex<double> *sigT_factor);
                               //prhoOffset locates the pseudo_rho(iM,iL) in the long pseudo_rho array
+*/
   __host__ __device__  int findex(int, int, int, int, int);
   __host__ __device__  int pindex(int, int);
-
 };
-__device__ void broaden_n_polynomials(double En, double DOPP, double* factors, unsigned n);
+//__device__ void broaden_n_polynomials(double En, double DOPP, double* factors, unsigned n);
 #endif
