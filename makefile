@@ -46,43 +46,43 @@ WSOURCES=
 # Faddeeva function implementation 
 ifeq ($(WFUN),0)
   W_IDEN = -D __MITW
-  WSOURCES += $(DIR_SRC)/wfunction/Faddeeva.cu
+  #WSOURCES += $(DIR_SRC)/wfunction/Faddeeva.cu
   EXENAME=$(DIR_BIN)/gpumr_mitw_double
 else 
   W_IDEN = -D __SAMPLE
   EXENAME=$(DIR_BIN)/gpumr_sample_double
   ifeq ($(WFUN), 3)
   W_IDEN = -D __FOURIERW
-  WSOURCES += $(DIR_SRC)/wfunction/fourierw.cu
+  #WSOURCES += $(DIR_SRC)/wfunction/fourierw.cu
   EXENAME=$(DIR_BIN)/gpumr_fourierw_double
   endif
   ifeq ($(WFUN), 31)
   W_IDEN = -D __QUICKWF -D __FOURIERW
-  WSOURCES += $(DIR_SRC)/wfunction/fourierw.cu
+  #WSOURCES += $(DIR_SRC)/wfunction/fourierw.cu
   EXENAME=$(DIR_BIN)/gpumr_quickwf_double
   endif
   ifeq ($(WFUN), 33)
   W_IDEN = -D __INTERPEXP -D __QUICKWF -D __FOURIERW
-  WSOURCES += $(DIR_SRC)/wfunction/fourierw.cu
+  #WSOURCES += $(DIR_SRC)/wfunction/fourierw.cu
   EXENAME=$(DIR_BIN)/gpumr_quickexpf_double
   endif
   ifeq ($(WFUN),11)
   W_IDEN = -D __QUICKW -D __QUICKWG
-  WSOURCES += $(DIR_SRC)/wfunction/Faddeeva.cu 
-  WSOURCES += $(DIR_SRC)/wfunction/QuickW.cu
+  #WSOURCES += $(DIR_SRC)/wfunction/Faddeeva.cu 
+  #WSOURCES += $(DIR_SRC)/wfunction/QuickW.cu
   EXENAME=$(DIR_BIN)/gpumr_quickwg_double
   endif 
   ifeq ($(WFUN),12)
   W_IDEN = -D __QUICKW -D __QUICKWT
-  WSOURCES += $(DIR_SRC)/wfunction/Faddeeva.cu 
-  WSOURCES += $(DIR_SRC)/wfunction/QuickW.cu
+  #WSOURCES += $(DIR_SRC)/wfunction/Faddeeva.cu 
+  #WSOURCES += $(DIR_SRC)/wfunction/QuickW.cu
   EXENAME=$(DIR_BIN)/gpumr_quickwt_double
   endif
   ifeq ($(WFUN),13)
   W_IDEN = -D __QUICKW -D __QUICKWC
   #FLOAT=1
-  WSOURCES += $(DIR_SRC)/wfunction/Faddeeva.cu 
-  WSOURCES += $(DIR_SRC)/wfunction/QuickW.cu
+  #WSOURCES += $(DIR_SRC)/wfunction/Faddeeva.cu 
+  #WSOURCES += $(DIR_SRC)/wfunction/QuickW.cu
   EXENAME=$(DIR_BIN)/gpumr_quickwc_double
   endif
 endif   
