@@ -76,6 +76,8 @@ using namespace std;
 #  define cpolar(r,t) polar(r,t)
 
 #  define C(a,b) CComplex<double>(a,b)
+#  define sin(a) sinf(a)
+#  define cos(a) cosf(a)
 
 #  define FADDEEVA(name) Faddeeva::name
 #  define FADDEEVA_RE(name) Faddeeva::name
