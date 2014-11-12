@@ -23,7 +23,7 @@ History****:*Date*******************Author**************************************
 #ifndef __CCOMPLEX_H__
 #define __CCOMPLEX_H__
 #include <iostream>
-#include <math.h>
+#include <math_functions_dbl_ptx3.h>
 using namespace std;
 
 #define PI 3.14159265358979323846264338327950
@@ -152,7 +152,7 @@ __host__ __device__ CComplex<DType> Conjugate(CComplex<DType> c){
 
 template <class DType>
 __host__ __device__ CComplex<DType> exp(CComplex<DType> c){
-  return CComplex<DType>(exp(c.Re())*cos(c.Im()),exp(c.Re())*sin(c.Im()));
+  return CComplex<DType>(exp(c.Re())*cosf(c.Im()),exp(c.Re())*sinf(c.Im()));
 }
 
 template <class DType>
