@@ -134,7 +134,7 @@ CNVCCOBJ=$(patsubst %.cxx, ${DIR_OBJ}/%.ob, $(notdir ${CNVCCSRC}))
 LINKJECT=${DIR_OBJ}/dlink.o      
 all: $(PTXJECTS) $(EXECUTABLE)
 ${DIR_PTX}/%$(PTXFIX) : ${DIR_SRC_PTX}/%.cu
-	$(NVCC) $(W_IDEN) $(RTMETHOD) $(NCPLAGS) -use_fast_math $^ -o $@
+	$(NVCC) $(W_IDEN) $(RTMETHOD) $(NCPLAGS) --use_fast_math $^ -o $@
 $(EXECUTABLE): $(MOBJECTS) $(COBJECTS) $(CNVCCOBJ) $(GOBJECTS) $(WOBJECTS) $(LINKJECT)
 	$(CC)  $^ $(LDFLAGS) -o $@
 ${DIR_OBJ}/%.obj : ${DIR_SRC}/%.cc
