@@ -77,15 +77,14 @@ __device__ unsigned search_bin(CMPTYPE energy){
 }
 
 
-__device__ void neutron_sample(unsigned* live, CMPTYPE* energy, float3* origin, float3* direction, curandState* localstate){
+__device__ void neutron_sample(unsigned* live, CMPTYPE* energy, float3* origin, float* mu, float* phi, curandState* localstate){
   *live = 1u;
   *energy = STARTENE;
-  float phi =   2*PI*curand_uniform(localstate);
-  float mu  = -1.f+2*curand_uniform(localstate); 
+  *phi =   2*PI*curand_uniform(localstate);
+  *mu  = -1.f+2*curand_uniform(localstate); 
   *origin =  make_float3(0.5f+0.00*curand_uniform(localstate),
                                      0.5f+0.00*curand_uniform(localstate),
                                      0.5f+0.00*curand_uniform(localstate));
-  *direction = make_float3(sqrt(1.f-mu*mu)*cos(phi),sqrt(1.f-mu*mu)*sin(phi),mu);
 }
 
 
@@ -115,7 +114,8 @@ RT_PROGRAM void generate_ray()
   live = !(0==icell);
 
   if(!live){
-    neutron_sample(&live, &localenergy, &ray_origin, &ray_direction, &localstate);
+    neutron_sample(&live, &localenergy, &ray_origin, &mu, &phi, &localstate);
+    ray_direction = make_float3(sqrt(1.f-mu*mu)*cos(phi),sqrt(1.f-mu*mu)*sin(phi),mu); 
 #if defined(__PRINTTRACK__)
     printf("leaked\n");
     nid += launch_dim;
@@ -154,7 +154,8 @@ RT_PROGRAM void generate_ray()
   }
   else{
     printf("stopped\n");
-    neutron_sample(&live, &localenergy, &ray_origin, &ray_direction, &localstate); 
+    neutron_sample(&live, &localenergy, &ray_origin, &mu, &phi, &localstate); 
+    ray_direction = make_float3(sqrt(1.f-mu*mu)*cos(phi),sqrt(1.f-mu*mu)*sin(phi),mu); 
 #if defined(__PRINTTRACK__)
     nid += launch_dim;
 #endif
@@ -164,8 +165,8 @@ RT_PROGRAM void generate_ray()
   input_pos_x_buffer[launch_index] = ray_origin.x;
   input_pos_y_buffer[launch_index] = ray_origin.y;
   input_pos_z_buffer[launch_index] = ray_origin.z;
-  input_dir_p_buffer[launch_index] = ray_direction.z;
-  input_dir_a_buffer[launch_index] = acos(ray_direction.x/sqrt(1-ray_direction.z*ray_direction.z));
+  input_dir_p_buffer[launch_index] = mu;
+  input_dir_a_buffer[launch_index] = phi;
 
 }
 
