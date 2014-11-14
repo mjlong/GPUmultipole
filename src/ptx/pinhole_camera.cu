@@ -115,12 +115,17 @@ RT_PROGRAM void generate_ray()
   live = !(0==icell);
 
   if(!live){
+#if defined(__PRINTTRACK__)
+    nid += launch_dim;
+    if(__PRINTTRACK__){
+    printf("%7d,%3d,%+.7e, %+.7e, %+.7e, %.14e leaked\n",
+            nid, imat,
+            ray_origin.x, ray_origin.y, ray_origin.z,
+            localenergy); 
+    }
+#endif
     neutron_sample(&live, &localenergy, &ray_origin, &mu, &phi, &localstate);
     ray_direction = make_float3(sqrt(1.f-mu*mu)*cos(phi),sqrt(1.f-mu*mu)*sin(phi),mu); 
-#if defined(__PRINTTRACK__)
-    printf("leaked\n");
-    nid += launch_dim;
-#endif
   }
 //
 //Evaluate cross section and print (id,imat,position,E,sigT,sigA,sigF
@@ -154,12 +159,17 @@ RT_PROGRAM void generate_ray()
     ray_origin = ray_origin + s*ray_direction;
   }
   else{
-    printf("stopped\n");
-    neutron_sample(&live, &localenergy, &ray_origin, &mu, &phi, &localstate); 
-    ray_direction = make_float3(sqrt(1.f-mu*mu)*cos(phi),sqrt(1.f-mu*mu)*sin(phi),mu); 
 #if defined(__PRINTTRACK__)
     nid += launch_dim;
+    if(__PRINTTRACK__){
+    printf("%7d,%3d,%+.7e, %+.7e, %+.7e, %.14e stopped\n",
+            nid, imat,
+            ray_origin.x, ray_origin.y, ray_origin.z,
+            localenergy); 
+    }
 #endif
+    neutron_sample(&live, &localenergy, &ray_origin, &mu, &phi, &localstate); 
+    ray_direction = make_float3(sqrt(1.f-mu*mu)*cos(phi),sqrt(1.f-mu*mu)*sin(phi),mu); 
   }
   }//end for istep
   output_live_buffer[launch_index] = live;
