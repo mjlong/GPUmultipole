@@ -32,6 +32,10 @@ rtBuffer<float,    1> output_closest_buffer;
 rtBuffer<unsigned, 1> output_current_buffer;
 rtBuffer<unsigned, 1> output_live_buffer;
 
+rtBuffer<unsigned, 1>           mat_offsets;
+rtBuffer<unsigned, 1>           mat_isotopes;
+rtBuffer<float, 1>              mat_densities;
+
 rtDeclareVariable(rtObject,      top_object, , );
 rtDeclareVariable(unsigned int,  only_one_ray_type, , );
 
@@ -50,14 +54,27 @@ RT_PROGRAM void generate_ray()
   float3 ray_origin = make_float3(input_pos_x_buffer[nid],input_pos_y_buffer[nid],input_pos_z_buffer[nid]);
   float3 ray_direction = make_float3(sqrt(1.f-mu*mu)*cos(phi),sqrt(1.f-mu*mu)*sin(phi),mu); 
   float d;
-  unsigned icell, imat;
-
-  double E=2;
-  double sigT,sigA,sigF;
-  xs_eval(0,E,sqrt(300.*KB),&sigT,&sigA,&sigF); 
-  printf("xs_eval(%g)=%g,%g,%g\n",E,sigT,sigA,sigF);
+  unsigned icell, imat,isotope;
 
   locate(ray_origin,ray_direction, &d, &imat, &icell);
+  imat = imat*(1-(0==icell));
+
+  double E=2;
+  double sigT,sigA,sigF,
+         sigTsum,sigAsum,sigFsum;
+
+  sigTsum = 0;
+  sigAsum = 0;
+  sigFsum = 0;
+  for(isotope=mat_offsets[imat];isotope<mat_offsets[imat+1];isotope++ ){
+    xs_eval(mat_isotopes[isotope],E,sqrt(300.*KB),&sigT,&sigA,&sigF); 
+    sigTsum += sigT*mat_densities[isotope];
+    sigAsum += sigA*mat_densities[isotope];
+    sigFsum += sigF*mat_densities[isotope];
+  }
+
+  printf("xs_eval(%g)=%g,%g,%g\n",E,sigTsum,sigAsum,sigFsum);
+
 #if defined(__PRINTTRACK__)
   printf("%3d, %3d, %+18.12e,%+18.12e,%+18.12e\n",
          launch_index,icell,ray_origin.x,ray_origin.y,ray_origin.z);
