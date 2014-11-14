@@ -3,6 +3,15 @@
 #include "commonStructs.h"
 #include <curand_kernel.h>
 #include <math.h>
+#include "global.h"
+
+#if defined(__CFLOAT)
+#define CMPTYPE float
+#define CMPTYPE2 float2
+#else
+#define CMPTYPE double
+#define CMPTYPE2 double2
+#endif
 
 using namespace optix;
 
@@ -30,7 +39,7 @@ rtDeclareVariable(unsigned int,  only_one_ray_type, , );
 rtDeclareVariable(unsigned int, launch_index, rtLaunchIndex, );
 rtDeclareVariable(unsigned int, launch_dim,   rtLaunchDim, );
 
-rtCallableProgram(double, xs_eval, (double));
+rtCallableProgram(void, xs_eval, (int, CMPTYPE, CMPTYPE, CMPTYPE*,CMPTYPE*,CMPTYPE* ));
 
 #if defined(__MANY__)
 __device__ unsigned long long intpow(int x, int n){
@@ -51,9 +60,9 @@ RT_PROGRAM void generate_ray()
   float3 ray_direction = make_float3(sqrt(1.f-mu*mu)*cos(phi),sqrt(1.f-mu*mu)*sin(phi),mu); 
 
   double E=2;
-  double xs;
-  xs = xs_eval(E); 
-  printf("xs_eval(%g)=%g\n",E,xs);
+  double sigT,sigA,sigF;
+  xs_eval(0,E,sqrt(300.*KB),&sigT,&sigA,&sigF); 
+  printf("xs_eval(%g)=%g,%g,%g\n",E,sigT,sigA,sigF);
 #if defined(__MANY__)
   float3 direction_z = make_float3(0.f,0.f,1.f);
   optix::Ray rayz = optix::make_Ray(ray_origin, direction_z, only_one_ray_type, scene_epsilon, RT_DEFAULT_MAX);
