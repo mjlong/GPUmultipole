@@ -223,6 +223,17 @@ void createContext( int width, float R1, float Hh, unsigned num_geo, RTcontext c
     RT_CHECK_ERROR( rtBufferSetDevicePointer( mat_densities_obj, id, (CUdeviceptr)(mat.densities)));
     RT_CHECK_ERROR( rtVariableSetObject( mat_densities, mat_densities_obj));
 
+    /*bind random number states*/
+    RTvariable input_random;
+    RTbuffer   input_random_obj;
+    RT_CHECK_ERROR( rtContextDeclareVariable( context, "input_random", &input_random));
+    RT_CHECK_ERROR( rtBufferCreateForCUDA( context, RT_BUFFER_INPUT, &input_random_obj)); 
+    RT_CHECK_ERROR( rtBufferSetFormat( input_random_obj,RT_FORMAT_USER )); 
+    RT_CHECK_ERROR( rtBufferSetElementSize( input_random_obj, sizeof(curandState)));
+    RT_CHECK_ERROR( rtBufferSetSize1D(input_random_obj, DEVSIZE));
+    RT_CHECK_ERROR( rtBufferSetDevicePointer( input_random_obj, id, (CUdeviceptr)(nInfo.rndState)));
+    RT_CHECK_ERROR( rtVariableSetObject( input_random, input_random_obj));
+
     /*Declare variables*/
     RT_CHECK_ERROR( rtContextDeclareVariable( context, "max_depth", &max_depth ) );
     RT_CHECK_ERROR( rtContextDeclareVariable( context, "only_one_ray_type", &only_one_ray_type ) );

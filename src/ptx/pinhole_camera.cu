@@ -23,6 +23,8 @@ rtBuffer<unsigned, 1>           mat_offsets;
 rtBuffer<unsigned, 1>           mat_isotopes;
 rtBuffer<float, 1>              mat_densities;
 
+rtBuffer<curandState, 1>           input_random;
+
 rtDeclareVariable(rtObject,      top_object, , );
 rtDeclareVariable(unsigned int,  only_one_ray_type, , );
 
@@ -34,8 +36,7 @@ rtCallableProgram(void, locate,  (float3, float3, float*, unsigned*, unsigned* )
 
 RT_PROGRAM void generate_ray()
 {
-  curandState localstate;   
-  curand_init(0,0,launch_index,&localstate);
+  curandState localstate = input_random[launch_index];  
   float phi =   2*PI*curand_uniform(&localstate);
   float mu  = -1.f+2*curand_uniform(&localstate); 
   float3 ray_origin = make_float3(0.5f+0.00*curand_uniform(&localstate),
