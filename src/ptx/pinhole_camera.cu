@@ -21,6 +21,8 @@ rtDeclareVariable(float,         var_R1, , );
 rtDeclareVariable(float,         var_Hh, , );
 rtDeclareVariable(unsigned,      var_num, , );
 
+rtDeclareVariable(unsigned,      devstep, , );
+
 rtBuffer<unsigned, 1>           mat_offsets;
 rtBuffer<unsigned, 1>           mat_isotopes;
 rtBuffer<float, 1>              mat_densities;
@@ -50,45 +52,65 @@ __device__ void neutron_sample(unsigned* live, CMPTYPE* energy, float3* origin, 
 
 RT_PROGRAM void generate_ray()
 {
-  curandState localstate = input_random[launch_index];  
-  float3 ray_origin, ray_direction;
-  CMPTYPE localenergy;
-  float d;
   unsigned icell, imat,isotope,live;
+#if defined(__PRINTTRACK__)
+  int nid = launch_index;
+#endif
+  float d;
+
+  CMPTYPE localenergy;
+  double sigT,sigA,sigF,
+         sigTsum,sigAsum,sigFsum;
+  float3 ray_origin, ray_direction;
+  curandState localstate = input_random[launch_index];
 
   neutron_sample(&live, &localenergy, &ray_origin, &ray_direction, &localstate);
 
+//loop over GPU steps
+  for(unsigned istep=0; istep<devstep; istep++){
   locate(ray_origin,ray_direction, &d, &imat, &icell);
   imat = imat*(1-(0==icell));
   live = !(0==icell);
 
-  if(!live)
+  if(!live){
     neutron_sample(&live, &localenergy, &ray_origin, &ray_direction, &localstate);
-
-  double sigT,sigA,sigF,
-         sigTsum,sigAsum,sigFsum;
+#if defined(__PRINTTRACK__)
+    nid += launch_dim;
+#endif
+  }
 
   sigTsum = 0;
   sigAsum = 0;
   sigFsum = 0;
   for(isotope=mat_offsets[imat];isotope<mat_offsets[imat+1];isotope++ ){
-    xs_eval(mat_isotopes[isotope],localenergy,sqrt(300.*KB),&sigT,&sigA,&sigF); 
+    //xs_eval(mat_isotopes[isotope],localenergy,sqrt(300.*KB),&sigT,&sigA,&sigF); 
     sigTsum += sigT*mat_densities[isotope];
     sigAsum += sigA*mat_densities[isotope];
     sigFsum += sigF*mat_densities[isotope];
   }
 
-  printf("xs_eval(%g)=%g,%g,%g\n",localenergy,sigTsum,sigAsum,sigFsum);
-
 #if defined(__PRINTTRACK__)
-  printf("%3d, %3d, %+18.12e,%+18.12e,%+18.12e\n",
-         launch_index,icell,ray_origin.x,ray_origin.y,ray_origin.z);
-  ray_origin = ray_origin+d*ray_direction;
-  printf("%3d, %3d, %+18.12e,%+18.12e,%+18.12e\n",
-         launch_index,1111,ray_origin.x,ray_origin.y,ray_origin.z); 
+  if(__PRINTTRACK__){
+    printf("%7d,%3d,%+.7e, %+.7e, %+.7e, %.14e %.14e %.14e %.14e\n",
+            nid, imat,
+            ray_origin.x, ray_origin.y, ray_origin.z,
+            localenergy, sigTsum,sigAsum,sigFsum); 
+  }
 #endif
+  localenergy = localenergy*curand_uniform(&localstate);
+  live = (localenergy > ENDENERG);
+  //localenergy = localenergy*live + STARTENE*(1u-live);
+  if(live){
+    ray_origin = ray_origin + d*ray_direction;
+  }
+  else{
+    neutron_sample(&live, &localenergy, &ray_origin, &ray_direction, &localstate); 
+#if defined(__PRINTTRACK__)
+    nid += launch_dim;
+#endif
+  }
 
-
+  }//end for istep
 }
 
 RT_PROGRAM void exception()
