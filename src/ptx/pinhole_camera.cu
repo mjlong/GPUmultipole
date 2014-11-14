@@ -38,6 +38,35 @@ rtDeclareVariable(unsigned int, launch_dim,   rtLaunchDim, );
 rtCallableProgram(void, xs_eval, (int, CMPTYPE, CMPTYPE, CMPTYPE*,CMPTYPE*,CMPTYPE* ));
 rtCallableProgram(void, locate,  (float3, float3, float*, unsigned*, unsigned* ));
 
+__device__ __constant__ CMPTYPE spectrumbins[]={
+  20000000.0,
+  1000000.0,
+  100000.0,
+  10000.0,
+  1000.0,
+  100.0,
+  50.0,
+  25.0,
+  10.0,
+  6.0,
+  4.0,
+  1.0,
+  0.625,
+  0.3,
+  0.1,
+  0.03,
+  0.00001
+};
+
+__device__ unsigned search_bin(CMPTYPE energy){
+  for(int i=0;i<NUM_BINS;i++){
+    if( (spectrumbins[i]>=energy)&&(spectrumbins[i+1]<energy) ) 
+      return i;
+  }
+  return 0;
+}
+
+
 __device__ void neutron_sample(unsigned* live, CMPTYPE* energy, float3* origin, float3* direction, curandState* localstate){
   *live = 1u;
   *energy = STARTENE;
@@ -75,6 +104,7 @@ RT_PROGRAM void generate_ray()
   if(!live){
     neutron_sample(&live, &localenergy, &ray_origin, &ray_direction, &localstate);
 #if defined(__PRINTTRACK__)
+    printf("leaked\n");
     nid += launch_dim;
 #endif
   }
@@ -98,12 +128,16 @@ RT_PROGRAM void generate_ray()
   }
 #endif
   localenergy = localenergy*curand_uniform(&localstate);
+  int iE;
+  iE = search_bin(localenergy); 
+  printf("energy %g is in bin %d\n", localenergy, iE);
   live = (localenergy > ENDENERG);
   //localenergy = localenergy*live + STARTENE*(1u-live);
   if(live){
     ray_origin = ray_origin + d*ray_direction;
   }
   else{
+    printf("stopped\n");
     neutron_sample(&live, &localenergy, &ray_origin, &ray_direction, &localstate); 
 #if defined(__PRINTTRACK__)
     nid += launch_dim;
