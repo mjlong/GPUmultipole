@@ -2,13 +2,13 @@
 char path_to_ptx[512];
 
 #if defined(__QUICKW)
-void initialize_context(RTcontext context, int width, int n, int m, float *data, NeutronInfoStruct nInfo, multipole mp_para, CComplex<double>* wtable)
+void initialize_context(RTcontext context, int width, int n, int m, float *data, NeutronInfoStruct nInfo, multipole mp_para,material mat, CComplex<double>* wtable)
 #else
-void initialize_context(RTcontext context, int width, int n, int m, float *data, NeutronInfoStruct nInfo, multipole mp_para)
+void initialize_context(RTcontext context, int width, int n, int m, float *data, NeutronInfoStruct nInfo, multipole mp_para,material mat)
 #endif
 {
     /* Primary RTAPI objects */
-    RTmaterial          material;
+    RTmaterial          rt_material;
   
     /* Setup state */
 #if defined(__HEXPRISM__)
@@ -21,17 +21,17 @@ void initialize_context(RTcontext context, int width, int n, int m, float *data,
 
 
 #if defined(__QUICKW)
-    createContext( width,R,data[2]/*hh*/,num_geobj, context, nInfo,mp_para,wtable);
+    createContext( width,R,data[2]/*hh*/,num_geobj, context, nInfo,mp_para, mat,wtable);
 #else
-    createContext( width,R,data[2]/*hh*/,num_geobj, context, nInfo,mp_para);
+    createContext( width,R,data[2]/*hh*/,num_geobj, context, nInfo,mp_para, mat);
 #endif
 
 #if defined(__PRINTTRACK__)
     printf("%g,%g,%g,%g,%g\n",data[0],data[1],data[2],data[3],data[4]);
     printf("%d,%d,%d,%d,%d\n",width,n,m,0,0);
 #endif
-    createMaterial( context, &material);
-    createInstances( context, material, data, n, m);
+    createMaterial( context, &rt_material);
+    createInstances( context, rt_material, data, n, m);
 
     /* Run */
     RT_CHECK_ERROR( rtContextValidate( context ) );
@@ -43,9 +43,9 @@ void initialize_context(RTcontext context, int width, int n, int m, float *data,
 }
 
 #if defined(__QUICKW)
-void createContext( int width, float R1, float Hh, unsigned num_geo, RTcontext context, NeutronInfoStruct nInfo, multipole mp_para, CComplex<double>* wtable)
+void createContext( int width, float R1, float Hh, unsigned num_geo, RTcontext context, NeutronInfoStruct nInfo, multipole mp_para,material mat, CComplex<double>* wtable)
 #else
-void createContext( int width, float R1, float Hh, unsigned num_geo, RTcontext context, NeutronInfoStruct nInfo, multipole mp_para)
+void createContext( int width, float R1, float Hh, unsigned num_geo, RTcontext context, NeutronInfoStruct nInfo, multipole mp_para,material mat)
 #endif
 {
 
@@ -202,6 +202,34 @@ void createContext( int width, float R1, float Hh, unsigned num_geo, RTcontext c
     RT_CHECK_ERROR( rtBufferSetDevicePointer( wtable_buffer_obj, id, (CUdeviceptr)(wtable)));
     RT_CHECK_ERROR( rtVariableSetObject( wtable_buffer, wtable_buffer_obj));
 #endif
+
+    /*bind material parameters*/
+    RTvariable mat_isotopes;
+    RTbuffer   mat_isotopes_obj;
+    RT_CHECK_ERROR( rtContextDeclareVariable( context, "mat_isotopes", &mat_isotopes));
+    RT_CHECK_ERROR( rtBufferCreateForCUDA( context, RT_BUFFER_INPUT, &mat_isotopes_obj)); 
+    RT_CHECK_ERROR( rtBufferSetFormat( mat_isotopes_obj, RT_FORMAT_UNSIGNED_BYTE4)); 
+    RT_CHECK_ERROR( rtBufferSetSize1D(mat_isotopes_obj, DEVINTS));
+    RT_CHECK_ERROR( rtBufferSetDevicePointer( mat_isotopes_obj, id, (CUdeviceptr)(mat.isotopes)));
+    RT_CHECK_ERROR( rtVariableSetObject( mat_isotopes, mat_isotopes_obj));
+
+    RTvariable mat_offsets;
+    RTbuffer   mat_offsets_obj;
+    RT_CHECK_ERROR( rtContextDeclareVariable( context, "mat_offsets", &mat_offsets));
+    RT_CHECK_ERROR( rtBufferCreateForCUDA( context, RT_BUFFER_INPUT, &mat_offsets_obj)); 
+    RT_CHECK_ERROR( rtBufferSetFormat( mat_offsets_obj, RT_FORMAT_UNSIGNED_BYTE4)); 
+    RT_CHECK_ERROR( rtBufferSetSize1D(mat_offsets_obj, DEVINTS));
+    RT_CHECK_ERROR( rtBufferSetDevicePointer( mat_offsets_obj, id, (CUdeviceptr)(mat.offsets)));
+    RT_CHECK_ERROR( rtVariableSetObject( mat_offsets, mat_offsets_obj));
+
+    RTvariable mat_densities;
+    RTbuffer   mat_densities_obj;
+    RT_CHECK_ERROR( rtContextDeclareVariable( context, "mat_densities", &mat_densities));
+    RT_CHECK_ERROR( rtBufferCreateForCUDA( context, RT_BUFFER_INPUT, &mat_densities_obj)); 
+    RT_CHECK_ERROR( rtBufferSetFormat( mat_densities_obj, RT_FORMAT_UNSIGNED_BYTE4)); 
+    RT_CHECK_ERROR( rtBufferSetSize1D(mat_densities_obj, DEVINTS));
+    RT_CHECK_ERROR( rtBufferSetDevicePointer( mat_densities_obj, id, (CUdeviceptr)(mat.densities)));
+    RT_CHECK_ERROR( rtVariableSetObject( mat_densities, mat_densities_obj));
 
     /*Declare variables*/
     RT_CHECK_ERROR( rtContextDeclareVariable( context, "input_pos_x_buffer", &input_pos_x_buffer));
