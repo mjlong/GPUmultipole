@@ -19,19 +19,6 @@ rtDeclareVariable(float,         var_R1, , );
 rtDeclareVariable(float,         var_Hh, , );
 rtDeclareVariable(unsigned,      var_num, , );
 
-rtBuffer<unsigned, 1>           input_id_buffer;
-
-rtBuffer<float, 1>              input_pos_x_buffer;
-rtBuffer<float, 1>              input_pos_y_buffer;
-rtBuffer<float, 1>              input_pos_z_buffer;
-
-rtBuffer<float, 1>              input_dir_p_buffer;
-rtBuffer<float, 1>              input_dir_a_buffer;
-
-rtBuffer<float,    1> output_closest_buffer;
-rtBuffer<unsigned, 1> output_current_buffer;
-rtBuffer<unsigned, 1> output_live_buffer;
-
 rtBuffer<unsigned, 1>           mat_offsets;
 rtBuffer<unsigned, 1>           mat_isotopes;
 rtBuffer<float, 1>              mat_densities;
@@ -47,17 +34,20 @@ rtCallableProgram(void, locate,  (float3, float3, float*, unsigned*, unsigned* )
 
 RT_PROGRAM void generate_ray()
 {
-  unsigned nid = input_id_buffer[launch_index]%launch_dim;
-  if(output_live_buffer[nid]){
-  float phi = input_dir_a_buffer[nid];
-  float mu  = input_dir_p_buffer[nid]; 
-  float3 ray_origin = make_float3(input_pos_x_buffer[nid],input_pos_y_buffer[nid],input_pos_z_buffer[nid]);
+  curandState localstate;   
+  curand_init(0,0,launch_index,&localstate);
+  float phi =   2*PI*curand_uniform(&localstate);
+  float mu  = -1.f+2*curand_uniform(&localstate); 
+  float3 ray_origin = make_float3(0.5f+0.00*curand_uniform(&localstate),
+                                  0.5f+0.00*curand_uniform(&localstate),
+                                  0.5f+0.00*curand_uniform(&localstate));
   float3 ray_direction = make_float3(sqrt(1.f-mu*mu)*cos(phi),sqrt(1.f-mu*mu)*sin(phi),mu); 
   float d;
-  unsigned icell, imat,isotope;
+  unsigned icell, imat,isotope,live;
 
   locate(ray_origin,ray_direction, &d, &imat, &icell);
   imat = imat*(1-(0==icell));
+  live = !(0==icell);
 
   double E=2;
   double sigT,sigA,sigF,
@@ -84,15 +74,10 @@ RT_PROGRAM void generate_ray()
 #endif
 
 
-  output_closest_buffer[nid] = d;
-  output_current_buffer[nid] = imat*(1-(0==icell));
-  output_live_buffer[nid] = !(0==icell);
-}
 }
 
 RT_PROGRAM void exception()
 {
   const unsigned int code = rtGetExceptionCode();
   rtPrintf( "Caught exception 0x%X at launch index (%d)\n", code, launch_index );
-  output_closest_buffer[launch_index] = 0.f;
 }
