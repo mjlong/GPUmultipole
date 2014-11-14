@@ -108,7 +108,9 @@ RT_PROGRAM void generate_ray()
     nid += launch_dim;
 #endif
   }
-
+//
+//Evaluate cross section and print (id,imat,position,E,sigT,sigA,sigF
+//
   sigTsum = 0;
   sigAsum = 0;
   sigFsum = 0;
@@ -118,7 +120,6 @@ RT_PROGRAM void generate_ray()
     sigAsum += sigA*mat_densities[isotope];
     sigFsum += sigF*mat_densities[isotope];
   }
-
 #if defined(__PRINTTRACK__)
   if(__PRINTTRACK__){
     printf("%7d,%3d,%+.7e, %+.7e, %+.7e, %.14e %.14e %.14e %.14e\n",
@@ -128,13 +129,15 @@ RT_PROGRAM void generate_ray()
   }
 #endif
   localenergy = localenergy*curand_uniform(&localstate);
+  float s = -log(curand_uniform(&localstate))/1.4;
+  s = (d<s)*d + (d>=s)*s;
+//update tally
   int iE;
   iE = search_bin(localenergy); 
-  printf("energy %g is in bin %d\n", localenergy, iE);
   live = (localenergy > ENDENERG);
   //localenergy = localenergy*live + STARTENE*(1u-live);
   if(live){
-    ray_origin = ray_origin + d*ray_direction;
+    ray_origin = ray_origin + s*ray_direction;
   }
   else{
     printf("stopped\n");
