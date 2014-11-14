@@ -22,11 +22,11 @@ void createGeometrySphere( RTcontext context, RTgeometry* sphere, float*);
 void createInstances( RTcontext context, RTmaterial material, float*, int n, int m  );
 void tracemain(int, int, int, float*, NeutronInfoStruct);
 #if defined(__QUICKW)
-void initialize_context(RTcontext, int, int, int, float*, NeutronInfoStruct,multipole, material, CComplex<double>*);
-void createContext( int width, float R1, float Hh, unsigned num_geo, RTcontext context, NeutronInfoStruct nInfo,multipole,material, CComplex<double>*);
+void initialize_context(RTcontext, int,unsigned, int, int, float*, NeutronInfoStruct,multipole, material, CComplex<double>*);
+void createContext( int width,unsigned devstep, float R1, float Hh, unsigned num_geo, RTcontext context, NeutronInfoStruct nInfo,multipole,material, CComplex<double>*);
 #else
-void initialize_context(RTcontext, int, int, int, float*, NeutronInfoStruct,multipole,material);
-void createContext( int width, float R1, float Hh, unsigned num_geo, RTcontext context, NeutronInfoStruct nInfo,multipole,material);
+void initialize_context(RTcontext, int,unsigned, int, int, float*, NeutronInfoStruct,multipole,material);
+void createContext( int width,unsigned devstep, float R1, float Hh, unsigned num_geo, RTcontext context, NeutronInfoStruct nInfo,multipole,material);
 #endif
 
 

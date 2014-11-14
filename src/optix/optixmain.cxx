@@ -6,9 +6,9 @@ char path_to_ptx[512];
 
 
 #if defined(__QUICKW)
-void initialize_context(RTcontext context, int width, int n, int m, float *data, NeutronInfoStruct nInfo, multipole mp_para,material mat, CComplex<double>* wtable)
+void initialize_context(RTcontext context, int width,unsigned devstep, int n, int m, float *data, NeutronInfoStruct nInfo, multipole mp_para,material mat, CComplex<double>* wtable)
 #else
-void initialize_context(RTcontext context, int width, int n, int m, float *data, NeutronInfoStruct nInfo, multipole mp_para,material mat)
+void initialize_context(RTcontext context, int width,unsigned devstep, int n, int m, float *data, NeutronInfoStruct nInfo, multipole mp_para,material mat)
 #endif
 {
     /* Primary RTAPI objects */
@@ -25,9 +25,9 @@ void initialize_context(RTcontext context, int width, int n, int m, float *data,
 
 
 #if defined(__QUICKW)
-    createContext( width,R,data[2]/*hh*/,num_geobj, context, nInfo,mp_para, mat,wtable);
+    createContext( width,devstep, R,data[2]/*hh*/,num_geobj, context, nInfo,mp_para, mat,wtable);
 #else
-    createContext( width,R,data[2]/*hh*/,num_geobj, context, nInfo,mp_para, mat);
+    createContext( width,devstep, R,data[2]/*hh*/,num_geobj, context, nInfo,mp_para, mat);
 #endif
 
 #if defined(__PRINTTRACK__)
@@ -47,9 +47,9 @@ void initialize_context(RTcontext context, int width, int n, int m, float *data,
 }
 
 #if defined(__QUICKW)
-void createContext( int width, float R1, float Hh, unsigned num_geo, RTcontext context, NeutronInfoStruct nInfo, multipole mp_para,material mat, CComplex<double>* wtable)
+void createContext( int width, unsigned devstep, float R1, float Hh, unsigned num_geo, RTcontext context, NeutronInfoStruct nInfo, multipole mp_para,material mat, CComplex<double>* wtable)
 #else
-void createContext( int width, float R1, float Hh, unsigned num_geo, RTcontext context, NeutronInfoStruct nInfo, multipole mp_para,material mat)
+void createContext( int width, unsigned devstep, float R1, float Hh, unsigned num_geo, RTcontext context, NeutronInfoStruct nInfo, multipole mp_para,material mat)
 #endif
 {
 
@@ -59,7 +59,7 @@ void createContext( int width, float R1, float Hh, unsigned num_geo, RTcontext c
     RTvariable only_one_ray_type;
     RTvariable epsilon;
     RTvariable max_depth;
-    RTvariable var_R1, var_Hh, var_num; 
+    RTvariable var_R1, var_Hh, var_num, var_devstep; 
 
     /* Setup context */
     RT_CHECK_ERROR( rtContextSetRayTypeCount( context, 2 ) );//TODO:type count /* shadow and radiance */
@@ -241,10 +241,13 @@ void createContext( int width, float R1, float Hh, unsigned num_geo, RTcontext c
     RT_CHECK_ERROR( rtContextDeclareVariable( context, "var_R1", &var_R1));
     RT_CHECK_ERROR( rtContextDeclareVariable( context, "var_Hh", &var_Hh));
     RT_CHECK_ERROR( rtContextDeclareVariable( context, "var_num", &var_num));
+    RT_CHECK_ERROR( rtContextDeclareVariable( context, "devstep", &var_devstep));
 
     /*set variables: built-in types, rtVariableSetTYPE*/
     RT_CHECK_ERROR( rtVariableSet1i( max_depth, 10u ) );
     RT_CHECK_ERROR( rtVariableSet1ui( only_one_ray_type, 0u ) );
+    RT_CHECK_ERROR( rtVariableSet1ui( var_devstep, devstep ) );
+
 #if defined(__MANY__)
     RT_CHECK_ERROR( rtVariableSet1f( epsilon, 1.e-3f ) );
 #else

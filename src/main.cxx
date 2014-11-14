@@ -99,11 +99,11 @@ int main(int argc, char **argv){
   //float geoPara[6] = {0.00048f,0.0005f,0.050f,0.0012f,0.100f,0.100f};
                       //r1,  r2,  h/2, p,   t,    H/2
 #if defined(__QUICKW)
-  initialize_context(context, gridsize, 
+  initialize_context(context, gridsize, atoi(argv[4]),
                      atoi(argv[5]),atoi(argv[6]), 
                      geoPara, DeviceMem.nInfo, mp_para,mat, wtable);
 #else
-  initialize_context(context, gridsize, 
+  initialize_context(context, gridsize, atoi(argv[4]),
                      atoi(argv[5]),atoi(argv[6]), 
                      geoPara, DeviceMem.nInfo, mp_para,mat);
 #endif
