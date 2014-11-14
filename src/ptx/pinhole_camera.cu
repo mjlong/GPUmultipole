@@ -3,6 +3,8 @@
 #include "commonStructs.h"
 #include <curand_kernel.h>
 #include <math.h>
+
+#include "simulation.h"
 #include "global.h"
 
 #if defined(__CFLOAT)
@@ -34,23 +36,35 @@ rtDeclareVariable(unsigned int, launch_dim,   rtLaunchDim, );
 rtCallableProgram(void, xs_eval, (int, CMPTYPE, CMPTYPE, CMPTYPE*,CMPTYPE*,CMPTYPE* ));
 rtCallableProgram(void, locate,  (float3, float3, float*, unsigned*, unsigned* ));
 
+__device__ void neutron_sample(unsigned* live, CMPTYPE* energy, float3* origin, float3* direction, curandState* localstate){
+  *live = 1u;
+  *energy = STARTENE;
+  float phi =   2*PI*curand_uniform(localstate);
+  float mu  = -1.f+2*curand_uniform(localstate); 
+  *origin =  make_float3(0.5f+0.00*curand_uniform(localstate),
+                                     0.5f+0.00*curand_uniform(localstate),
+                                     0.5f+0.00*curand_uniform(localstate));
+  *direction = make_float3(sqrt(1.f-mu*mu)*cos(phi),sqrt(1.f-mu*mu)*sin(phi),mu);
+}
+
+
 RT_PROGRAM void generate_ray()
 {
   curandState localstate = input_random[launch_index];  
-  float phi =   2*PI*curand_uniform(&localstate);
-  float mu  = -1.f+2*curand_uniform(&localstate); 
-  float3 ray_origin = make_float3(0.5f+0.00*curand_uniform(&localstate),
-                                  0.5f+0.00*curand_uniform(&localstate),
-                                  0.5f+0.00*curand_uniform(&localstate));
-  float3 ray_direction = make_float3(sqrt(1.f-mu*mu)*cos(phi),sqrt(1.f-mu*mu)*sin(phi),mu); 
+  float3 ray_origin, ray_direction;
+  CMPTYPE localenergy;
   float d;
   unsigned icell, imat,isotope,live;
+
+  neutron_sample(&live, &localenergy, &ray_origin, &ray_direction, &localstate);
 
   locate(ray_origin,ray_direction, &d, &imat, &icell);
   imat = imat*(1-(0==icell));
   live = !(0==icell);
 
-  double E=2;
+  if(!live)
+    neutron_sample(&live, &localenergy, &ray_origin, &ray_direction, &localstate);
+
   double sigT,sigA,sigF,
          sigTsum,sigAsum,sigFsum;
 
@@ -58,13 +72,13 @@ RT_PROGRAM void generate_ray()
   sigAsum = 0;
   sigFsum = 0;
   for(isotope=mat_offsets[imat];isotope<mat_offsets[imat+1];isotope++ ){
-    xs_eval(mat_isotopes[isotope],E,sqrt(300.*KB),&sigT,&sigA,&sigF); 
+    xs_eval(mat_isotopes[isotope],localenergy,sqrt(300.*KB),&sigT,&sigA,&sigF); 
     sigTsum += sigT*mat_densities[isotope];
     sigAsum += sigA*mat_densities[isotope];
     sigFsum += sigF*mat_densities[isotope];
   }
 
-  printf("xs_eval(%g)=%g,%g,%g\n",E,sigTsum,sigAsum,sigFsum);
+  printf("xs_eval(%g)=%g,%g,%g\n",localenergy,sigTsum,sigAsum,sigFsum);
 
 #if defined(__PRINTTRACK__)
   printf("%3d, %3d, %+18.12e,%+18.12e,%+18.12e\n",
