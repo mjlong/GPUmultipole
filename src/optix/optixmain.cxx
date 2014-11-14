@@ -68,10 +68,6 @@ void createContext( int width, float R1, float Hh, unsigned num_geo, RTcontext c
     RTbuffer            output_current_buffer_obj;
     RTbuffer            output_live_buffer_obj;
 
-    RTvariable dev_integers,
-               mpdata; 
-    RTbuffer   dev_integers_obj,
-               mpdata_obj;
 
     /* Setup context */
     RT_CHECK_ERROR( rtContextSetRayTypeCount( context, 2 ) );//TODO:type count /* shadow and radiance */
@@ -81,6 +77,8 @@ void createContext( int width, float R1, float Hh, unsigned num_geo, RTcontext c
     //It seems and makes sense that Optix does not care the size of the device memory, 
     //all multipole data are not available on host including array size, 
     //so, bufferSize for multipole parameters is meaningless
+    RTvariable dev_integers;
+    RTbuffer   dev_integers_obj;
     RT_CHECK_ERROR( rtContextDeclareVariable( context, "dev_integers", &dev_integers));
     RT_CHECK_ERROR( rtBufferCreateForCUDA( context, RT_BUFFER_INPUT, &dev_integers_obj)); 
     RT_CHECK_ERROR( rtBufferSetFormat( dev_integers_obj, RT_FORMAT_UNSIGNED_BYTE4)); 
@@ -88,6 +86,103 @@ void createContext( int width, float R1, float Hh, unsigned num_geo, RTcontext c
     RT_CHECK_ERROR( rtBufferSetDevicePointer( dev_integers_obj, id, (CUdeviceptr)(mp_para.dev_integers)));
     RT_CHECK_ERROR( rtVariableSetObject( dev_integers, dev_integers_obj));
 
+    RTvariable dev_doubles;
+    RTbuffer   dev_doubles_obj;
+    RT_CHECK_ERROR( rtContextDeclareVariable( context, "dev_doubles", &dev_doubles));
+    RT_CHECK_ERROR( rtBufferCreateForCUDA( context, RT_BUFFER_INPUT, &dev_doubles_obj)); 
+    RT_CHECK_ERROR( rtBufferSetFormat( dev_doubles_obj,RT_FORMAT_USER )); 
+    RT_CHECK_ERROR( rtBufferSetElementSize( dev_doubles_obj, sizeof(double)));
+    RT_CHECK_ERROR( rtBufferSetSize1D(dev_doubles_obj, DEVINTS));
+    RT_CHECK_ERROR( rtBufferSetDevicePointer( dev_doubles_obj, id, (CUdeviceptr)(mp_para.dev_doubles)));
+    RT_CHECK_ERROR( rtVariableSetObject( dev_doubles, dev_doubles_obj));
+
+    RTvariable dev_numIso;
+    RTbuffer   dev_numIso_obj;
+    RT_CHECK_ERROR( rtContextDeclareVariable( context, "dev_numIso", &dev_numIso));
+    RT_CHECK_ERROR( rtBufferCreateForCUDA( context, RT_BUFFER_INPUT, &dev_numIso_obj)); 
+    RT_CHECK_ERROR( rtBufferSetFormat( dev_numIso_obj, RT_FORMAT_UNSIGNED_BYTE4)); 
+    RT_CHECK_ERROR( rtBufferSetSize1D(dev_numIso_obj, DEVINTS));
+    RT_CHECK_ERROR( rtBufferSetDevicePointer( dev_numIso_obj, id, (CUdeviceptr)(mp_para.dev_numIso)));
+    RT_CHECK_ERROR( rtVariableSetObject( dev_numIso, dev_numIso_obj));
+
+    RTvariable offsets;
+    RTbuffer   offsets_obj;
+    RT_CHECK_ERROR( rtContextDeclareVariable( context, "offsets", &offsets));
+    RT_CHECK_ERROR( rtBufferCreateForCUDA( context, RT_BUFFER_INPUT, &offsets_obj)); 
+    RT_CHECK_ERROR( rtBufferSetFormat( offsets_obj, RT_FORMAT_UNSIGNED_BYTE4)); 
+    RT_CHECK_ERROR( rtBufferSetSize1D(offsets_obj, DEVINTS));
+    RT_CHECK_ERROR( rtBufferSetDevicePointer( offsets_obj, id, (CUdeviceptr)(mp_para.offsets)));
+    RT_CHECK_ERROR( rtVariableSetObject( offsets, offsets_obj));
+
+    RTvariable l_value;
+    RTbuffer   l_value_obj;
+    RT_CHECK_ERROR( rtContextDeclareVariable( context, "l_value", &l_value));
+    RT_CHECK_ERROR( rtBufferCreateForCUDA( context, RT_BUFFER_INPUT, &l_value_obj)); 
+    RT_CHECK_ERROR( rtBufferSetFormat( l_value_obj, RT_FORMAT_UNSIGNED_BYTE4)); 
+    RT_CHECK_ERROR( rtBufferSetSize1D(l_value_obj, DEVINTS));
+    RT_CHECK_ERROR( rtBufferSetDevicePointer( l_value_obj, id, (CUdeviceptr)(mp_para.l_value)));
+    RT_CHECK_ERROR( rtVariableSetObject( l_value, l_value_obj));
+
+    RTvariable w_start;
+    RTbuffer   w_start_obj;
+    RT_CHECK_ERROR( rtContextDeclareVariable( context, "w_start", &w_start));
+    RT_CHECK_ERROR( rtBufferCreateForCUDA( context, RT_BUFFER_INPUT, &w_start_obj)); 
+    RT_CHECK_ERROR( rtBufferSetFormat( w_start_obj, RT_FORMAT_UNSIGNED_BYTE4)); 
+    RT_CHECK_ERROR( rtBufferSetSize1D(w_start_obj, DEVINTS));
+    RT_CHECK_ERROR( rtBufferSetDevicePointer( w_start_obj, id, (CUdeviceptr)(mp_para.w_start)));
+    RT_CHECK_ERROR( rtVariableSetObject( w_start, w_start_obj));
+
+    RTvariable w_end;
+    RTbuffer   w_end_obj;
+    RT_CHECK_ERROR( rtContextDeclareVariable( context, "w_end", &w_end));
+    RT_CHECK_ERROR( rtBufferCreateForCUDA( context, RT_BUFFER_INPUT, &w_end_obj)); 
+    RT_CHECK_ERROR( rtBufferSetFormat( w_end_obj, RT_FORMAT_UNSIGNED_BYTE4)); 
+    RT_CHECK_ERROR( rtBufferSetSize1D(w_end_obj, DEVINTS));
+    RT_CHECK_ERROR( rtBufferSetDevicePointer( w_end_obj, id, (CUdeviceptr)(mp_para.w_end)));
+    RT_CHECK_ERROR( rtVariableSetObject( w_end, w_end_obj));
+
+    RTvariable pseudo_rho; 
+    RTbuffer   pseudo_rho_obj;
+    RT_CHECK_ERROR( rtContextDeclareVariable( context, "pseudo_rho", &pseudo_rho));
+    RT_CHECK_ERROR( rtBufferCreateForCUDA( context, RT_BUFFER_INPUT, &pseudo_rho_obj)); 
+    RT_CHECK_ERROR( rtBufferSetFormat( pseudo_rho_obj,RT_FORMAT_USER )); 
+    RT_CHECK_ERROR( rtBufferSetElementSize( pseudo_rho_obj, sizeof(double)));
+    RT_CHECK_ERROR( rtBufferSetSize1D(pseudo_rho_obj, DEVINTS));
+    RT_CHECK_ERROR( rtBufferSetDevicePointer( pseudo_rho_obj, id, (CUdeviceptr)(mp_para.pseudo_rho)));
+    RT_CHECK_ERROR( rtVariableSetObject( pseudo_rho, pseudo_rho_obj));
+
+    RTvariable fitT; 
+    RTbuffer   fitT_obj;
+    RT_CHECK_ERROR( rtContextDeclareVariable( context, "fitT", &fitT));
+    RT_CHECK_ERROR( rtBufferCreateForCUDA( context, RT_BUFFER_INPUT, &fitT_obj)); 
+    RT_CHECK_ERROR( rtBufferSetFormat( fitT_obj,RT_FORMAT_USER )); 
+    RT_CHECK_ERROR( rtBufferSetElementSize( fitT_obj, sizeof(double)));
+    RT_CHECK_ERROR( rtBufferSetSize1D(fitT_obj, DEVINTS));
+    RT_CHECK_ERROR( rtBufferSetDevicePointer( fitT_obj, id, (CUdeviceptr)(mp_para.fitT)));
+    RT_CHECK_ERROR( rtVariableSetObject( fitT, fitT_obj));
+
+    RTvariable fitA; 
+    RTbuffer   fitA_obj;
+    RT_CHECK_ERROR( rtContextDeclareVariable( context, "fitA", &fitA));
+    RT_CHECK_ERROR( rtBufferCreateForCUDA( context, RT_BUFFER_INPUT, &fitA_obj)); 
+    RT_CHECK_ERROR( rtBufferSetFormat( fitA_obj,RT_FORMAT_USER )); 
+    RT_CHECK_ERROR( rtBufferSetElementSize( fitA_obj, sizeof(double)));
+    RT_CHECK_ERROR( rtBufferSetSize1D(fitA_obj, DEVINTS));
+    RT_CHECK_ERROR( rtBufferSetDevicePointer( fitA_obj, id, (CUdeviceptr)(mp_para.fitA)));
+    RT_CHECK_ERROR( rtVariableSetObject( fitA, fitA_obj));
+
+    RTvariable fitF; 
+    RTbuffer   fitF_obj;
+    RT_CHECK_ERROR( rtContextDeclareVariable( context, "fitF", &fitF));
+    RT_CHECK_ERROR( rtBufferCreateForCUDA( context, RT_BUFFER_INPUT, &fitF_obj)); 
+    RT_CHECK_ERROR( rtBufferSetFormat( fitF_obj,RT_FORMAT_USER )); 
+    RT_CHECK_ERROR( rtBufferSetElementSize( fitF_obj, sizeof(double)));
+    RT_CHECK_ERROR( rtBufferSetSize1D(fitF_obj, DEVINTS));
+    RT_CHECK_ERROR( rtBufferSetDevicePointer( fitF_obj, id, (CUdeviceptr)(mp_para.fitF)));
+    RT_CHECK_ERROR( rtVariableSetObject( fitF, fitF_obj));
+
+    RTvariable mpdata; 
+    RTbuffer   mpdata_obj;
     RT_CHECK_ERROR( rtContextDeclareVariable( context, "mpdata", &mpdata));
     RT_CHECK_ERROR( rtBufferCreateForCUDA( context, RT_BUFFER_INPUT, &mpdata_obj)); 
     RT_CHECK_ERROR( rtBufferSetFormat( mpdata_obj,RT_FORMAT_USER )); 
