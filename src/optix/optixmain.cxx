@@ -224,6 +224,16 @@ void createContext( int width, unsigned devstep, float R1, float Hh, unsigned nu
     RT_CHECK_ERROR( rtVariableSetObject( mat_densities, mat_densities_obj));
 
     /*bind random number states*/
+    RTvariable input_energy;
+    RTbuffer   input_energy_obj;
+    RT_CHECK_ERROR( rtContextDeclareVariable( context, "input_energy_buffer", &input_energy));
+    RT_CHECK_ERROR( rtBufferCreateForCUDA( context, RT_BUFFER_INPUT, &input_energy_obj)); 
+    RT_CHECK_ERROR( rtBufferSetFormat( input_energy_obj,RT_FORMAT_USER )); 
+    RT_CHECK_ERROR( rtBufferSetElementSize( input_energy_obj, sizeof(CMPTYPE)));
+    RT_CHECK_ERROR( rtBufferSetSize1D(input_energy_obj, DEVSIZE));
+    RT_CHECK_ERROR( rtBufferSetDevicePointer( input_energy_obj, id, (CUdeviceptr)(nInfo.rndState)));
+    RT_CHECK_ERROR( rtVariableSetObject( input_energy, input_energy_obj));
+
     RTvariable input_random;
     RTbuffer   input_random_obj;
     RT_CHECK_ERROR( rtContextDeclareVariable( context, "input_random", &input_random));

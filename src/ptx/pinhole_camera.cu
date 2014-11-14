@@ -29,6 +29,7 @@ rtBuffer<float, 1>              mat_densities;
 
 rtBuffer<curandState, 1>           input_random;
 
+rtBuffer<CMPTYPE, 1>            input_energy_buffer;
 rtBuffer<float, 1>              input_pos_x_buffer;
 rtBuffer<float, 1>              input_pos_y_buffer;
 rtBuffer<float, 1>              input_pos_z_buffer;
@@ -167,6 +168,7 @@ RT_PROGRAM void generate_ray()
   input_pos_z_buffer[launch_index] = ray_origin.z;
   input_dir_p_buffer[launch_index] = mu;
   input_dir_a_buffer[launch_index] = phi;
+  input_energy_buffer[launch_index] = localenergy;
 
 }
 
