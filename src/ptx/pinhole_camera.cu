@@ -29,6 +29,16 @@ rtBuffer<float, 1>              mat_densities;
 
 rtBuffer<curandState, 1>           input_random;
 
+rtBuffer<float, 1>              input_pos_x_buffer;
+rtBuffer<float, 1>              input_pos_y_buffer;
+rtBuffer<float, 1>              input_pos_z_buffer;
+
+rtBuffer<float, 1>              input_dir_p_buffer;
+rtBuffer<float, 1>              input_dir_a_buffer;
+
+rtBuffer<unsigned, 1>           output_live_buffer;
+
+
 rtDeclareVariable(rtObject,      top_object, , );
 rtDeclareVariable(unsigned int,  only_one_ray_type, , );
 
@@ -86,15 +96,18 @@ RT_PROGRAM void generate_ray()
   int nid = launch_index;
 #endif
   float d;
-
+  float mu,phi;
   CMPTYPE localenergy;
   double sigT,sigA,sigF,
          sigTsum,sigAsum,sigFsum;
   float3 ray_origin, ray_direction;
   curandState localstate = input_random[launch_index];
-
-  neutron_sample(&live, &localenergy, &ray_origin, &ray_direction, &localstate);
-
+  ray_origin.x = input_pos_x_buffer[launch_index];
+  ray_origin.y = input_pos_y_buffer[launch_index];
+  ray_origin.z = input_pos_z_buffer[launch_index];
+  mu  = input_dir_p_buffer[nid]; 
+  phi = input_dir_a_buffer[nid];
+  ray_direction = make_float3(sqrt(1.f-mu*mu)*cos(phi),sqrt(1.f-mu*mu)*sin(phi),mu); 
 //loop over GPU steps
   for(unsigned istep=0; istep<devstep; istep++){
   locate(ray_origin,ray_direction, &d, &imat, &icell);
@@ -146,8 +159,14 @@ RT_PROGRAM void generate_ray()
     nid += launch_dim;
 #endif
   }
-
   }//end for istep
+  output_live_buffer[launch_index] = live;
+  input_pos_x_buffer[launch_index] = ray_origin.x;
+  input_pos_y_buffer[launch_index] = ray_origin.y;
+  input_pos_z_buffer[launch_index] = ray_origin.z;
+  input_dir_p_buffer[launch_index] = ray_direction.z;
+  input_dir_a_buffer[launch_index] = acos(ray_direction.x/sqrt(1-ray_direction.z*ray_direction.z));
+
 }
 
 RT_PROGRAM void exception()

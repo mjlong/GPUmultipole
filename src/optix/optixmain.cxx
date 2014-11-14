@@ -235,6 +235,60 @@ void createContext( int width, unsigned devstep, float R1, float Hh, unsigned nu
     RT_CHECK_ERROR( rtVariableSetObject( input_random, input_random_obj));
 
     /*Declare variables*/
+    RTvariable input_pos_x_buffer;
+    RTbuffer   input_pos_x_buffer_obj;
+    RT_CHECK_ERROR( rtContextDeclareVariable( context, "input_pos_x_buffer", &input_pos_x_buffer));
+    RT_CHECK_ERROR( rtBufferCreateForCUDA( context, RT_BUFFER_INPUT, &input_pos_x_buffer_obj)); 
+    RT_CHECK_ERROR( rtBufferSetFormat( input_pos_x_buffer_obj, RT_FORMAT_FLOAT)); 
+    RT_CHECK_ERROR( rtBufferSetSize1D(input_pos_x_buffer_obj, width));
+    RT_CHECK_ERROR( rtBufferSetDevicePointer( input_pos_x_buffer_obj, id, (CUdeviceptr)(nInfo.pos_x)));
+    RT_CHECK_ERROR( rtVariableSetObject( input_pos_x_buffer, input_pos_x_buffer_obj));
+
+    RTvariable input_pos_y_buffer;
+    RTbuffer   input_pos_y_buffer_obj; 
+    RT_CHECK_ERROR( rtContextDeclareVariable( context, "input_pos_y_buffer", &input_pos_y_buffer));
+    RT_CHECK_ERROR( rtBufferCreateForCUDA( context, RT_BUFFER_INPUT, &input_pos_y_buffer_obj)); 
+    RT_CHECK_ERROR( rtBufferSetFormat( input_pos_y_buffer_obj, RT_FORMAT_FLOAT)); 
+    RT_CHECK_ERROR( rtBufferSetSize1D(input_pos_y_buffer_obj, width));
+    RT_CHECK_ERROR( rtBufferSetDevicePointer( input_pos_y_buffer_obj, id, (CUdeviceptr)(nInfo.pos_y)));
+    RT_CHECK_ERROR( rtVariableSetObject( input_pos_y_buffer, input_pos_y_buffer_obj));
+
+    RTvariable input_pos_z_buffer;
+    RTbuffer   input_pos_z_buffer_obj;
+    RT_CHECK_ERROR( rtContextDeclareVariable( context, "input_pos_z_buffer", &input_pos_z_buffer));
+    RT_CHECK_ERROR( rtBufferCreateForCUDA( context, RT_BUFFER_INPUT, &input_pos_z_buffer_obj)); 
+    RT_CHECK_ERROR( rtBufferSetFormat( input_pos_z_buffer_obj, RT_FORMAT_FLOAT)); 
+    RT_CHECK_ERROR( rtBufferSetSize1D(input_pos_z_buffer_obj, width));
+    RT_CHECK_ERROR( rtBufferSetDevicePointer( input_pos_z_buffer_obj, id, (CUdeviceptr)(nInfo.pos_z)));
+    RT_CHECK_ERROR( rtVariableSetObject( input_pos_z_buffer, input_pos_z_buffer_obj));
+
+    RTvariable input_dir_a_buffer;
+    RTbuffer   input_dir_a_buffer_obj;
+    RT_CHECK_ERROR( rtContextDeclareVariable( context, "input_dir_a_buffer", &input_dir_a_buffer));
+    RT_CHECK_ERROR( rtBufferCreateForCUDA( context, RT_BUFFER_INPUT, &input_dir_a_buffer_obj)); 
+    RT_CHECK_ERROR( rtBufferSetFormat( input_dir_a_buffer_obj, RT_FORMAT_FLOAT)); 
+    RT_CHECK_ERROR( rtBufferSetSize1D(input_dir_a_buffer_obj, width));
+    RT_CHECK_ERROR( rtBufferSetDevicePointer( input_dir_a_buffer_obj, id, (CUdeviceptr)(nInfo.dir_azimu)));
+    RT_CHECK_ERROR( rtVariableSetObject( input_dir_a_buffer, input_dir_a_buffer_obj)); 
+
+    RTvariable input_dir_p_buffer;
+    RTbuffer   input_dir_p_buffer_obj;
+    RT_CHECK_ERROR( rtContextDeclareVariable( context, "input_dir_p_buffer", &input_dir_p_buffer));
+    RT_CHECK_ERROR( rtBufferCreateForCUDA( context, RT_BUFFER_INPUT, &input_dir_p_buffer_obj)); 
+    RT_CHECK_ERROR( rtBufferSetFormat( input_dir_p_buffer_obj, RT_FORMAT_FLOAT)); 
+    RT_CHECK_ERROR( rtBufferSetSize1D(input_dir_p_buffer_obj, width));
+    RT_CHECK_ERROR( rtBufferSetDevicePointer( input_dir_p_buffer_obj, id, (CUdeviceptr)(nInfo.dir_polar)));
+    RT_CHECK_ERROR( rtVariableSetObject( input_dir_p_buffer, input_dir_p_buffer_obj));
+
+    RTvariable output_live_buffer;
+    RTbuffer   output_live_buffer_obj;
+    RT_CHECK_ERROR( rtContextDeclareVariable( context, "output_live_buffer", &output_live_buffer ) );
+    RT_CHECK_ERROR( rtBufferCreateForCUDA( context, RT_BUFFER_INPUT, &output_live_buffer_obj) );
+    RT_CHECK_ERROR( rtBufferSetFormat( output_live_buffer_obj, RT_FORMAT_UNSIGNED_BYTE4 ) );
+    RT_CHECK_ERROR( rtBufferSetSize1D( output_live_buffer_obj, width) );
+    RT_CHECK_ERROR( rtBufferSetDevicePointer( output_live_buffer_obj, id, (CUdeviceptr)(nInfo.live)));
+    RT_CHECK_ERROR( rtVariableSetObject( output_live_buffer, output_live_buffer_obj ) );
+
     RT_CHECK_ERROR( rtContextDeclareVariable( context, "max_depth", &max_depth ) );
     RT_CHECK_ERROR( rtContextDeclareVariable( context, "only_one_ray_type", &only_one_ray_type ) );
     RT_CHECK_ERROR( rtContextDeclareVariable( context, "scene_epsilon", &epsilon ) );
