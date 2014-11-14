@@ -26,7 +26,9 @@ History****:*Date*******************Author**************************************
 #include <math_functions_dbl_ptx3.h>
 using namespace std;
 
+#ifndef PI
 #define PI 3.14159265358979323846264338327950
+#endif
 
 template <class DType>
 class CComplex{

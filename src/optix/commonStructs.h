@@ -1,7 +1,10 @@
 #pragma once
 #include <optixu/optixu_vector_types.h>
 #define MAX_LENGTH 9999.9
+#ifndef PI
 #define PI 3.1415926535897932384626433832795
+#endif
+
 #if defined(__BVH__)
 #define BUILDER "Trbvh"
 #define TRAVERSER "Bvh"
