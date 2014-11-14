@@ -15,7 +15,6 @@
 
 using namespace optix;
 
-rtDeclareVariable(float,         scene_epsilon, , );
 rtDeclareVariable(float,         var_R1, , );
 rtDeclareVariable(float,         var_Hh, , );
 rtDeclareVariable(unsigned,      var_num, , );
@@ -40,15 +39,7 @@ rtDeclareVariable(unsigned int, launch_index, rtLaunchIndex, );
 rtDeclareVariable(unsigned int, launch_dim,   rtLaunchDim, );
 
 rtCallableProgram(void, xs_eval, (int, CMPTYPE, CMPTYPE, CMPTYPE*,CMPTYPE*,CMPTYPE* ));
-
-#if defined(__MANY__)
-__device__ unsigned long long intpow(int x, int n){
-  unsigned long long y=1;
-  for(int j=0;j<n;j++)
-    y*=x; 
-  return y;
-}
-#endif
+rtCallableProgram(void, locate,  (float3, float3, float*, unsigned*, unsigned* ));
 
 RT_PROGRAM void generate_ray()
 {
@@ -58,60 +49,29 @@ RT_PROGRAM void generate_ray()
   float mu  = input_dir_p_buffer[nid]; 
   float3 ray_origin = make_float3(input_pos_x_buffer[nid],input_pos_y_buffer[nid],input_pos_z_buffer[nid]);
   float3 ray_direction = make_float3(sqrt(1.f-mu*mu)*cos(phi),sqrt(1.f-mu*mu)*sin(phi),mu); 
+  float d;
+  unsigned icell, imat;
 
   double E=2;
   double sigT,sigA,sigF;
   xs_eval(0,E,sqrt(300.*KB),&sigT,&sigA,&sigF); 
   printf("xs_eval(%g)=%g,%g,%g\n",E,sigT,sigA,sigF);
-#if defined(__MANY__)
-  float3 direction_z = make_float3(0.f,0.f,1.f);
-  optix::Ray rayz = optix::make_Ray(ray_origin, direction_z, only_one_ray_type, scene_epsilon, RT_DEFAULT_MAX);
-#endif
-  PerRayData_radiance prd;
-  optix::Ray ray = optix::make_Ray(ray_origin, ray_direction, only_one_ray_type, scene_epsilon, RT_DEFAULT_MAX);
-  prd.closestID = 0;
-#if defined(__MANY__)
-  prd.key = 0;
-  prd.out = 0;
-  prd.hits = 0;
-  rtTrace(top_object, ray, prd);
-  prd.closestID = prd.hitID;
-  prd.closest_t = prd.t_hit;
 
-  prd.key = 0;
-  prd.out = 0;
-  prd.hits = 0;
-  rayz.origin = ray.origin + scene_epsilon*0.3*ray.direction;
-  rtTrace(top_object, rayz, prd);
-  rayz.origin = rayz.origin + prd.t_hit*rayz.direction;
-  while(1-prd.out){
-    rtTrace(top_object, rayz, prd);
-    rayz.origin = rayz.origin + prd.t_hit*rayz.direction;
-  }
-  prd.current = prd.key/intpow(var_num,prd.hits-1);
-#else
-  prd.closest_t = MAX_LENGTH;
-  prd.closestp_t = MAX_LENGTH;
-  prd.closestID = 0;
-  prd.closestpID = 0; 
-  rtTrace(top_object, ray, prd);
-  prd.current = prd.closestpID;
+  locate(ray_origin,ray_direction, &d, &imat, &icell);
+#if defined(__PRINTTRACK__)
+  printf("%3d, %3d, %+18.12e,%+18.12e,%+18.12e\n",
+         launch_index,icell,ray_origin.x,ray_origin.y,ray_origin.z);
+  ray_origin = ray_origin+d*ray_direction;
+  printf("%3d, %3d, %+18.12e,%+18.12e,%+18.12e\n",
+         launch_index,1111,ray_origin.x,ray_origin.y,ray_origin.z); 
 #endif
-//#if defined(__PRINTTRACK__)
-//  printf("%3d, %3d, %+18.12e,%+18.12e,%+18.12e\n",
-//         launch_index,prd.current,ray.origin.x,ray.origin.y,ray.origin.z);
-//  ray.origin = ray.origin+(prd.closest_t+scene_epsilon*0.5)*ray.direction;
-//  printf("%3d, %3d, %+18.12e,%+18.12e,%+18.12e\n",
-//         launch_index,1111,ray.origin.x,ray.origin.y,ray.origin.z); 
-//#endif
-  output_closest_buffer[nid] = prd.closest_t+scene_epsilon*0.5;
-  output_current_buffer[nid] = prd.imat*(1-(0==prd.current));
-  // if prd.current is found to be 0, the neutron leaks
-  output_live_buffer[nid] = !(0==prd.current);
-  //TODO: not determined whether closestID is needed
+
+
+  output_closest_buffer[nid] = d;
+  output_current_buffer[nid] = imat*(1-(0==icell));
+  output_live_buffer[nid] = !(0==icell);
 }
 }
-
 
 RT_PROGRAM void exception()
 {

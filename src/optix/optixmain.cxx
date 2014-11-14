@@ -311,6 +311,12 @@ void createContext( int width, float R1, float Hh, unsigned num_geo, RTcontext c
     RT_CHECK_ERROR( rtProgramDeclareVariable( ray_gen_program, "xs_eval", &txs_program_var));
     RT_CHECK_ERROR( rtVariableSetObject( txs_program_var, txs_program));
 
+    RTprogram  locate_program;
+    RTvariable locate_program_var;
+    sprintf( path_to_ptx, "%s/%s", "./obj/ptx", "locate_one.ptx" );
+    RT_CHECK_ERROR( rtProgramCreateFromPTXFile( context, path_to_ptx, "locate", &locate_program ) );
+    RT_CHECK_ERROR( rtProgramDeclareVariable( ray_gen_program, "locate", &locate_program_var));
+    RT_CHECK_ERROR( rtVariableSetObject( locate_program_var, locate_program));
 
     /* Miss program */
 #if defined(__MANY__)
