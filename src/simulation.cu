@@ -24,7 +24,7 @@ __global__ void transport(MemStruct DeviceMem, material mat,unsigned renew){
   unsigned live = DeviceMem.nInfo.live[nid];
   if(live){
     CMPTYPE sigT = DeviceMem.nInfo.sigT[nid];
-    float s = -log(curand_uniform(&(DeviceMem.nInfo.rndState[nid])))/(mat.N_tot[DeviceMem.nInfo.imat[nid]]*sigT);   
+    float s = -log(curand_uniform(&(DeviceMem.nInfo.rndState[nid])))/1.4;//(mat.N_tot[DeviceMem.nInfo.imat[nid]]*sigT);   
     float d = DeviceMem.nInfo.d_closest[nid];
     s = (d<s)*d+(d>=s)*s;
     float mu = DeviceMem.nInfo.dir_polar[nid];
