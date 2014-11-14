@@ -79,6 +79,16 @@ int main(int argc, char **argv){
 //release host isotope data memory
   freeMultipoleData(numIso,isotopes);
 //============================================================ 
+//=======Read Materials([isotope, density] pairs)=============
+//============================================================
+//read from text setting file to host memory 
+  struct matdata *pmat=(struct matdata*)malloc(sizeof(struct matdata));
+  totIso=matread(pmat,argv[8]); 
+//copy host material setting to device
+  material mat(pmat, totIso);
+//release host material memory
+  freeMaterialData(pmat);
+//============================================================ 
 //===============Optix Ray Tracing Context====================
 //============================================================
   RTcontext context;
@@ -91,22 +101,12 @@ int main(int argc, char **argv){
 #if defined(__QUICKW)
   initialize_context(context, gridsize, 
                      atoi(argv[5]),atoi(argv[6]), 
-                     geoPara, DeviceMem.nInfo, mp_para, wtable);
+                     geoPara, DeviceMem.nInfo, mp_para,mat, wtable);
 #else
   initialize_context(context, gridsize, 
                      atoi(argv[5]),atoi(argv[6]), 
-                     geoPara, DeviceMem.nInfo, mp_para);
+                     geoPara, DeviceMem.nInfo, mp_para,mat);
 #endif
-//============================================================ 
-//=======Read Materials([isotope, density] pairs)=============
-//============================================================
-//read from text setting file to host memory 
-  struct matdata *pmat=(struct matdata*)malloc(sizeof(struct matdata));
-  totIso=matread(pmat,argv[8]); 
-//copy host material setting to device
-  material mat(pmat, totIso);
-//release host material memory
-  freeMaterialData(pmat);
 //============================================================ 
 //===============main simulation body=========================
 //============================================================
