@@ -127,7 +127,7 @@ clock_start = clock();
 //}
 clock_end   = clock();
 time_elapsed = (float)(clock_end-clock_start)/CLOCKS_PER_SEC*1000.f;
-printf("[time], active cycles costs %f ms\/%d neutrons\n", time_elapsed, HostMem.num_terminated_neutrons[0]);
+printf("[time], active cycles costs %f ms/%d neutrons\n", time_elapsed, HostMem.num_terminated_neutrons[0]);
 //print_results(gridx, blockx, num_src, num_bin, DeviceMem, HostMem, time_elapsed);
  
 //============================================================ 
