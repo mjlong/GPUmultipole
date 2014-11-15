@@ -104,6 +104,7 @@ RT_PROGRAM void generate_ray()
          sigTsum,sigAsum,sigFsum;
   float3 ray_origin, ray_direction;
   curandState localstate = input_random[launch_index];
+  localenergy = input_energy_buffer[launch_index];
   ray_origin.x = input_pos_x_buffer[launch_index];
   ray_origin.y = input_pos_y_buffer[launch_index];
   ray_origin.z = input_pos_z_buffer[launch_index];

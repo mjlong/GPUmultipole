@@ -231,7 +231,7 @@ void createContext( int width, unsigned devstep, float R1, float Hh, unsigned nu
     RT_CHECK_ERROR( rtBufferSetFormat( input_energy_obj,RT_FORMAT_USER )); 
     RT_CHECK_ERROR( rtBufferSetElementSize( input_energy_obj, sizeof(CMPTYPE)));
     RT_CHECK_ERROR( rtBufferSetSize1D(input_energy_obj, DEVSIZE));
-    RT_CHECK_ERROR( rtBufferSetDevicePointer( input_energy_obj, id, (CUdeviceptr)(DeviceMem.nInfo.rndState)));
+    RT_CHECK_ERROR( rtBufferSetDevicePointer( input_energy_obj, id, (CUdeviceptr)(DeviceMem.nInfo.energy)));
     RT_CHECK_ERROR( rtVariableSetObject( input_energy, input_energy_obj));
 
     RTvariable input_random;
