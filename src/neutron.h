@@ -46,7 +46,7 @@ typedef struct {
   unsigned int *grid_terminated_neutrons;
   unsigned int *num_terminated_neutrons;
   unsigned int *num_live_neutrons;
-  unsigned int *grid_spectrum;
+  unsigned int *block_spectrum;
   unsigned int *spectrum;
   float *tallybins;
   TallyStruct tally;
