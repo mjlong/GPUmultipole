@@ -91,6 +91,9 @@ int main(int argc, char **argv){
 //============================================================ 
 //===============Optix Ray Tracing Context====================
 //============================================================
+float time_elapsed = 0.f;
+clock_t clock_start, clock_end;
+clock_start = clock();
   RTcontext context;
   RT_CHECK_ERROR(rtContextCreate(&context));
   int id=0;
@@ -107,11 +110,13 @@ int main(int argc, char **argv){
                      atoi(argv[5]),atoi(argv[6]), 
                      geoPara, DeviceMem, mp_para,mat);
 #endif
+clock_end   = clock();
+time_elapsed = (float)(clock_end-clock_start)/CLOCKS_PER_SEC*1000.f;
+printf("[time], initializing context costs %f ms\n", time_elapsed);
+
 //============================================================ 
 //===============main simulation body=========================
 //============================================================
-clock_t clock_start, clock_end;
-float time_elapsed = 0.f;
 unsigned active;
 active = 1u;
 initialize_neutrons(gridx, blockx, DeviceMem); 
