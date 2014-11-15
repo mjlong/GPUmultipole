@@ -39,6 +39,7 @@ rtBuffer<float, 1>              input_dir_a_buffer;
 
 rtBuffer<unsigned, 1>           output_live_buffer;
 rtBuffer<unsigned, 1>           output_terminated_buffer;
+rtBuffer<unsigned, 1>           output_spectrum_buffer;
 
 
 rtDeclareVariable(rtObject,      top_object, , );
@@ -154,8 +155,7 @@ RT_PROGRAM void generate_ray()
   float s = -log(curand_uniform(&localstate))/1.4;
   s = (d<s)*d + (d>=s)*s;
 //update tally
-  int iE;
-  iE = search_bin(localenergy); 
+  output_spectrum_buffer[search_bin(localenergy)*launch_dim+launch_index]; 
   live = (localenergy > ENDENERG);
   //localenergy = localenergy*live + STARTENE*(1u-live);
   if(live){
