@@ -43,7 +43,7 @@ typedef struct {
 
 typedef struct {
   NeutronInfoStruct nInfo;
-  unsigned int *block_terminated_neutrons;
+  unsigned int *grid_terminated_neutrons;
   unsigned int *num_terminated_neutrons;
   unsigned int *num_live_neutrons;
   unsigned int *block_spectrum;

@@ -104,7 +104,8 @@ void initialize_memory(MemStruct *DeviceMem, MemStruct *HostMem, unsigned numbin
   gpuErrchk(cudaMemset((*DeviceMem).num_terminated_neutrons, 0, sizeof(unsigned)));
   gpuErrchk(cudaMalloc((void**)&((*DeviceMem).num_live_neutrons), sizeof(unsigned int)));
 
-  gpuErrchk(cudaMalloc((void**)&((*DeviceMem).block_terminated_neutrons), sizeof(unsigned int)*gridx));
+  gpuErrchk(cudaMalloc((void**)&((*DeviceMem).grid_terminated_neutrons), sizeof(unsigned int)*gridsize));
+  gpuErrchk(cudaMemset((*DeviceMem).grid_terminated_neutrons, 0, gridsize*sizeof(unsigned)));  
   gpuErrchk(cudaMallocHost((void**)&((*HostMem).num_terminated_neutrons), sizeof(unsigned int)));
   (*HostMem).num_terminated_neutrons[0] = 0u;
 
@@ -141,7 +142,7 @@ void release_memory(MemStruct DeviceMem, MemStruct HostMem){
 
   gpuErrchk(cudaFree(DeviceMem.num_terminated_neutrons));
   gpuErrchk(cudaFree(DeviceMem.num_live_neutrons));
-  gpuErrchk(cudaFree(DeviceMem.block_terminated_neutrons));
+  gpuErrchk(cudaFree(DeviceMem.grid_terminated_neutrons));
   gpuErrchk(cudaFreeHost(HostMem.num_terminated_neutrons));
 
   gpuErrchk(cudaFree(DeviceMem.tally.cnt));
