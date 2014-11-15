@@ -38,6 +38,7 @@ rtBuffer<float, 1>              input_dir_p_buffer;
 rtBuffer<float, 1>              input_dir_a_buffer;
 
 rtBuffer<unsigned, 1>           output_live_buffer;
+rtBuffer<unsigned, 1>           output_terminated_buffer;
 
 
 rtDeclareVariable(rtObject,      top_object, , );
@@ -86,6 +87,7 @@ __device__ void neutron_sample(unsigned* live, CMPTYPE* energy, float3* origin, 
   *origin =  make_float3(0.5f+0.00*curand_uniform(localstate),
                                      0.5f+0.00*curand_uniform(localstate),
                                      0.5f+0.00*curand_uniform(localstate));
+  output_terminated_buffer[launch_index]+=1;
 }
 
 
