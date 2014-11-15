@@ -6,9 +6,9 @@ char path_to_ptx[512];
 
 
 #if defined(__QUICKW)
-void initialize_context(RTcontext context, int width,unsigned devstep, int n, int m, float *data, NeutronInfoStruct nInfo, multipole mp_para,material mat, CComplex<double>* wtable)
+void initialize_context(RTcontext context, int width,unsigned devstep, int n, int m, float *data, MemStruct DeviceMem, multipole mp_para,material mat, CComplex<double>* wtable)
 #else
-void initialize_context(RTcontext context, int width,unsigned devstep, int n, int m, float *data, NeutronInfoStruct nInfo, multipole mp_para,material mat)
+void initialize_context(RTcontext context, int width,unsigned devstep, int n, int m, float *data, MemStruct DeviceMem, multipole mp_para,material mat)
 #endif
 {
     /* Primary RTAPI objects */
@@ -25,9 +25,9 @@ void initialize_context(RTcontext context, int width,unsigned devstep, int n, in
 
 
 #if defined(__QUICKW)
-    createContext( width,devstep, R,data[2]/*hh*/,num_geobj, context, nInfo,mp_para, mat,wtable);
+    createContext( width,devstep, R,data[2]/*hh*/,num_geobj, context, DeviceMem,mp_para, mat,wtable);
 #else
-    createContext( width,devstep, R,data[2]/*hh*/,num_geobj, context, nInfo,mp_para, mat);
+    createContext( width,devstep, R,data[2]/*hh*/,num_geobj, context, DeviceMem,mp_para, mat);
 #endif
 
 #if defined(__PRINTTRACK__)
@@ -47,9 +47,9 @@ void initialize_context(RTcontext context, int width,unsigned devstep, int n, in
 }
 
 #if defined(__QUICKW)
-void createContext( int width, unsigned devstep, float R1, float Hh, unsigned num_geo, RTcontext context, NeutronInfoStruct nInfo, multipole mp_para,material mat, CComplex<double>* wtable)
+void createContext( int width, unsigned devstep, float R1, float Hh, unsigned num_geo, RTcontext context, MemStruct DeviceMem, multipole mp_para,material mat, CComplex<double>* wtable)
 #else
-void createContext( int width, unsigned devstep, float R1, float Hh, unsigned num_geo, RTcontext context, NeutronInfoStruct nInfo, multipole mp_para,material mat)
+void createContext( int width, unsigned devstep, float R1, float Hh, unsigned num_geo, RTcontext context, MemStruct DeviceMem, multipole mp_para,material mat)
 #endif
 {
 
@@ -231,7 +231,7 @@ void createContext( int width, unsigned devstep, float R1, float Hh, unsigned nu
     RT_CHECK_ERROR( rtBufferSetFormat( input_energy_obj,RT_FORMAT_USER )); 
     RT_CHECK_ERROR( rtBufferSetElementSize( input_energy_obj, sizeof(CMPTYPE)));
     RT_CHECK_ERROR( rtBufferSetSize1D(input_energy_obj, DEVSIZE));
-    RT_CHECK_ERROR( rtBufferSetDevicePointer( input_energy_obj, id, (CUdeviceptr)(nInfo.rndState)));
+    RT_CHECK_ERROR( rtBufferSetDevicePointer( input_energy_obj, id, (CUdeviceptr)(DeviceMem.nInfo.rndState)));
     RT_CHECK_ERROR( rtVariableSetObject( input_energy, input_energy_obj));
 
     RTvariable input_random;
@@ -241,7 +241,7 @@ void createContext( int width, unsigned devstep, float R1, float Hh, unsigned nu
     RT_CHECK_ERROR( rtBufferSetFormat( input_random_obj,RT_FORMAT_USER )); 
     RT_CHECK_ERROR( rtBufferSetElementSize( input_random_obj, sizeof(curandState)));
     RT_CHECK_ERROR( rtBufferSetSize1D(input_random_obj, DEVSIZE));
-    RT_CHECK_ERROR( rtBufferSetDevicePointer( input_random_obj, id, (CUdeviceptr)(nInfo.rndState)));
+    RT_CHECK_ERROR( rtBufferSetDevicePointer( input_random_obj, id, (CUdeviceptr)(DeviceMem.nInfo.rndState)));
     RT_CHECK_ERROR( rtVariableSetObject( input_random, input_random_obj));
 
     /*Declare variables*/
@@ -251,7 +251,7 @@ void createContext( int width, unsigned devstep, float R1, float Hh, unsigned nu
     RT_CHECK_ERROR( rtBufferCreateForCUDA( context, RT_BUFFER_INPUT, &input_pos_x_buffer_obj)); 
     RT_CHECK_ERROR( rtBufferSetFormat( input_pos_x_buffer_obj, RT_FORMAT_FLOAT)); 
     RT_CHECK_ERROR( rtBufferSetSize1D(input_pos_x_buffer_obj, width));
-    RT_CHECK_ERROR( rtBufferSetDevicePointer( input_pos_x_buffer_obj, id, (CUdeviceptr)(nInfo.pos_x)));
+    RT_CHECK_ERROR( rtBufferSetDevicePointer( input_pos_x_buffer_obj, id, (CUdeviceptr)(DeviceMem.nInfo.pos_x)));
     RT_CHECK_ERROR( rtVariableSetObject( input_pos_x_buffer, input_pos_x_buffer_obj));
 
     RTvariable input_pos_y_buffer;
@@ -260,7 +260,7 @@ void createContext( int width, unsigned devstep, float R1, float Hh, unsigned nu
     RT_CHECK_ERROR( rtBufferCreateForCUDA( context, RT_BUFFER_INPUT, &input_pos_y_buffer_obj)); 
     RT_CHECK_ERROR( rtBufferSetFormat( input_pos_y_buffer_obj, RT_FORMAT_FLOAT)); 
     RT_CHECK_ERROR( rtBufferSetSize1D(input_pos_y_buffer_obj, width));
-    RT_CHECK_ERROR( rtBufferSetDevicePointer( input_pos_y_buffer_obj, id, (CUdeviceptr)(nInfo.pos_y)));
+    RT_CHECK_ERROR( rtBufferSetDevicePointer( input_pos_y_buffer_obj, id, (CUdeviceptr)(DeviceMem.nInfo.pos_y)));
     RT_CHECK_ERROR( rtVariableSetObject( input_pos_y_buffer, input_pos_y_buffer_obj));
 
     RTvariable input_pos_z_buffer;
@@ -269,7 +269,7 @@ void createContext( int width, unsigned devstep, float R1, float Hh, unsigned nu
     RT_CHECK_ERROR( rtBufferCreateForCUDA( context, RT_BUFFER_INPUT, &input_pos_z_buffer_obj)); 
     RT_CHECK_ERROR( rtBufferSetFormat( input_pos_z_buffer_obj, RT_FORMAT_FLOAT)); 
     RT_CHECK_ERROR( rtBufferSetSize1D(input_pos_z_buffer_obj, width));
-    RT_CHECK_ERROR( rtBufferSetDevicePointer( input_pos_z_buffer_obj, id, (CUdeviceptr)(nInfo.pos_z)));
+    RT_CHECK_ERROR( rtBufferSetDevicePointer( input_pos_z_buffer_obj, id, (CUdeviceptr)(DeviceMem.nInfo.pos_z)));
     RT_CHECK_ERROR( rtVariableSetObject( input_pos_z_buffer, input_pos_z_buffer_obj));
 
     RTvariable input_dir_a_buffer;
@@ -278,7 +278,7 @@ void createContext( int width, unsigned devstep, float R1, float Hh, unsigned nu
     RT_CHECK_ERROR( rtBufferCreateForCUDA( context, RT_BUFFER_INPUT, &input_dir_a_buffer_obj)); 
     RT_CHECK_ERROR( rtBufferSetFormat( input_dir_a_buffer_obj, RT_FORMAT_FLOAT)); 
     RT_CHECK_ERROR( rtBufferSetSize1D(input_dir_a_buffer_obj, width));
-    RT_CHECK_ERROR( rtBufferSetDevicePointer( input_dir_a_buffer_obj, id, (CUdeviceptr)(nInfo.dir_azimu)));
+    RT_CHECK_ERROR( rtBufferSetDevicePointer( input_dir_a_buffer_obj, id, (CUdeviceptr)(DeviceMem.nInfo.dir_azimu)));
     RT_CHECK_ERROR( rtVariableSetObject( input_dir_a_buffer, input_dir_a_buffer_obj)); 
 
     RTvariable input_dir_p_buffer;
@@ -287,7 +287,7 @@ void createContext( int width, unsigned devstep, float R1, float Hh, unsigned nu
     RT_CHECK_ERROR( rtBufferCreateForCUDA( context, RT_BUFFER_INPUT, &input_dir_p_buffer_obj)); 
     RT_CHECK_ERROR( rtBufferSetFormat( input_dir_p_buffer_obj, RT_FORMAT_FLOAT)); 
     RT_CHECK_ERROR( rtBufferSetSize1D(input_dir_p_buffer_obj, width));
-    RT_CHECK_ERROR( rtBufferSetDevicePointer( input_dir_p_buffer_obj, id, (CUdeviceptr)(nInfo.dir_polar)));
+    RT_CHECK_ERROR( rtBufferSetDevicePointer( input_dir_p_buffer_obj, id, (CUdeviceptr)(DeviceMem.nInfo.dir_polar)));
     RT_CHECK_ERROR( rtVariableSetObject( input_dir_p_buffer, input_dir_p_buffer_obj));
 
     RTvariable output_live_buffer;
@@ -296,8 +296,17 @@ void createContext( int width, unsigned devstep, float R1, float Hh, unsigned nu
     RT_CHECK_ERROR( rtBufferCreateForCUDA( context, RT_BUFFER_INPUT, &output_live_buffer_obj) );
     RT_CHECK_ERROR( rtBufferSetFormat( output_live_buffer_obj, RT_FORMAT_UNSIGNED_BYTE4 ) );
     RT_CHECK_ERROR( rtBufferSetSize1D( output_live_buffer_obj, width) );
-    RT_CHECK_ERROR( rtBufferSetDevicePointer( output_live_buffer_obj, id, (CUdeviceptr)(nInfo.live)));
+    RT_CHECK_ERROR( rtBufferSetDevicePointer( output_live_buffer_obj, id, (CUdeviceptr)(DeviceMem.nInfo.live)));
     RT_CHECK_ERROR( rtVariableSetObject( output_live_buffer, output_live_buffer_obj ) );
+
+    RTvariable output_terminated_buffer;
+    RTbuffer   output_terminated_buffer_obj;
+    RT_CHECK_ERROR( rtContextDeclareVariable( context, "output_terminated_buffer", &output_terminated_buffer ) );
+    RT_CHECK_ERROR( rtBufferCreateForCUDA( context, RT_BUFFER_INPUT, &output_terminated_buffer_obj) );
+    RT_CHECK_ERROR( rtBufferSetFormat( output_terminated_buffer_obj, RT_FORMAT_UNSIGNED_BYTE4 ) );
+    RT_CHECK_ERROR( rtBufferSetSize1D( output_terminated_buffer_obj, width) );
+    RT_CHECK_ERROR( rtBufferSetDevicePointer( output_terminated_buffer_obj, id, (CUdeviceptr)(DeviceMem.grid_terminated_neutrons)));
+    RT_CHECK_ERROR( rtVariableSetObject( output_terminated_buffer, output_terminated_buffer_obj ) );
 
     RT_CHECK_ERROR( rtContextDeclareVariable( context, "max_depth", &max_depth ) );
     RT_CHECK_ERROR( rtContextDeclareVariable( context, "only_one_ray_type", &only_one_ray_type ) );

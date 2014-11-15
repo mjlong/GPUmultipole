@@ -101,11 +101,11 @@ int main(int argc, char **argv){
 #if defined(__QUICKW)
   initialize_context(context, gridsize, atoi(argv[4]),
                      atoi(argv[5]),atoi(argv[6]), 
-                     geoPara, DeviceMem.nInfo, mp_para,mat, wtable);
+                     geoPara, DeviceMem, mp_para,mat, wtable);
 #else
   initialize_context(context, gridsize, atoi(argv[4]),
                      atoi(argv[5]),atoi(argv[6]), 
-                     geoPara, DeviceMem.nInfo, mp_para,mat);
+                     geoPara, DeviceMem, mp_para,mat);
 #endif
 //============================================================ 
 //===============main simulation body=========================
@@ -119,11 +119,7 @@ clock_start = clock();
 //while(active){
   //since transport_neutrons() surrects all neutrons, rtLaunch always works full load, no need to sort here
   RT_CHECK_ERROR(rtContextLaunch1D(context, 0, gridsize));
-  //neutrons found leaked in *locate* will not be evaluated 
-  //besides moving, neutrons terminated is initiated as new 
-  //if active=1; transport<<<>>> will renew neutrons with live=0
-  //if active=0; transport<<<>>> will leave terminated neutrons
-  //set active always 1 to make sure number of neutrons simulated exactly equal to num_src
+  active = count_neutrons(gridx,blockx,DeviceMem,HostMem,num_src);
 //}
 clock_end   = clock();
 time_elapsed = (float)(clock_end-clock_start)/CLOCKS_PER_SEC*1000.f;
