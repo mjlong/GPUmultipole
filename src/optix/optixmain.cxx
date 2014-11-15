@@ -36,14 +36,41 @@ void initialize_context(RTcontext context, int width,unsigned devstep, int n, in
 #endif
     createMaterial( context, &rt_material);
     createInstances( context, rt_material, data, n, m);
+}
 
+void compile_context(RTcontext context){
     /* Run */
     RT_CHECK_ERROR( rtContextValidate( context ) );
     RT_CHECK_ERROR( rtContextCompile( context ) );
+}
 
-    //disable optix time
-    //printf("%g, %g, %g, %g, %g\n", time_elapsed, time_elapsed*1000.f/width/num_geobj, 0.f,0.f,0.f);
-    // time cost (ms), average (us/geometry/ray)  
+void set_ray_tracing_program(RTcontext context, unsigned active){
+    RT_CHECK_ERROR( rtContextSetRayTypeCount( context, 2 ) );//TODO:type count /* shadow and radiance */
+    RT_CHECK_ERROR( rtContextSetEntryPointCount( context, 1 ) );
+    /* Ray generation program */
+    RTprogram  ray_gen_program;
+#if defined(__MANY__)
+    sprintf( path_to_ptx, "%s/%s", "./obj/ptx", "pinhole_camera_many.ptx" );
+#else
+    sprintf( path_to_ptx, "%s/%s", "./obj/ptx", "pinhole_camera_one.ptx" );
+#endif
+    RT_CHECK_ERROR( rtProgramCreateFromPTXFile( context, path_to_ptx, "generate_ray", &ray_gen_program ) );
+    //Declare and Set variables here if needed
+    RT_CHECK_ERROR( rtContextSetRayGenerationProgram( context, 0, ray_gen_program ) );
+
+    RTprogram  txs_program;
+    RTvariable txs_program_var;
+    sprintf( path_to_ptx, "%s/%s", "./obj/ptx", "txs_one.ptx" );
+    RT_CHECK_ERROR( rtProgramCreateFromPTXFile( context, path_to_ptx, "xs_eval", &txs_program ) );
+    RT_CHECK_ERROR( rtProgramDeclareVariable( ray_gen_program, "xs_eval", &txs_program_var));
+    RT_CHECK_ERROR( rtVariableSetObject( txs_program_var, txs_program));
+
+    RTprogram  locate_program;
+    RTvariable locate_program_var;
+    sprintf( path_to_ptx, "%s/%s", "./obj/ptx", "locate_one.ptx" );
+    RT_CHECK_ERROR( rtProgramCreateFromPTXFile( context, path_to_ptx, "locate", &locate_program ) );
+    RT_CHECK_ERROR( rtProgramDeclareVariable( ray_gen_program, "locate", &locate_program_var));
+    RT_CHECK_ERROR( rtVariableSetObject( locate_program_var, locate_program));
 }
 
 #if defined(__QUICKW)
@@ -54,7 +81,6 @@ void createContext( int width, unsigned devstep, float R1, float Hh, unsigned nu
 {
 
     int id=0;
-    RTprogram  ray_gen_program;
     RTprogram  miss_program;
     RTvariable only_one_ray_type;
     RTvariable epsilon;
@@ -338,30 +364,6 @@ void createContext( int width, unsigned devstep, float R1, float Hh, unsigned nu
     RT_CHECK_ERROR( rtVariableSet1f( var_R1, R1*0.9 ) );
     RT_CHECK_ERROR( rtVariableSet1f( var_Hh, Hh*0.9 ) );
     RT_CHECK_ERROR( rtVariableSet1ui( var_num, num_geo+1  ) );
-
-    /* Ray generation program */
-#if defined(__MANY__)
-    sprintf( path_to_ptx, "%s/%s", "./obj/ptx", "pinhole_camera_many.ptx" );
-#else
-    sprintf( path_to_ptx, "%s/%s", "./obj/ptx", "pinhole_camera_one.ptx" );
-#endif
-    RT_CHECK_ERROR( rtProgramCreateFromPTXFile( context, path_to_ptx, "generate_ray", &ray_gen_program ) );
-    //Declare and Set variables here if needed
-    RT_CHECK_ERROR( rtContextSetRayGenerationProgram( context, 0, ray_gen_program ) );
-
-    RTprogram  txs_program;
-    RTvariable txs_program_var;
-    sprintf( path_to_ptx, "%s/%s", "./obj/ptx", "txs_one.ptx" );
-    RT_CHECK_ERROR( rtProgramCreateFromPTXFile( context, path_to_ptx, "xs_eval", &txs_program ) );
-    RT_CHECK_ERROR( rtProgramDeclareVariable( ray_gen_program, "xs_eval", &txs_program_var));
-    RT_CHECK_ERROR( rtVariableSetObject( txs_program_var, txs_program));
-
-    RTprogram  locate_program;
-    RTvariable locate_program_var;
-    sprintf( path_to_ptx, "%s/%s", "./obj/ptx", "locate_one.ptx" );
-    RT_CHECK_ERROR( rtProgramCreateFromPTXFile( context, path_to_ptx, "locate", &locate_program ) );
-    RT_CHECK_ERROR( rtProgramDeclareVariable( ray_gen_program, "locate", &locate_program_var));
-    RT_CHECK_ERROR( rtVariableSetObject( locate_program_var, locate_program));
 
     /* Miss program */
 #if defined(__MANY__)

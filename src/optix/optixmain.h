@@ -27,6 +27,8 @@ void createContext( int width,unsigned devstep, float R1, float Hh, unsigned num
 #else
 void initialize_context(RTcontext, int,unsigned, int, int, float*, MemStruct,multipole,material);
 void createContext( int width,unsigned devstep, float R1, float Hh, unsigned num_geo, RTcontext context, MemStruct DeviceMem,multipole,material);
+void set_ray_tracing_program(RTcontext context, unsigned active);
+void compile_context(RTcontext context);
 #endif
 
 
