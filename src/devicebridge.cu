@@ -21,20 +21,24 @@ void start_neutrons(unsigned gridx, unsigned blockx, material mat, multipole mp_
 unsigned count_neutrons(unsigned gridx, unsigned blockx, MemStruct DeviceMem, MemStruct HostMem, unsigned num_src){
 //count terminated neutrons 
   unsigned active;
-  reduce_sum_plus<<<1, gridx, gridx*sizeof(unsigned)>>>(DeviceMem.block_terminated_neutrons, DeviceMem.num_terminated_neutrons);
+  unsigned *block_terminated_neutrons;
+  gpuErrchk(cudaMalloc((void**)&block_terminated_neutrons,gridx));
+  reduce_sum_equal<<<gridx,blockx,blockx*sizeof(unsigned)>>>(DeviceMem.grid_terminated_neutrons, block_terminated_neutrons);
+  reduce_sum_plus<<<1, gridx, gridx*sizeof(unsigned)>>>(block_terminated_neutrons, DeviceMem.num_terminated_neutrons);
   gpuErrchk(cudaMemcpy(HostMem.num_terminated_neutrons,DeviceMem.num_terminated_neutrons,sizeof(unsigned int), cudaMemcpyDeviceToHost));
   active = HostMem.num_terminated_neutrons[0] + gridx*blockx < num_src;  
 #if defined(__PRINTTRACK__)
   printf("[active]%d terminated\n",HostMem.num_terminated_neutrons[0]);
 #endif
+  gpuErrchk(cudaFree(block_terminated_neutrons));
   return active;
 }
 
 unsigned count_lives(unsigned gridx, unsigned blockx, MemStruct DeviceMem, MemStruct HostMem){
 //count neutrons still marked "live"
   unsigned active;
-  reduce_sum_equal<<<gridx,blockx,blockx*sizeof(unsigned)>>>(DeviceMem.nInfo.live, DeviceMem.block_terminated_neutrons);
-  reduce_sum_equal<<<1,gridx, gridx*sizeof(unsigned)>>>(DeviceMem.block_terminated_neutrons, DeviceMem.num_live_neutrons);
+  reduce_sum_equal<<<gridx,blockx,blockx*sizeof(unsigned)>>>(DeviceMem.nInfo.live, DeviceMem.grid_terminated_neutrons);
+  reduce_sum_equal<<<1,gridx, gridx*sizeof(unsigned)>>>(DeviceMem.grid_terminated_neutrons, DeviceMem.num_live_neutrons);
   gpuErrchk(cudaMemcpy(&active, DeviceMem.num_live_neutrons, sizeof(unsigned), cudaMemcpyDeviceToHost));  
   return active;
 }
