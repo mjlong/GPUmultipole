@@ -119,6 +119,8 @@ printf("[time], initializing context costs %f ms\n", time_elapsed);
 //============================================================
 unsigned active;
 active = 1u;
+set_ray_tracing_program(context,active);
+compile_context(context);
 initialize_neutrons(gridx, blockx, DeviceMem); 
 clock_start = clock();
 while(active){
@@ -129,6 +131,18 @@ while(active){
 clock_end   = clock();
 time_elapsed = (float)(clock_end-clock_start)/CLOCKS_PER_SEC*1000.f;
 printf("[time], active cycles costs %f ms/%d neutrons\n", time_elapsed, HostMem.num_terminated_neutrons[0]);
+
+set_ray_tracing_program(context,active);
+compile_context(context);
+//while(active){
+  //since transport_neutrons() surrects all neutrons, rtLaunch always works full load, no need to sort here
+  RT_CHECK_ERROR(rtContextLaunch1D(context, 0, gridsize));
+  active = count_neutrons(gridx,blockx,DeviceMem,HostMem,num_src);
+//}
+clock_end   = clock();
+time_elapsed = (float)(clock_end-clock_start)/CLOCKS_PER_SEC*1000.f;
+printf("[time], all cycles costs %f ms/%d neutrons\n", time_elapsed, HostMem.num_terminated_neutrons[0]);
+
 print_results(gridx, blockx, num_src, num_bin, DeviceMem, HostMem, time_elapsed);
  
 //============================================================ 
