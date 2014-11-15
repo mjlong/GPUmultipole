@@ -116,11 +116,11 @@ unsigned active;
 active = 1u;
 initialize_neutrons(gridx, blockx, DeviceMem); 
 clock_start = clock();
-//while(active){
+while(active){
   //since transport_neutrons() surrects all neutrons, rtLaunch always works full load, no need to sort here
   RT_CHECK_ERROR(rtContextLaunch1D(context, 0, gridsize));
   active = count_neutrons(gridx,blockx,DeviceMem,HostMem,num_src);
-//}
+}
 clock_end   = clock();
 time_elapsed = (float)(clock_end-clock_start)/CLOCKS_PER_SEC*1000.f;
 printf("[time], active cycles costs %f ms/%d neutrons\n", time_elapsed, HostMem.num_terminated_neutrons[0]);
