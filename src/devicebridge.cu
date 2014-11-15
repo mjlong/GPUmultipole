@@ -14,10 +14,6 @@ void initialize_neutrons(unsigned gridx, unsigned blockx,MemStruct DeviceMem){
   initialize<<<gridx, blockx>>>(DeviceMem);
 }
 
-void start_neutrons(unsigned gridx, unsigned blockx, material mat, multipole mp_data, MemStruct DeviceMem, unsigned num_src,unsigned active){
-    history<<<gridx, blockx, blockx*sizeof(unsigned)>>>(mat, mp_data, DeviceMem, num_src,active);
-} 
-
 unsigned count_neutrons(unsigned gridx, unsigned blockx, MemStruct DeviceMem, MemStruct HostMem, unsigned num_src){
 //count terminated neutrons 
   unsigned active;
@@ -41,14 +37,6 @@ unsigned count_lives(unsigned gridx, unsigned blockx, MemStruct DeviceMem, MemSt
   reduce_sum_equal<<<1,gridx, gridx*sizeof(unsigned)>>>(DeviceMem.grid_terminated_neutrons, DeviceMem.num_live_neutrons);
   gpuErrchk(cudaMemcpy(&active, DeviceMem.num_live_neutrons, sizeof(unsigned), cudaMemcpyDeviceToHost));  
   return active;
-}
-
-void sort_prepare(unsigned gridx, unsigned blockx,MemStruct DeviceMem, material mat){
-  update_sort_key<<<gridx, blockx>>>(DeviceMem, mat);
-}
-
-void transport_neutrons(unsigned gridx, unsigned blockx,MemStruct DeviceMem, material mat, unsigned renew){
-  transport<<<gridx, blockx>>>(DeviceMem, mat,renew);
 }
 
 void print_results(unsigned gridx, unsigned blockx, unsigned num_src, unsigned num_bin, MemStruct DeviceMem, MemStruct HostMem, float timems){
