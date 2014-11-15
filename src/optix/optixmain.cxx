@@ -314,7 +314,7 @@ void createContext( int width, unsigned devstep, float R1, float Hh, unsigned nu
     RT_CHECK_ERROR( rtBufferCreateForCUDA( context, RT_BUFFER_INPUT, &output_spectrum_buffer_obj) );
     RT_CHECK_ERROR( rtBufferSetFormat( output_spectrum_buffer_obj, RT_FORMAT_UNSIGNED_BYTE4 ) );
     RT_CHECK_ERROR( rtBufferSetSize1D( output_spectrum_buffer_obj, width) );
-    RT_CHECK_ERROR( rtBufferSetDevicePointer( output_spectrum_buffer_obj, id, (CUdeviceptr)(DeviceMem.grid_spectrum_neutrons)));
+    RT_CHECK_ERROR( rtBufferSetDevicePointer( output_spectrum_buffer_obj, id, (CUdeviceptr)(DeviceMem.tally.cnt)));
     RT_CHECK_ERROR( rtVariableSetObject( output_spectrum_buffer, output_spectrum_buffer_obj ) );
 
     RT_CHECK_ERROR( rtContextDeclareVariable( context, "max_depth", &max_depth ) );

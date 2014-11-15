@@ -155,7 +155,7 @@ RT_PROGRAM void generate_ray()
   float s = -log(curand_uniform(&localstate))/1.4;
   s = (d<s)*d + (d>=s)*s;
 //update tally
-  output_spectrum_buffer[search_bin(localenergy)*launch_dim+launch_index]; 
+  output_spectrum_buffer[search_bin(localenergy)*launch_dim+launch_index]+=1; 
   live = (localenergy > ENDENERG);
   //localenergy = localenergy*live + STARTENE*(1u-live);
   if(live){
