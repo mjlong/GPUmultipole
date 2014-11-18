@@ -82,15 +82,12 @@ void initialize_memory(MemStruct *DeviceMem, MemStruct *HostMem, unsigned numbin
   gpuErrchk(cudaMalloc((void**)&((*DeviceMem).block_spectrum), numbins*gridx*sizeof(unsigned int)));
   gpuErrchk(cudaMemset((*DeviceMem).block_spectrum, 0, numbins*gridx*sizeof(unsigned int)));
 
-  gpuErrchk(cudaMalloc((void**)&((*DeviceMem).nInfo.id),       gridsize*sizeof(unsigned)));
   gpuErrchk(cudaMalloc((void**)&((*DeviceMem).nInfo.live),       gridsize*sizeof(unsigned)));
   gpuErrchk(cudaMalloc((void**)&((*DeviceMem).nInfo.rndState), gridsize*sizeof(curandState)));
   gpuErrchk(cudaMalloc((void**)&((*DeviceMem).nInfo.energy),   gridsize*sizeof(CMPTYPE)));
   gpuErrchk(cudaMalloc((void**)&((*DeviceMem).nInfo.sigT),   gridsize*sizeof(CMPTYPE)));
   gpuErrchk(cudaMalloc((void**)&((*DeviceMem).nInfo.sigA),   gridsize*sizeof(CMPTYPE)));
   gpuErrchk(cudaMalloc((void**)&((*DeviceMem).nInfo.sigF),   gridsize*sizeof(CMPTYPE)));
-
-  gpuErrchk(cudaMalloc((void**)&((*DeviceMem).nInfo.isoenergy),gridsize*sizeof(CMPTYPE)));
 
   gpuErrchk(cudaMalloc((void**)&((*DeviceMem).nInfo.imat),  gridsize*sizeof(unsigned)));
   gpuErrchk(cudaMalloc((void**)&((*DeviceMem).nInfo.pos_x),gridsize*sizeof(float)));
@@ -122,15 +119,12 @@ void release_memory(MemStruct DeviceMem, MemStruct HostMem){
   gpuErrchk(cudaFree(DeviceMem.spectrum));
   gpuErrchk(cudaFree(DeviceMem.block_spectrum));
 
-  gpuErrchk(cudaFree(DeviceMem.nInfo.id));
   gpuErrchk(cudaFree(DeviceMem.nInfo.live));
   gpuErrchk(cudaFree(DeviceMem.nInfo.rndState));
   gpuErrchk(cudaFree(DeviceMem.nInfo.energy));
   gpuErrchk(cudaFree(DeviceMem.nInfo.sigT));
   gpuErrchk(cudaFree(DeviceMem.nInfo.sigA));
   gpuErrchk(cudaFree(DeviceMem.nInfo.sigF));
-
-  gpuErrchk(cudaFree(DeviceMem.nInfo.isoenergy));
 
   gpuErrchk(cudaFree(DeviceMem.nInfo.imat));
   gpuErrchk(cudaFree(DeviceMem.nInfo.pos_x));

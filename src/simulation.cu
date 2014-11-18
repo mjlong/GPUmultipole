@@ -8,7 +8,6 @@ __global__ void initialize(MemStruct pInfo){
   curand_init(1234, id, 0, &(pInfo.nInfo.rndState[id]));
 
   neutron_sample(pInfo.nInfo, id);
-  pInfo.nInfo.id[id] = id;
   pInfo.tally.cnt[id] = 0;
 }
 

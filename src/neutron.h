@@ -24,7 +24,6 @@ typedef struct {
 }TallyStruct;
 
 typedef struct {
-  unsigned *id;
   unsigned *imat;
   unsigned *live;
   CMPTYPE *energy;
@@ -37,7 +36,6 @@ typedef struct {
   float* dir_polar;
   float* dir_azimu;
   float* d_closest;
-  CMPTYPE *isoenergy;
   curandState *rndState;
 }NeutronInfoStruct;
 
