@@ -136,9 +136,9 @@ set_ray_tracing_program(context,0);
 compile_context(context);
 //finish the remaining neutrons
   RT_CHECK_ERROR(rtContextLaunch1D(context, 0, gridsize));
-  active = count_neutrons(gridx,blockx,DeviceMem,HostMem,num_src);
 ////
 clock_end   = clock();
+count_lives(gridx,blockx,DeviceMem, HostMem);
 time_elapsed = (float)(clock_end-clock_start)/CLOCKS_PER_SEC*1000.f;
 printf("[time], all cycles costs %f ms/%d neutrons\n", time_elapsed, HostMem.num_terminated_neutrons[0]);
 
