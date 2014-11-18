@@ -91,7 +91,6 @@ __device__ void neutron_sample(unsigned* live, CMPTYPE* energy, float3* origin, 
   output_terminated_buffer[launch_index]+=1;
 }
 
-
 RT_PROGRAM void generate_ray()
 {
   unsigned icell, imat,isotope,live;
@@ -146,6 +145,99 @@ RT_PROGRAM void generate_ray()
 #if defined(__PRINTTRACK__)
   if(__PRINTTRACK__){
     printf("%7d,%3d,%+.7e, %+.7e, %+.7e, %.14e %.14e %.14e %.14e\n",
+            nid, imat,
+            ray_origin.x, ray_origin.y, ray_origin.z,
+            localenergy, sigTsum,sigAsum,sigFsum); 
+  }
+#endif
+  localenergy = localenergy*curand_uniform(&localstate);
+  float s = -log(curand_uniform(&localstate))/1.4;
+  s = (d<s)*d + (d>=s)*s;
+//update tally
+  output_spectrum_buffer[search_bin(localenergy)*launch_dim+launch_index]+=1; 
+  live = (localenergy > ENDENERG);
+  //localenergy = localenergy*live + STARTENE*(1u-live);
+  if(live){
+    ray_origin = ray_origin + s*ray_direction;
+  }
+  else{
+#if defined(__PRINTTRACK__)
+    nid += launch_dim;
+    if(__PRINTTRACK__){
+    printf("%7d,%3d,%+.7e, %+.7e, %+.7e, %.14e stopped\n",
+            nid, imat,
+            ray_origin.x, ray_origin.y, ray_origin.z,
+            localenergy); 
+    }
+#endif
+    neutron_sample(&live, &localenergy, &ray_origin, &mu, &phi, &localstate); 
+    ray_direction = make_float3(sqrt(1.f-mu*mu)*cos(phi),sqrt(1.f-mu*mu)*sin(phi),mu); 
+  }
+  }//end for istep
+  input_random[launch_index]  = localState;
+  output_live_buffer[launch_index] = live;
+  input_pos_x_buffer[launch_index] = ray_origin.x;
+  input_pos_y_buffer[launch_index] = ray_origin.y;
+  input_pos_z_buffer[launch_index] = ray_origin.z;
+  input_dir_p_buffer[launch_index] = mu;
+  input_dir_a_buffer[launch_index] = phi;
+  input_energy_buffer[launch_index] = localenergy;
+}
+
+RT_PROGRAM void remaining_ray()
+{
+  unsigned icell, imat,isotope,live;
+#if defined(__PRINTTRACK__)
+  int nid = launch_index;
+#endif
+  float d;
+  float mu,phi;
+  CMPTYPE localenergy;
+  double sigT,sigA,sigF,
+         sigTsum,sigAsum,sigFsum;
+  float3 ray_origin, ray_direction;
+  curandState localstate = input_random[launch_index];
+  localenergy = input_energy_buffer[launch_index];
+  ray_origin.x = input_pos_x_buffer[launch_index];
+  ray_origin.y = input_pos_y_buffer[launch_index];
+  ray_origin.z = input_pos_z_buffer[launch_index];
+  mu  = input_dir_p_buffer[nid]; 
+  phi = input_dir_a_buffer[nid];
+  ray_direction = make_float3(sqrt(1.f-mu*mu)*cos(phi),sqrt(1.f-mu*mu)*sin(phi),mu); 
+//loop over GPU steps
+  for(unsigned istep=0; istep<devstep; istep++){
+  locate(ray_origin,ray_direction, &d, &imat, &icell);
+  imat = imat*(1-(0==icell));
+  live = !(0==icell);
+
+  if(!live){
+#if defined(__PRINTTRACK__)
+    nid += launch_dim;
+    if(__PRINTTRACK__){
+    printf("%7d,%3d,%+.7e, %+.7e, %+.7e, %.14e leaked\n",
+            nid, imat,
+            ray_origin.x, ray_origin.y, ray_origin.z,
+            localenergy); 
+    }
+#endif
+    neutron_sample(&live, &localenergy, &ray_origin, &mu, &phi, &localstate);
+    ray_direction = make_float3(sqrt(1.f-mu*mu)*cos(phi),sqrt(1.f-mu*mu)*sin(phi),mu); 
+  }
+//
+//Evaluate cross section and print (id,imat,position,E,sigT,sigA,sigF
+//
+  sigTsum = 0;
+  sigAsum = 0;
+  sigFsum = 0;
+  for(isotope=mat_offsets[imat];isotope<mat_offsets[imat+1];isotope++ ){
+    //xs_eval(mat_isotopes[isotope],localenergy,sqrt(300.*KB),&sigT,&sigA,&sigF); 
+    sigTsum += sigT*mat_densities[isotope];
+    sigAsum += sigA*mat_densities[isotope];
+    sigFsum += sigF*mat_densities[isotope];
+  }
+#if defined(__PRINTTRACK__)
+  if(__PRINTTRACK__){
+    printf("[r]%7d,%3d,%+.7e, %+.7e, %+.7e, %.14e %.14e %.14e %.14e\n",
             nid, imat,
             ray_origin.x, ray_origin.y, ray_origin.z,
             localenergy, sigTsum,sigAsum,sigFsum); 
