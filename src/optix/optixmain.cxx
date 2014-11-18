@@ -54,7 +54,10 @@ void set_ray_tracing_program(RTcontext context, unsigned active){
 #else
     sprintf( path_to_ptx, "%s/%s", "./obj/ptx", "pinhole_camera_one.ptx" );
 #endif
-    RT_CHECK_ERROR( rtProgramCreateFromPTXFile( context, path_to_ptx, "generate_ray", &ray_gen_program ) );
+    if(active)
+      RT_CHECK_ERROR( rtProgramCreateFromPTXFile( context, path_to_ptx, "generate_ray", &ray_gen_program ) );
+    else
+      RT_CHECK_ERROR( rtProgramCreateFromPTXFile( context, path_to_ptx, "remaining_ray", &ray_gen_program ) );
     //Declare and Set variables here if needed
     RT_CHECK_ERROR( rtContextSetRayGenerationProgram( context, 0, ray_gen_program ) );
 
