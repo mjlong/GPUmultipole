@@ -111,7 +111,6 @@ RT_PROGRAM void generate_ray()
   ray_origin.x = input_pos_x_buffer[launch_index];
   ray_origin.y = input_pos_y_buffer[launch_index];
   ray_origin.z = input_pos_z_buffer[launch_index];
-  ray_origin.z = input_pos_z_buffer[launch_index];
   mu  = input_dir_p_buffer[launch_index]; 
   phi = input_dir_a_buffer[launch_index];
   ray_direction = make_float3(sqrt(1.f-mu*mu)*cos(phi),sqrt(1.f-mu*mu)*sin(phi),mu); 
@@ -156,10 +155,14 @@ RT_PROGRAM void generate_ray()
 #endif
   localenergy = localenergy*curand_uniform(&localstate);
   float s = -log(curand_uniform(&localstate))/1.4;
+  //invoking xs_eval not only messes nid but makes phi unchanged
+  //printf("%7d,s=%g,mu=%g, phi=%g\n",nid,s,mu,phi);
   s = (d<s)*d + (d>=s)*s;
+  
 //update tally
   output_spectrum_buffer[search_bin(localenergy)*launch_dim+launch_index]+=1; 
   live = (localenergy > ENDENERG);
+
   //localenergy = localenergy*live + STARTENE*(1u-live);
   if(live){
     ray_origin = ray_origin + s*ray_direction;
@@ -224,7 +227,7 @@ RT_PROGRAM void remaining_ray()
   if(!live){
 #if defined(__PRINTTRACK__)
     if(__PRINTTRACK__){
-    printf("%7d,%3d,%+.7e, %+.7e, %+.7e, %.14e leaked\n",
+    printf("[r]%4d,%3d,%+.7e, %+.7e, %+.7e, %.14e leaked\n",
             nid, imat,
             ray_origin.x, ray_origin.y, ray_origin.z,
             localenergy); 
@@ -266,7 +269,7 @@ RT_PROGRAM void remaining_ray()
   else{
 #if defined(__PRINTTRACK__)
     if(__PRINTTRACK__){
-    printf("%7d,%3d,%+.7e, %+.7e, %+.7e, %.14e stopped\n",
+    printf("[r]%4d,%3d,%+.7e, %+.7e, %+.7e, %.14e stopped\n",
             nid, imat,
             ray_origin.x, ray_origin.y, ray_origin.z,
             localenergy); 
