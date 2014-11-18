@@ -95,7 +95,10 @@ RT_PROGRAM void generate_ray()
 {
   unsigned icell, imat,isotope,live;
 #if defined(__PRINTTRACK__)
-  int nid = launch_index;
+  int nid = output_live_buffer[launch_index]/2;
+  live = output_live_buffer[launch_index]%2;
+#else
+  live = output_live_buffer[launch_index];
 #endif
   float d;
   float mu,phi;
@@ -108,8 +111,9 @@ RT_PROGRAM void generate_ray()
   ray_origin.x = input_pos_x_buffer[launch_index];
   ray_origin.y = input_pos_y_buffer[launch_index];
   ray_origin.z = input_pos_z_buffer[launch_index];
-  mu  = input_dir_p_buffer[nid]; 
-  phi = input_dir_a_buffer[nid];
+  ray_origin.z = input_pos_z_buffer[launch_index];
+  mu  = input_dir_p_buffer[launch_index]; 
+  phi = input_dir_a_buffer[launch_index];
   ray_direction = make_float3(sqrt(1.f-mu*mu)*cos(phi),sqrt(1.f-mu*mu)*sin(phi),mu); 
 //loop over GPU steps
   for(unsigned istep=0; istep<devstep; istep++){
@@ -119,13 +123,13 @@ RT_PROGRAM void generate_ray()
 
   if(!live){
 #if defined(__PRINTTRACK__)
-    nid += launch_dim;
     if(__PRINTTRACK__){
     printf("%7d,%3d,%+.7e, %+.7e, %+.7e, %.14e leaked\n",
             nid, imat,
             ray_origin.x, ray_origin.y, ray_origin.z,
             localenergy); 
     }
+    nid += launch_dim;
 #endif
     neutron_sample(&live, &localenergy, &ray_origin, &mu, &phi, &localstate);
     ray_direction = make_float3(sqrt(1.f-mu*mu)*cos(phi),sqrt(1.f-mu*mu)*sin(phi),mu); 
@@ -162,20 +166,24 @@ RT_PROGRAM void generate_ray()
   }
   else{
 #if defined(__PRINTTRACK__)
-    nid += launch_dim;
     if(__PRINTTRACK__){
     printf("%7d,%3d,%+.7e, %+.7e, %+.7e, %.14e stopped\n",
             nid, imat,
             ray_origin.x, ray_origin.y, ray_origin.z,
             localenergy); 
     }
+    nid += launch_dim;
 #endif
     neutron_sample(&live, &localenergy, &ray_origin, &mu, &phi, &localstate); 
     ray_direction = make_float3(sqrt(1.f-mu*mu)*cos(phi),sqrt(1.f-mu*mu)*sin(phi),mu); 
   }
   }//end for istep
-  input_random[launch_index]  = localState;
+  input_random[launch_index]  = localstate;
+#if defined(__PRINTTRACK__)
+  output_live_buffer[launch_index] = 2*nid+live;
+#else
   output_live_buffer[launch_index] = live;
+#endif
   input_pos_x_buffer[launch_index] = ray_origin.x;
   input_pos_y_buffer[launch_index] = ray_origin.y;
   input_pos_z_buffer[launch_index] = ray_origin.z;
@@ -188,7 +196,10 @@ RT_PROGRAM void remaining_ray()
 {
   unsigned icell, imat,isotope,live;
 #if defined(__PRINTTRACK__)
-  int nid = launch_index;
+  int nid = output_live_buffer[launch_index]/2;
+  live = output_live_buffer[launch_index]%2;
+#else
+  live = output_live_buffer[launch_index];
 #endif
   float d;
   float mu,phi;
@@ -201,27 +212,26 @@ RT_PROGRAM void remaining_ray()
   ray_origin.x = input_pos_x_buffer[launch_index];
   ray_origin.y = input_pos_y_buffer[launch_index];
   ray_origin.z = input_pos_z_buffer[launch_index];
-  mu  = input_dir_p_buffer[nid]; 
-  phi = input_dir_a_buffer[nid];
+  mu  = input_dir_p_buffer[launch_index]; 
+  phi = input_dir_a_buffer[launch_index];
   ray_direction = make_float3(sqrt(1.f-mu*mu)*cos(phi),sqrt(1.f-mu*mu)*sin(phi),mu); 
-//loop over GPU steps
-  for(unsigned istep=0; istep<devstep; istep++){
+//loop over remaining neutron life 
+  while(live){
   locate(ray_origin,ray_direction, &d, &imat, &icell);
   imat = imat*(1-(0==icell));
   live = !(0==icell);
 
   if(!live){
 #if defined(__PRINTTRACK__)
-    nid += launch_dim;
     if(__PRINTTRACK__){
     printf("%7d,%3d,%+.7e, %+.7e, %+.7e, %.14e leaked\n",
             nid, imat,
             ray_origin.x, ray_origin.y, ray_origin.z,
             localenergy); 
     }
+    nid += launch_dim;
 #endif
-    neutron_sample(&live, &localenergy, &ray_origin, &mu, &phi, &localstate);
-    ray_direction = make_float3(sqrt(1.f-mu*mu)*cos(phi),sqrt(1.f-mu*mu)*sin(phi),mu); 
+    break;
   }
 //
 //Evaluate cross section and print (id,imat,position,E,sigT,sigA,sigF
@@ -237,7 +247,7 @@ RT_PROGRAM void remaining_ray()
   }
 #if defined(__PRINTTRACK__)
   if(__PRINTTRACK__){
-    printf("[r]%7d,%3d,%+.7e, %+.7e, %+.7e, %.14e %.14e %.14e %.14e\n",
+    printf("[r]%4d,%3d,%+.7e, %+.7e, %+.7e, %.14e %.14e %.14e %.14e\n",
             nid, imat,
             ray_origin.x, ray_origin.y, ray_origin.z,
             localenergy, sigTsum,sigAsum,sigFsum); 
@@ -255,25 +265,17 @@ RT_PROGRAM void remaining_ray()
   }
   else{
 #if defined(__PRINTTRACK__)
-    nid += launch_dim;
     if(__PRINTTRACK__){
     printf("%7d,%3d,%+.7e, %+.7e, %+.7e, %.14e stopped\n",
             nid, imat,
             ray_origin.x, ray_origin.y, ray_origin.z,
             localenergy); 
     }
+    nid += launch_dim;
 #endif
-    neutron_sample(&live, &localenergy, &ray_origin, &mu, &phi, &localstate); 
-    ray_direction = make_float3(sqrt(1.f-mu*mu)*cos(phi),sqrt(1.f-mu*mu)*sin(phi),mu); 
+    break;
   }
-  }//end for istep
-  output_live_buffer[launch_index] = live;
-  input_pos_x_buffer[launch_index] = ray_origin.x;
-  input_pos_y_buffer[launch_index] = ray_origin.y;
-  input_pos_z_buffer[launch_index] = ray_origin.z;
-  input_dir_p_buffer[launch_index] = mu;
-  input_dir_a_buffer[launch_index] = phi;
-  input_energy_buffer[launch_index] = localenergy;
+  }//end while(live) 
 
 }
 

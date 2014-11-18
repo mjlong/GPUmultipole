@@ -13,7 +13,11 @@ __global__ void initialize(MemStruct pInfo){
 }
 
 __device__ void neutron_sample(NeutronInfoStruct nInfo, unsigned id){
+#if defined(__PRINTTRACK__)
+  nInfo.live[id] = id*2+1u;
+#else 
   nInfo.live[id] = 1u;
+#endif
   curandState state = nInfo.rndState[id];
 //TODO: source sampling should take settings dependent on geometry
   nInfo.pos_x[id] = 0.5f+0.00*curand_uniform(&state);
