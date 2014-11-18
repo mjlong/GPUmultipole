@@ -10,5 +10,5 @@ void initialize_neutrons(unsigned gridx, unsigned blockx,MemStruct DeviceMem);
 
 unsigned count_neutrons(unsigned gridx, unsigned blockx, MemStruct DeviceMem, MemStruct HostMem, unsigned num_src);
 
-void print_results(unsigned gridx, unsigned blockx, unsigned num_src, unsigned num_bin, MemStruct DeviceMem, MemStruct HostMem, float timems);
+void print_results(unsigned gridx, unsigned blockx, unsigned num_src, unsigned devsteps, unsigned num_bin, MemStruct DeviceMem, MemStruct HostMem, float timems);
 #endif

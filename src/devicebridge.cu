@@ -31,7 +31,7 @@ unsigned count_neutrons(unsigned gridx, unsigned blockx, MemStruct DeviceMem, Me
   return active;
 }
 
-void print_results(unsigned gridx, unsigned blockx, unsigned num_src, unsigned num_bin, MemStruct DeviceMem, MemStruct HostMem, float timems){
+void print_results(unsigned gridx, unsigned blockx, unsigned num_src, unsigned devsteps, unsigned num_bin, MemStruct DeviceMem, MemStruct HostMem, float timems){
   
   unsigned *d_cnt, *h_cnt;
   gpuErrchk(cudaMalloc((void**)&d_cnt, num_bin*sizeof(unsigned)));
@@ -64,7 +64,7 @@ void print_results(unsigned gridx, unsigned blockx, unsigned num_src, unsigned n
 		       DeviceMem.num_terminated_neutrons, 
 		       sizeof(unsigned int), 
 		       cudaMemcpyDeviceToHost));
-  fprintf(fp,"%-4d,%-4d,%-.6f,%-8d,%-4d,%-2d M\n", gridx, blockx,timems*1000/sum, *HostMem.num_terminated_neutrons, 1, num_src/1000000);
+  fprintf(fp,"%-4d,%-4d,%-.6f,%-8d,%-4d,%-2d M\n", gridx, blockx,timems*1000/sum, *HostMem.num_terminated_neutrons, devsteps, num_src/1000000);
   fclose(fp);
 }
 
