@@ -201,6 +201,10 @@ RT_PROGRAM void remaining_ray()
 #if defined(__PRINTTRACK__)
   int nid = output_live_buffer[launch_index]/2;
   live = output_live_buffer[launch_index]%2;
+// terminated neutrons in remaining batch is not counted by 
+// DeviceMem.grid_terminated_neutrons[launch_dim] but 
+// count how many are live before remaining() batch
+  output_live_buffer[launch_index] = live; 
 #else
   live = output_live_buffer[launch_index];
 #endif
