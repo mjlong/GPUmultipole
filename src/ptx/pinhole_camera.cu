@@ -93,7 +93,7 @@ __device__ void neutron_sample(unsigned* live, CMPTYPE* energy, float3* origin, 
 
 RT_PROGRAM void generate_ray()
 {
-  unsigned icell, imat,isotope,live;
+  unsigned icell, imat,isotope,live,stay;
 #if defined(__PRINTTRACK__)
   int nid = output_live_buffer[launch_index]/2;
   live = output_live_buffer[launch_index]%2;
@@ -114,9 +114,13 @@ RT_PROGRAM void generate_ray()
   mu  = input_dir_p_buffer[launch_index]; 
   phi = input_dir_a_buffer[launch_index];
   ray_direction = make_float3(sqrt(1.f-mu*mu)*cos(phi),sqrt(1.f-mu*mu)*sin(phi),mu); 
+  //stay = 0;
 //loop over GPU steps
   for(unsigned istep=0; istep<devstep; istep++){
-  locate(ray_origin,ray_direction, &d, &imat, &icell);
+  //if(!stay){
+    locate(ray_origin,ray_direction, &d, &imat, &icell);
+  //  printf("rt invoked\n");
+  //}
   imat = imat*(1-(0==icell));
   live = !(0==icell);
 
@@ -157,8 +161,9 @@ RT_PROGRAM void generate_ray()
   float s = -log(curand_uniform(&localstate))/1E8;//1.4;
   //invoking xs_eval not only messes nid but makes phi unchanged
   //printf("%7d,s=%g,mu=%g, phi=%g\n",nid,s,mu,phi);
+  //stay = (d>s);
   s = (d<s)*d + (d>=s)*s;
-  
+    
 //update tally
   output_spectrum_buffer[search_bin(localenergy)*launch_dim+launch_index]+=1; 
   live = (localenergy > ENDENERG);
@@ -168,6 +173,7 @@ RT_PROGRAM void generate_ray()
     ray_origin = ray_origin + s*ray_direction;
   }
   else{
+    //stay = 0;
 #if defined(__PRINTTRACK__)
     if(__PRINTTRACK__){
     printf("%7d,%3d,%+.7e, %+.7e, %+.7e, %.14e stopped\n",
@@ -197,7 +203,7 @@ RT_PROGRAM void generate_ray()
 
 RT_PROGRAM void remaining_ray()
 {
-  unsigned icell, imat,isotope,live;
+  unsigned icell, imat,isotope,live,stay;
 #if defined(__PRINTTRACK__)
   int nid = output_live_buffer[launch_index]/2;
   live = output_live_buffer[launch_index]%2;
@@ -222,9 +228,13 @@ RT_PROGRAM void remaining_ray()
   mu  = input_dir_p_buffer[launch_index]; 
   phi = input_dir_a_buffer[launch_index];
   ray_direction = make_float3(sqrt(1.f-mu*mu)*cos(phi),sqrt(1.f-mu*mu)*sin(phi),mu); 
+  //stay = 0;
 //loop over remaining neutron life 
   while(live){
-  locate(ray_origin,ray_direction, &d, &imat, &icell);
+  //if(!stay){
+    locate(ray_origin,ray_direction, &d, &imat, &icell);
+  //  printf("rt invoked\n");
+  //}
   imat = imat*(1-(0==icell));
   live = !(0==icell);
 
@@ -261,9 +271,10 @@ RT_PROGRAM void remaining_ray()
   }
 #endif
   localenergy = localenergy*curand_uniform(&localstate);
-  float s = -log(curand_uniform(&localstate))/1.4;
+  float s = -log(curand_uniform(&localstate))/1E8;//1.4;
+  //stay = (d>s);
   s = (d<s)*d + (d>=s)*s;
-//update tally
+  //update tally
   output_spectrum_buffer[search_bin(localenergy)*launch_dim+launch_index]+=1; 
   live = (localenergy > ENDENERG);
   //localenergy = localenergy*live + STARTENE*(1u-live);
