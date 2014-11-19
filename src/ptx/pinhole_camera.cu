@@ -154,7 +154,7 @@ RT_PROGRAM void generate_ray()
   }
 #endif
   localenergy = localenergy*curand_uniform(&localstate);
-  float s = -log(curand_uniform(&localstate))/1.4;
+  float s = -log(curand_uniform(&localstate))/1E8;//1.4;
   //invoking xs_eval not only messes nid but makes phi unchanged
   //printf("%7d,s=%g,mu=%g, phi=%g\n",nid,s,mu,phi);
   s = (d<s)*d + (d>=s)*s;
