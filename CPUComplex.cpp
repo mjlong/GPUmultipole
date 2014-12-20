@@ -211,7 +211,7 @@ CComplex operator + (double d, CComplex c){
 }
 
 CComplex operator - (double d, CComplex c) {
-  return CComplex (d-c.Re(), c.Im());
+  return CComplex (d-c.Re(), -c.Im());
 }
 
 CComplex operator - (CComplex c1, CComplex c2) {
