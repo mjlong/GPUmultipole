@@ -5,21 +5,19 @@
 #include <stdio.h>
 #include <string.h>
 
-#include <optix.h>
-#include <cudpp.h>
-#include <cudpp_config.h>
+//#include <cudpp.h>
+//#include <cudpp_config.h>
 #include <neutron.h>
 #include <manmemory.h>
 #include "devicebridge.h"
 
 #include "multipole.h"
 #include "material.h"
-#include "optixmain.h"
 
 #include <time.h>
 void printbless();
 int main(int argc, char **argv){
-  printbless();
+//printbless();
 //============================================================ 
 //====================calculation dimension===================
 //============================================================
@@ -64,35 +62,22 @@ int main(int argc, char **argv){
 #endif
 
 //============================================================ 
-//===============Optix Ray Tracing Context====================
-//============================================================
-  RTcontext context;
-  RT_CHECK_ERROR(rtContextCreate(&context));
-  int id=0;
-  rtContextSetDevices(context, 1, &id);
-  float geoPara[6] = {0.48f,0.5f,50.f,1.2f,100.f,100.f};
-  //float geoPara[6] = {0.00048f,0.0005f,0.050f,0.0012f,0.100f,0.100f};
-                      //r1,  r2,  h/2, p,   t,    H/2
-  initialize_context(context, gridsize, 
-                     atoi(argv[5]),atoi(argv[6]), 
-                     geoPara, DeviceMem.nInfo);
-//============================================================ 
 //=============CUDPP Initialization===========================
 //============================================================
-  CUDPPHandle theCudpp;
-  cudppCreate(&theCudpp);
-  CUDPPConfiguration config;
-  config.datatype = CUDPP_DOUBLE;
-  config.algorithm = CUDPP_SORT_RADIX;
-  config.options=CUDPP_OPTION_KEY_VALUE_PAIRS;
-  config.options=CUDPP_OPTION_BACKWARD;
-  CUDPPHandle sortplan = 0;
-  CUDPPResult res = cudppPlan(theCudpp, &sortplan, config, gridsize, 1, 0);
-  if (CUDPP_SUCCESS != res)
-  {
-      printf("Error creating CUDPPPlan\n");
-      exit(-1);
-  }
+//  CUDPPHandle theCudpp;
+//  cudppCreate(&theCudpp);
+//  CUDPPConfiguration config;
+//  config.datatype = CUDPP_DOUBLE;
+//  config.algorithm = CUDPP_SORT_RADIX;
+//  config.options=CUDPP_OPTION_KEY_VALUE_PAIRS;
+//  config.options=CUDPP_OPTION_BACKWARD;
+//  CUDPPHandle sortplan = 0;
+//  CUDPPResult res = cudppPlan(theCudpp, &sortplan, config, gridsize, 1, 0);
+//  if (CUDPP_SUCCESS != res)
+//  {
+//      printf("Error creating CUDPPPlan\n");
+//      exit(-1);
+//  }
 //============================================================ 
 //=============Read Isotopes(multipole data)==================
 //============================================================
@@ -135,10 +120,9 @@ initialize_neutrons(gridx, blockx, DeviceMem);
 clock_start = clock();
 while(active){
   //since transport_neutrons() surrects all neutrons, rtLaunch always works full load, no need to sort here
-  RT_CHECK_ERROR(rtContextLaunch1D(context, 0, gridsize));
   //sort key = live*(isotopeID*MAXENERGY+energy)
-  sort_prepare(gridx, blockx, DeviceMem, mat);
-  cudppRadixSort(sortplan, DeviceMem.nInfo.isoenergy, DeviceMem.nInfo.id, gridsize);
+  //sort_prepare(gridx, blockx, DeviceMem, mat);
+  //cudppRadixSort(sortplan, DeviceMem.nInfo.isoenergy, DeviceMem.nInfo.id, gridsize);
   //                          keys,                   values,             numElements
   //neutrons found leaked in *locate* will not be evaluated 
   start_neutrons(gridx, blockx, mat, mp_para, DeviceMem, num_src,1);
@@ -162,12 +146,12 @@ while(0!=active){
   //about twice sort in one loop
   //1. add extra sort here
   //2. only sort before xs evaluation, allows thread divergence in ray tracing
-  sort_prepare(gridx, blockx, DeviceMem, mat);
-  cudppRadixSort(sortplan, DeviceMem.nInfo.isoenergy, DeviceMem.nInfo.id, gridsize);
-  RT_CHECK_ERROR(rtContextLaunch1D(context, 0, gridsize));
+  //sort_prepare(gridx, blockx, DeviceMem, mat);
+  //cudppRadixSort(sortplan, DeviceMem.nInfo.isoenergy, DeviceMem.nInfo.id, gridsize);
+  //RT_CHECK_ERROR(rtContextLaunch1D(context, 0, gridsize));
 
-  sort_prepare(gridx, blockx, DeviceMem, mat);
-  cudppRadixSort(sortplan, DeviceMem.nInfo.isoenergy, DeviceMem.nInfo.id, gridsize);
+  //sort_prepare(gridx, blockx, DeviceMem, mat);
+  //cudppRadixSort(sortplan, DeviceMem.nInfo.isoenergy, DeviceMem.nInfo.id, gridsize);
   start_neutrons(gridx, blockx, mat, mp_para, DeviceMem, num_src,0);
 
   active = count_lives(gridx, blockx, DeviceMem, HostMem);
@@ -198,17 +182,17 @@ print_results(gridx, blockx, num_src, num_bin, DeviceMem, HostMem, time_elapsed)
 #if defined(__QUICKW)
   release_wtables(wtable);
 #endif
-  res = cudppDestroyPlan(sortplan);
-  if (CUDPP_SUCCESS != res)
-  {
-      printf("Error destroying CUDPPPlan\n");
-      exit(-1);
-  }
+//  res = cudppDestroyPlan(sortplan);
+//  if (CUDPP_SUCCESS != res)
+//  {
+//      printf("Error destroying CUDPPPlan\n");
+//      exit(-1);
+//  }
 
 // shut down the CUDPP library
-  cudppDestroy(theCudpp);
+//  cudppDestroy(theCudpp);
 // destroy the optix ray tracing context
-  rtContextDestroy(context); 
+//  rtContextDestroy(context); 
   return 0;
 }
 
@@ -218,7 +202,7 @@ print_results(gridx, blockx, num_src, num_bin, DeviceMem, HostMem, time_elapsed)
 
 
 
-#define BLESS "[缪]"
+#define BLESS " "//"[缪]"
 void printbless(){
   printf(BLESS"                     _oo0oo_                  \n");  
   printf(BLESS"                    o8888888o                 \n");
