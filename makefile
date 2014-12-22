@@ -15,15 +15,13 @@ DIR_PTX = ./obj/ptx
 DIR_HDF5  = /home/jlmiao/opt/hdf5
 DIR_CUDA6 = /usr/local/cuda-6.0
 DIR_CUDPP = /home/jlmiao/opt/cudpp-2.1
-DIR_OPTIX = /home/jlmiao/Documents/NVIDIA-OptiX-SDK-3.6.0-linux64
 #Include flags
 INC_SRC   = -I${DIR_SRC} -I${DIR_SRC}/wfunction
 INC_HDF5  = -I${DIR_HDF5}/include
 INC_CUDA6 = -I${DIR_CUDA6}/include
 INC_CUDPP = -I${DIR_CUDPP}/include
-INC_OPTIX = -I${DIR_OPTIX}/include -I${DIR_SRC_OPT}
-NCINCFLAGS  = $(INC_SRC) $(INC_CUDA6) $(INC_CUDPP) $(INC_OPTIX)
-CCINCFLAGS  = $(INC_SRC) $(INC_HDF5) $(INC_OPTIX)
+NCINCFLAGS  = $(INC_SRC) $(INC_CUDA6) $(INC_CUDPP) 
+CCINCFLAGS  = $(INC_SRC) $(INC_HDF5)
 ifeq ($(compare),1)
 DIR_BIN = ./bin/test
 endif
@@ -41,51 +39,50 @@ CCFLAGS=-c                    $(CCINCFLAGS)
 DIR_BIN = ./bin/release
 endif
 LINKLAG=   -dlink -arch=sm_20  
-LDFLAGS=-L${DIR_HDF5}/lib/ -L${DIR_CUDA6}/lib64 -L${DIR_CUDPP}/lib/ -L${DIR_OPTIX}/lib64/ -loptix -lcudpp -lcudart -lhdf5 
+LDFLAGS=-L${DIR_HDF5}/lib/ -L${DIR_CUDA6}/lib64 -L${DIR_CUDPP}/lib/ -lcudpp -lcudart -lhdf5 
 GSOURCES=$(wildcard ${DIR_SRC}/*.cu)
-PSOURCES=$(wildcard ${DIR_SRC_PTX}/*.cu)
 WSOURCES=
 # Faddeeva function implementation 
 ifeq ($(WFUN),0)
   W_IDEN = -D __MITW
   WSOURCES += $(DIR_SRC)/wfunction/Faddeeva.cu
-  EXENAME=$(DIR_BIN)/gpumr_mitw_double
+  EXENAME=$(DIR_BIN)/cgpumr_mitw_double
 else 
   W_IDEN = -D __SAMPLE
-  EXENAME=$(DIR_BIN)/gpumr_sample_double
+  EXENAME=$(DIR_BIN)/cgpumr_sample_double
   ifeq ($(WFUN), 3)
   W_IDEN = -D __FOURIERW
   WSOURCES += $(DIR_SRC)/wfunction/fourierw.cu
-  EXENAME=$(DIR_BIN)/gpumr_fourierw_double
+  EXENAME=$(DIR_BIN)/cgpumr_fourierw_double
   endif
   ifeq ($(WFUN), 31)
   W_IDEN = -D __QUICKWF -D __FOURIERW
   WSOURCES += $(DIR_SRC)/wfunction/fourierw.cu
-  EXENAME=$(DIR_BIN)/gpumr_quickwf_double
+  EXENAME=$(DIR_BIN)/cgpumr_quickwf_double
   endif
   ifeq ($(WFUN), 33)
   W_IDEN = -D __INTERPEXP -D __QUICKWF -D __FOURIERW
   WSOURCES += $(DIR_SRC)/wfunction/fourierw.cu
-  EXENAME=$(DIR_BIN)/gpumr_quickexpf_double
+  EXENAME=$(DIR_BIN)/cgpumr_quickexpf_double
   endif
   ifeq ($(WFUN),11)
   W_IDEN = -D __QUICKW -D __QUICKWG
   WSOURCES += $(DIR_SRC)/wfunction/Faddeeva.cu 
   WSOURCES += $(DIR_SRC)/wfunction/QuickW.cu
-  EXENAME=$(DIR_BIN)/gpumr_quickwg_double
+  EXENAME=$(DIR_BIN)/cgpumr_quickwg_double
   endif 
   ifeq ($(WFUN),12)
   W_IDEN = -D __QUICKW -D __QUICKWT
   WSOURCES += $(DIR_SRC)/wfunction/Faddeeva.cu 
   WSOURCES += $(DIR_SRC)/wfunction/QuickW.cu
-  EXENAME=$(DIR_BIN)/gpumr_quickwt_double
+  EXENAME=$(DIR_BIN)/cgpumr_quickwt_double
   endif
   ifeq ($(WFUN),13)
   W_IDEN = -D __QUICKW -D __QUICKWC
   #FLOAT=1
   WSOURCES += $(DIR_SRC)/wfunction/Faddeeva.cu 
   WSOURCES += $(DIR_SRC)/wfunction/QuickW.cu
-  EXENAME=$(DIR_BIN)/gpumr_quickwc_double
+  EXENAME=$(DIR_BIN)/cgpumr_quickwc_double
   endif
 endif   
 #
@@ -111,33 +108,19 @@ else
   EXECUTABLE=$(EXENAME)
 endif
 #
-ifeq ($(version),many)
-RTMETHOD = -D __MANY__
-PTXFIX =_many.ptx
-EXEFIX = _many
-else
-RTMETHOD=
-PTXFIX =_one.ptx
-EXEFIX = _one
-endif
 ifeq ($(print),track)
 RTMETHOD += -D __PRINTTRACK__=$(printid)
 endif
 CSOURCES=$(wildcard ${DIR_SRC}/*.cc)
 MSOURCES=$(wildcard ${DIR_SRC}/*.cxx)
 #MSOURCES = main.cxx; 
-CNVCCSRC=$(wildcard ${DIR_SRC_OPT}/*.cxx)
 COBJECTS=$(patsubst %.cc, ${DIR_OBJ}/%.obj, $(notdir ${CSOURCES}))
 MOBJECTS=$(patsubst %.cxx, ${DIR_OBJ}/%.ob, $(notdir ${MSOURCES}))
 GOBJECTS=$(patsubst %.cu, ${DIR_OBJ}/%.o, $(notdir ${GSOURCES}))
 WOBJECTS=$(patsubst %.cu, ${DIR_OBJ}/%.o, $(notdir ${WSOURCES}))
-PTXJECTS=$(patsubst ${DIR_SRC_PTX}/%.cu, ${DIR_PTX}/%$(PTXFIX),  ${PSOURCES})
-CNVCCOBJ=$(patsubst %.cxx, ${DIR_OBJ}/%.ob, $(notdir ${CNVCCSRC}))
 LINKJECT=${DIR_OBJ}/dlink.o      
-all: $(PTXJECTS) $(EXECUTABLE)
-${DIR_PTX}/%$(PTXFIX) : ${DIR_SRC_PTX}/%.cu
-	$(NVCC) $(RTMETHOD) $(NCPLAGS) -use_fast_math $^ -o $@
-$(EXECUTABLE): $(MOBJECTS) $(COBJECTS) $(CNVCCOBJ) $(GOBJECTS) $(WOBJECTS) $(LINKJECT)
+all: $(EXECUTABLE)
+$(EXECUTABLE): $(MOBJECTS) $(COBJECTS) $(GOBJECTS) $(WOBJECTS) $(LINKJECT)
 	$(CC)  $^ $(LDFLAGS) -o $@
 ${DIR_OBJ}/%.obj : ${DIR_SRC}/%.cc
 	@echo $(epoch)
@@ -151,16 +134,9 @@ ${DIR_OBJ}/%.o : ${DIR_SRC}/%.cu
 ${DIR_OBJ}/%.o : ${DIR_SRC}/wfunction/%.cu
 	@echo $(epoch)
 	$(NVCC) $(W_IDEN) $(CMPTYPE) $(NCFLAGS)  $^ -o $@
-${DIR_OBJ}/%.ob : ${DIR_SRC_OPT}/%.cxx
-	$(NVCC) $(RTMETHOD) $(NCFLAGS) $^ -o $@
 $(LINKJECT) : $(GOBJECTS) $(WOBJECTS)
 	$(NVCC) $(LINKLAG) $^ -o $@
-remove :
-	find ${DIR_OBJ} -name *.o   -exec rm -rf {} \;
-	find ${DIR_OBJ} -name *.obj -exec rm -rf {} \;
-	find ${DIR_OBJ} -name *.ob  -exec rm -rf {} \;
 clean :  
 	find ${DIR_OBJ} -name *.o   -exec rm -rf {} \;
 	find ${DIR_OBJ} -name *.obj -exec rm -rf {} \;
 	find ${DIR_OBJ} -name *.ob  -exec rm -rf {} \;
-	find ${DIR_PTX} -name *.ptx -exec rm -rf {} \;
