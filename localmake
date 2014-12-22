@@ -1,0 +1,21 @@
+CC=g++
+CFLAGS=-c -g 
+LDFLAGS=-L/usr/lib/ -lhdf5
+SOURCES=\
+CPUComplex.cc\
+hdf5IO.cc\
+main.cc
+OBJECTS=$(SOURCES:.cc=.o)
+EXECUTABLE=tiny
+all: $(EXECUTABLE)
+
+$(EXECUTABLE): $(OBJECTS) 
+	$(CC)  $^ $(LDFLAGS) -o $@
+
+%.o : %.cc
+	$(CC) $(CFLAGS) $^ -o $@
+
+remove :
+	rm -rf *.o  *~
+clean :  
+	rm -rf *.o  *~ $(EXECUTABLE)

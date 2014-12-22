@@ -295,4 +295,3 @@ template <class DType>
 }
 
 #endif
-

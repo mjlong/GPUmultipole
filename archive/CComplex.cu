@@ -12,6 +12,10 @@ History****:*Date*******************Author**************************************
   cuda host and device; 
   no complex division needed;
   transfer norm and arg use to Norm(), Arg() functions.
+*****Sat Apr 19 22:07:11 2014 -0400 Jilang Miao 缪佶朗 <jlmiao@mit.edu>
+  Tailor to be compatible with general functions:
+  real(complex),imag(complex),exp(complex);
+  overload negative and minus operator simultaneously
 ================================================================================
 */
 #include "CComplex.h"
@@ -30,24 +34,29 @@ __host__ __device__ double CComplex::Re(){
   return m_real;
 }
 
-__host__ __device__ double CComplex::Re(CComplex c){
-  return c.m_real;
+
+__host__ __device__ double real(CComplex c){
+  return c.Re();
 }
 
 __host__ __device__ double CComplex::Im(){
   return m_imag;
 }
 
-__host__ __device__ double CComplex::Im(CComplex c){
-  return c.m_imag;
+
+
+__host__ __device__ double imag(CComplex c){
+  return c.Im();
 }
 
 __host__ __device__ double CComplex::Norm(){
   return sqrt( m_real*m_real + m_imag*m_imag);
 }
 
-__host__ __device__ double CComplex::Norm(CComplex c){
-  return sqrt( c.m_real*c.m_real + c.m_imag*c.m_imag);
+__host__ __device__ double Norm(CComplex c){
+  double x = c.Re();
+  double y = c.Im();
+  return sqrt( x*x + y*y);
 }
 
 __host__ __device__ double CComplex::Arg(){
@@ -68,19 +77,21 @@ __host__ __device__ double CComplex::Arg(){
 }
 
 
-__host__ __device__ double CComplex::Arg(CComplex c){
-  if ( 0 == c.m_real){
-    if( c.m_imag>0) return PI*0.5;
-    else if (c.m_imag<0) return PI*1.5;
+__host__ __device__ double Arg(CComplex c){
+  double x = c.Re();
+  double y = c.Im();
+  if ( 0 == x){
+    if( y>0) return PI*0.5;
+    else if (y<0) return PI*1.5;
     else return 0.0;
   }
   else{
-    if(0==c.m_imag){
-      return c.m_real>0 ? 0.0 : PI;
+    if(0==y){
+      return x>0 ? 0.0 : PI;
     }
     else{
-      if ( c.m_real <0) return atan(c.m_imag/c.m_real )+PI;
-      else return c.m_imag>0 ? atan(c.m_imag/c.m_real) : atan(c.m_imag/c.m_real) +2.0*PI;
+      if ( x <0) return atan(y/x )+PI;
+      else return y>0 ? atan(y/x) : atan(y/x) +2.0*PI;
     }
   }
 }
@@ -89,8 +100,14 @@ __host__ __device__ CComplex CComplex::Conjugate(){
   return CComplex(m_real, 0.0 - m_imag);
 }
 
-__host__ __device__ CComplex CComplex::Conjugate(CComplex c){
-  return CComplex(c.m_real, 0.0 - c.m_real);
+__host__ __device__ CComplex Conjugate(CComplex c){
+  return CComplex(c.Re(), 0.0 - c.Im());
+}
+
+
+CComplex exp(CComplex c){
+  double y = c.Im();
+  return exp(c.Re())*(cos(y)*sin(y));
 }
 
 void CComplex::output(){
@@ -107,16 +124,16 @@ void CComplex::output(){
   }
 }
 
-void CComplex::output(CComplex c){
-  if(0==c.m_real){
-    if(0==c.m_imag) cout<<c.m_real<<endl;
-    else cout<<c.m_imag<<"i"<<endl;
+void output(CComplex c){
+  if(0==c.Re()){
+    if(0==c.Im()) cout<<c.Re()<<endl;
+    else cout<<c.Im()<<"i"<<endl;
   }
   else{
-    if(0==c.m_imag) cout<<c.m_real<<endl;
+    if(0==c.Im()) cout<<c.Re()<<endl;
     else{
-      if(c.m_imag>0)   cout<<c.m_real<<"+"<<c.m_imag<<"i"<<endl;
-      else cout<<c.m_real<<"-"<<0-c.m_imag<<"i"<<endl;
+      if(c.Im()>0)   cout<<c.Re()<<"+"<<c.Im()<<"i"<<endl;
+      else cout<<c.Re()<<"-"<<0-c.Im()<<"i"<<endl;
     }
   }
 }
@@ -128,7 +145,7 @@ void CComplex::display(){
   else cout<<norm<<"*Exp("<<arg<<")"<<endl;
 }
 
-void CComplex::display(CComplex c){
+void display(CComplex c){
   double norm = c.Norm();
   double arg  = c.Arg();
   if(0==norm) cout<<norm<<endl;
@@ -136,15 +153,11 @@ void CComplex::display(CComplex c){
 }
 
 __host__ __device__ CComplex CComplex::operator +(CComplex c){
-  return CComplex( m_real+c.m_real, m_imag+c.m_imag);
+  return CComplex( m_real+c.Re(), m_imag+c.Im());
 }
 
 __host__ __device__ CComplex CComplex::operator +(double d){
   return CComplex(m_real+d, m_imag);
-}
-
-__host__ __device__ CComplex CComplex::operator - (CComplex c){
-  return CComplex(m_real-c.m_real, m_imag-c.m_imag);
 }
 
 __host__ __device__ CComplex CComplex::operator - (double d) {
@@ -152,8 +165,8 @@ __host__ __device__ CComplex CComplex::operator - (double d) {
 }
 
 __host__ __device__ CComplex CComplex ::operator * (CComplex c) {
-  double real=m_real*c.m_real-m_imag*c.m_imag;
-  double imag=c.m_real*m_imag+m_real*c.m_imag;
+  double real=m_real*c.Re()-m_imag*c.Im();
+  double imag=c.Re()*m_imag+m_real*c.Im();
   return CComplex(real, imag);
 }
 
@@ -200,6 +213,15 @@ __host__ __device__ CComplex operator + (double d, CComplex c){
 __host__ __device__ CComplex operator - (double d, CComplex c) {
   return CComplex (d-c.Re(), c.Im());
 }
+
+__host__ __device__ CComplex operator - (CComplex c1, CComplex c2) {
+  return CComplex (c1.Re()-c2.Re(), c1.Im()-c2.Im());
+}
+
+CComplex operator - (CComplex c){
+  return CComplex(-c.Re(), -c.Im());
+}
+
 
 __host__ __device__ CComplex operator * (double d, CComplex c){
   return CComplex (d*c.Re(), d*c.Im());

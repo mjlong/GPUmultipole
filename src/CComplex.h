@@ -295,4 +295,3 @@ __host__ __device__ CComplex<DType> operator / (DType d, CComplex<DType> c){
 }
 
 #endif
-
