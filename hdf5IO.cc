@@ -1,6 +1,6 @@
 #include "hdf5IO.h"
 
-void h5read(struct multipoledata & pole, char filename[]) {
+void h5read(multipole & pole, char filename[]) {
   //  tuple *complext;
   tuple z;
   hid_t file_id, 
