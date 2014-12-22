@@ -28,6 +28,7 @@
 #define FADDEEVA_HH 
 
 #include "CPUComplex.h"
+#define CComplex CPUComplex<double>
 
 namespace Faddeeva {
 
