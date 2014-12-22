@@ -1,4 +1,4 @@
-#include "h5_rdwt.h"
+#include "hdf5IO.h"
 #include "multipole.h"
 #define NUM 10
 int main(){
@@ -12,9 +12,9 @@ int main(){
   FILE *file = fopen("results.txt","w");
   
   int i,j;
-  counts = (unsigned*)malloc(sizeof(unsigned)*2*N*2*N);
-  for(i=0;i<2*N*2*N;i++)
-      counts[i]=0;
+  //counts = (unsigned*)malloc(sizeof(unsigned)*2*N*2*N);
+  //for(i=0;i<2*N*2*N;i++)
+  //    counts[i]=0;
   h5read(U238, h5filename);
   srand(0);
   e1 = 1.95093e4;
@@ -23,7 +23,8 @@ int main(){
   while(energy>=e0){
     rnd = rand()/(double)RAND_MAX;
     //energy = 20000.0; //(i+1.0)*1.63;//20000.0;//
-    U238.xs_eval_fast(21,sqrt(KB*T),sigT,sigA,sigF,counts,2*N);
+    //U238.xs_eval_fast(21,sqrt(KB*T),sigT,sigA,sigF,counts,2*N);
+    U238.xs_eval_fast(energy,sqrt(KB*T),sigT,sigA,sigF);
     printf("xs:%g,%g,%g\n",sigT,sigA,sigF);
     energy = energy*rnd;
   }
