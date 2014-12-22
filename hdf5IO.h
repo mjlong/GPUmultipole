@@ -1,18 +1,18 @@
 #ifndef __H5_READ_H__
 #define __H5_READ_H__
-#include "CPUComplex.h"
-#include <iostream>
 #include "stdio.h"
 #include "stdlib.h"
 #include "hdf5.h"
-#include "multipole.h"
-using namespace std;
+#include "CPUComplex.h"
+#include "multipole_data.h"
+
+#define CMPTYPE double 
 
 typedef struct{
-  double complex[2];
+  CMPTYPE complex[2];
 }tuple;
 
-
-void h5read(multipole & pole, char filename[]); 
+void h5read(struct multipoledata & pole, char filename[]); 
 
 #endif
+
