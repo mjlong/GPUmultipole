@@ -15,7 +15,8 @@
 #include "CPUComplex.h"
 #include <iostream>
 #include "Faddeeva.h"
-#include "tinytope.h"
+#include "global.h"
+
 using namespace std;
 using namespace Faddeeva;
 
@@ -24,7 +25,7 @@ class multipole{
   int fissionable;
   CComplex *mpdata;
   unsigned      length;
-  unsigned *l_value, *j_value; // l and j index of the pole
+  unsigned *l_value; // l index of the pole
   int      w_function; //Which W function to use
   double   *pseudo_rho;  //inherit nomenclature from isotope.h
 
