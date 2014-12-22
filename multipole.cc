@@ -5,7 +5,7 @@ multipole::multipole(){
 
 
 void multipole::xs_eval_fast(double E, double sqrtKT, 
-			     double &sigT, double &sigA, double &sigF, unsigned *counts,unsigned edge){
+			     double &sigT, double &sigA, double &sigF){
   int    iP, iC, iW, startW, endW;
   double *twophi;
   double sqrtE = sqrt(E);
@@ -38,21 +38,9 @@ void multipole::xs_eval_fast(double E, double sqrtKT,
   //Faddeeva evaluation in advance
   DOPP = sqrtAWR/sqrtKT;
   DOPP_ECOEF = DOPP/E*sqrt(PI);
-  int row,col;
   for(iP=startW;iP<=endW;iP++){
     Z_array[iP-startW] = (sqrtE - mpdata[pindex(iP-1,MP_EA)])*DOPP;
     CComplex temp = (sqrtE - mpdata[pindex(iP-1,MP_EA)])*DOPP;
-    col = real(temp)/DELTA+N;
-    if(col<0)
-      col = 0;
-    if(col>=2*N)
-      col = 2*N-1;
-    row = imag(temp)/DELTA+N;
-    if(row<0)
-      row = 0;
-    if(row>=2*N)
-      row = 2*N-1;
-    counts[row*edge+col]++;
     W_array[iP-startW] = w(Z_array[iP-startW])*DOPP_ECOEF;
   }
 
