@@ -10,45 +10,6 @@
   allocating device memory, transfering data and partitioning computation sources
 */
 
-void initialize_neutrons(unsigned gridx, unsigned blockx,MemStruct DeviceMem){
-  initialize<<<gridx, blockx>>>(DeviceMem);
-}
-
-void start_neutrons(unsigned gridx, unsigned blockx, material mat, multipole mp_data, MemStruct DeviceMem, unsigned num_src,unsigned active){
-    history<<<gridx, blockx, blockx*sizeof(unsigned)>>>(mat, mp_data, DeviceMem, num_src,active);
-} 
-
-unsigned count_neutrons(unsigned gridx, unsigned blockx, MemStruct DeviceMem, MemStruct HostMem, unsigned num_src){
-//count terminated neutrons 
-  unsigned active;
-  reduce_sum_plus<<<1, gridx, gridx*sizeof(unsigned)>>>(DeviceMem.block_terminated_neutrons, DeviceMem.num_terminated_neutrons);
-  gpuErrchk(cudaMemcpy(HostMem.num_terminated_neutrons,DeviceMem.num_terminated_neutrons,sizeof(unsigned int), cudaMemcpyDeviceToHost));
-  active = HostMem.num_terminated_neutrons[0] + gridx*blockx < num_src;  
-#if defined(__PRINTTRACK__)
-  printf("[active]%d terminated\n",HostMem.num_terminated_neutrons[0]);
-#endif
-  return active;
-}
-
-unsigned count_lives(unsigned gridx, unsigned blockx, MemStruct DeviceMem, MemStruct HostMem){
-//count neutrons still marked "live"
-  unsigned active;
-  reduce_sum_equal<<<gridx,blockx,blockx*sizeof(unsigned)>>>(DeviceMem.nInfo.live, DeviceMem.block_terminated_neutrons);
-  //I made a mistake to reuse block_terminated_neutrons here. 
-  //However, as long as blockx<=gridx(size of block_terminated_neutrons), there would be no problem
-  reduce_sum_equal<<<1,gridx, gridx*sizeof(unsigned)>>>(DeviceMem.block_terminated_neutrons, DeviceMem.num_live_neutrons);
-  gpuErrchk(cudaMemcpy(&active, DeviceMem.num_live_neutrons, sizeof(unsigned), cudaMemcpyDeviceToHost));  
-  return active;
-}
-
-void sort_prepare(unsigned gridx, unsigned blockx,MemStruct DeviceMem, material mat){
-  update_sort_key<<<gridx, blockx>>>(DeviceMem, mat);
-}
-
-void transport_neutrons(unsigned gridx, unsigned blockx,MemStruct DeviceMem, material mat, unsigned renew){
-  transport<<<gridx, blockx>>>(DeviceMem, mat,renew);
-}
-
 void print_results(unsigned gridx, unsigned blockx, unsigned num_src, unsigned num_bin,  MemStruct HostMem, float timems){
   
   unsigned *d_cnt, *h_cnt;
@@ -61,13 +22,13 @@ void print_results(unsigned gridx, unsigned blockx, unsigned num_src, unsigned n
     sum+=h_cnt[j];
     printf("%4d \n",h_cnt[j]);
   }
-  printf("%u\n",HostMem.num_terminated_neutrons[0]);
+  printf("%u\n",HostMem.num_terminated_neutrons);
   printf("time elapsed:%g mus\n", timems*1000/sum);
   
   free(h_cnt);
   FILE *fp=NULL;
   fp = fopen("timelog","a+");
-  fprintf(fp,"%-4d,%-4d,%-.6f,%-8d,%-4d,%-2d M\n", gridx, blockx,timems*1000/sum, *HostMem.num_terminated_neutrons, 1, num_src/1000000);
+  fprintf(fp,"%-4d,%-4d,%-.6f,%-8d,%-4d,%-2d M\n", gridx, blockx,timems*1000/sum, HostMem.num_terminated_neutrons, 1, num_src/1000000);
   fclose(fp);
 }
 
