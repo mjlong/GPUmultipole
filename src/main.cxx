@@ -13,6 +13,7 @@
 
 #include "multipole.h"
 #include "material.h"
+#include "simulation.h"
 
 #include <time.h>
 void printbless();
@@ -31,10 +32,9 @@ int main(int argc, char **argv){
 //=============simulation memory allocation===================
 //============================================================
   initialize_device();
-  MemStruct HostMem, DeviceMem;
+  MemStruct HostMem;
   unsigned num_bin = readbins(&(HostMem.tallybins),"tallybins")-1;
-  initialize_memory(&DeviceMem, &HostMem, num_bin, gridx,blockx);
-  free(HostMem.tallybins);
+  initialize_memory(&HostMem, num_bin, gridx,blockx);
 //============================================================ 
 //===============Faddeeva tables==============================
 //============================================================
@@ -62,23 +62,6 @@ int main(int argc, char **argv){
 #endif
 
 //============================================================ 
-//=============CUDPP Initialization===========================
-//============================================================
-//  CUDPPHandle theCudpp;
-//  cudppCreate(&theCudpp);
-//  CUDPPConfiguration config;
-//  config.datatype = CUDPP_DOUBLE;
-//  config.algorithm = CUDPP_SORT_RADIX;
-//  config.options=CUDPP_OPTION_KEY_VALUE_PAIRS;
-//  config.options=CUDPP_OPTION_BACKWARD;
-//  CUDPPHandle sortplan = 0;
-//  CUDPPResult res = cudppPlan(theCudpp, &sortplan, config, gridsize, 1, 0);
-//  if (CUDPP_SUCCESS != res)
-//  {
-//      printf("Error creating CUDPPPlan\n");
-//      exit(-1);
-//  }
-//============================================================ 
 //=============Read Isotopes(multipole data)==================
 //============================================================
   int numIso,totIso;
@@ -93,8 +76,6 @@ int main(int argc, char **argv){
 #else
   multipole mp_para(isotopes, numIso);
 #endif 
-//release host isotope data memory
-  freeMultipoleData(numIso,isotopes);
 //============================================================ 
 //=======Read Materials([isotope, density] pairs)=============
 //============================================================
@@ -103,8 +84,6 @@ int main(int argc, char **argv){
   totIso=matread(pmat,argv[8]); 
 //copy host material setting to device
   material mat(pmat, totIso);
-//release host material memory
-  freeMaterialData(pmat);
 //============================================================ 
 //===============main simulation body=========================
 //============================================================
@@ -116,61 +95,26 @@ unsigned active;
 #else
   active = 1u;
 #endif
-initialize_neutrons(gridx, blockx, DeviceMem); 
 clock_start = clock();
+//energy = STARTENE;
 while(active){
-  //since transport_neutrons() surrects all neutrons, rtLaunch always works full load, no need to sort here
-  //sort key = live*(isotopeID*MAXENERGY+energy)
-  //sort_prepare(gridx, blockx, DeviceMem, mat);
-  //cudppRadixSort(sortplan, DeviceMem.nInfo.isoenergy, DeviceMem.nInfo.id, gridsize);
-  //                          keys,                   values,             numElements
-  //neutrons found leaked in *locate* will not be evaluated 
-  start_neutrons(gridx, blockx, mat, mp_para, DeviceMem, num_src,1);
-  //besides moving, neutrons terminated is initiated as new 
-  active = count_neutrons(gridx, blockx, DeviceMem, HostMem,num_src);
-  transport_neutrons(gridx, blockx, DeviceMem, mat, active); 
-  //if active=1; transport<<<>>> will renew neutrons with live=0
-  //if active=0; transport<<<>>> will leave terminated neutrons
-  //set active always 1 to make sure number of neutrons simulated exactly equal to num_src
+  active=0;  
 }
 clock_end   = clock();
 time_elapsed = (float)(clock_end-clock_start)/CLOCKS_PER_SEC*1000.f;
 printf("[time], active cycles costs %f ms\/%d neutrons\n", time_elapsed, HostMem.num_terminated_neutrons[0]);
-#if defined(__PRINTTRACK__)
-unsigned left = count_lives(gridx,blockx,DeviceMem,HostMem);
-#else
-HostMem.num_terminated_neutrons[0]+=count_lives(gridx,blockx,DeviceMem,HostMem);
-#endif
-active = 1;
-while(0!=active){
-  //about twice sort in one loop
-  //1. add extra sort here
-  //2. only sort before xs evaluation, allows thread divergence in ray tracing
-  //sort_prepare(gridx, blockx, DeviceMem, mat);
-  //cudppRadixSort(sortplan, DeviceMem.nInfo.isoenergy, DeviceMem.nInfo.id, gridsize);
-  //RT_CHECK_ERROR(rtContextLaunch1D(context, 0, gridsize));
-
-  //sort_prepare(gridx, blockx, DeviceMem, mat);
-  //cudppRadixSort(sortplan, DeviceMem.nInfo.isoenergy, DeviceMem.nInfo.id, gridsize);
-  start_neutrons(gridx, blockx, mat, mp_para, DeviceMem, num_src,0);
-
-  active = count_lives(gridx, blockx, DeviceMem, HostMem);
-#if defined(__PRINTTRACK__)
-  HostMem.num_terminated_neutrons[0]+=left-active;
-  left = active;
-  printf("[remaining]%d terminated, %d left\n",HostMem.num_terminated_neutrons[0],left);
-#endif
-  transport_neutrons(gridx, blockx, DeviceMem, mat, 0); 
-}
-clock_end   = clock();
-time_elapsed = (float)(clock_end-clock_start)/CLOCKS_PER_SEC*1000.f;
-printf("[time], active + remain cycles costs %f ms\/%d neutrons\n", time_elapsed, HostMem.num_terminated_neutrons[0]);
-print_results(gridx, blockx, num_src, num_bin, DeviceMem, HostMem, time_elapsed);
+print_results(gridx, blockx, num_src, num_bin, HostMem, time_elapsed);
  
 //============================================================ 
 //=============simulation shut down===========================
 //============================================================
-  release_memory(DeviceMem, HostMem);
+  free(HostMem.tallybins);
+//release host isotope data memory
+  freeMultipoleData(numIso,isotopes);
+//release host material memory
+  freeMaterialData(pmat);
+
+  release_memory(HostMem);
   mp_para.release_pointer();
   mat.release_pointer();
 #if defined(__FOURIERW)
@@ -182,17 +126,6 @@ print_results(gridx, blockx, num_src, num_bin, DeviceMem, HostMem, time_elapsed)
 #if defined(__QUICKW)
   release_wtables(wtable);
 #endif
-//  res = cudppDestroyPlan(sortplan);
-//  if (CUDPP_SUCCESS != res)
-//  {
-//      printf("Error destroying CUDPPPlan\n");
-//      exit(-1);
-//  }
-
-// shut down the CUDPP library
-//  cudppDestroy(theCudpp);
-// destroy the optix ray tracing context
-//  rtContextDestroy(context); 
   return 0;
 }
 
