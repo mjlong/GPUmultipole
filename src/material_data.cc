@@ -25,9 +25,10 @@ unsigned matread(struct matdata *pmat, char* filename){
   }
   //mat wise data
   pmat->numMat=m;
-  pmat->offsets = (unsigned*)malloc(sizeof(unsigned)*m);
+  pmat->offsets = (unsigned*)malloc(sizeof(unsigned)*(m+1));
   pmat->N_tot = (float*)malloc(sizeof(float)*m);
   nums = i-m;
+  pmat->offsets[m] = nums;
   //isotope wise data
   pmat->isotopes = (unsigned*)malloc(sizeof(unsigned)*(i-m));
   pmat->densities= (float*)malloc(sizeof(float)*(i-m));
