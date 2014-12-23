@@ -2,13 +2,13 @@
 #ALLCPU = 1
 #W()GPU = 2
 #XS_GPU = 3
-ifeq($(COP),1)
+ifeq ($(COP),1)
   COP_IDEN = -D __ALLCPU
 endif
-ifeq($(COP),2)
+ifeq ($(COP),2)
   COP_IDEN = -D __W__GPU
 endif
-ifeq($(COP),3)
+ifeq ($(COP),3)
   COP_IDEN = -D __XS_GPU
 endif
 #WFUNCTION METHODS
@@ -141,7 +141,7 @@ ${DIR_OBJ}/%.obj : ${DIR_SRC}/%.cc
 	$(CC)             $(CMPTYPE) $(CCFLAGS) $^ -o $@
 ${DIR_OBJ}/%.ob : ${DIR_SRC}/%.cxx
 	@echo $(epoch)
-	$(NVCC) $(W_IDEN) $(RTMETHOD) $(CMPTYPE) $(NCFLAGS) $^ -o $@
+	$(NVCC) $(W_IDEN) $(COP_IDEN) $(RTMETHOD) $(CMPTYPE) $(NCFLAGS) $^ -o $@
 ${DIR_OBJ}/%.o : ${DIR_SRC}/%.cu
 	@echo $(epoch)
 	$(NVCC) $(W_IDEN) $(RTMETHOD) $(CMPTYPE) $(NCFLAGS)  $^ -o $@
