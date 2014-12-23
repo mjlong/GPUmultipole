@@ -13,4 +13,5 @@
 #define ENDENERG 0.00001
 #define MAXENERGY 30000.0
 
+unsigned search_bin(CMPTYPE energy,float* spectrumbins);
 #endif
