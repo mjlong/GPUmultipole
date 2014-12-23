@@ -87,16 +87,17 @@ int main(int argc, char **argv){
 //============================================================
 clock_t clock_start, clock_end;
 float time_elapsed = 0.f;
-unsigned active;
+unsigned active,ibatch,ihistory;
 double energy,rnd;
-#if defined(__PROCESS) //|| defined(__TRACK)
-  active = 0u;
-#else
-  active = 1u;
-#endif
 srand(0);
 HostMem.num_terminated_neutrons=0;
 clock_start = clock();
+
+ibatch = 0;
+while(ibatch<num_batch){
+ihistory = 0;
+while(ihistory<num_src){
+active = 1u;
 energy = STARTENE;
 while(active){
   HostMem.spectrum[search_bin(energy,HostMem.tallybins)]+=1;
@@ -106,6 +107,10 @@ while(active){
   HostMem.tally.cnt+=1;
 }
   HostMem.num_terminated_neutrons+=1;
+  ihistory+=1;
+}
+  ibatch+=1;
+}
 clock_end   = clock();
 time_elapsed = (float)(clock_end-clock_start)/CLOCKS_PER_SEC*1000.f;
 printf("[time], active cycles costs %f ms\/%d neutrons\n", time_elapsed, HostMem.num_terminated_neutrons);
