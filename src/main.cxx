@@ -96,10 +96,9 @@ int main(int argc, char **argv){
     printf("\n");
   } 
   printf("maxiso=%d\n",maxiso);
-  int *iS_h = (int*)malloc(sizeof(int)*maxiso); 
-  CMPTYPE *sigTs = (CMPTYPE*)malloc(sizeof(CMPTYPE)*maxiso);
-  CMPTYPE *sigAs = (CMPTYPE*)malloc(sizeof(CMPTYPE)*maxiso);
-  CMPTYPE *sigFs = (CMPTYPE*)malloc(sizeof(CMPTYPE)*maxiso);
+  unsigned *iS_h, *iS_d; 
+  CMPTYPE *sigTs_h,*sigAs_h,*sigFs_h,*sigTs_d,*sigAs_d,*sigFs_d;
+  allocate_buffer(maxiso,&iS_d,&sigTs_h,&sigAs_h,&sigFs_h,&sigTs_d,&sigAs_d,&sigFs_d); 
 #endif
 //============================================================ 
 //===============main simulation body=========================
@@ -107,6 +106,7 @@ int main(int argc, char **argv){
 clock_t clock_start, clock_end;
 float time_elapsed = 0.f;
 unsigned active,ibatch,ihistory;
+unsigned imat,iso,numiso;
 double energy,rnd;
 srand(0);
 HostMem.num_terminated_neutrons=0;
@@ -119,6 +119,11 @@ while(ihistory<num_src){
 active = 1u;
 energy = STARTENE;
 while(active){
+  imat = 0;//fix it to 0 for the moment
+  iS_h = pmat->isotopes+pmat->offsets[imat];
+  numiso = pmat->offsets[imat+1] - pmat->offsets[imat];
+  eval_xs(mp_para, iS_h,iS_d, numiso, energy,sqrt(300.0*KB), 
+          sigTs_h, sigAs_h, sigFs_h, sigTs_d, sigAs_d, sigFs_d);
   HostMem.spectrum[search_bin(energy,HostMem.tallybins)]+=1;
   rnd = rand()/(double)RAND_MAX;  
   energy = energy*rnd;
@@ -138,10 +143,9 @@ print_results(num_src, num_bin, HostMem, time_elapsed);
 //============================================================ 
 //=============simulation shut down===========================
 //============================================================
-  free(iS_h);
-  free(sigTs);
-  free(sigAs);
-  free(sigFs); 
+#if defined(__XS_GPU)
+  release_buffer(iS_d,sigTs_h,sigAs_h,sigFs_h,sigTs_d,sigAs_d,sigFs_d);
+#endif
   free(HostMem.tallybins);
 //release host isotope data memory
   freeMultipoleData(numIso,isotopes);
