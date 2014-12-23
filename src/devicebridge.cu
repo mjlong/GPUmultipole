@@ -10,7 +10,7 @@
   allocating device memory, transfering data and partitioning computation sources
 */
 
-void print_results(unsigned gridx, unsigned blockx, unsigned num_src, unsigned num_bin,  MemStruct HostMem, float timems){
+void print_results(unsigned num_src, unsigned num_bin,  MemStruct HostMem, float timems){
   
 /*print collision cnt and time*/
   unsigned sum=0;
@@ -23,7 +23,7 @@ void print_results(unsigned gridx, unsigned blockx, unsigned num_src, unsigned n
   
   FILE *fp=NULL;
   fp = fopen("timelog","a+");
-  fprintf(fp,"%-4d,%-4d,%-.6f,%-8d,%-4d,%-2d M\n", gridx, blockx,timems*1000/sum, HostMem.num_terminated_neutrons, 1, num_src/1000000);
+  fprintf(fp,"%-.6f,%-8d,%-4d,%-2d M\n", timems*1000/sum, HostMem.num_terminated_neutrons, 1, num_src/1000000);
   fclose(fp);
 }
 

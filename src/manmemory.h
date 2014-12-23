@@ -9,7 +9,7 @@
 void initialize_device();
 
 //Simulation memory allocate and deallocate
-void initialize_memory(MemStruct *HostMem, unsigned numbins, unsigned gridx, unsigned blockx );
+void initialize_memory(MemStruct *HostMem, unsigned numbins);
 void release_memory(MemStruct DeviceMem);
 
 //Faddeeva function table management

@@ -22,19 +22,17 @@ int main(int argc, char **argv){
 //============================================================ 
 //====================calculation dimension===================
 //============================================================
-  unsigned gridx, blockx, gridsize;
+  unsigned num_batch;
   unsigned num_src;
-  gridx = atoi(argv[1]);
-  blockx = atoi(argv[2]);
-  gridsize = gridx*blockx;
-  num_src = atoi(argv[3]);
+  num_batch = atoi(argv[1]);
+  num_src = atoi(argv[2]);
 //============================================================ 
 //=============simulation memory allocation===================
 //============================================================
   initialize_device();
   MemStruct HostMem;
   unsigned num_bin = readbins(&(HostMem.tallybins),"tallybins")-1;
-  initialize_memory(&HostMem, num_bin, gridx,blockx);
+  initialize_memory(&HostMem, num_bin);
 //============================================================ 
 //===============Faddeeva tables==============================
 //============================================================
@@ -66,10 +64,10 @@ int main(int argc, char **argv){
 //============================================================
   int numIso,totIso;
 //read from hdf5 file to host memory
-  numIso = count_isotopes(argv[7]);
+  numIso = count_isotopes(argv[3]);
   struct multipoledata *isotopes;
   isotopes = (struct multipoledata*)malloc(sizeof(struct multipoledata)*numIso);
-  isotope_read(argv[7],isotopes);
+  isotope_read(argv[3],isotopes);
 //copy host isotope data to device
 #if defined(__QUICKWG)
   multipole mp_para(isotopes, numIso, wtable);
@@ -81,7 +79,7 @@ int main(int argc, char **argv){
 //============================================================
 //read from text setting file to host memory 
   struct matdata *pmat=(struct matdata*)malloc(sizeof(struct matdata));
-  totIso=matread(pmat,argv[8]); 
+  totIso=matread(pmat,argv[4]); 
 //copy host material setting to device
   material mat(pmat, totIso);
 //============================================================ 
@@ -111,7 +109,7 @@ while(active){
 clock_end   = clock();
 time_elapsed = (float)(clock_end-clock_start)/CLOCKS_PER_SEC*1000.f;
 printf("[time], active cycles costs %f ms\/%d neutrons\n", time_elapsed, HostMem.num_terminated_neutrons);
-print_results(gridx, blockx, num_src, num_bin, HostMem, time_elapsed);
+print_results(num_src, num_bin, HostMem, time_elapsed);
  
 //============================================================ 
 //=============simulation shut down===========================
