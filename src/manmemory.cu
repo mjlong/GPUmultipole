@@ -75,3 +75,29 @@ void release_memory(MemStruct HostMem){
   return;
 }
 
+#if defined(__XS_GPU)
+void allocate_buffer(unsigned maxiso, unsigned** iS_d, 
+                     CMPTYPE** sigTs_h, CMPTYPE** sigAs_h, CMPTYPE** sigFs_h,
+                     CMPTYPE** sigTs_d, CMPTYPE** sigAs_d, CMPTYPE** sigFs_d){
+  *sigTs_h = (CMPTYPE*)malloc(sizeof(CMPTYPE)*maxiso);
+  *sigAs_h = (CMPTYPE*)malloc(sizeof(CMPTYPE)*maxiso);
+  *sigFs_h = (CMPTYPE*)malloc(sizeof(CMPTYPE)*maxiso);
+  gpuErrchk(cudaMalloc((void**)iS_d, maxiso*sizeof(unsigned)));
+  gpuErrchk(cudaMalloc((void**)sigTs_d, maxiso*sizeof(CMPTYPE)));
+  gpuErrchk(cudaMalloc((void**)sigAs_d, maxiso*sizeof(CMPTYPE)));
+  gpuErrchk(cudaMalloc((void**)sigFs_d, maxiso*sizeof(CMPTYPE)));
+}
+
+void release_buffer(unsigned* iS_d, 
+                    CMPTYPE* sigTs_h, CMPTYPE* sigAs_h, CMPTYPE* sigFs_h, 
+                    CMPTYPE* sigTs_d, CMPTYPE* sigAs_d, CMPTYPE* sigFs_d){
+  free(sigTs_d);
+  free(sigAs_d);
+  free(sigFs_d);
+
+  gpuErrchk(cudaFree(iS_d));
+  gpuErrchk(cudaFree(sigTs_d));
+  gpuErrchk(cudaFree(sigAs_d));
+  gpuErrchk(cudaFree(sigFs_d));
+}
+#endif

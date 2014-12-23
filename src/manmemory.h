@@ -28,6 +28,13 @@ void fill_wtables(CComplex<CMPTYPE>** wtable);
 void release_wtables(CComplex<CMPTYPE>* wtable);
 #endif
 
-
+#if defined(__XS_GPU)
+void allocate_buffer(unsigned maxiso, unsigned** iS_d, 
+                     CMPTYPE** sigTs_h, CMPTYPE** sigAs_h, CMPTYPE** sigFs_h,
+                     CMPTYPE** sigTs_d, CMPTYPE** sigAs_d, CMPTYPE** sigFs_d);
+void release_buffer(unsigned* iS_d, 
+                    CMPTYPE* sigTs_h, CMPTYPE* sigAs_h, CMPTYPE* sigFs_h, 
+                    CMPTYPE* sigTs_d, CMPTYPE* sigAs_d, CMPTYPE* sigFs_d);
+#endif
 
 #endif
