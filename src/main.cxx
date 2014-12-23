@@ -82,6 +82,25 @@ int main(int argc, char **argv){
   totIso=matread(pmat,argv[4]); 
 //copy host material setting to device
   material mat(pmat, totIso);
+#if defined(__XS_GPU) 
+  unsigned maxiso = 0;
+  for(int imat=0;imat<pmat->numMat;imat++){
+    int numiso;
+    printf("imat=%d:",imat);
+    for(int iiso=pmat->offsets[imat];iiso<pmat->offsets[imat+1];iiso++){
+       printf(" %d,",pmat->isotopes[iiso]);
+    }
+    numiso = pmat->offsets[imat+1] - pmat->offsets[imat];
+    if(numiso>maxiso)
+      maxiso=numiso;
+    printf("\n");
+  } 
+  printf("maxiso=%d\n",maxiso);
+  int *iS_h = (int*)malloc(sizeof(int)*maxiso); 
+  CMPTYPE *sigTs = (CMPTYPE*)malloc(sizeof(CMPTYPE)*maxiso);
+  CMPTYPE *sigAs = (CMPTYPE*)malloc(sizeof(CMPTYPE)*maxiso);
+  CMPTYPE *sigFs = (CMPTYPE*)malloc(sizeof(CMPTYPE)*maxiso);
+#endif
 //============================================================ 
 //===============main simulation body=========================
 //============================================================
@@ -119,6 +138,10 @@ print_results(num_src, num_bin, HostMem, time_elapsed);
 //============================================================ 
 //=============simulation shut down===========================
 //============================================================
+  free(iS_h);
+  free(sigTs);
+  free(sigAs);
+  free(sigFs); 
   free(HostMem.tallybins);
 //release host isotope data memory
   freeMultipoleData(numIso,isotopes);
