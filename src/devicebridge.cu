@@ -12,20 +12,15 @@
 
 void print_results(unsigned gridx, unsigned blockx, unsigned num_src, unsigned num_bin,  MemStruct HostMem, float timems){
   
-  unsigned *d_cnt, *h_cnt;
-  gpuErrchk(cudaMalloc((void**)&d_cnt, num_bin*sizeof(unsigned)));
-  h_cnt = (unsigned*)malloc(num_bin*sizeof(unsigned));
-
 /*print collision cnt and time*/
   unsigned sum=0;
   for(int j=0;j<num_bin;j++){ 
-    sum+=h_cnt[j];
-    printf("%4d \n",h_cnt[j]);
+    sum+=HostMem.spectrum[j];
+    printf("%4d \n",HostMem.spectrum[j]);
   }
   printf("%u\n",HostMem.num_terminated_neutrons);
   printf("time elapsed:%g mus\n", timems*1000/sum);
   
-  free(h_cnt);
   FILE *fp=NULL;
   fp = fopen("timelog","a+");
   fprintf(fp,"%-4d,%-4d,%-.6f,%-8d,%-4d,%-2d M\n", gridx, blockx,timems*1000/sum, HostMem.num_terminated_neutrons, 1, num_src/1000000);
