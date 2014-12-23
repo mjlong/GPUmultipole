@@ -14,4 +14,6 @@
 #define MAXENERGY 30000.0
 
 unsigned search_bin(CMPTYPE energy,float* spectrumbins);
+__global__ void device_xs_eval(multipole mp_para, int *iS, CMPTYPE E, CMPTYPE sqrtKT, 
+                               CMPTYPE* sigTs, CMPTYPE* sigAs, CMPTYPE* sigFs);
 #endif
