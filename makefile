@@ -138,16 +138,16 @@ $(EXECUTABLE): $(MOBJECTS) $(COBJECTS) $(GOBJECTS) $(WOBJECTS) $(LINKJECT)
 	$(CC)  $^ $(LDFLAGS) -o $@
 ${DIR_OBJ}/%.obj : ${DIR_SRC}/%.cc
 	@echo $(epoch)
-	$(CC)             $(CMPTYPE) $(CCFLAGS) $^ -o $@
+	$(CC)             $(COP_IDEN)$(CMPTYPE) $(CCFLAGS) $^ -o $@
 ${DIR_OBJ}/%.ob : ${DIR_SRC}/%.cxx
 	@echo $(epoch)
 	$(NVCC) $(W_IDEN) $(COP_IDEN) $(RTMETHOD) $(CMPTYPE) $(NCFLAGS) $^ -o $@
 ${DIR_OBJ}/%.o : ${DIR_SRC}/%.cu
 	@echo $(epoch)
-	$(NVCC) $(W_IDEN) $(RTMETHOD) $(CMPTYPE) $(NCFLAGS)  $^ -o $@
+	$(NVCC) $(W_IDEN) $(COP_IDEN)$(RTMETHOD) $(CMPTYPE) $(NCFLAGS)  $^ -o $@
 ${DIR_OBJ}/%.o : ${DIR_SRC}/wfunction/%.cu
 	@echo $(epoch)
-	$(NVCC) $(W_IDEN) $(CMPTYPE) $(NCFLAGS)  $^ -o $@
+	$(NVCC) $(W_IDEN) $(COP_IDEN)$(CMPTYPE) $(NCFLAGS)  $^ -o $@
 $(LINKJECT) : $(GOBJECTS) $(WOBJECTS)
 	$(NVCC) $(LINKLAG) $^ -o $@
 clean :  
