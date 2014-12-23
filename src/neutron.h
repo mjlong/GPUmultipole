@@ -19,34 +19,22 @@ typedef struct {
 }basicneutronInfo;
 
 typedef struct {
-  unsigned *cnt;
+  unsigned cnt;
   //CMPTYPE   *unknown;
 }TallyStruct;
 
 typedef struct {
-  unsigned *id;
-  unsigned *imat;
-  unsigned *live;
-  CMPTYPE *energy;
-  CMPTYPE *sigT;
-  CMPTYPE *sigA;
-  CMPTYPE *sigF;
-  float* pos_x;
-  float* pos_y;
-  float* pos_z;
-  float* dir_polar;
-  float* dir_azimu;
-  float* d_closest;
-  CMPTYPE *isoenergy;
-  curandState *rndState;
+  unsigned imat;
+  unsigned live;
+  CMPTYPE energy;
+  CMPTYPE sigT;
+  CMPTYPE sigA;
+  CMPTYPE sigF;
 }NeutronInfoStruct;
 
 typedef struct {
   NeutronInfoStruct nInfo;
-  unsigned int *block_terminated_neutrons;
-  unsigned int *num_terminated_neutrons;
-  unsigned int *num_live_neutrons;
-  unsigned int *block_spectrum;
+  unsigned num_terminated_neutrons;
   unsigned int *spectrum;
   float *tallybins;
   TallyStruct tally;

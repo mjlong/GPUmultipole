@@ -66,8 +66,7 @@ void release_wtables(CComplex<CMPTYPE>* wtable){
 
 void initialize_memory(MemStruct *HostMem, unsigned numbins, unsigned gridx, unsigned blockx ){
   (*HostMem).spectrum = (unsigned*)malloc(sizeof(unsigned)*numbins);  
-  (*HostMem).num_terminated_neutrons = (unsigned*)malloc(sizeof(unsigned));
-  (*HostMem).num_terminated_neutrons[0] = 0u;
+  memset((*HostMem).spectrum, 0, sizeof(unsigned)*numbins);
   return;
 }
 
