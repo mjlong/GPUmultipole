@@ -90,19 +90,27 @@ int main(int argc, char **argv){
 clock_t clock_start, clock_end;
 float time_elapsed = 0.f;
 unsigned active;
+double energy,rnd;
 #if defined(__PROCESS) //|| defined(__TRACK)
   active = 0u;
 #else
   active = 1u;
 #endif
+srand(0);
+HostMem.num_terminated_neutrons=0;
 clock_start = clock();
-//energy = STARTENE;
+energy = STARTENE;
 while(active){
-  active=0;  
+  HostMem.spectrum[search_bin(energy,HostMem.tallybins)]+=1;
+  rnd = rand()/(double)RAND_MAX;  
+  energy = energy*rnd;
+  active = energy>ENDENERG;
+  HostMem.tally.cnt+=1;
 }
+  HostMem.num_terminated_neutrons+=1;
 clock_end   = clock();
 time_elapsed = (float)(clock_end-clock_start)/CLOCKS_PER_SEC*1000.f;
-printf("[time], active cycles costs %f ms\/%d neutrons\n", time_elapsed, HostMem.num_terminated_neutrons[0]);
+printf("[time], active cycles costs %f ms\/%d neutrons\n", time_elapsed, HostMem.num_terminated_neutrons);
 print_results(gridx, blockx, num_src, num_bin, HostMem, time_elapsed);
  
 //============================================================ 
