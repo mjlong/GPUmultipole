@@ -4,16 +4,19 @@
 #include "tallybin.h"
 #include <stdio.h>
 #include <string.h>
+#define KB (8.617342E-5)
 
 //#include <cudpp.h>
 //#include <cudpp_config.h>
 #include <neutron.h>
 #include <manmemory.h>
 #include "devicebridge.h"
+#include "simulation.h"
 
+#if defined(__XS_GPU)
 #include "multipole.h"
 #include "material.h"
-#include "simulation.h"
+#endif
 
 #include <time.h>
 void printbless();
@@ -69,11 +72,13 @@ int main(int argc, char **argv){
   isotopes = (struct multipoledata*)malloc(sizeof(struct multipoledata)*numIso);
   isotope_read(argv[3],isotopes);
 //copy host isotope data to device
+#if defined(__XS_GPU)
 #if defined(__QUICKWG)
   multipole mp_para(isotopes, numIso, wtable);
 #else
   multipole mp_para(isotopes, numIso);
 #endif 
+#endif
 //============================================================ 
 //=======Read Materials([isotope, density] pairs)=============
 //============================================================
@@ -82,7 +87,6 @@ int main(int argc, char **argv){
   totIso=matread(pmat,argv[4]); 
 //copy host material setting to device
   material mat(pmat, totIso);
-#if defined(__XS_GPU) 
   unsigned maxiso = 0;
   for(int imat=0;imat<pmat->numMat;imat++){
     int numiso;
@@ -96,9 +100,12 @@ int main(int argc, char **argv){
     printf("\n");
   } 
   printf("maxiso=%d\n",maxiso);
+#if defined(__XS_GPU) 
   unsigned *iS_h, *iS_d; 
   CMPTYPE *sigTs_h,*sigAs_h,*sigFs_h,*sigTs_d,*sigAs_d,*sigFs_d;
   allocate_buffer(maxiso,&iS_d,&sigTs_h,&sigAs_h,&sigFs_h,&sigTs_d,&sigAs_d,&sigFs_d); 
+#else
+  CMPTYPE sigT, sigA, sigF;
 #endif
 //============================================================ 
 //===============main simulation body=========================
@@ -137,6 +144,12 @@ while(active){
     sigAsum += sigAs_h[iiso]*pmat->densities[ii];
     sigFsum += sigFs_h[iiso]*pmat->densities[ii];
     iiso++;
+#else
+    host_xs_eval_fast(isotopes[ii], energy, sqrt(300.0*KB), 
+                      sigT, sigA, sigF);
+    sigTsum += sigT*pmat->densities[ii];
+    sigAsum += sigA*pmat->densities[ii];
+    sigFsum += sigF*pmat->densities[ii];
 #endif
   }
 #if defined(__PRINTTRACK__)
@@ -170,6 +183,7 @@ print_results(num_src, num_bin, HostMem, time_elapsed);
   freeMaterialData(pmat);
 
   release_memory(HostMem);
+#if defined(__XS_GPU)
   mp_para.release_pointer();
   mat.release_pointer();
 #if defined(__FOURIERW)
@@ -180,6 +194,7 @@ print_results(num_src, num_bin, HostMem, time_elapsed);
 #endif
 #if defined(__QUICKW)
   release_wtables(wtable);
+#endif
 #endif
   return 0;
 }
