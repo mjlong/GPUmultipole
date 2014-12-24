@@ -56,6 +56,50 @@ LINKLAG=   -dlink -arch=sm_20
 LDFLAGS=-L${DIR_HDF5}/lib/ -L${DIR_CUDA6}/lib64 -L${DIR_CUDPP}/lib/ -lcudpp -lcudart -lhdf5 
 GSOURCES=$(wildcard ${DIR_SRC}/*.cu)
 WSOURCES=
+ifeq ($(COP),1)
+ifeq ($(WFUN),0)
+  W_IDEN = -D __MITW
+  WSOURCES += $(DIR_SRC)/wfunction/Faddeeva.cc
+  EXENAME=$(DIR_BIN)/cgpumr_mitw_double
+#else 
+#  W_IDEN = -D __SAMPLE
+#  EXENAME=$(DIR_BIN)/cgpumr_sample_double
+#  ifeq ($(WFUN), 3)
+#  W_IDEN = -D __FOURIERW
+#  WSOURCES += $(DIR_SRC)/wfunction/fourierw.cu
+#  EXENAME=$(DIR_BIN)/cgpumr_fourierw_double
+#  endif
+#  ifeq ($(WFUN), 31)
+#  W_IDEN = -D __QUICKWF -D __FOURIERW
+#  WSOURCES += $(DIR_SRC)/wfunction/fourierw.cu
+#  EXENAME=$(DIR_BIN)/cgpumr_quickwf_double
+#  endif
+#  ifeq ($(WFUN), 33)
+#  W_IDEN = -D __INTERPEXP -D __QUICKWF -D __FOURIERW
+#  WSOURCES += $(DIR_SRC)/wfunction/fourierw.cu
+#  EXENAME=$(DIR_BIN)/cgpumr_quickexpf_double
+#  endif
+#  ifeq ($(WFUN),11)
+#  W_IDEN = -D __QUICKW -D __QUICKWG
+#  WSOURCES += $(DIR_SRC)/wfunction/Faddeeva.cu 
+#  WSOURCES += $(DIR_SRC)/wfunction/QuickW.cu
+#  EXENAME=$(DIR_BIN)/cgpumr_quickwg_double
+#  endif 
+#  ifeq ($(WFUN),12)
+#  W_IDEN = -D __QUICKW -D __QUICKWT
+#  WSOURCES += $(DIR_SRC)/wfunction/Faddeeva.cu 
+#  WSOURCES += $(DIR_SRC)/wfunction/QuickW.cu
+#  EXENAME=$(DIR_BIN)/cgpumr_quickwt_double
+#  endif
+#  ifeq ($(WFUN),13)
+#  W_IDEN = -D __QUICKW -D __QUICKWC
+#  #FLOAT=1
+#  WSOURCES += $(DIR_SRC)/wfunction/Faddeeva.cu 
+#  WSOURCES += $(DIR_SRC)/wfunction/QuickW.cu
+#  EXENAME=$(DIR_BIN)/cgpumr_quickwc_double
+#  endif
+endif#end if WFUN!=0   
+else
 # Faddeeva function implementation 
 ifeq ($(WFUN),0)
   W_IDEN = -D __MITW
@@ -99,6 +143,7 @@ else
   EXENAME=$(DIR_BIN)/cgpumr_quickwc_double
   endif
 endif   
+endif#end if COP!=1
 #
 ifeq ($(compare),1)
   W_IDEN += -D __PROCESS
@@ -130,24 +175,34 @@ MSOURCES=$(wildcard ${DIR_SRC}/*.cxx)
 #MSOURCES = main.cxx; 
 COBJECTS=$(patsubst %.cc, ${DIR_OBJ}/%.obj, $(notdir ${CSOURCES}))
 MOBJECTS=$(patsubst %.cxx, ${DIR_OBJ}/%.ob, $(notdir ${MSOURCES}))
-GOBJECTS=$(patsubst %.cu, ${DIR_OBJ}/%.o, $(notdir ${GSOURCES}))
+ifeq ($(COP),1)
+WOBJECTS=$(patsubst %.cc, ${DIR_OBJ}/%.o, $(notdir ${WSOURCES}))
+else
 WOBJECTS=$(patsubst %.cu, ${DIR_OBJ}/%.o, $(notdir ${WSOURCES}))
+endif
+GOBJECTS=$(patsubst %.cu, ${DIR_OBJ}/%.o, $(notdir ${GSOURCES}))
 LINKJECT=${DIR_OBJ}/dlink.o      
 all: $(EXECUTABLE)
 $(EXECUTABLE): $(MOBJECTS) $(COBJECTS) $(GOBJECTS) $(WOBJECTS) $(LINKJECT)
 	$(CC)  $^ $(LDFLAGS) -o $@
 ${DIR_OBJ}/%.obj : ${DIR_SRC}/%.cc
 	@echo $(epoch)
-	$(CC)             $(COP_IDEN) $(CMPTYPE) $(CCFLAGS) $^ -o $@
+	$(CC)   $(W_IDEN) $(COP_IDEN) $(CMPTYPE) $(CCFLAGS) $^ -o $@
 ${DIR_OBJ}/%.ob : ${DIR_SRC}/%.cxx
 	@echo $(epoch)
 	$(NVCC) $(W_IDEN) $(COP_IDEN) $(RTMETHOD) $(CMPTYPE) $(NCFLAGS) $^ -o $@
-${DIR_OBJ}/%.o : ${DIR_SRC}/%.cu
+ifeq ($(COP),1)
+${DIR_OBJ}/%.o : ${DIR_SRC}/wfunction/%.cc
 	@echo $(epoch)
-	$(NVCC) $(W_IDEN) $(COP_IDEN) $(RTMETHOD) $(CMPTYPE) $(NCFLAGS)  $^ -o $@
+	$(NVCC) $(W_IDEN) $(COP_IDEN) $(CMPTYPE) $(NCFLAGS)  $^ -o $@
+else
 ${DIR_OBJ}/%.o : ${DIR_SRC}/wfunction/%.cu
 	@echo $(epoch)
 	$(NVCC) $(W_IDEN) $(COP_IDEN) $(CMPTYPE) $(NCFLAGS)  $^ -o $@
+endif
+${DIR_OBJ}/%.o : ${DIR_SRC}/%.cu
+	@echo $(epoch)
+	$(NVCC) $(W_IDEN) $(COP_IDEN) $(RTMETHOD) $(CMPTYPE) $(NCFLAGS)  $^ -o $@
 $(LINKJECT) : $(GOBJECTS) $(WOBJECTS)
 	$(NVCC) $(LINKLAG) $^ -o $@
 clean :  
