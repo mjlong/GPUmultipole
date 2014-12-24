@@ -47,4 +47,26 @@ void freeMultipoleData(int numIsos, struct multipoledata* data);
 unsigned count_isotopes(char* inputname);
 void isotope_read(char* input, struct multipoledata* isotopes );
 
+#if defined(__ALLCPU)
+#define MP_EA 0
+#define MP_RT 1
+#define MP_RA 2
+#define MP_RF 3
+#define MP_FISS 1
+#define FIT_T 0
+#define FIT_A 1
+#define FIT_F 2
+
+#if defined(__MITW)
+#include "Faddeeva.hh"
+#define w_function Faddeeva::w
+#endif
+void host_xs_eval_fast(struct multipoledata iso, CMPTYPE E, CMPTYPE sqrtKT, 
+			                 CMPTYPE &sigT, CMPTYPE &sigA, CMPTYPE &sigF);
+void fill_factors(CMPTYPE sqrtE, int numL, CMPTYPE* pseudo_rho,   
+                                        CPUComplex<double> *sigT_factor);
+int pindex(int iP, int type);
+int findex(int iW, int iC, int type, int orders, int types);
+#endif
+
 #endif
