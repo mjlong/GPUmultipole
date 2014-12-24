@@ -69,8 +69,8 @@ void host_xs_eval_fast(struct multipoledata iso, CMPTYPE E, CMPTYPE sqrtKT,
   unsigned mode        = iso.mode;
   unsigned fitorder    = iso.fitorder;
   unsigned numL        = iso.numL;
-  unsigned fissionable = fissionable;
-  unsigned windows     = windows;      
+  unsigned fissionable = iso.fissionable;
+  unsigned windows     = iso.windows;      
 
   int    iP, iC, iW, startW, endW;
   if(1==mode)
@@ -100,7 +100,7 @@ void host_xs_eval_fast(struct multipoledata iso, CMPTYPE E, CMPTYPE sqrtKT,
     sigA += iso.fit[findex(iW,iC,FIT_A,fitorder+1,FIT_F+fissionable)]*power;
     if(MP_FISS == fissionable)
       sigF += iso.fit[findex(iW,iC,FIT_F,fitorder+1,FIT_F+fissionable)]*power;
- }
+  }
 
   DOPP = sqrtAWR/sqrtKT;
   DOPP_ECOEF = DOPP/E*sqrt(PI);
