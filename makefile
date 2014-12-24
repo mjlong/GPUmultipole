@@ -30,7 +30,7 @@ DIR_HDF5  = /home/jlmiao/opt/hdf5
 DIR_CUDA6 = /usr/local/cuda-6.0
 DIR_CUDPP = /home/jlmiao/opt/cudpp-2.1
 #Include flags
-INC_SRC   = -I${DIR_SRC} -I${DIR_SRC}/wfunction
+INC_SRC   = -I${DIR_SRC} -I${DIR_SRC}/wfunction -I${DIR_SRC}/multipole
 INC_HDF5  = -I${DIR_HDF5}/include
 INC_CUDA6 = -I${DIR_CUDA6}/include
 INC_CUDPP = -I${DIR_CUDPP}/include
@@ -56,6 +56,7 @@ LINKLAG=   -dlink -arch=sm_20
 LDFLAGS=-L${DIR_HDF5}/lib/ -L${DIR_CUDA6}/lib64 -L${DIR_CUDPP}/lib/ -lcudpp -lcudart -lhdf5 
 GSOURCES=$(wildcard ${DIR_SRC}/*.cu)
 WSOURCES=
+XSOURCES=
 ifeq ($(COP),1)
 ifeq ($(WFUN),0)
   W_IDEN = -D __MITW
@@ -100,6 +101,7 @@ ifeq ($(WFUN),0)
 #  endif
 endif#end if WFUN!=0   
 else
+  XSOURCES += $(DIR_SRC)/multipole/multipole.cu
 # Faddeeva function implementation 
 ifeq ($(WFUN),0)
   W_IDEN = -D __MITW
@@ -177,13 +179,15 @@ COBJECTS=$(patsubst %.cc, ${DIR_OBJ}/%.obj, $(notdir ${CSOURCES}))
 MOBJECTS=$(patsubst %.cxx, ${DIR_OBJ}/%.ob, $(notdir ${MSOURCES}))
 ifeq ($(COP),1)
 WOBJECTS=$(patsubst %.cc, ${DIR_OBJ}/%.o, $(notdir ${WSOURCES}))
+XOBJECTS=$(patsubst %.cc, ${DIR_OBJ}/%.obj, $(notdir ${XSOURCES}))
 else
 WOBJECTS=$(patsubst %.cu, ${DIR_OBJ}/%.o, $(notdir ${WSOURCES}))
+XOBJECTS=$(patsubst %.cu, ${DIR_OBJ}/%.o, $(notdir ${XSOURCES}))
 endif
 GOBJECTS=$(patsubst %.cu, ${DIR_OBJ}/%.o, $(notdir ${GSOURCES}))
 LINKJECT=${DIR_OBJ}/dlink.o      
 all: $(EXECUTABLE)
-$(EXECUTABLE): $(MOBJECTS) $(COBJECTS) $(GOBJECTS) $(WOBJECTS) $(LINKJECT)
+$(EXECUTABLE): $(MOBJECTS) $(COBJECTS) $(GOBJECTS) $(WOBJECTS) $(XOBJECTS) $(LINKJECT)
 	$(CC)  $^ $(LDFLAGS) -o $@
 ${DIR_OBJ}/%.obj : ${DIR_SRC}/%.cc
 	@echo $(epoch)
@@ -191,6 +195,9 @@ ${DIR_OBJ}/%.obj : ${DIR_SRC}/%.cc
 ${DIR_OBJ}/%.ob : ${DIR_SRC}/%.cxx
 	@echo $(epoch)
 	$(NVCC) $(W_IDEN) $(COP_IDEN) $(RTMETHOD) $(CMPTYPE) $(NCFLAGS) $^ -o $@
+${DIR_OBJ}/%.obj : ${DIR_SRC}/multipole/%.cc
+	@echo $(epoch)
+	$(NVCC) $(W_IDEN) $(COP_IDEN) $(CMPTYPE) $(NCFLAGS)  $^ -o $@
 ifeq ($(COP),1)
 ${DIR_OBJ}/%.o : ${DIR_SRC}/wfunction/%.cc
 	@echo $(epoch)
@@ -199,11 +206,14 @@ else
 ${DIR_OBJ}/%.o : ${DIR_SRC}/wfunction/%.cu
 	@echo $(epoch)
 	$(NVCC) $(W_IDEN) $(COP_IDEN) $(CMPTYPE) $(NCFLAGS)  $^ -o $@
+${DIR_OBJ}/%.o : ${DIR_SRC}/multipole/%.cu
+	@echo $(epoch)
+	$(NVCC) $(W_IDEN) $(COP_IDEN) $(CMPTYPE) $(NCFLAGS)  $^ -o $@
 endif
 ${DIR_OBJ}/%.o : ${DIR_SRC}/%.cu
 	@echo $(epoch)
 	$(NVCC) $(W_IDEN) $(COP_IDEN) $(RTMETHOD) $(CMPTYPE) $(NCFLAGS)  $^ -o $@
-$(LINKJECT) : $(GOBJECTS) $(WOBJECTS)
+$(LINKJECT) : $(GOBJECTS) $(WOBJECTS) $(XOBJECTS)
 	$(NVCC) $(LINKLAG) $^ -o $@
 clean :  
 	find ${DIR_OBJ} -name *.o   -exec rm -rf {} \;
