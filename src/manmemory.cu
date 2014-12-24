@@ -91,9 +91,9 @@ void allocate_buffer(unsigned maxiso, unsigned** iS_d,
 void release_buffer(unsigned* iS_d, 
                     CMPTYPE* sigTs_h, CMPTYPE* sigAs_h, CMPTYPE* sigFs_h, 
                     CMPTYPE* sigTs_d, CMPTYPE* sigAs_d, CMPTYPE* sigFs_d){
-  free(sigTs_d);
-  free(sigAs_d);
-  free(sigFs_d);
+  free(sigTs_h);
+  free(sigAs_h);
+  free(sigFs_h);
 
   gpuErrchk(cudaFree(iS_d));
   gpuErrchk(cudaFree(sigTs_d));
