@@ -107,7 +107,7 @@ clock_t clock_start, clock_end;
 float time_elapsed = 0.f;
 unsigned active,ibatch,ihistory;
 unsigned imat,iso,numiso;
-double energy,rnd;
+double energy,sigTsum,sigAsum,sigFsum,rnd;
 srand(0);
 HostMem.num_terminated_neutrons=0;
 clock_start = clock();
@@ -125,6 +125,19 @@ while(active){
   eval_xs(mp_para, iS_h,iS_d, numiso, energy,sqrt(300.0*KB), 
           sigTs_h, sigAs_h, sigFs_h, sigTs_d, sigAs_d, sigFs_d);
   HostMem.spectrum[search_bin(energy,HostMem.tallybins)]+=1;
+  sigTsum=0;
+  sigAsum=0;
+  sigFsum=0;
+  unsigned iiso=0;
+  for(int ii=pmat->offsets[imat];ii<pmat->offsets[imat+1];ii++){
+    sigTsum += sigTs_h[iiso]*pmat->densities[ii];
+    sigAsum += sigAs_h[iiso]*pmat->densities[ii];
+    sigFsum += sigFs_h[iiso]*pmat->densities[ii];
+    iiso++;
+  }
+#if defined(__PRINTTRACK__)
+  printf("[%2d,%3d] %.14e %.14e %.14e %.14e\n", ibatch,ihistory,energy,sigTsum,sigAsum,sigFsum);
+#endif
   rnd = rand()/(double)RAND_MAX;  
   energy = energy*rnd;
   active = energy>ENDENERG;
