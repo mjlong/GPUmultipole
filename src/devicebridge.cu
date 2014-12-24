@@ -1,5 +1,4 @@
 #include "CPUComplex.h"
-#include "CComplex.h"
 #include "simulation.h"
 #include "manmemory.h"
 
@@ -9,17 +8,6 @@
   this "main" file works as interface 
   allocating device memory, transfering data and partitioning computation sources
 */
-
-void eval_xs(multipole mp_para,unsigned int* iS_h,unsigned int* iS_d, unsigned numIso, CMPTYPE E, CMPTYPE sqrtKT, 
-                               CMPTYPE *sigTs_h, CMPTYPE *sigAs_h, CMPTYPE *sigFs_h,
-                               CMPTYPE *sigTs_d, CMPTYPE *sigAs_d, CMPTYPE *sigFs_d){
-  gpuErrchk(cudaMemcpy(iS_d, iS_h, sizeof(unsigned int), cudaMemcpyHostToDevice));  
-  device_xs_eval<<<1,numIso>>>(mp_para,iS_d,E,sqrtKT,sigTs_d, sigAs_d, sigFs_d);
-  gpuErrchk(cudaMemcpy(sigTs_h, sigTs_d, sizeof(CMPTYPE), cudaMemcpyDeviceToHost));
-  gpuErrchk(cudaMemcpy(sigAs_h, sigAs_d, sizeof(CMPTYPE), cudaMemcpyDeviceToHost));
-  gpuErrchk(cudaMemcpy(sigFs_h, sigFs_d, sizeof(CMPTYPE), cudaMemcpyDeviceToHost));
-}
-
 void print_results(unsigned num_src, unsigned num_bin,  MemStruct HostMem, float timems){
   
 /*print collision cnt and time*/
@@ -35,6 +23,18 @@ void print_results(unsigned num_src, unsigned num_bin,  MemStruct HostMem, float
   fp = fopen("timelog","a+");
   fprintf(fp,"%-.6f,%-8d,%-4d,%-2d M\n", timems*1000/sum, HostMem.num_terminated_neutrons, 1, num_src/1000000);
   fclose(fp);
+}
+
+#if defined(__XS_GPU)
+#include "CComplex.h"
+void eval_xs(multipole mp_para,unsigned int* iS_h,unsigned int* iS_d, unsigned numIso, CMPTYPE E, CMPTYPE sqrtKT, 
+                               CMPTYPE *sigTs_h, CMPTYPE *sigAs_h, CMPTYPE *sigFs_h,
+                               CMPTYPE *sigTs_d, CMPTYPE *sigAs_d, CMPTYPE *sigFs_d){
+  gpuErrchk(cudaMemcpy(iS_d, iS_h, sizeof(unsigned int), cudaMemcpyHostToDevice));  
+  device_xs_eval<<<1,numIso>>>(mp_para,iS_d,E,sqrtKT,sigTs_d, sigAs_d, sigFs_d);
+  gpuErrchk(cudaMemcpy(sigTs_h, sigTs_d, sizeof(CMPTYPE), cudaMemcpyDeviceToHost));
+  gpuErrchk(cudaMemcpy(sigAs_h, sigAs_d, sizeof(CMPTYPE), cudaMemcpyDeviceToHost));
+  gpuErrchk(cudaMemcpy(sigFs_h, sigFs_d, sizeof(CMPTYPE), cudaMemcpyDeviceToHost));
 }
 
 void printdevice(){
@@ -81,6 +81,5 @@ void printdevice(){
 	    prop.maxGridSize[2] );
     printf( "\n" );
   }
-
-
 }
+#endif
