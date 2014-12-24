@@ -120,20 +120,24 @@ active = 1u;
 energy = STARTENE;
 while(active){
   imat = 0;//fix it to 0 for the moment
+#if defined(__XS_GPU)
   iS_h = pmat->isotopes+pmat->offsets[imat];
   numiso = pmat->offsets[imat+1] - pmat->offsets[imat];
   eval_xs(mp_para, iS_h,iS_d, numiso, energy,sqrt(300.0*KB), 
           sigTs_h, sigAs_h, sigFs_h, sigTs_d, sigAs_d, sigFs_d);
+#endif
   HostMem.spectrum[search_bin(energy,HostMem.tallybins)]+=1;
   sigTsum=0;
   sigAsum=0;
   sigFsum=0;
   unsigned iiso=0;
   for(int ii=pmat->offsets[imat];ii<pmat->offsets[imat+1];ii++){
+#if defined(__XS_GPU)
     sigTsum += sigTs_h[iiso]*pmat->densities[ii];
     sigAsum += sigAs_h[iiso]*pmat->densities[ii];
     sigFsum += sigFs_h[iiso]*pmat->densities[ii];
     iiso++;
+#endif
   }
 #if defined(__PRINTTRACK__)
   printf("[%2d,%3d] %.14e %.14e %.14e %.14e\n", ibatch,ihistory,energy,sigTsum,sigAsum,sigFsum);
