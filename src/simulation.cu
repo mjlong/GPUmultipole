@@ -8,12 +8,11 @@ unsigned search_bin(CMPTYPE energy,float* spectrumbins){
   return 0;
 }
 
+#if defined(__XS_GPU)
 __global__ void device_xs_eval(multipole mp_para, unsigned *iS, CMPTYPE E, CMPTYPE sqrtKT, 
                                CMPTYPE* sigTs, CMPTYPE* sigAs, CMPTYPE* sigFs){
   //use one block whose number of threads is the number of isotopes to evaluate xs
   unsigned id = threadIdx.x;
   mp_para.xs_eval_fast(iS[id], E, sqrtKT, sigTs[id],sigAs[id],sigFs[id]);
 }
-
-
-
+#endif
