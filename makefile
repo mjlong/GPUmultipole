@@ -62,14 +62,12 @@ ifeq ($(WFUN),0)
   W_IDEN = -D __MITW
   WSOURCES += $(DIR_SRC)/wfunction/Faddeeva.cc
   EXENAME=$(DIR_BIN)/cgpumr_mitw_double
-#else 
-#  W_IDEN = -D __SAMPLE
-#  EXENAME=$(DIR_BIN)/cgpumr_sample_double
-#  ifeq ($(WFUN), 3)
-#  W_IDEN = -D __FOURIERW
-#  WSOURCES += $(DIR_SRC)/wfunction/fourierw.cu
-#  EXENAME=$(DIR_BIN)/cgpumr_fourierw_double
-#  endif
+else 
+  ifeq ($(WFUN), 3)
+  W_IDEN = -D __FOURIERW
+  WSOURCES += $(DIR_SRC)/wfunction/fourierw.cc
+  EXENAME=$(DIR_BIN)/cgpumr_fourierw_double
+  endif
 #  ifeq ($(WFUN), 31)
 #  W_IDEN = -D __QUICKWF -D __FOURIERW
 #  WSOURCES += $(DIR_SRC)/wfunction/fourierw.cu
