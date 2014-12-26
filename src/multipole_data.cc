@@ -114,7 +114,7 @@ void host_xs_eval_fast(struct multipoledata iso, CMPTYPE E, CMPTYPE sqrtKT,
     w_val =  w_function((sqrtE - iso.mpdata[pindex(iP-1,MP_EA)])*DOPP       )*DOPP_ECOEF;
 #endif //end W method
 
-    sigT += real(iso.mpdata[pindex(iP-1,MP_RT)]*sigT_factor[iso.l_value[mode+iP-1]-1]*w_val);//sigtfactor);	    
+    sigT += real(iso.mpdata[pindex(iP-1,MP_RT)]*sigT_factor[iso.l_value[iP-1]-1]*w_val);//sigtfactor);	    
     sigA += real(iso.mpdata[pindex(iP-1,MP_RA)]*w_val);                              
     if(MP_FISS == fissionable)
       sigF += real(iso.mpdata[pindex(iP-1,MP_RF)]*w_val);
