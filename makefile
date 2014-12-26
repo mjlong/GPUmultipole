@@ -61,12 +61,12 @@ ifeq ($(COP),1)
 ifeq ($(WFUN),0)
   W_IDEN = -D __MITW
   WSOURCES += $(DIR_SRC)/wfunction/Faddeeva.cc
-  EXENAME=$(DIR_BIN)/cgpumr_mitw_double
+  EXENAME=$(DIR_BIN)/cgpumr_mitw_allcpu
 else 
   ifeq ($(WFUN), 3)
   W_IDEN = -D __FOURIERW
   WSOURCES += $(DIR_SRC)/wfunction/fourierw.cc
-  EXENAME=$(DIR_BIN)/cgpumr_fourierw_double
+  EXENAME=$(DIR_BIN)/cgpumr_fourierw_allcpu
   endif
 #  ifeq ($(WFUN), 31)
 #  W_IDEN = -D __QUICKWF -D __FOURIERW
@@ -82,54 +82,91 @@ else
   W_IDEN = -D __QUICKW -D __QUICKWG
   WSOURCES += $(DIR_SRC)/wfunction/Faddeeva.cc 
   WSOURCES += $(DIR_SRC)/wfunction/QuickW.cc
-  EXENAME=$(DIR_BIN)/cgpumr_quickwg_double
+  EXENAME=$(DIR_BIN)/cgpumr_quickwg_allcpu
   endif 
 endif#end if WFUN!=0   
+else
+ifeq ($(COP),2)
+ifeq ($(WFUN),0)
+  W_IDEN = -D __MITW
+  WSOURCES += $(DIR_SRC)/wfunction/Faddeeva.cu
+  EXENAME=$(DIR_BIN)/cgpumr_mitw_wgpu
+else 
+  ifeq ($(WFUN), 3)
+  W_IDEN = -D __FOURIERW
+  WSOURCES += $(DIR_SRC)/wfunction/fourierw.cu
+  EXENAME=$(DIR_BIN)/cgpumr_fourierw_wgpu
+  endif
+  ifeq ($(WFUN), 31)
+  W_IDEN = -D __QUICKWF -D __FOURIERW
+  WSOURCES += $(DIR_SRC)/wfunction/fourierw.cu
+  EXENAME=$(DIR_BIN)/cgpumr_quickwf_wgpu
+  endif
+  ifeq ($(WFUN), 33)
+  W_IDEN = -D __INTERPEXP -D __QUICKWF -D __FOURIERW
+  WSOURCES += $(DIR_SRC)/wfunction/fourierw.cu
+  EXENAME=$(DIR_BIN)/cgpumr_quickexpf_wgpu
+  endif
+  ifeq ($(WFUN),11)
+  W_IDEN = -D __QUICKW -D __QUICKWG
+  WSOURCES += $(DIR_SRC)/wfunction/Faddeeva.cu 
+  WSOURCES += $(DIR_SRC)/wfunction/QuickW.cu
+  EXENAME=$(DIR_BIN)/cgpumr_quickwg_wgpu
+  endif 
+  ifeq ($(WFUN),13)
+  W_IDEN = -D __QUICKW -D __QUICKWC
+  #FLOAT=1
+  WSOURCES += $(DIR_SRC)/wfunction/Faddeeva.cu 
+  WSOURCES += $(DIR_SRC)/wfunction/QuickW.cu
+  EXENAME=$(DIR_BIN)/cgpumr_quickwc_wgpu
+  endif
+endif#end if WFUN!=0
 else
   XSOURCES += $(DIR_SRC)/multipole/multipole.cu
 # Faddeeva function implementation 
 ifeq ($(WFUN),0)
   W_IDEN = -D __MITW
   WSOURCES += $(DIR_SRC)/wfunction/Faddeeva.cu
-  EXENAME=$(DIR_BIN)/cgpumr_mitw_double
+  EXENAME=$(DIR_BIN)/cgpumr_mitw_xsgpu
 else 
   W_IDEN = -D __SAMPLE
-  EXENAME=$(DIR_BIN)/cgpumr_sample_double
+  EXENAME=$(DIR_BIN)/cgpumr_sample_xsgpu
   ifeq ($(WFUN), 3)
   W_IDEN = -D __FOURIERW
   WSOURCES += $(DIR_SRC)/wfunction/fourierw.cu
-  EXENAME=$(DIR_BIN)/cgpumr_fourierw_double
+  EXENAME=$(DIR_BIN)/cgpumr_fourierw_xsgpu
   endif
   ifeq ($(WFUN), 31)
   W_IDEN = -D __QUICKWF -D __FOURIERW
   WSOURCES += $(DIR_SRC)/wfunction/fourierw.cu
-  EXENAME=$(DIR_BIN)/cgpumr_quickwf_double
+  EXENAME=$(DIR_BIN)/cgpumr_quickwf_xsgpu
   endif
   ifeq ($(WFUN), 33)
   W_IDEN = -D __INTERPEXP -D __QUICKWF -D __FOURIERW
   WSOURCES += $(DIR_SRC)/wfunction/fourierw.cu
-  EXENAME=$(DIR_BIN)/cgpumr_quickexpf_double
+  EXENAME=$(DIR_BIN)/cgpumr_quickexpf_xsgpu
   endif
   ifeq ($(WFUN),11)
   W_IDEN = -D __QUICKW -D __QUICKWG
   WSOURCES += $(DIR_SRC)/wfunction/Faddeeva.cu 
   WSOURCES += $(DIR_SRC)/wfunction/QuickW.cu
-  EXENAME=$(DIR_BIN)/cgpumr_quickwg_double
+  EXENAME=$(DIR_BIN)/cgpumr_quickwg_xsgpu
   endif 
   ifeq ($(WFUN),12)
   W_IDEN = -D __QUICKW -D __QUICKWT
   WSOURCES += $(DIR_SRC)/wfunction/Faddeeva.cu 
   WSOURCES += $(DIR_SRC)/wfunction/QuickW.cu
-  EXENAME=$(DIR_BIN)/cgpumr_quickwt_double
+  EXENAME=$(DIR_BIN)/cgpumr_quickwt_xsgpu
   endif
   ifeq ($(WFUN),13)
   W_IDEN = -D __QUICKW -D __QUICKWC
   #FLOAT=1
   WSOURCES += $(DIR_SRC)/wfunction/Faddeeva.cu 
   WSOURCES += $(DIR_SRC)/wfunction/QuickW.cu
-  EXENAME=$(DIR_BIN)/cgpumr_quickwc_double
+  EXENAME=$(DIR_BIN)/cgpumr_quickwc_xsgpu
   endif
 endif   
+endif
 endif#end if COP!=1
 #
 ifeq ($(compare),1)
@@ -148,7 +185,7 @@ endif
 #TOSUM: never use FLOAT=1
 ifeq ($(FLOAT),1)
   CMPTYPE = -D __CFLOAT
-  EXECUTABLE=$(patsubst %_double, %_float, $(EXENAME))
+  EXECUTABLE=$(patsubst %pu, %pu_float, $(EXENAME))
   epoch = 'NEVER use FLOAT'
 else
   EXECUTABLE=$(EXENAME)
@@ -191,9 +228,11 @@ else
 ${DIR_OBJ}/%.o : ${DIR_SRC}/wfunction/%.cu
 	@echo $(epoch)
 	$(NVCC) $(W_IDEN) $(COP_IDEN) $(CMPTYPE) $(NCFLAGS)  $^ -o $@
+ifeq ($(COP),3)
 ${DIR_OBJ}/%.o : ${DIR_SRC}/multipole/%.cu
 	@echo $(epoch)
 	$(NVCC) $(W_IDEN) $(COP_IDEN) $(CMPTYPE) $(NCFLAGS)  $^ -o $@
+endif
 endif
 ${DIR_OBJ}/%.o : ${DIR_SRC}/%.cu
 	@echo $(epoch)
