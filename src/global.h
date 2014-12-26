@@ -1,7 +1,8 @@
 #if defined(__ALLCPU)
 #include "CPUComplex.h"
 #define ccomplex CPUComplex<CMPTYPE>
-#else
+#endif
+#if defined(__XS_GPU)
 #include "CComplex.h"
 #define ccomplex CComplex<CMPTYPE>
 #endif
