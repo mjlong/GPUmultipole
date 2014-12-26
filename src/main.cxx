@@ -1,3 +1,4 @@
+#include "global.h"
 #include "CPUComplex.h"
 #include "multipole_data.h"
 #include "material_data.h"
@@ -58,7 +59,7 @@ int main(int argc, char **argv){
 //==========fill w function table for Quick W=================
 //
 #if defined(__QUICKW)
-  CComplex<CMPTYPE> *wtable;
+  ccomplex *wtable;
   fill_wtables(&wtable);
 #endif
 
@@ -148,9 +149,14 @@ while(active){
 #if defined(__FOURIERW)
     host_xs_eval_fast(isotopes[ii], da,db,energy, sqrt(300.0*KB), 
                       sigT, sigA, sigF);
+#else 
+#if defined(__QUICKW)
+    host_xs_eval_fast(isotopes[ii], wtable,energy, sqrt(300.0*KB), 
+                      sigT, sigA, sigF);
 #else //__MIT
     host_xs_eval_fast(isotopes[ii], energy, sqrt(300.0*KB), 
                       sigT, sigA, sigF);
+#endif
 #endif
     sigTsum += sigT*pmat->densities[ii];
     sigAsum += sigA*pmat->densities[ii];
@@ -191,6 +197,7 @@ print_results(num_src, num_bin, HostMem, time_elapsed);
 #if defined(__XS_GPU)
   mp_para.release_pointer();
   mat.release_pointer();
+#endif
 #if defined(__FOURIERW)
   release_wtables(da,db);
 #endif
@@ -199,7 +206,6 @@ print_results(num_src, num_bin, HostMem, time_elapsed);
 #endif
 #if defined(__QUICKW)
   release_wtables(wtable);
-#endif
 #endif
   return 0;
 }
