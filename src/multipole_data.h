@@ -60,9 +60,14 @@ void isotope_read(char* input, struct multipoledata* isotopes );
 #if defined(__MITW)
 #include "Faddeeva.hh"
 #define w_function Faddeeva::w
-#endif
 void host_xs_eval_fast(struct multipoledata iso, CMPTYPE E, CMPTYPE sqrtKT, 
 			                 CMPTYPE &sigT, CMPTYPE &sigA, CMPTYPE &sigF);
+#endif
+#if defined(__FOURIERW)
+#include "fourierw.hh"
+void host_xs_eval_fast(struct multipoledata iso, CMPTYPE* da, CMPTYPE* db, CMPTYPE E, CMPTYPE sqrtKT, 
+			                 CMPTYPE &sigT, CMPTYPE &sigA, CMPTYPE &sigF);
+#endif
 void fill_factors(CMPTYPE sqrtE, int numL, CMPTYPE* pseudo_rho,   
                                         CPUComplex<double> *sigT_factor);
 int pindex(int iP, int type);

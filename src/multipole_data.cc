@@ -54,8 +54,13 @@ void freeMultipoleData(int numIsos, struct multipoledata* data){
 
 
 #if defined(__ALLCPU)
+#if defined(__FOURIERW)
+void host_xs_eval_fast(struct multipoledata iso, CMPTYPE* da, CMPTYPE* db, CMPTYPE E, CMPTYPE sqrtKT, 
+			                 CMPTYPE &sigT, CMPTYPE &sigA, CMPTYPE &sigF){
+#else
 void host_xs_eval_fast(struct multipoledata iso, CMPTYPE E, CMPTYPE sqrtKT, 
 			                 CMPTYPE &sigT, CMPTYPE &sigA, CMPTYPE &sigF){
+#endif
 //!translated from mit-crpg/WHOPPER
   // Currently neutrons are slown down from 20.0MeV to 1.0E-5 eV, which is wider than
   // [startE, endE], 
@@ -111,8 +116,12 @@ void host_xs_eval_fast(struct multipoledata iso, CMPTYPE E, CMPTYPE sqrtKT,
 #if defined(__QUICKWG) 
     w_val =  w_function((sqrtE - iso.mpdata[pindex(iP-1,MP_EA)])*DOPP,mtable)*DOPP_ECOEF;
 #else
+#if defined(__FOURIERW)
+    w_val =  w_function((sqrtE - iso.mpdata[pindex(iP-1,MP_EA)])*DOPP,da,db)*DOPP_ECOEF;
+#else
     w_val =  w_function((sqrtE - iso.mpdata[pindex(iP-1,MP_EA)])*DOPP       )*DOPP_ECOEF;
 #endif //end W method
+#endif
 
     sigT += real(iso.mpdata[pindex(iP-1,MP_RT)]*sigT_factor[iso.l_value[iP-1]-1]*w_val);//sigtfactor);	    
     sigA += real(iso.mpdata[pindex(iP-1,MP_RA)]*w_val);                              
