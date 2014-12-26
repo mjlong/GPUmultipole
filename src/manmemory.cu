@@ -125,3 +125,34 @@ void release_buffer(unsigned* iS_d,
   gpuErrchk(cudaFree(sigFs_d));
 }
 #endif
+
+#if defined(__W__GPU)
+#include "multipole_data.h"
+void allocate_zwarray(CPUComplex<CMPTYPE>** z_h, CComplex<CMPTYPE>** z_d, 
+                      CPUComplex<CMPTYPE>** w_h, CComplex<CMPTYPE>** w_d, 
+                      unsigned numiso, struct multipoledata *iso){
+//find maxwindow
+  int maxwindow = 0;
+  for(int i=0;i<numiso;i++){
+    for(int j=0;j<iso[i].windows;j++){
+      int window = iso[i].w_end[j]-iso[i].w_start[j];
+      if( window > maxwindow)
+        maxwindow = window;
+    }
+    printf("iso[%d].maxwindow=%d\n",i,maxwindow);
+  }
+  printf("maxwindow=%d\n",maxwindow);
+  *z_h = (CPUComplex<CMPTYPE>*)malloc(sizeof(CMPTYPE)*2*maxwindow);
+  *w_h = (CPUComplex<CMPTYPE>*)malloc(sizeof(CMPTYPE)*2*maxwindow);
+  gpuErrchk(cudaMalloc((void**)z_d, maxwindow*sizeof(CMPTYPE)*2));
+  gpuErrchk(cudaMalloc((void**)w_d, maxwindow*sizeof(CMPTYPE)*2));
+
+}
+void release_zwarray(CPUComplex<CMPTYPE>* z_h, CComplex<CMPTYPE>* z_d, 
+                     CPUComplex<CMPTYPE>* w_h, CComplex<CMPTYPE>* w_d){
+  gpuErrchk(cudaFree(z_d));
+  gpuErrchk(cudaFree(w_d));
+  free(z_h);
+  free(w_h);
+}
+#endif

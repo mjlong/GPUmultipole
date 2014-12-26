@@ -37,4 +37,13 @@ void release_buffer(unsigned* iS_d,
                     CMPTYPE* sigTs_d, CMPTYPE* sigAs_d, CMPTYPE* sigFs_d);
 #endif
 
+#if defined(__W__GPU)
+#include "CComplex.h"
+#include "CPUComplex.h"
+void allocate_zwarray(CPUComplex<CMPTYPE>** z_h, CComplex<CMPTYPE>** z_d, 
+                      CPUComplex<CMPTYPE>** w_h, CComplex<CMPTYPE>** w_d, 
+                      unsigned numiso, struct multipoledata *iso);
+void release_zwarray(CPUComplex<CMPTYPE>* z_h, CComplex<CMPTYPE>* z_d, 
+                     CPUComplex<CMPTYPE>* w_h, CComplex<CMPTYPE>* w_d);
+#endif
 #endif

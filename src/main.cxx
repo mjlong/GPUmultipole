@@ -72,6 +72,13 @@ int main(int argc, char **argv){
   struct multipoledata *isotopes;
   isotopes = (struct multipoledata*)malloc(sizeof(struct multipoledata)*numIso);
   isotope_read(argv[3],isotopes);
+//allocate z_array and w_array
+#if defined(__W__GPU)
+  CPUComplex<CMPTYPE> *z_h, *w_h;
+  CComplex<CMPTYPE>   *z_d, *w_d;
+  allocate_zwarray(&z_h,&z_d,&w_h,&w_d,numIso,isotopes);
+#endif
+
 //copy host isotope data to device
 #if defined(__XS_GPU)
 #if defined(__QUICKWG)
@@ -184,6 +191,9 @@ print_results(num_src, num_bin, HostMem, time_elapsed);
 //============================================================ 
 //=============simulation shut down===========================
 //============================================================
+#if defined(__W__GPU)
+  release_zwarray(z_h,z_d,w_h,w_d);
+#endif
 #if defined(__XS_GPU)
   release_buffer(iS_d,sigTs_h,sigAs_h,sigFs_h,sigTs_d,sigAs_d,sigFs_d);
 #endif
