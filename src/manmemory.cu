@@ -2,9 +2,13 @@
 __constant__ float spectrumbins[NUM_BINS+1];
 
 #if defined (__FOURIERW)
+#if defined(__ALLCPU)
+#include "fourierw.hh"
+#else
 #include "fourierw.h"
 __constant__ CMPTYPE a[M+1];
 __constant__ CMPTYPE b[M+1];
+#endif
 #endif
 
 #if defined (__QUICKW)
@@ -23,6 +27,17 @@ void initialize_device(){
 }
 
 #if defined(__FOURIERW)
+#if defined(__ALLCPU)
+void fill_wtables(CMPTYPE** da, CMPTYPE** db){
+  *da = (CMPTYPE*)malloc(sizeof(CMPTYPE)*(M+1));
+  *db = (CMPTYPE*)malloc(sizeof(CMPTYPE)*(M+1)); 
+  fill_a(*da,*db); 
+}
+void release_wtables(CMPTYPE* da, CMPTYPE* db){
+  free(da);
+  free(db);
+}
+#else
 void fill_wtables(CMPTYPE** da, CMPTYPE** db){
   gpuErrchk(cudaMalloc((void**)da, (M+1)*sizeof(CMPTYPE))); 
   gpuErrchk(cudaMalloc((void**)db, (M+1)*sizeof(CMPTYPE))); 
@@ -35,6 +50,7 @@ void release_wtables(CMPTYPE* da, CMPTYPE* db){
   gpuErrchk(cudaFree(da));
   gpuErrchk(cudaFree(db));
 }
+#endif
 #endif
 
 #if defined(__INTERPEXP)
