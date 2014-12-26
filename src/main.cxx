@@ -145,8 +145,13 @@ while(active){
     sigFsum += sigFs_h[iiso]*pmat->densities[ii];
     iiso++;
 #else
+#if defined(__FOURIERW)
+    host_xs_eval_fast(isotopes[ii], da,db,energy, sqrt(300.0*KB), 
+                      sigT, sigA, sigF);
+#else //__MIT
     host_xs_eval_fast(isotopes[ii], energy, sqrt(300.0*KB), 
                       sigT, sigA, sigF);
+#endif
     sigTsum += sigT*pmat->densities[ii];
     sigAsum += sigA*pmat->densities[ii];
     sigFsum += sigF*pmat->densities[ii];
