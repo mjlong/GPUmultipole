@@ -68,6 +68,13 @@ void host_xs_eval_fast(struct multipoledata iso, CMPTYPE E, CMPTYPE sqrtKT,
 void host_xs_eval_fast(struct multipoledata iso, CMPTYPE* da, CMPTYPE* db, CMPTYPE E, CMPTYPE sqrtKT, 
 			                 CMPTYPE &sigT, CMPTYPE &sigA, CMPTYPE &sigF);
 #endif
+#if defined(__QUICKW)
+#include "Faddeeva.hh"
+#include "QuickW.hh"
+void host_xs_eval_fast(struct multipoledata iso, CPUComplex<CMPTYPE>*, CMPTYPE E, CMPTYPE sqrtKT, 
+			                 CMPTYPE &sigT, CMPTYPE &sigA, CMPTYPE &sigF);
+#endif
+
 void fill_factors(CMPTYPE sqrtE, int numL, CMPTYPE* pseudo_rho,   
                                         CPUComplex<double> *sigT_factor);
 int pindex(int iP, int type);

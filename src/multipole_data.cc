@@ -58,8 +58,13 @@ void freeMultipoleData(int numIsos, struct multipoledata* data){
 void host_xs_eval_fast(struct multipoledata iso, CMPTYPE* da, CMPTYPE* db, CMPTYPE E, CMPTYPE sqrtKT, 
 			                 CMPTYPE &sigT, CMPTYPE &sigA, CMPTYPE &sigF){
 #else
+#if defined(__QUICKW)
+void host_xs_eval_fast(struct multipoledata iso, CPUComplex<CMPTYPE>* mtable, CMPTYPE E, CMPTYPE sqrtKT, 
+			                 CMPTYPE &sigT, CMPTYPE &sigA, CMPTYPE &sigF){
+#else
 void host_xs_eval_fast(struct multipoledata iso, CMPTYPE E, CMPTYPE sqrtKT, 
 			                 CMPTYPE &sigT, CMPTYPE &sigA, CMPTYPE &sigF){
+#endif
 #endif
 //!translated from mit-crpg/WHOPPER
   // Currently neutrons are slown down from 20.0MeV to 1.0E-5 eV, which is wider than
