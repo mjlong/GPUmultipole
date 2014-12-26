@@ -1,9 +1,9 @@
 #ifndef __MEMORY_H__
 #define __MEMORY_H__
 
+#include "global.h"
 #include "gpuerrchk.h"
 #include "neutron.h"
-#include "CComplex.h"
 
 //initialize device
 void initialize_device();
@@ -24,8 +24,8 @@ void release_wtables(CComplex<CMPTYPE>* exptable);
 #endif
 
 #if defined(__QUICKW)
-void fill_wtables(CComplex<CMPTYPE>** wtable);
-void release_wtables(CComplex<CMPTYPE>* wtable);
+void fill_wtables(ccomplex** wtable);
+void release_wtables(ccomplex* wtable);
 #endif
 
 #if defined(__XS_GPU)

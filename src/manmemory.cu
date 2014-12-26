@@ -12,12 +12,16 @@ __constant__ CMPTYPE b[M+1];
 #endif
 
 #if defined (__QUICKW)
+#if defined (__ALLCPU)
+#include "QuickW.hh"
+#else
 #include "QuickW.h"
-#endif
-
 #if defined (__QUICKWC) || defined(__INTERPEXP)
 __constant__ CMPTYPE2 constwtable[LENGTH*LENGTH];
 #endif
+#endif
+#endif
+
 
 
 //Simulation memory allocate and deallocate
@@ -65,19 +69,23 @@ void release_wtables(CComplex<CMPTYPE>* exptable){
 #endif
 
 #if defined(__QUICKW)
+#if defined(__ALLCPU)
+void fill_wtables(CPUComplex<CMPTYPE>** wtable){
+  *wtable = (CPUComplex<CMPTYPE>*)malloc(LENGTH*LENGTH * 2 * sizeof(CMPTYPE));
+  fill_w_tabulated(*wtable);
+}
+void release_wtables(CPUComplex<CMPTYPE>* wtable){
+  free(wtable);
+}
+#else
 void fill_wtables(CComplex<CMPTYPE>** wtable){
   gpuErrchk(cudaMalloc((void**)wtable, LENGTH*LENGTH * 2 * sizeof(CMPTYPE)));
   fill_w_tabulated<<<LENGTH,LENGTH>>>(*wtable);
-#if defined(__QUICKWC)
-  cudaMemcpyToSymbol(constwtable, *wtable, LENGTH*LENGTH*2*sizeof(CMPTYPE), 0, cudaMemcpyDeviceToDevice);
-#endif
-#if defined(__QUICKWT)
-  bindwtable(*wtable);
-#endif
 }
 void release_wtables(CComplex<CMPTYPE>* wtable){
   gpuErrchk(cudaFree(wtable));
 }
+#endif
 #endif
 
 void initialize_memory(MemStruct *HostMem, unsigned numbins){
