@@ -78,25 +78,12 @@ else
 #  WSOURCES += $(DIR_SRC)/wfunction/fourierw.cu
 #  EXENAME=$(DIR_BIN)/cgpumr_quickexpf_double
 #  endif
-#  ifeq ($(WFUN),11)
-#  W_IDEN = -D __QUICKW -D __QUICKWG
-#  WSOURCES += $(DIR_SRC)/wfunction/Faddeeva.cu 
-#  WSOURCES += $(DIR_SRC)/wfunction/QuickW.cu
-#  EXENAME=$(DIR_BIN)/cgpumr_quickwg_double
-#  endif 
-#  ifeq ($(WFUN),12)
-#  W_IDEN = -D __QUICKW -D __QUICKWT
-#  WSOURCES += $(DIR_SRC)/wfunction/Faddeeva.cu 
-#  WSOURCES += $(DIR_SRC)/wfunction/QuickW.cu
-#  EXENAME=$(DIR_BIN)/cgpumr_quickwt_double
-#  endif
-#  ifeq ($(WFUN),13)
-#  W_IDEN = -D __QUICKW -D __QUICKWC
-#  #FLOAT=1
-#  WSOURCES += $(DIR_SRC)/wfunction/Faddeeva.cu 
-#  WSOURCES += $(DIR_SRC)/wfunction/QuickW.cu
-#  EXENAME=$(DIR_BIN)/cgpumr_quickwc_double
-#  endif
+  ifeq ($(WFUN),11)
+  W_IDEN = -D __QUICKW -D __QUICKWG
+  WSOURCES += $(DIR_SRC)/wfunction/Faddeeva.cc 
+  WSOURCES += $(DIR_SRC)/wfunction/QuickW.cc
+  EXENAME=$(DIR_BIN)/cgpumr_quickwg_double
+  endif 
 endif#end if WFUN!=0   
 else
   XSOURCES += $(DIR_SRC)/multipole/multipole.cu
