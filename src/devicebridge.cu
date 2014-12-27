@@ -83,3 +83,12 @@ void printdevice(){
   }
 }
 #endif
+
+#if defined(__W__GPU)
+void eval_w(CPUComplex<CMPTYPE>* z_h, void** z_d, CPUComplex<CMPTYPE>* w_h, void** w_d,unsigned window){
+  gpuErrchk(cudaMemcpy((CComplex<CMPTYPE>*)(*z_d),z_h,sizeof(CMPTYPE)*2*window,cudaMemcpyHostToDevice));
+  device_w_eval<<<1,window>>>((CComplex<CMPTYPE>*)(*z_d),(CComplex<CMPTYPE>*)(*w_d)); 
+  gpuErrchk(cudaMemcpy(w_h,(CComplex<CMPTYPE>*)(*w_d),sizeof(CMPTYPE)*2*window,cudaMemcpyDeviceToHost));
+}
+#endif
+
