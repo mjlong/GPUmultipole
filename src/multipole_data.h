@@ -14,6 +14,10 @@
 #define CMPTYPE double
 #endif
 
+#if defined(__W__GPU)
+extern void eval_w(CPUComplex<CMPTYPE>* z_h, void** z_d, CPUComplex<CMPTYPE>* w_h, void** w_d,unsigned window);
+#endif
+
 struct multipoledata{
   int fissionable;
   CPUComplex<CMPTYPE> *mpdata;
@@ -47,7 +51,8 @@ void freeMultipoleData(int numIsos, struct multipoledata* data);
 unsigned count_isotopes(char* inputname);
 void isotope_read(char* input, struct multipoledata* isotopes );
 
-#if defined(__ALLCPU)
+
+#if defined(__ALLCPU)||defined(__W__GPU)
 #define MP_EA 0
 #define MP_RT 1
 #define MP_RA 2
@@ -58,10 +63,17 @@ void isotope_read(char* input, struct multipoledata* isotopes );
 #define FIT_F 2
 
 #if defined(__MITW)
-#include "Faddeeva.hh"
 #define w_function Faddeeva::w
+#if defined(__ALLCPU)
+#include "Faddeeva.hh"
 void host_xs_eval_fast(struct multipoledata iso, CMPTYPE E, CMPTYPE sqrtKT, 
 			                 CMPTYPE &sigT, CMPTYPE &sigA, CMPTYPE &sigF);
+#else
+void host_xs_eval_fast(struct multipoledata iso, CPUComplex<CMPTYPE>* z_h, void** z_d, 
+                                                 CPUComplex<CMPTYPE>* w_h, void** w_d, 
+                                         CMPTYPE E, CMPTYPE sqrtKT, 
+			                 CMPTYPE &sigT, CMPTYPE &sigA, CMPTYPE &sigF);
+#endif
 #endif
 #if defined(__FOURIERW)
 #include "fourierw.hh"
@@ -79,6 +91,7 @@ void fill_factors(CMPTYPE sqrtE, int numL, CMPTYPE* pseudo_rho,
                                         CPUComplex<double> *sigT_factor);
 int pindex(int iP, int type);
 int findex(int iW, int iC, int type, int orders, int types);
-#endif
+
+#endif //end if ALLCPU or XSGPU
 
 #endif

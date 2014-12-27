@@ -53,7 +53,7 @@ void freeMultipoleData(int numIsos, struct multipoledata* data){
 }
 
 
-#if defined(__ALLCPU)
+#if defined(__ALLCPU)||defined(__W__GPU)
 #if defined(__FOURIERW)
 void host_xs_eval_fast(struct multipoledata iso, CMPTYPE* da, CMPTYPE* db, CMPTYPE E, CMPTYPE sqrtKT, 
 			                 CMPTYPE &sigT, CMPTYPE &sigA, CMPTYPE &sigF){
@@ -63,7 +63,13 @@ void host_xs_eval_fast(struct multipoledata iso, CPUComplex<CMPTYPE>* mtable, CM
 			                 CMPTYPE &sigT, CMPTYPE &sigA, CMPTYPE &sigF){
 #endif
 #if defined(__MITW)
+#if defined(__ALLCPU)
 void host_xs_eval_fast(struct multipoledata iso, CMPTYPE E, CMPTYPE sqrtKT, 
+			                 CMPTYPE &sigT, CMPTYPE &sigA, CMPTYPE &sigF){
+#else
+void host_xs_eval_fast(struct multipoledata iso, CPUComplex<CMPTYPE>* z_h, void** z_d, 
+                                                 CPUComplex<CMPTYPE>* w_h, void** w_d, 
+                                         CMPTYPE E, CMPTYPE sqrtKT, 
 			                 CMPTYPE &sigT, CMPTYPE &sigA, CMPTYPE &sigF){
 #endif
 #endif
@@ -116,6 +122,21 @@ void host_xs_eval_fast(struct multipoledata iso, CMPTYPE E, CMPTYPE sqrtKT,
   DOPP = sqrtAWR/sqrtKT;
   DOPP_ECOEF = DOPP/E*sqrt(PI);
 
+#if defined(__W__GPU)
+  if(startW<=endW){
+    for(int iP=startW;iP<=endW;iP++){
+      z_h[iP-startW] = (sqrtE - iso.mpdata[pindex(iP-1,MP_EA)])*DOPP;
+    }
+    eval_w(z_h,z_d,w_h,w_d,endW-startW+1);    
+  }
+  for(int iP=startW;iP<=endW;iP++){
+    sigT += real(iso.mpdata[pindex(iP-1,MP_RT)]*sigT_factor[iso.l_value[iP-1]-1]*w_h[iP-startW]*DOPP_ECOEF);//sigtfactor);	    
+    sigA += real(iso.mpdata[pindex(iP-1,MP_RA)]*w_h[iP-startW]*DOPP_ECOEF);                              
+    if(MP_FISS == fissionable)
+      sigF += real(iso.mpdata[pindex(iP-1,MP_RF)]*w_h[iP-startW]*DOPP_ECOEF);
+  }
+
+#else
   for(iP=startW;iP<=endW;iP++){
     //w_val = (sqrtE - mpdata[pindex(iP-1,MP_EA)])*DOPP*DOPP_ECOEF;
 
@@ -134,6 +155,7 @@ void host_xs_eval_fast(struct multipoledata iso, CMPTYPE E, CMPTYPE sqrtKT,
     if(MP_FISS == fissionable)
       sigF += real(iso.mpdata[pindex(iP-1,MP_RF)]*w_val);
   }
+#endif
 }
 
 
@@ -168,3 +190,4 @@ int findex(int iW, int iC, int type, int orders, int types){
   return iW*orders*types + iC*types + type; 
 }
 #endif
+
