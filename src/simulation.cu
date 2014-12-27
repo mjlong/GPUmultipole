@@ -8,6 +8,14 @@ unsigned search_bin(CMPTYPE energy,float* spectrumbins){
   return 0;
 }
 
+#if defined(__W__GPU)
+__global__ void device_w_eval(CComplex<CMPTYPE>* z_d, CComplex<CMPTYPE>* w_d){
+  //use one block whose number of threads is the number of z's to evaluate w(z) 
+  unsigned id = threadIdx.x;
+  w_d[id] = Faddeeva::w(z_d[id]);
+  printf("w(%g%+gi) = %g%+gi\n",real(z_d[id]),imag(z_d[id]),real(w_d[id]),imag(w_d[id]));
+}
+#endif
 #if defined(__XS_GPU)
 __global__ void device_xs_eval(multipole mp_para, unsigned *iS, CMPTYPE E, CMPTYPE sqrtKT, 
                                CMPTYPE* sigTs, CMPTYPE* sigAs, CMPTYPE* sigFs){
