@@ -161,7 +161,11 @@ while(active){
     host_xs_eval_fast(isotopes[ii], wtable,energy, sqrt(300.0*KB), 
                       sigT, sigA, sigF);
 #else //__MIT
-    host_xs_eval_fast(isotopes[ii], energy, sqrt(300.0*KB), 
+    host_xs_eval_fast(isotopes[ii], 
+#if defined(__W__GPU)
+                      z_h,(void**)&z_d,w_h,(void**)&w_d,
+#endif
+                      energy, sqrt(300.0*KB), 
                       sigT, sigA, sigF);
 #endif
 #endif
