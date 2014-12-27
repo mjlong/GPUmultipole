@@ -57,11 +57,12 @@ void freeMultipoleData(int numIsos, struct multipoledata* data){
 #if defined(__FOURIERW)
 void host_xs_eval_fast(struct multipoledata iso, CMPTYPE* da, CMPTYPE* db, CMPTYPE E, CMPTYPE sqrtKT, 
 			                 CMPTYPE &sigT, CMPTYPE &sigA, CMPTYPE &sigF){
-#else
+#endif
 #if defined(__QUICKW)
 void host_xs_eval_fast(struct multipoledata iso, CPUComplex<CMPTYPE>* mtable, CMPTYPE E, CMPTYPE sqrtKT, 
 			                 CMPTYPE &sigT, CMPTYPE &sigA, CMPTYPE &sigF){
-#else
+#endif
+#if defined(__MITW)
 void host_xs_eval_fast(struct multipoledata iso, CMPTYPE E, CMPTYPE sqrtKT, 
 			                 CMPTYPE &sigT, CMPTYPE &sigA, CMPTYPE &sigF){
 #endif
@@ -123,10 +124,10 @@ void host_xs_eval_fast(struct multipoledata iso, CMPTYPE E, CMPTYPE sqrtKT,
 #else
 #if defined(__FOURIERW)
     w_val =  w_function((sqrtE - iso.mpdata[pindex(iP-1,MP_EA)])*DOPP,da,db)*DOPP_ECOEF;
-#else
+#else //MITW
     w_val =  w_function((sqrtE - iso.mpdata[pindex(iP-1,MP_EA)])*DOPP       )*DOPP_ECOEF;
-#endif //end W method
-#endif
+#endif//end if!__FOURIERW 
+#endif//end W method
 
     sigT += real(iso.mpdata[pindex(iP-1,MP_RT)]*sigT_factor[iso.l_value[iP-1]-1]*w_val);//sigtfactor);	    
     sigA += real(iso.mpdata[pindex(iP-1,MP_RA)]*w_val);                              
