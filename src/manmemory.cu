@@ -132,10 +132,10 @@ void allocate_zwarray(CPUComplex<CMPTYPE>** z_h, CComplex<CMPTYPE>** z_d,
                       CPUComplex<CMPTYPE>** w_h, CComplex<CMPTYPE>** w_d, 
                       unsigned numiso, struct multipoledata *iso){
 //find maxwindow
-  int maxwindow = 0;
+  int maxwindow = 1;
   for(int i=0;i<numiso;i++){
     for(int j=0;j<iso[i].windows;j++){
-      int window = iso[i].w_end[j]-iso[i].w_start[j];
+      int window = iso[i].w_end[j]-iso[i].w_start[j]+1;
       if( window > maxwindow)
         maxwindow = window;
     }
