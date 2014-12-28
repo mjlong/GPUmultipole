@@ -54,29 +54,23 @@ void freeMultipoleData(int numIsos, struct multipoledata* data){
 
 
 #if defined(__ALLCPU)||defined(__W__GPU)
+#if defined(__W__GPU)
+void host_xs_eval_fast(struct multipoledata iso, CPUComplex<CMPTYPE>* z_h, void** z_d, 
+                                                 CPUComplex<CMPTYPE>* w_h, void** w_d, 
+                                         CMPTYPE E, CMPTYPE sqrtKT, 
+			                 CMPTYPE &sigT, CMPTYPE &sigA, CMPTYPE &sigF){
+#endif
+#if defined(__ALLCPU)
 #if defined(__FOURIERW)
 void host_xs_eval_fast(struct multipoledata iso, CMPTYPE* da, CMPTYPE* db, CMPTYPE E, CMPTYPE sqrtKT, 
 			                 CMPTYPE &sigT, CMPTYPE &sigA, CMPTYPE &sigF){
 #endif
 #if defined(__QUICKW)
-#if defined(__ALLCPU)
 void host_xs_eval_fast(struct multipoledata iso, CPUComplex<CMPTYPE>* mtable, CMPTYPE E, CMPTYPE sqrtKT, 
 			                 CMPTYPE &sigT, CMPTYPE &sigA, CMPTYPE &sigF){
-#else
-void host_xs_eval_fast(struct multipoledata iso, CPUComplex<CMPTYPE>* z_h, void** z_d, 
-                                                 CPUComplex<CMPTYPE>* w_h, void** w_d, 
-                                         CMPTYPE E, CMPTYPE sqrtKT, 
-			                 CMPTYPE &sigT, CMPTYPE &sigA, CMPTYPE &sigF){
-#endif
 #endif
 #if defined(__MITW)
-#if defined(__ALLCPU)
 void host_xs_eval_fast(struct multipoledata iso, CMPTYPE E, CMPTYPE sqrtKT, 
-			                 CMPTYPE &sigT, CMPTYPE &sigA, CMPTYPE &sigF){
-#else
-void host_xs_eval_fast(struct multipoledata iso, CPUComplex<CMPTYPE>* z_h, void** z_d, 
-                                                 CPUComplex<CMPTYPE>* w_h, void** w_d, 
-                                         CMPTYPE E, CMPTYPE sqrtKT, 
 			                 CMPTYPE &sigT, CMPTYPE &sigA, CMPTYPE &sigF){
 #endif
 #endif
