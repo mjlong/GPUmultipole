@@ -18,6 +18,12 @@ unsigned search_bin(CMPTYPE energy,float* spectrumbins);
 #include "Faddeeva.h"
 #endif
 #if defined(__W__GPU)
+#if defined(__MITW)
+#define w_function Faddeeva::w
+#endif
+#if defined(__QUICKW)
+#include "QuickW.h"
+#endif
 #include <stdio.h>
 __global__ void device_w_eval(CComplex<CMPTYPE>* z_d, CComplex<CMPTYPE>* w_d);
 #endif
