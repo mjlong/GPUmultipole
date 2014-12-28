@@ -24,8 +24,15 @@ void release_wtables(CComplex<CMPTYPE>* exptable);
 #endif
 
 #if defined(__QUICKW)
-void fill_wtables(ccomplex** wtable);
-void release_wtables(ccomplex* wtable);
+#if defined(__ALLCPU)
+#include "CPUComplex.h"
+void fill_wtables(CPUComplex<CMPTYPE>** wtable);
+void release_wtables(CPUComplex<CMPTYPE>* wtable);
+#else
+#include "CComplex.h"
+void fill_wtables(CComplex<CMPTYPE>** wtable);
+void release_wtables(CComplex<CMPTYPE>* wtable);
+#endif
 #endif
 
 #if defined(__XS_GPU)
