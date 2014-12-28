@@ -81,10 +81,17 @@ void host_xs_eval_fast(struct multipoledata iso, CMPTYPE* da, CMPTYPE* db, CMPTY
 			                 CMPTYPE &sigT, CMPTYPE &sigA, CMPTYPE &sigF);
 #endif
 #if defined(__QUICKW)
+#if defined(__ALLCPU)
 #include "Faddeeva.hh"
 #include "QuickW.hh"
 void host_xs_eval_fast(struct multipoledata iso, CPUComplex<CMPTYPE>*, CMPTYPE E, CMPTYPE sqrtKT, 
 			                 CMPTYPE &sigT, CMPTYPE &sigA, CMPTYPE &sigF);
+#else
+void host_xs_eval_fast(struct multipoledata iso, CPUComplex<CMPTYPE>* z_h, void** z_d, 
+                                                 CPUComplex<CMPTYPE>* w_h, void** w_d, 
+                                         CMPTYPE E, CMPTYPE sqrtKT, 
+			                 CMPTYPE &sigT, CMPTYPE &sigA, CMPTYPE &sigF);
+#endif
 #endif
 
 void fill_factors(CMPTYPE sqrtE, int numL, CMPTYPE* pseudo_rho,   
