@@ -49,6 +49,7 @@ CPUComplex<CMPTYPE> w_function(CPUComplex<CMPTYPE> z, CMPTYPE*a, CMPTYPE* b){
   for(int n=1;n<M;n++){
     //w = w + exp(-n*n*PI*PI/(taom*taom))*( (CMPTYPE)(((n<<31)>>31)|0x00000001)*B - (CMPTYPE)1.0)/(n*n*PI*PI - C);
     w = w + a[n]*( -B - (CMPTYPE)1.0)/(b[n] - C);
+    //printf("[%d]w=%g%+gi\n",n,real(w),imag(w));
     n++;
     w = w + a[n]*(  B - (CMPTYPE)1.0)/(b[n] - C);
   }
@@ -56,6 +57,7 @@ CPUComplex<CMPTYPE> w_function(CPUComplex<CMPTYPE> z, CMPTYPE*a, CMPTYPE* b){
 
   w = (w+w)*A;
   w = w + ((CMPTYPE)1.0-B)/A;
+  //printf("w(%g%+gi)=%g%+gi\n",real(z),imag(z),real(w*ONEI),imag(w*ONEI));
   return w*ONEI;
 #if defined(__QUICKWF)
   }
