@@ -62,7 +62,7 @@ int main(int argc, char **argv){
 #if defined(__ALLCPU)
   CPUComplex<double> *wtable;
 #else
-  CComplex<double> wtable;
+  CComplex<double> *wtable;
 #endif
   fill_wtables(&wtable);
 #endif
@@ -156,27 +156,38 @@ while(active){
     sigAsum += sigAs_h[iiso]*pmat->densities[ii];
     sigFsum += sigFs_h[iiso]*pmat->densities[ii];
     iiso++;
-#else
+#endif
+#if defined(__ALLCPU)
 #if defined(__FOURIERW)
     host_xs_eval_fast(isotopes[ii], da,db,energy, sqrt(300.0*KB), 
                       sigT, sigA, sigF);
-#else 
+#endif 
 #if defined(__QUICKW)
     host_xs_eval_fast(isotopes[ii], wtable,energy, sqrt(300.0*KB), 
                       sigT, sigA, sigF);
-#else //__MIT
-    host_xs_eval_fast(isotopes[ii], 
-#if defined(__W__GPU)
-                      z_h,(void**)&z_d,w_h,(void**)&w_d,
 #endif
+#if defined(__MITW)
+    host_xs_eval_fast(isotopes[ii],energy, sqrt(300.0*KB), 
+                      sigT, sigA, sigF);
+#endif
+#endif//end if __ALLCPU
+#if defined(__W__GPU)
+#if defined(__MITW)
+    host_xs_eval_fast(isotopes[ii], z_h,(void**)&z_d,w_h,(void**)&w_d,
                       energy, sqrt(300.0*KB), 
                       sigT, sigA, sigF);
 #endif
+#if defined(__QUICKWC)
+    host_xs_eval_fast(isotopes[ii],z_h,(void**)&z_d,w_h,(void**)&w_d, 
+                      energy, sqrt(300.0*KB), 
+                      sigT, sigA, sigF);
 #endif
+
+#endif//end if __W__GPU
+
     sigTsum += sigT*pmat->densities[ii];
     sigAsum += sigA*pmat->densities[ii];
     sigFsum += sigF*pmat->densities[ii];
-#endif
   }
 #if defined(__PRINTTRACK__)
   printf("[%2d,%3d] %.14e %.14e %.14e %.14e\n", ibatch,ihistory,energy,sigTsum,sigAsum,sigFsum);
