@@ -12,7 +12,9 @@ unsigned search_bin(CMPTYPE energy,float* spectrumbins){
 __global__ void device_w_eval(CComplex<CMPTYPE>* z_d, CComplex<CMPTYPE>* w_d){
   //use one block whose number of threads is the number of z's to evaluate w(z) 
   unsigned id = threadIdx.x;
-  w_d[id] = Faddeeva::w(z_d[id]);
+#if defined(__MITW)||defined(__QUICKWC)
+  w_d[id] = w_function(z_d[id]);
+#endif
 }
 #endif
 #if defined(__XS_GPU)
