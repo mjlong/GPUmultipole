@@ -172,17 +172,9 @@ while(active){
 #endif
 #endif//end if __ALLCPU
 #if defined(__W__GPU)
-#if defined(__MITW)
     host_xs_eval_fast(isotopes[ii], z_h,(void**)&z_d,w_h,(void**)&w_d,
                       energy, sqrt(300.0*KB), 
                       sigT, sigA, sigF);
-#endif
-#if defined(__QUICKWC)
-    host_xs_eval_fast(isotopes[ii],z_h,(void**)&z_d,w_h,(void**)&w_d, 
-                      energy, sqrt(300.0*KB), 
-                      sigT, sigA, sigF);
-#endif
-
 #endif//end if __W__GPU
 
     sigTsum += sigT*pmat->densities[ii];
