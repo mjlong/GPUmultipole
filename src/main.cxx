@@ -59,7 +59,11 @@ int main(int argc, char **argv){
 //==========fill w function table for Quick W=================
 //
 #if defined(__QUICKW)
-  ccomplex *wtable;
+#if defined(__ALLCPU)
+  CPUComplex<double> *wtable;
+#else
+  CComplex<double> wtable;
+#endif
   fill_wtables(&wtable);
 #endif
 
