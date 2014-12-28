@@ -156,7 +156,7 @@ while(active){
     sigAsum += sigAs_h[iiso]*pmat->densities[ii];
     sigFsum += sigFs_h[iiso]*pmat->densities[ii];
     iiso++;
-#endif
+#else
 #if defined(__ALLCPU)
 #if defined(__FOURIERW)
     host_xs_eval_fast(isotopes[ii], da,db,energy, sqrt(300.0*KB), 
@@ -180,6 +180,7 @@ while(active){
     sigTsum += sigT*pmat->densities[ii];
     sigAsum += sigA*pmat->densities[ii];
     sigFsum += sigF*pmat->densities[ii];
+#endif
   }
 #if defined(__PRINTTRACK__)
   printf("[%2d,%3d] %.14e %.14e %.14e %.14e\n", ibatch,ihistory,energy,sigTsum,sigAsum,sigFsum);
