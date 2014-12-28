@@ -24,6 +24,9 @@ unsigned search_bin(CMPTYPE energy,float* spectrumbins);
 #if defined(__QUICKW)
 #include "QuickW.h"
 #endif
+#if defined(__FOURIERW)
+#include "fourierw.h"
+#endif
 #include <stdio.h>
 __global__ void device_w_eval(CComplex<CMPTYPE>* z_d, CComplex<CMPTYPE>* w_d);
 #endif
