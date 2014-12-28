@@ -82,6 +82,9 @@ void fill_wtables(CComplex<CMPTYPE>** wtable){
   gpuErrchk(cudaMalloc((void**)wtable, LENGTH*LENGTH * 2 * sizeof(CMPTYPE)));
   fill_w_tabulated<<<LENGTH,LENGTH>>>(*wtable);
 }
+#if defined(__QUICKWC)
+  cudaMemcpyToSymbol(constwtable,*wtable,LENGTH*LENGTH*2*sizeof(CMPTYPE), 0, cudaMemcpyDeviceToDevice);
+#endif
 void release_wtables(CComplex<CMPTYPE>* wtable){
   gpuErrchk(cudaFree(wtable));
 }
