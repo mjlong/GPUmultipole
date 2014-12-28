@@ -2,8 +2,8 @@
 #include "CPUComplex.h"
 #define ccomplex CPUComplex<CMPTYPE>
 #endif
-#if defined(__XS_GPU)
-#include "CComplex.h"
+#if defined(__XS_GPU)||(__W__GPU)
+//#include "CComplex.h"
 #define ccomplex CComplex<CMPTYPE>
 #endif
 
