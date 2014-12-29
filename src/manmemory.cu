@@ -46,8 +46,8 @@ void fill_wtables(CMPTYPE** da, CMPTYPE** db){
   gpuErrchk(cudaMalloc((void**)da, (M+1)*sizeof(CMPTYPE))); 
   gpuErrchk(cudaMalloc((void**)db, (M+1)*sizeof(CMPTYPE))); 
   fill_a<<<1,M+1>>>(*da,*db); 
-  cudaMemcpyToSymbol(a, *da, M*sizeof(CMPTYPE), 0, cudaMemcpyDeviceToDevice);
-  cudaMemcpyToSymbol(b, *db, M*sizeof(CMPTYPE), 0, cudaMemcpyDeviceToDevice);
+  cudaMemcpyToSymbol(a, *da, (M+1)*sizeof(CMPTYPE), 0, cudaMemcpyDeviceToDevice);
+  cudaMemcpyToSymbol(b, *db, (M+1)*sizeof(CMPTYPE), 0, cudaMemcpyDeviceToDevice);
 
 }
 void release_wtables(CMPTYPE* da, CMPTYPE* db){
@@ -129,7 +129,7 @@ void release_buffer(unsigned* iS_d,
 }
 #endif
 
-#if defined(__W__GPU)
+#if defined(__W__GPU)||defined(__PFOURIERW)
 #include "multipole_data.h"
 void allocate_zwarray(CPUComplex<CMPTYPE>** z_h, CComplex<CMPTYPE>** z_d, 
                       CPUComplex<CMPTYPE>** w_h, CComplex<CMPTYPE>** w_d, 
@@ -146,10 +146,14 @@ void allocate_zwarray(CPUComplex<CMPTYPE>** z_h, CComplex<CMPTYPE>** z_d,
   }
   printf("maxwindow=%d\n",maxwindow);
   *z_h = (CPUComplex<CMPTYPE>*)malloc(sizeof(CMPTYPE)*2*maxwindow);
-  *w_h = (CPUComplex<CMPTYPE>*)malloc(sizeof(CMPTYPE)*2*maxwindow);
   gpuErrchk(cudaMalloc((void**)z_d, maxwindow*sizeof(CMPTYPE)*2));
+#if defined(__PFOURIERW)
+  *w_h = (CPUComplex<CMPTYPE>*)malloc(sizeof(CMPTYPE)*2*maxwindow*M);
+  gpuErrchk(cudaMalloc((void**)w_d, maxwindow*M*sizeof(CMPTYPE)*2));
+#else
+  *w_h = (CPUComplex<CMPTYPE>*)malloc(sizeof(CMPTYPE)*2*maxwindow);
   gpuErrchk(cudaMalloc((void**)w_d, maxwindow*sizeof(CMPTYPE)*2));
-
+#endif
 }
 void release_zwarray(CPUComplex<CMPTYPE>* z_h, CComplex<CMPTYPE>* z_d, 
                      CPUComplex<CMPTYPE>* w_h, CComplex<CMPTYPE>* w_d){
