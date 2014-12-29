@@ -11,6 +11,9 @@ endif
 ifeq ($(COP),3)
   COP_IDEN = -D __XS_GPU
 endif
+ifeq ($(COP),4)
+  COP_IDEN = -D __PFOURIERW
+endif
 #WFUNCTION METHODS
 #MITW = 0
 #QUICKW_GLOABAL = 11
@@ -85,7 +88,7 @@ else
   EXENAME=$(DIR_BIN)/cgpumr_quickwg_allcpu
   endif 
 endif#end if WFUN!=0   
-else
+else#else COP!=1
 ifeq ($(COP),2)
 ifeq ($(WFUN),0)
   W_IDEN = -D __MITW
@@ -122,6 +125,7 @@ else
   endif
 endif#end if WFUN!=0
 else
+ifeq ($(COP)$,3)
   XSOURCES += $(DIR_SRC)/multipole/multipole.cu
 # Faddeeva function implementation 
 ifeq ($(WFUN),0)
@@ -164,6 +168,13 @@ else
   WSOURCES += $(DIR_SRC)/wfunction/Faddeeva.cu 
   WSOURCES += $(DIR_SRC)/wfunction/QuickW.cu
   EXENAME=$(DIR_BIN)/cgpumr_quickwc_xsgpu
+  endif
+endif
+else #COP=4
+  ifeq ($(WFUN), 3)
+  W_IDEN = -D __FOURIERW
+  WSOURCES += $(DIR_SRC)/wfunction/fourierw.cu
+  EXENAME=$(DIR_BIN)/cgpumr_fourierw_pwgpu
   endif
 endif   
 endif
