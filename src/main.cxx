@@ -159,20 +159,20 @@ while(active){
 #else
 #if defined(__ALLCPU)
 #if defined(__FOURIERW)
-    host_xs_eval_fast(isotopes[ii], da,db,energy, sqrt(300.0*KB), 
+    host_xs_eval_fast(isotopes[pmat->isotopes[ii]], da,db,energy, sqrt(300.0*KB), 
                       sigT, sigA, sigF);
 #endif 
 #if defined(__QUICKW)
-    host_xs_eval_fast(isotopes[ii], wtable,energy, sqrt(300.0*KB), 
+    host_xs_eval_fast(isotopes[pmat->isotopes[ii]], wtable,energy, sqrt(300.0*KB), 
                       sigT, sigA, sigF);
 #endif
 #if defined(__MITW)
-    host_xs_eval_fast(isotopes[ii],energy, sqrt(300.0*KB), 
+    host_xs_eval_fast(isotopes[pmat->isotopes[ii]],energy, sqrt(300.0*KB), 
                       sigT, sigA, sigF);
 #endif
 #endif//end if __ALLCPU
 #if defined(__W__GPU)
-    host_xs_eval_fast(isotopes[ii], z_h,(void**)&z_d,w_h,(void**)&w_d,
+    host_xs_eval_fast(isotopes[pmat->isotopes[ii]], z_h,(void**)&z_d,w_h,(void**)&w_d,
                       energy, sqrt(300.0*KB), 
                       sigT, sigA, sigF);
 #endif//end if __W__GPU
