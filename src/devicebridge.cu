@@ -24,6 +24,22 @@ void print_results(unsigned num_src, unsigned num_bin,  MemStruct HostMem, float
   fprintf(fp,"%-.6f,%-8d,%-4d,%-2d M\n", timems*1000/sum, HostMem.num_terminated_neutrons, 1, num_src/1000000);
   fclose(fp);
 }
+#if defined(__PFOURIERW)
+void eval_w(CPUComplex<CMPTYPE>* z_h, void** z_d, CPUComplex<CMPTYPE>* w_h, void** w_d,unsigned window){
+  gpuErrchk(cudaMemcpy((CComplex<CMPTYPE>*)(*z_d),z_h,sizeof(CMPTYPE)*2*window,cudaMemcpyHostToDevice));
+  device_w_eval<<<1,window*M>>>((CComplex<CMPTYPE>*)(*z_d),(CComplex<CMPTYPE>*)(*w_d),window); 
+  gpuErrchk(cudaMemcpy(w_h,(CComplex<CMPTYPE>*)(*w_d),sizeof(CMPTYPE)*2*window*M,cudaMemcpyDeviceToHost));
+
+  for(int iw=0;iw<window;iw++){
+    for(int im=1; im<M; im++){ 
+      w_h[iw] = w_h[iw] + w_h[im*window+iw]; 
+    }
+    w_h[iw] = (w_h[iw]+w_h[iw])*taom*z_h[iw]; 
+    w_h[iw] = w_h[iw] + ((CMPTYPE)1.0-exp(CPUComplex<CMPTYPE>(0,1)*taom*z_h[iw]))/(taom*z_h[iw]);
+    w_h[iw] = w_h[iw]*CPUComplex<CMPTYPE>(0,1);
+  }
+}
+#endif
 
 #if defined(__W__GPU)
 void eval_w(CPUComplex<CMPTYPE>* z_h, void** z_d, CPUComplex<CMPTYPE>* w_h, void** w_d,unsigned window){

@@ -17,6 +17,9 @@ void eval_xs(multipole mp_para, unsigned int* iS_h, unsigned int* iS_d, unsigned
 #if defined(__W__GPU)
 void eval_w(CPUComplex<CMPTYPE>* z_h, void** z_d, CPUComplex<CMPTYPE>* w_h, void** w_d,unsigned window);
 #endif
-
+#if defined(__PFOURIERW)
+#include "fourierw.h"
+void eval_w(CPUComplex<CMPTYPE>* z_h, void** z_d, CPUComplex<CMPTYPE>* w_h, void** w_d,unsigned window);
+#endif
 
 #endif
