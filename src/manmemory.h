@@ -44,7 +44,7 @@ void release_buffer(unsigned* iS_d,
                     CMPTYPE* sigTs_d, CMPTYPE* sigAs_d, CMPTYPE* sigFs_d);
 #endif
 
-#if defined(__W__GPU)
+#if defined(__W__GPU)||defined(__PFOURIERW)
 #include "CComplex.h"
 #include "CPUComplex.h"
 void allocate_zwarray(CPUComplex<CMPTYPE>** z_h, CComplex<CMPTYPE>** z_d, 
