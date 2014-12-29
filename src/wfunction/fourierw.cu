@@ -82,3 +82,10 @@ __device__ CComplex<CMPTYPE> w_function(CComplex<CMPTYPE> z){
 #endif
 }
 
+#if defined(__PFOURIERW)
+__device__ CComplex<CMPTYPE> w_part(CComplex<CMPTYPE> z, unsigned n, CMPTYPE coef){
+  CComplex<CMPTYPE> A = taom*z;
+  return  a[n]*(  coef*exp(ONEI*A) - (CMPTYPE)1.0)/(b[n] - A*A);
+}
+#endif
+

@@ -37,6 +37,8 @@ __global__ void fill_exp_table(CComplex<CMPTYPE> *);
 #endif
 __global__ void fill_a(CMPTYPE* a, CMPTYPE* b);
 __device__ CComplex<CMPTYPE> w_function(CComplex<CMPTYPE> z);
-
+#if defined(__PFOURIERW)
+__device__ CComplex<CMPTYPE> w_part(CComplex<CMPTYPE> z, unsigned n, CMPTYPE coef);
+#endif
 
 #endif
