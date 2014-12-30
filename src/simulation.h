@@ -9,7 +9,7 @@
 
 unsigned search_bin(CMPTYPE energy,float* spectrumbins);
 
-#if defined(__W__GPU)||defined(__XS_GPU)
+#if defined(__W__GPU)||defined(__XS_GPU)||defined(__PFOURIERW)
 #include <cuda.h>
 #include <curand_kernel.h>
 #include <cudpp.h>
@@ -39,4 +39,11 @@ __global__ void device_w_eval(CComplex<CMPTYPE>* z_d, CComplex<CMPTYPE>* w_d);
 __global__ void device_xs_eval(multipole mp_para, unsigned *iS, CMPTYPE E, CMPTYPE sqrtKT, 
                                CMPTYPE* sigTs, CMPTYPE* sigAs, CMPTYPE* sigFs);
 #endif
+
+#if defined(__PFOURIERW)
+#include "fourierw.h"
+__global__ void device_w_eval(CComplex<CMPTYPE>* z_d, CComplex<CMPTYPE>* w_d,unsigned window);
+#endif 
+
 #endif
+

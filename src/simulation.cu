@@ -8,6 +8,13 @@ unsigned search_bin(CMPTYPE energy,float* spectrumbins){
   return 0;
 }
 
+#if defined(__PFOURIERW)
+__global__ void device_w_eval(CComplex<CMPTYPE>* z_d, CComplex<CMPTYPE>* w_d,unsigned window){
+  int n = threadIdx.x/window+1;
+  w_d[threadIdx.x] = w_part(z_d[threadIdx.x%window],n,(CMPTYPE)(((n<<31)>>31)|0x00000001));
+}
+#endif
+
 #if defined(__W__GPU)
 __global__ void device_w_eval(CComplex<CMPTYPE>* z_d, CComplex<CMPTYPE>* w_d){
   //use one block whose number of threads is the number of z's to evaluate w(z) 
