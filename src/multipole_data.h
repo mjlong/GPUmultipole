@@ -14,7 +14,7 @@
 #define CMPTYPE double
 #endif
 
-#if defined(__W__GPU)
+#if defined(__W__GPU)||defined(__PFOURIERW)
 extern void eval_w(CPUComplex<CMPTYPE>* z_h, void** z_d, CPUComplex<CMPTYPE>* w_h, void** w_d,unsigned window);
 #endif
 
@@ -52,7 +52,7 @@ unsigned count_isotopes(char* inputname);
 void isotope_read(char* input, struct multipoledata* isotopes );
 
 
-#if defined(__ALLCPU)||defined(__W__GPU)
+#if defined(__ALLCPU)||defined(__W__GPU)||defined(__PFOURIERW)
 #define MP_EA 0
 #define MP_RT 1
 #define MP_RA 2
@@ -82,7 +82,7 @@ void host_xs_eval_fast(struct multipoledata iso, CPUComplex<CMPTYPE>*, CMPTYPE E
 #endif
 #endif
 
-#if defined(__W__GPU)
+#if defined(__W__GPU)||defined(__PFOURIERW)
 void host_xs_eval_fast(struct multipoledata iso, CPUComplex<CMPTYPE>* z_h, void** z_d, 
                                                  CPUComplex<CMPTYPE>* w_h, void** w_d, 
                                          CMPTYPE E, CMPTYPE sqrtKT, 
