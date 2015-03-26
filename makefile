@@ -12,8 +12,8 @@ DIR_SRC_PTX = ./src/ptx
 DIR_SRC_OPT = ./src/optix
 DIR_OBJ = ./obj
 DIR_PTX = ./obj/ptx
-DIR_HDF5  = /home/jlmiao/opt/hdf5
-DIR_CUDA6 = /usr/local/cuda-6.0
+DIR_HDF5  = /opt/hdf5/1.8.14-gnu#/home/jlmiao/opt/hdf5
+DIR_CUDA6 = /home/jmiao/cuda-6.0
 DIR_CUDPP = /home/jlmiao/opt/cudpp-2.1
 DIR_OPTIX = /home/jlmiao/Documents/NVIDIA-OptiX-SDK-3.6.0-linux64
 #Include flags
@@ -41,7 +41,7 @@ CCFLAGS=-c                    $(CCINCFLAGS)
 DIR_BIN = ./bin/release
 endif
 LINKLAG=   -dlink -arch=sm_20  
-LDFLAGS=-L${DIR_HDF5}/lib/ -L${DIR_CUDA6}/lib64 -L${DIR_CUDPP}/lib/ -L${DIR_OPTIX}/lib64/ -loptix -lcudpp -lcudart -lhdf5 
+LDFLAGS=-L${DIR_HDF5}/lib/ -L${DIR_CUDA6}/lib64 -L${DIR_CUDPP}/lib/ -L${DIR_OPTIX}/lib64/ -loptix -lcudpp -lcudart -lhdf5 -lstdc++
 GSOURCES=$(wildcard ${DIR_SRC}/*.cu)
 PSOURCES=$(wildcard ${DIR_SRC_PTX}/*.cu)
 WSOURCES=
