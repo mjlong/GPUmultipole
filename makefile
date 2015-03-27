@@ -29,8 +29,8 @@ DIR_SRC_PTX = ./src/ptx
 DIR_SRC_OPT = ./src/optix
 DIR_OBJ = ./obj
 DIR_PTX = ./obj/ptx
-DIR_HDF5  = /home/jlmiao/opt/hdf5
-DIR_CUDA6 = /usr/local/cuda-6.0
+DIR_HDF5  = /opt/hdf5/1.8.14-gnu#/home/jlmiao/opt/hdf5
+DIR_CUDA6 = /home/jmiao/cuda-6.0#/usr/local/cuda-6.0
 DIR_CUDPP = /home/jlmiao/opt/cudpp-2.1
 #Include flags
 INC_SRC   = -I${DIR_SRC} -I${DIR_SRC}/wfunction -I${DIR_SRC}/multipole
