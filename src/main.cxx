@@ -166,13 +166,23 @@ for(int i=0;i<gridsize;i++){
   printf("E[%2d]=%.5f\n",i,HostMem.nInfo.energy[i]);
 }
 CPUComplex<CMPTYPE> *pz;
+CPUComplex<CMPTYPE> *pw;
 unsigned numz=generateZ(isotopes[0], sqrt(KB*300.0),HostMem.nInfo.energy,gridsize, &pz);
+pw = (CPUComplex<CMPTYPE>*)malloc(sizeof(CMPTYPE)*2*numz);
 printf("From %d energies, I have %d complex numbers for Faddeeva evaluation:\n",gridsize,numz);
+
+clock_start = clock();
+z2w(pz,pw,numz);
+clock_end   = clock();
+time_elapsed = (float)(clock_end-clock_start)/CLOCKS_PER_SEC*1000.f;
+printf("[time], %3d CPU evaluations cost  %f ms\n", numz, time_elapsed);
+
 for(int i=0;i<numz;i++){
-  pz[i].output();
+  printf("w(%+.5e%+.5ei)=%+.5e%+.5ei\n",real(pz[i]),imag(pz[i]),real(pw[i]),imag(pw[i]));
 }
 
 free(pz);
+free(pw);
 //release host isotope data memory
   freeMultipoleData(numIso,isotopes);
 
