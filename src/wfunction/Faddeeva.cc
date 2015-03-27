@@ -178,8 +178,8 @@ typedef CPUComplex<double> cmplx;
 
 #  define C(a,b) cmplx(a,b)
 
-#  define FADDEEVA(name) Faddeeva::name
-#  define FADDEEVA_RE(name) Faddeeva::name
+#  define FADDEEVA(name) Faddeeva_h::name
+#  define FADDEEVA_RE(name) Faddeeva_h::name
 
 // isnan/isinf were introduced in C++11
 #  if (__cplusplus < 201103L) && (!defined(HAVE_ISNAN) || !defined(HAVE_ISINF))
@@ -215,7 +215,7 @@ static inline double my_copysign(double x, double y) { return y<0 ? -x : x; }
 
 #else // !__cplusplus, i.e. pure C (requires C99 features)
 
-#  include "Faddeeva.h"
+#  include "Faddeeva.hh"
 
 #  define _GNU_SOURCE // enable GNU libc NAN extension if possible
 

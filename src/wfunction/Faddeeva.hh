@@ -24,12 +24,12 @@
 
    Header file for Faddeeva.cc; see that file for more information. */
 
-#ifndef FADDEEVA_HH
-#define FADDEEVA_HH 1
+#ifndef FADDEEVA_HH_H
+#define FADDEEVA_HH_H 1
 
 #include "CPUComplex.h" 
 
-namespace Faddeeva {
+namespace Faddeeva_h {
 
 // compute w(z) = exp(-z^2) erfc(-iz) [ Faddeeva / scaled complex error func ]
 extern CPUComplex<double> w(CPUComplex<double> z,double relerr=0);
@@ -59,4 +59,4 @@ extern double Dawson(double x); // special case for real x
 
 } // namespace Faddeeva
 
-#endif // FADDEEVA_HH
+#endif // FADDEEVA_HH_H
