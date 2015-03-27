@@ -21,4 +21,7 @@ __global__ void update_sort_key(MemStruct DeviceMem, material mat);
 __global__ void transport(MemStruct, material, unsigned);
 __device__ void neutron_sample(NeutronInfoStruct nInfo, unsigned id);
 __global__ void resurrection(NeutronInfoStruct nInfo, unsigned id);
+
+
+__global__ void z2w_d(CComplex<CMPTYPE> *pz, CComplex<CMPTYPE> *pw);
 #endif

@@ -1,6 +1,13 @@
 #include "simulation.h" 
 extern __constant__ float spectrumbins[];
 
+
+__global__ void z2w_d(CComplex<CMPTYPE> *pz, CComplex<CMPTYPE> *pw){
+  int id = blockDim.x*blockIdx.x+threadIdx.x;
+  pw[id] = Faddeeva::w(pz[id]);
+  //printf("w(%+.5e%+.5ei)=%+.5e%+.5ei\n",real(pz[id]),imag(pz[id]),real(pw[id]),imag(pw[id]));
+}
+
 __global__ void initialize(MemStruct pInfo){
   //int id = ((blockDim.x*blockDim.y*blockDim.z)*(blockIdx.y*gridDim.x+blockIdx.x)+(blockDim.x*blockDim.y)*threadIdx.z+blockDim.x*threadIdx.y+threadIdx.x);//THREADID;
   int id = blockDim.x * blockIdx.x + threadIdx.x;
