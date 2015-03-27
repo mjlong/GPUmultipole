@@ -47,4 +47,5 @@ void freeMultipoleData(int numIsos, struct multipoledata* data);
 unsigned count_isotopes(char* inputname);
 void isotope_read(char* input, struct multipoledata* isotopes );
 
+unsigned generateZ(struct multipoledata data, double sqrtKT, double* energy, unsigned num, CPUComplex<CMPTYPE> **pz);
 #endif
