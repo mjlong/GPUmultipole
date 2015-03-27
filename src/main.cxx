@@ -108,8 +108,6 @@ int main(int argc, char **argv){
 #else
   multipole mp_para(isotopes, numIso);
 #endif 
-//release host isotope data memory
-  freeMultipoleData(numIso,isotopes);
 //============================================================ 
 //=======Read Materials([isotope, density] pairs)=============
 //============================================================
@@ -132,8 +130,11 @@ unsigned active;
   active = 1u;
 #endif
 initialize_neutrons(gridx, blockx, DeviceMem); 
-clock_start = clock();
-while(active){
+//clock_start = clock();
+int after=atoi(argv[4]);
+int i=0;
+//while(active){
+for(i=0;i<after;i++){
   //since transport_neutrons() surrects all neutrons, rtLaunch always works full load, no need to sort here
   RT_CHECK_ERROR(rtContextLaunch1D(context, 0, gridsize));
   //sort key = live*(isotopeID*MAXENERGY+energy)
@@ -149,15 +150,33 @@ while(active){
   //if active=0; transport<<<>>> will leave terminated neutrons
   //set active always 1 to make sure number of neutrons simulated exactly equal to num_src
 }
-clock_end   = clock();
-time_elapsed = (float)(clock_end-clock_start)/CLOCKS_PER_SEC*1000.f;
-printf("[time], active cycles costs %f ms\/%d neutrons\n", time_elapsed, HostMem.num_terminated_neutrons[0]);
+//clock_end   = clock();
+//time_elapsed = (float)(clock_end-clock_start)/CLOCKS_PER_SEC*1000.f;
+//printf("[time], active cycles costs %f ms\/%d neutrons\n", time_elapsed, HostMem.num_terminated_neutrons[0]);
 #if defined(__PRINTTRACK__)
 unsigned left = count_lives(gridx,blockx,DeviceMem,HostMem);
 #else
 HostMem.num_terminated_neutrons[0]+=count_lives(gridx,blockx,DeviceMem,HostMem);
 #endif
 active = 1;
+
+//instead of moving to track the remaining neutrons, i take the array of E's, convert them to z's and play with the array of z's
+copyE(HostMem, DeviceMem,gridsize);
+for(int i=0;i<gridsize;i++){
+  printf("E[%2d]=%.5f\n",i,HostMem.nInfo.energy[i]);
+}
+CPUComplex<CMPTYPE> *pz;
+unsigned numz=generateZ(isotopes[0], sqrt(KB*300.0),HostMem.nInfo.energy,gridsize, &pz);
+printf("From %d energies, I have %d complex numbers for Faddeeva evaluation:\n",gridsize,numz);
+for(int i=0;i<numz;i++){
+  pz[i].output();
+}
+
+free(pz);
+//release host isotope data memory
+  freeMultipoleData(numIso,isotopes);
+
+/*
 while(0!=active){
   //about twice sort in one loop
   //1. add extra sort here
@@ -182,7 +201,7 @@ clock_end   = clock();
 time_elapsed = (float)(clock_end-clock_start)/CLOCKS_PER_SEC*1000.f;
 printf("[time], active + remain cycles costs %f ms\/%d neutrons\n", time_elapsed, HostMem.num_terminated_neutrons[0]);
 print_results(gridx, blockx, num_src, num_bin, DeviceMem, HostMem, time_elapsed);
- 
+*/ 
 //============================================================ 
 //=============simulation shut down===========================
 //============================================================
