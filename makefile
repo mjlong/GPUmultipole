@@ -45,10 +45,12 @@ LDFLAGS=-L${DIR_HDF5}/lib/ -L${DIR_CUDA6}/lib64 -L${DIR_CUDPP}/lib/ -L${DIR_OPTI
 GSOURCES=$(wildcard ${DIR_SRC}/*.cu)
 PSOURCES=$(wildcard ${DIR_SRC_PTX}/*.cu)
 WSOURCES=
+CSOURCES=
 # Faddeeva function implementation 
 ifeq ($(WFUN),0)
   W_IDEN = -D __MITW
   WSOURCES += $(DIR_SRC)/wfunction/Faddeeva.cu
+  CSOURCES += $(DIR_SRC)/wfunction/Faddeeva.cc
   EXENAME=$(DIR_BIN)/gpumr_mitw_double
 else 
   W_IDEN = -D __SAMPLE
@@ -56,6 +58,7 @@ else
   ifeq ($(WFUN), 3)
   W_IDEN = -D __FOURIERW
   WSOURCES += $(DIR_SRC)/wfunction/fourierw.cu
+  CSOURCES += $(DIR_SRC)/wfunction/fourierw.cc
   EXENAME=$(DIR_BIN)/gpumr_fourierw_double
   endif
   ifeq ($(WFUN), 31)
@@ -72,6 +75,8 @@ else
   W_IDEN = -D __QUICKW -D __QUICKWG
   WSOURCES += $(DIR_SRC)/wfunction/Faddeeva.cu 
   WSOURCES += $(DIR_SRC)/wfunction/QuickW.cu
+  CSOURCES += $(DIR_SRC)/wfunction/Faddeeva.cc 
+  CSOURCES += $(DIR_SRC)/wfunction/QuickW.cc
   EXENAME=$(DIR_BIN)/gpumr_quickwg_double
   endif 
   ifeq ($(WFUN),12)
@@ -123,7 +128,8 @@ endif
 ifeq ($(print),track)
 RTMETHOD += -D __PRINTTRACK__=$(printid)
 endif
-CSOURCES=$(wildcard ${DIR_SRC}/*.cc)
+CSOURCES+=$(wildcard ${DIR_SRC}/*.cc)
+
 MSOURCES=$(wildcard ${DIR_SRC}/*.cxx)
 #MSOURCES = main.cxx; 
 CNVCCSRC=$(wildcard ${DIR_SRC_OPT}/*.cxx)
@@ -140,6 +146,9 @@ ${DIR_PTX}/%$(PTXFIX) : ${DIR_SRC_PTX}/%.cu
 $(EXECUTABLE): $(MOBJECTS) $(COBJECTS) $(CNVCCOBJ) $(GOBJECTS) $(WOBJECTS) $(LINKJECT)
 	$(CC)  $^ $(LDFLAGS) -o $@
 ${DIR_OBJ}/%.obj : ${DIR_SRC}/%.cc
+	@echo $(epoch)
+	$(CC)             $(CMPTYPE) $(CCFLAGS) $^ -o $@
+${DIR_OBJ}/%.obj : ${DIR_SRC}/wfunction/%.cc
 	@echo $(epoch)
 	$(CC)             $(CMPTYPE) $(CCFLAGS) $^ -o $@
 ${DIR_OBJ}/%.ob : ${DIR_SRC}/%.cxx
