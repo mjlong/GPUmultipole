@@ -15,6 +15,27 @@ __constant__ CMPTYPE b[M+1];
 __constant__ CMPTYPE2 constwtable[LENGTH*LENGTH];
 #endif
 
+void copyE(MemStruct HostMem, MemStruct DeviceMem, unsigned gridsize){
+  gpuErrchk(cudaMemcpy(HostMem.nInfo.energy, DeviceMem.nInfo.energy, gridsize*sizeof(CMPTYPE), cudaMemcpyDeviceToHost));
+}
+
+void allocateZW(CComplex<CMPTYPE> **pz, CComplex<CMPTYPE> **pw, unsigned numz){
+  gpuErrchk(cudaMalloc((void**)pz, numz*2*sizeof(CMPTYPE))); 
+  gpuErrchk(cudaMalloc((void**)pw, numz*2*sizeof(CMPTYPE))); 
+}
+
+void copyZ(CPUComplex<CMPTYPE>* pz_h, CComplex<CMPTYPE>* pz_d, unsigned numz){
+  gpuErrchk(cudaMemcpy(pz_d, pz_h, numz*sizeof(CMPTYPE)*2, cudaMemcpyHostToDevice));
+}
+
+void copyW(CComplex<CMPTYPE>* pw_d, CPUComplex<CMPTYPE>* pw_h, unsigned numz){
+  gpuErrchk(cudaMemcpy(pw_h, pw_d, numz*sizeof(CMPTYPE)*2, cudaMemcpyDeviceToHost));
+}
+
+void releaseZW(CComplex<CMPTYPE>* pz, CComplex<CMPTYPE>* pw){
+  gpuErrchk(cudaFree(pz));
+  gpuErrchk(cudaFree(pw));
+}
 
 //Simulation memory allocate and deallocate
 void initialize_device(){

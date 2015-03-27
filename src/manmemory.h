@@ -4,9 +4,16 @@
 #include "gpuerrchk.h"
 #include "neutron.h"
 #include "CComplex.h"
+#include "CPUComplex.h"
 
 //initialize device
 void initialize_device();
+
+void copyE(MemStruct HostMem, MemStruct DeviceMem, unsigned gridsize);
+void copyZ(CPUComplex<CMPTYPE>* pz_h, CComplex<CMPTYPE>* pz_d, unsigned numz);
+void copyW(CComplex<CMPTYPE>* pw_d, CPUComplex<CMPTYPE>* pw_h, unsigned numz);
+void allocateZW(CComplex<CMPTYPE> **pz, CComplex<CMPTYPE> **pw, unsigned numz);
+void releaseZW(CComplex<CMPTYPE>* pz, CComplex<CMPTYPE>* pw);
 
 //Simulation memory allocate and deallocate
 void initialize_memory(MemStruct *DeviceMem, MemStruct *HostMem, unsigned numbins, unsigned gridx, unsigned blockx );

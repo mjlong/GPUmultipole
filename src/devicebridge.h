@@ -8,7 +8,9 @@
 #include "Faddeeva.hh"
 
 void z2w(CPUComplex<CMPTYPE> *pz, CPUComplex<CMPTYPE>* pw, unsigned numz);
-void copyE(MemStruct HostMem, MemStruct DeviceMem, unsigned gridsize);
+void z2w(CComplex<CMPTYPE> *pz,   CComplex<CMPTYPE>* pw,   unsigned numz);
+
+
 void printdevice();
 void initialize_neutrons(unsigned gridx, unsigned blockx,MemStruct DeviceMem);
 

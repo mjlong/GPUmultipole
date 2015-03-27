@@ -6,21 +6,22 @@
 #include "devicebridge.h"
 
 
+
 void z2w(CPUComplex<CMPTYPE> *pz, CPUComplex<CMPTYPE>* pw, unsigned numz){
   for(int i=0;i<numz;i++){
     pw[i] = Faddeeva_h::w(pz[i]);
   } 
 
 }
+
+void z2w(CComplex<CMPTYPE> *pz, CComplex<CMPTYPE> *pw, unsigned numz){
+  z2w_d<<<1,numz>>>(pz,pw);  
+}
 /*
   To compile host and device codes separately, 
   this "main" file works as interface 
   allocating device memory, transfering data and partitioning computation sources
 */
-
-void copyE(MemStruct HostMem, MemStruct DeviceMem, unsigned gridsize){
-  gpuErrchk(cudaMemcpy(HostMem.nInfo.energy, DeviceMem.nInfo.energy, gridsize*sizeof(CMPTYPE), cudaMemcpyDeviceToHost));
-}
 
 void initialize_neutrons(unsigned gridx, unsigned blockx,MemStruct DeviceMem){
   initialize<<<gridx, blockx>>>(DeviceMem);
