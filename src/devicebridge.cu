@@ -4,6 +4,14 @@
 #include "manmemory.h"
 
 #include "devicebridge.h"
+
+
+void z2w(CPUComplex<CMPTYPE> *pz, CPUComplex<CMPTYPE>* pw, unsigned numz){
+  for(int i=0;i<numz;i++){
+    pw[i] = Faddeeva_h::w(pz[i]);
+  } 
+
+}
 /*
   To compile host and device codes separately, 
   this "main" file works as interface 
