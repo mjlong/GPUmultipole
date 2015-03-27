@@ -10,6 +10,10 @@
   allocating device memory, transfering data and partitioning computation sources
 */
 
+void copyE(MemStruct HostMem, MemStruct DeviceMem, unsigned gridsize){
+  gpuErrchk(cudaMemcpy(HostMem.nInfo.energy, DeviceMem.nInfo.energy, gridsize*sizeof(CMPTYPE), cudaMemcpyDeviceToHost));
+}
+
 void initialize_neutrons(unsigned gridx, unsigned blockx,MemStruct DeviceMem){
   initialize<<<gridx, blockx>>>(DeviceMem);
 }

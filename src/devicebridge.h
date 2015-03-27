@@ -4,7 +4,7 @@
 #include "multipole.h"
 #include "material_data.h"
 #include "material.h"
-
+void copyE(MemStruct HostMem, MemStruct DeviceMem, unsigned gridsize);
 void printdevice();
 void initialize_neutrons(unsigned gridx, unsigned blockx,MemStruct DeviceMem);
 

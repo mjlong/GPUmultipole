@@ -78,6 +78,7 @@ void initialize_memory(MemStruct *DeviceMem, MemStruct *HostMem, unsigned numbin
 
   gpuErrchk(cudaMalloc((void**)&((*DeviceMem).spectrum), numbins*sizeof(unsigned int)));
   (*HostMem).spectrum = (unsigned*)malloc(sizeof(unsigned)*numbins);  
+  (*HostMem).nInfo.energy = (CMPTYPE*)malloc(sizeof(CMPTYPE)*gridsize);
 
   gpuErrchk(cudaMalloc((void**)&((*DeviceMem).block_spectrum), numbins*gridx*sizeof(unsigned int)));
   gpuErrchk(cudaMemset((*DeviceMem).block_spectrum, 0, numbins*gridx*sizeof(unsigned int)));
@@ -116,6 +117,7 @@ void initialize_memory(MemStruct *DeviceMem, MemStruct *HostMem, unsigned numbin
 
 void release_memory(MemStruct DeviceMem, MemStruct HostMem){
   free(HostMem.spectrum);
+  free(HostMem.nInfo.energy);
 
   gpuErrchk(cudaFree(DeviceMem.tallybins));
   gpuErrchk(cudaFree(DeviceMem.spectrum));
