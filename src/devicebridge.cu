@@ -17,13 +17,12 @@ void z2w(CPUComplex<CMPTYPE> *pz, CPUComplex<CMPTYPE>* pw, unsigned numz){
 void z2w(CComplex<CMPTYPE> *pz, CComplex<CMPTYPE> *pw, unsigned numz){
   unsigned blocks, threads;
   if(numz<128){
-    z2w_d<<<1,numz>>>(pz,pw);  
+    z2w_d<<<1,numz>>>(pz,pw,numz);  
   }
   else{
     threads = 128; 
-    blocks = numz/128;
-    z2w_d<<<blocks,threads>>>(pz,pw);  
-    z2w_d<<<1, numz-blocks*threads>>>(pz+blocks*threads,pw+blocks*threads);
+    blocks = (numz-1)/128+1;
+    z2w_d<<<blocks,threads>>>(pz,pw,numz);  
   }
 }
 /*

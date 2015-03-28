@@ -2,9 +2,11 @@
 extern __constant__ float spectrumbins[];
 
 
-__global__ void z2w_d(CComplex<CMPTYPE> *pz, CComplex<CMPTYPE> *pw){
-  int id = blockDim.x*blockIdx.x+threadIdx.x;
-  pw[id] = Faddeeva::w(pz[id]);
+__global__ void z2w_d(CComplex<CMPTYPE> *pz, CComplex<CMPTYPE> *pw,unsigned numz){
+  unsigned id = blockDim.x*blockIdx.x+threadIdx.x;
+  if(id<numz){
+    pw[id] = Faddeeva::w(pz[id]);
+  }
   //printf("w(%+.5e%+.5ei)=%+.5e%+.5ei\n",real(pz[id]),imag(pz[id]),real(pw[id]),imag(pw[id]));
 }
 

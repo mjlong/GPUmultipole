@@ -23,5 +23,5 @@ __device__ void neutron_sample(NeutronInfoStruct nInfo, unsigned id);
 __global__ void resurrection(NeutronInfoStruct nInfo, unsigned id);
 
 
-__global__ void z2w_d(CComplex<CMPTYPE> *pz, CComplex<CMPTYPE> *pw);
+__global__ void z2w_d(CComplex<CMPTYPE> *pz, CComplex<CMPTYPE> *pw,unsigned numz);
 #endif
