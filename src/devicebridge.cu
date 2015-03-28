@@ -17,14 +17,14 @@ void z2w(CPUComplex<CMPTYPE> *pz, CPUComplex<CMPTYPE>* pw, unsigned numz){
 void z2w(CComplex<CMPTYPE> *pz, CComplex<CMPTYPE> *pw, unsigned numz){
   unsigned blocks, threads;
   if(numz<128){
-    blocks=1;
-    threads = numz;
+    z2w_d<<<1,numz>>>(pz,pw);  
   }
   else{
     threads = 128; 
     blocks = numz/128;
+    z2w_d<<<blocks,threads>>>(pz,pw);  
+    z2w_d<<<1, numz-blocks*threads>>>(pz+blocks*threads,pw+blocks*threads);
   }
-  z2w_d<<<blocks,threads>>>(pz,pw);  
 }
 /*
   To compile host and device codes separately, 
