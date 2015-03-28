@@ -187,6 +187,7 @@ fprintf(fp,"%5d ",numz);
 //============================================================================== 
 clock_start = clock();
 z2w(pz,pw,numz);
+call_idle_kernel();
 clock_end   = clock();
 time_elapsed = (float)(clock_end-clock_start)/CLOCKS_PER_SEC*1000.f;
 //printf("[time], %3d CPU evaluations cost  %f ms\n", numz, time_elapsed);

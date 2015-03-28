@@ -9,7 +9,7 @@
 
 void z2w(CPUComplex<CMPTYPE> *pz, CPUComplex<CMPTYPE>* pw, unsigned numz);
 void z2w(CComplex<CMPTYPE> *pz,   CComplex<CMPTYPE>* pw,   unsigned numz);
-
+void call_idle_kernel();
 
 void printdevice();
 void initialize_neutrons(unsigned gridx, unsigned blockx,MemStruct DeviceMem);

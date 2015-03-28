@@ -24,4 +24,5 @@ __global__ void resurrection(NeutronInfoStruct nInfo, unsigned id);
 
 
 __global__ void z2w_d(CComplex<CMPTYPE> *pz, CComplex<CMPTYPE> *pw,unsigned numz);
+__global__ void idle_kernel();
 #endif

@@ -1,6 +1,8 @@
 #include "simulation.h" 
 extern __constant__ float spectrumbins[];
 
+__global__ void idle_kernel(){
+}
 
 __global__ void z2w_d(CComplex<CMPTYPE> *pz, CComplex<CMPTYPE> *pw,unsigned numz){
   unsigned id = blockDim.x*blockIdx.x+threadIdx.x;

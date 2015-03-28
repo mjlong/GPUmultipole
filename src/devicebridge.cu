@@ -6,6 +6,9 @@
 #include "devicebridge.h"
 
 
+void call_idle_kernel(){
+  idle_kernel<<<1,1>>>(); 
+}
 
 void z2w(CPUComplex<CMPTYPE> *pz, CPUComplex<CMPTYPE>* pw, unsigned numz){
   for(int i=0;i<numz;i++){
