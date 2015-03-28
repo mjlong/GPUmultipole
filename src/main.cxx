@@ -170,13 +170,18 @@ CPUComplex<CMPTYPE> *pz;
 CPUComplex<CMPTYPE> *pw;
 CComplex<CMPTYPE> *pz_d;
 CComplex<CMPTYPE> *pw_d;
-unsigned numz=generateZ(isotopes[0], sqrt(KB*300.0),HostMem.nInfo.energy,gridsize, &pz);
-pw = (CPUComplex<CMPTYPE>*)malloc(sizeof(CMPTYPE)*2*numz);
+unsigned num_z=generateZ(isotopes[0], sqrt(KB*300.0),HostMem.nInfo.energy,gridsize, &pz);
+unsigned numz = num_z;
+pw = (CPUComplex<CMPTYPE>*)malloc(sizeof(CMPTYPE)*2*num_z);
 
-allocateZW(&pz_d,&pw_d,numz);
+allocateZW(&pz_d,&pw_d,num_z);
 
-printf("From %d energies, I have %d complex numbers for Faddeeva evaluation:\n",gridsize,numz);
+printf("From %d energies, I have %d complex numbers for Faddeeva evaluation:\n",gridsize,num_z);
 
+FILE *fp=NULL;
+fp = fopen("t_nz","a+");
+for(numz=1;numz<num_z;numz++){
+fprintf(fp,"%5d ",numz);
 //============================================================================== 
 //==============================CPU RUN=========================================  
 //============================================================================== 
@@ -184,8 +189,8 @@ clock_start = clock();
 z2w(pz,pw,numz);
 clock_end   = clock();
 time_elapsed = (float)(clock_end-clock_start)/CLOCKS_PER_SEC*1000.f;
-printf("[time], %3d CPU evaluations cost  %f ms\n", numz, time_elapsed);
-
+//printf("[time], %3d CPU evaluations cost  %f ms\n", numz, time_elapsed);
+fprintf(fp,"%.5e ",time_elapsed);
 /*
 for(int i=0;i<numz;i++){
   printf("w(%+.5e%+.5ei)=%+.5e%+.5ei\n",real(pz[i]),imag(pz[i]),real(pw[i]),imag(pw[i]));
@@ -204,14 +209,15 @@ z2w(pz_d,pw_d,numz);
 copyW(pw_d,pw,numz);
 clock_end   = clock();
 time_elapsed = (float)(clock_end-clock_start)/CLOCKS_PER_SEC*1000.f;
-printf("[time], %3d GPU evaluations cost  %f ms\n", numz, time_elapsed);
-
+//printf("[time], %3d GPU evaluations cost  %f ms\n", numz, time_elapsed);
+fprintf(fp,"%.5e\n",time_elapsed);
 /*
 for(int i=0;i<numz;i++){
   printf("w(%+.5e%+.5ei)=%+.5e%+.5ei\n",real(pz[i]),imag(pz[i]),real(pw[i]),imag(pw[i]));
 }
 */
-
+}
+fclose(fp);
 free(pz);
 free(pw);
 releaseZW(pz_d,pw_d);
