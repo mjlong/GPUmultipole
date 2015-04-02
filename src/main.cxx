@@ -29,12 +29,13 @@ int main(int argc, char **argv){
 
   initialize_device();
   MemStruct HostMem, DeviceMem;
-  unsigned num_bin = atoi(argv[5]);
+  unsigned num_bin = atoi(argv[6]);
+  unsigned num_bat = atoi(argv[5]);
+  initialize_memory(&DeviceMem, &HostMem, num_bin, gridx,blockx,num_bat);
 
-  initialize_memory(&DeviceMem, &HostMem, num_bin, gridx,blockx);
+  float width = atof(argv[7]);
 
-  float width = atof(argv[6]);
-
+  printf("grid=[%3dx%3d],devstep=%3d,nhis=%-6d,nbat=%-6d,meshes=%-6d,box width=%.2f\n",gridx,blockx,devstep,num_src,num_bat,num_bin,width);
 //============================================================ 
 //===============main simulation body=========================
 //============================================================
@@ -75,7 +76,7 @@ while(0!=active){
 clock_end   = clock();
 time_elapsed = (float)(clock_end-clock_start)/CLOCKS_PER_SEC*1000.f;
 printf("[time], active + remain cycles costs %f ms\/%d neutrons\n", time_elapsed, HostMem.num_terminated_neutrons[0]);
-print_results(gridx, blockx, num_src, num_bin, DeviceMem, HostMem, time_elapsed);
+ print_results(0,gridx, blockx, num_src, num_bin, DeviceMem, HostMem, time_elapsed);
 
 //============================================================ 
 //=============simulation shut down===========================
