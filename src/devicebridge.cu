@@ -39,7 +39,7 @@ unsigned count_lives(unsigned gridx, unsigned blockx, MemStruct DeviceMem, MemSt
   return active;
 }
 
-void print_results(unsigned gridx, unsigned blockx, unsigned num_src, unsigned num_bin, MemStruct DeviceMem, MemStruct HostMem, float timems){
+void print_results(unsigned ibat, unsigned gridx, unsigned blockx, unsigned num_src, unsigned num_bin, MemStruct DeviceMem, MemStruct HostMem, float timems){
   
   unsigned *d_cnt, *h_cnt;
   gpuErrchk(cudaMalloc((void**)&d_cnt, num_bin*sizeof(unsigned)));
@@ -54,6 +54,7 @@ void print_results(unsigned gridx, unsigned blockx, unsigned num_src, unsigned n
                    DeviceMem.block_spectrum+i*gridx, d_cnt+i);
   }
   gpuErrchk(cudaMemcpy(h_cnt,d_cnt,sizeof(unsigned)*num_bin, cudaMemcpyDeviceToHost));
+  copymeans(h_cnt,HostMem.batchmeans,num_bin,num_bin*ibat);
 
 /*print collision cnt and time*/
   unsigned sum=0;

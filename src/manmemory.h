@@ -8,8 +8,8 @@
 void initialize_device();
 
 //Simulation memory allocate and deallocate
-void initialize_memory(MemStruct *DeviceMem, MemStruct *HostMem, unsigned numbins, unsigned gridx, unsigned blockx );
+void initialize_memory(MemStruct *DeviceMem, MemStruct *HostMem, unsigned numbins, unsigned gridx, unsigned blockx, unsigned numbatches);
 void release_memory(MemStruct DeviceMem, MemStruct HostMem);
-
+void copymeans(unsigned *h_cnt, unsigned *batchmeans, unsigned meshes, unsigned offset);
 
 #endif

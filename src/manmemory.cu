@@ -6,13 +6,19 @@ void initialize_device(){
   gpuErrchk(cudaSetDeviceFlags(cudaDeviceMapHost | cudaDeviceLmemResizeToMax));
 }
 
+void copymeans(unsigned *h_cnt, unsigned *batchmeans, unsigned meshes, unsigned offset){
+  for(int im=0;im<meshes;im++)
+    batchmeans[offset+im] = h_cnt[im];
 
-void initialize_memory(MemStruct *DeviceMem, MemStruct *HostMem, unsigned numbins, unsigned gridx, unsigned blockx ){
+}
+
+void initialize_memory(MemStruct *DeviceMem, MemStruct *HostMem, unsigned numbins, unsigned gridx, unsigned blockx,unsigned nbat){
   unsigned gridsize;
   gridsize = gridx*blockx;
 
   gpuErrchk(cudaMalloc((void**)&((*DeviceMem).spectrum), numbins*sizeof(unsigned int)));
   (*HostMem).spectrum = (unsigned*)malloc(sizeof(unsigned)*numbins);  
+  (*HostMem).batchmeans = (unsigned*)malloc(sizeof(unsigned)*nbat*numbins);
 
   gpuErrchk(cudaMalloc((void**)&((*DeviceMem).block_spectrum), numbins*gridx*sizeof(unsigned int)));
   gpuErrchk(cudaMemset((*DeviceMem).block_spectrum, 0, numbins*gridx*sizeof(unsigned int)));
@@ -51,6 +57,7 @@ void initialize_memory(MemStruct *DeviceMem, MemStruct *HostMem, unsigned numbin
 
 void release_memory(MemStruct DeviceMem, MemStruct HostMem){
   free(HostMem.spectrum);
+  free(HostMem.batchmeans);
 
   gpuErrchk(cudaFree(DeviceMem.spectrum));
   gpuErrchk(cudaFree(DeviceMem.block_spectrum));
