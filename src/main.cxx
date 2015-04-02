@@ -9,24 +9,32 @@
 #include <time.h>
 void printbless();
 int main(int argc, char **argv){
-  printbless();
+  //printbless();
 //============================================================ 
 //====================calculation dimension===================
 //============================================================
+
   unsigned gridx, blockx, gridsize;
   unsigned num_src;
+
+
   gridx = atoi(argv[1]);
   blockx = atoi(argv[2]);
   gridsize = gridx*blockx;
   num_src = atoi(argv[3]);
+  unsigned devstep;
+  devstep = atoi(argv[4]);
 //============================================================ 
 //=============simulation memory allocation===================
 //============================================================
+
   initialize_device();
   MemStruct HostMem, DeviceMem;
-  num_bin = atoi(argv[5]);
+  unsigned num_bin = atoi(argv[5]);
+
   initialize_memory(&DeviceMem, &HostMem, num_bin, gridx,blockx);
-  free(HostMem.tallybins);
+
+
 
 //============================================================ 
 //===============main simulation body=========================
@@ -34,20 +42,24 @@ int main(int argc, char **argv){
 clock_t clock_start, clock_end;
 float time_elapsed = 0.f;
 unsigned active;
+active = 1;
+
 
 initialize_neutrons(gridx, blockx, DeviceMem); 
 clock_start = clock();
 while(active){
 
-  start_neutrons(gridx, blockx, mat, mp_para, DeviceMem, num_src,1);
+  start_neutrons(gridx, blockx, DeviceMem, num_src,1,1);
   active = count_neutrons(gridx, blockx, DeviceMem, HostMem,num_src);
-  transport_neutrons(gridx, blockx, DeviceMem, mat, active); 
   //if active=1; transport<<<>>> will renew neutrons with live=0
   //if active=0; transport<<<>>> will leave terminated neutrons
   //set active always 1 to make sure number of neutrons simulated exactly equal to num_src
+  active = 0;
 }
 clock_end   = clock();
 time_elapsed = (float)(clock_end-clock_start)/CLOCKS_PER_SEC*1000.f;
+
+/*
 printf("[time], active cycles costs %f ms\/%d neutrons\n", time_elapsed, HostMem.num_terminated_neutrons[0]);
 
 HostMem.num_terminated_neutrons[0]+=count_lives(gridx,blockx,DeviceMem,HostMem);
@@ -67,11 +79,12 @@ clock_end   = clock();
 time_elapsed = (float)(clock_end-clock_start)/CLOCKS_PER_SEC*1000.f;
 printf("[time], active + remain cycles costs %f ms\/%d neutrons\n", time_elapsed, HostMem.num_terminated_neutrons[0]);
 print_results(gridx, blockx, num_src, num_bin, DeviceMem, HostMem, time_elapsed);
- 
+*/ 
 //============================================================ 
 //=============simulation shut down===========================
 //============================================================
   release_memory(DeviceMem, HostMem);
+  printf("so far so good\n");
 
   return 0;
 }

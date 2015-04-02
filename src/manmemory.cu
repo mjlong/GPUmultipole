@@ -11,8 +11,6 @@ void initialize_memory(MemStruct *DeviceMem, MemStruct *HostMem, unsigned numbin
   unsigned gridsize;
   gridsize = gridx*blockx;
 
-  assign_tallybins((*HostMem).tallybins, &((*DeviceMem).tallybins), numbins+1);
-
   gpuErrchk(cudaMalloc((void**)&((*DeviceMem).spectrum), numbins*sizeof(unsigned int)));
   (*HostMem).spectrum = (unsigned*)malloc(sizeof(unsigned)*numbins);  
 
@@ -54,7 +52,6 @@ void initialize_memory(MemStruct *DeviceMem, MemStruct *HostMem, unsigned numbin
 void release_memory(MemStruct DeviceMem, MemStruct HostMem){
   free(HostMem.spectrum);
 
-  gpuErrchk(cudaFree(DeviceMem.tallybins));
   gpuErrchk(cudaFree(DeviceMem.spectrum));
   gpuErrchk(cudaFree(DeviceMem.block_spectrum));
 

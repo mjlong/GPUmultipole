@@ -1,5 +1,4 @@
 #include "simulation.h" 
-extern __constant__ float spectrumbins[];
 
 __global__ void initialize(MemStruct pInfo){
   //int id = ((blockDim.x*blockDim.y*blockDim.z)*(blockIdx.y*gridDim.x+blockIdx.x)+(blockDim.x*blockDim.y)*threadIdx.z+blockDim.x*threadIdx.y+threadIdx.x);//THREADID;
@@ -12,37 +11,10 @@ __global__ void initialize(MemStruct pInfo){
   pInfo.tally.cnt[id] = 0;
 }
 
-__global__ void update_sort_key(MemStruct DeviceMem, material mat){
-  unsigned id = blockDim.x * blockIdx.x + threadIdx.x;
-  unsigned isoID = mat.isotopes[mat.offsets[DeviceMem.nInfo.imat[id]]+0];
-                                            //matID
-  DeviceMem.nInfo.isoenergy[id] = (MAXENERGY*isoID+DeviceMem.nInfo.energy[id])*DeviceMem.nInfo.live[id];
-}
-
-__global__ void transport(MemStruct DeviceMem, material mat,unsigned renew){
-  int nid = (DeviceMem.nInfo.id[blockDim.x * blockIdx.x + threadIdx.x])%(gridDim.x*blockDim.x);
-  unsigned live = DeviceMem.nInfo.live[nid];
-  if(live){
-    CMPTYPE sigT = DeviceMem.nInfo.sigT[nid];
-    float s = -log(curand_uniform(&(DeviceMem.nInfo.rndState[nid])))/1E8;//(mat.N_tot[DeviceMem.nInfo.imat[nid]]*sigT);   
-    float d = DeviceMem.nInfo.d_closest[nid];
-    s = (d<s)*d+(d>=s)*s;
-    float mu = DeviceMem.nInfo.dir_polar[nid];
-    float phi= DeviceMem.nInfo.dir_azimu[nid];
-    DeviceMem.nInfo.pos_x[nid]+=s*sqrt(1-mu*mu)*cos(phi);
-    DeviceMem.nInfo.pos_y[nid]+=s*sqrt(1-mu*mu)*sin(phi);
-    DeviceMem.nInfo.pos_z[nid]+=s*mu;
-  }
-  else if(renew){
-    neutron_sample(DeviceMem.nInfo,nid);
-    DeviceMem.nInfo.id[blockDim.x * blockIdx.x + threadIdx.x] += gridDim.x*blockDim.x;
-  }
-}
-
 __device__ void neutron_sample(NeutronInfoStruct nInfo, unsigned id){
   nInfo.live[id] = 1u;
   curandState state = nInfo.rndState[id];
-//TODO: source sampling should take settings dependent on geometry
+  //TODO: source sampling should take settings dependent on geometry
   nInfo.pos_x[id] = 0.5f+0.00*curand_uniform(&state);
   nInfo.pos_y[id] = 0.5f+0.00*curand_uniform(&state);
   nInfo.pos_z[id] = 0.5f+0.00*curand_uniform(&state);
@@ -53,67 +25,32 @@ __device__ void neutron_sample(NeutronInfoStruct nInfo, unsigned id){
 }
 
 
-__global__ void resurrection(NeutronInfoStruct nInfo){
-  //neutron energy has been set in an efficient way after each collison
-  //only position and direction are sampled as neutron 
-  unsigned nid = (nInfo.id[blockDim.x*blockIdx.x + threadIdx.x])%(gridDim.x*blockDim.x);
-  unsigned live = nInfo.live[nid];
-  if(!live)
-    neutron_sample(nInfo,nid);
-}
-__device__ unsigned search_bin(CMPTYPE energy){
-  for(int i=0;i<NUM_BINS;i++){
-    if( (spectrumbins[i]>=energy)&&(spectrumbins[i+1]<energy) ) 
-      return i;
-  }
-  return 0;
-}
-__global__ void history(material mat, multipole mp_para, MemStruct DeviceMem, unsigned num_src,unsigned active){
+__global__ void history(MemStruct DeviceMem, unsigned num_src,unsigned active,unsigned devstep){
   //try others when real simulation structure becomes clear
   int idl = threadIdx.x;
   int id = blockDim.x * blockIdx.x + threadIdx.x;
-  int nid = (DeviceMem.nInfo.id[id])%(gridDim.x*blockDim.x);
+  int nid = id;
   unsigned live;
   extern __shared__ unsigned blockTerminated[];
-  if(DeviceMem.nInfo.live[nid]){
-  unsigned isotopeID;
-  CMPTYPE localenergy;
+
   CMPTYPE rnd;
-  CMPTYPE sigTsum, sigAsum, sigFsum, sigT, sigA, sigF;
-  sigTsum=0;
-  sigAsum=0;
-  sigFsum=0;
+
 
   /* Copy state to local memory for efficiency */ 
   curandState localState = DeviceMem.nInfo.rndState[nid];
 
-  localenergy = DeviceMem.nInfo.energy[nid];
-  DeviceMem.tally.cnt[search_bin(localenergy)*gridDim.x*blockDim.x+nid]+=1;
-  live = 1u;
-  unsigned imat = DeviceMem.nInfo.imat[nid];
-  for(isotopeID=mat.offsets[imat];isotopeID<mat.offsets[imat+1];isotopeID++ ){
-    mp_para.xs_eval_fast(mat.isotopes[isotopeID],localenergy, sqrt(300.0*KB), sigT, sigA, sigF);
-    sigTsum += sigT*mat.densities[isotopeID];
-    sigAsum += sigA*mat.densities[isotopeID];
-    sigFsum += sigF*mat.densities[isotopeID];
-  }
-  rnd = curand_uniform(&localState);
+  unsigned istep;
+  for(istep=0;istep<devstep;istep++){
+    DeviceMem.tally.cnt[int(DeviceMem.nInfo.pos_x[nid]/0.1)*gridDim.x*blockDim.x+nid]+=1;
+    live = 1u;
 
-#if defined(__PRINTTRACK__)
-  if(__PRINTTRACK__){
-    printf("%7d[%5d],%3d,%+.7e, %+.7e, %+.7e, %.14e %.14e %.14e %.14e\n",
-            DeviceMem.nInfo.id[id],id, DeviceMem.nInfo.imat[nid],
-            DeviceMem.nInfo.pos_x[nid], DeviceMem.nInfo.pos_y[nid], DeviceMem.nInfo.pos_z[nid],
-            localenergy, sigTsum,sigAsum,sigFsum); 
-  }
-#endif
-  localenergy = localenergy * rnd;
-  live = (localenergy > ENDENERG);
-  DeviceMem.nInfo.live[nid] = live;  
-  //energy can be updated efficiently here, live state is upated after sorting
-  localenergy = localenergy*live + STARTENE*(1u - live);
-  //terminated += !live;
+    rnd = curand_uniform(&localState);
 
+    DeviceMem.nInfo.live[nid] = live;  
+    //energy can be updated efficiently here, live state is upated after sorting
+    live = rnd<0.1;
+    //terminated += !live;
+  }
   blockTerminated[idl] = !live;
   
   /*Note: from now on, live does not indicate neutron but thread active */
@@ -122,18 +59,15 @@ __global__ void history(material mat, multipole mp_para, MemStruct DeviceMem, un
   //Info.thread_active[id] =  blockDim.x*gridDim.x + *Info.num_terminated_neutrons < num_src;
   /* Copy state back to global memory */ 
   DeviceMem.nInfo.rndState[nid] = localState; 
-  DeviceMem.nInfo.energy[nid] = localenergy;
-  DeviceMem.nInfo.sigT[nid]=sigTsum;
-  DeviceMem.nInfo.sigA[nid]=sigAsum;
-  DeviceMem.nInfo.sigF[nid]=sigFsum;
-  }//end if live
 
+  /*
   else{
     blockTerminated[idl] = active;//0;
     //those old unlive neutrons must not be counted again
     //so, 0 instead of !live is used 
     //it was incorrect, above senario forgot to count leak neutron as terminated
   }
+  */
   //TODO: no need of such within block reduction for remaining()
   __syncthreads();
   live = blockDim.x>>1;
