@@ -1,4 +1,3 @@
-#include "tallybin.h"
 #include <stdio.h>
 #include <string.h>
 
@@ -25,7 +24,7 @@ int main(int argc, char **argv){
 //============================================================
   initialize_device();
   MemStruct HostMem, DeviceMem;
-  unsigned num_bin = readbins(&(HostMem.tallybins),"tallybins")-1;
+  num_bin = atoi(argv[5]);
   initialize_memory(&DeviceMem, &HostMem, num_bin, gridx,blockx);
   free(HostMem.tallybins);
 
