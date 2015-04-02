@@ -34,16 +34,17 @@ __global__ void history(MemStruct DeviceMem, unsigned num_src,unsigned active,un
   extern __shared__ unsigned blockTerminated[];
 
   CMPTYPE rnd;
-
-
+  float x = DeviceMem.nInfo.pos_x[nid];
+  int dir = 1-2*int(DeviceMem.nInfo.dir_polar[nid]<=0.5);
   /* Copy state to local memory for efficiency */ 
   curandState localState = DeviceMem.nInfo.rndState[nid];
 
   unsigned istep;
   //printf("[%2d],x=%.5f\n",id,DeviceMem.nInfo.pos_x[nid]);
   for(istep=0;istep<devstep;istep++){
-    DeviceMem.tally.cnt[int(DeviceMem.nInfo.pos_x[nid]/dx)*gridDim.x*blockDim.x+nid]+=1;
-    live = 1u;
+    DeviceMem.tally.cnt[int(x/dx)*gridDim.x*blockDim.x+nid]+=1;
+    rnd = curand_uniform(&localState);
+    
 
     rnd = curand_uniform(&localState);
 
