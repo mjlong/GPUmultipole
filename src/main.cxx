@@ -17,7 +17,6 @@ int main(int argc, char **argv){
   unsigned gridx, blockx, gridsize;
   unsigned num_src;
 
-
   gridx = atoi(argv[1]);
   blockx = atoi(argv[2]);
   gridsize = gridx*blockx;
@@ -34,7 +33,7 @@ int main(int argc, char **argv){
 
   initialize_memory(&DeviceMem, &HostMem, num_bin, gridx,blockx);
 
-
+  float width = atof(argv[6]);
 
 //============================================================ 
 //===============main simulation body=========================
@@ -45,11 +44,11 @@ unsigned active;
 active = 1;
 
 
-initialize_neutrons(gridx, blockx, DeviceMem); 
+ initialize_neutrons(gridx, blockx, DeviceMem,width); 
 clock_start = clock();
 while(active){
 
-  start_neutrons(gridx, blockx, DeviceMem, num_src,1,1);
+  start_neutrons(gridx, blockx, DeviceMem, num_src,1,devstep);
   active = count_neutrons(gridx, blockx, DeviceMem, HostMem,num_src);
   //if active=1; transport<<<>>> will renew neutrons with live=0
   //if active=0; transport<<<>>> will leave terminated neutrons

@@ -8,8 +8,8 @@
   allocating device memory, transfering data and partitioning computation sources
 */
 
-void initialize_neutrons(unsigned gridx, unsigned blockx,MemStruct DeviceMem){
-  initialize<<<gridx, blockx>>>(DeviceMem);
+void initialize_neutrons(unsigned gridx, unsigned blockx,MemStruct DeviceMem,float width){
+  initialize<<<gridx, blockx>>>(DeviceMem,width);
 }
 
 void start_neutrons(unsigned gridx, unsigned blockx, MemStruct DeviceMem, unsigned num_src,unsigned active,unsigned devstep){

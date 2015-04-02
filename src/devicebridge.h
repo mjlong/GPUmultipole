@@ -2,7 +2,7 @@
 #define __DEVICEBRIDGE_H__
 
 void printdevice();
-void initialize_neutrons(unsigned gridx, unsigned blockx,MemStruct DeviceMem);
+void initialize_neutrons(unsigned gridx, unsigned blockx,MemStruct DeviceMem,float);
 
 void start_neutrons(unsigned gridx, unsigned blockx, MemStruct DeviceMem, unsigned num_src,unsigned active,unsigned devstep);
 
