@@ -66,6 +66,7 @@ void print_results(unsigned gridx, unsigned blockx, unsigned num_src, unsigned n
   
   free(h_cnt);
   gpuErrchk(cudaFree(d_cnt));
+  /*
   FILE *fp=NULL;
   fp = fopen("timelog","a+");
   gpuErrchk(cudaMemcpy(HostMem.num_terminated_neutrons, 
@@ -74,6 +75,7 @@ void print_results(unsigned gridx, unsigned blockx, unsigned num_src, unsigned n
 		       cudaMemcpyDeviceToHost));
   fprintf(fp,"%-4d,%-4d,%-.6f,%-8d,%-4d,%-2d M\n", gridx, blockx,timems*1000/sum, *HostMem.num_terminated_neutrons, 1, num_src/1000000);
   fclose(fp);
+  */
 }
 
 void printdevice(){
