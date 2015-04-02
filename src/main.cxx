@@ -59,7 +59,7 @@ while(active){
 clock_end   = clock();
 time_elapsed = (float)(clock_end-clock_start)/CLOCKS_PER_SEC*1000.f;
 
-/*
+
 printf("[time], active cycles costs %f ms\/%d neutrons\n", time_elapsed, HostMem.num_terminated_neutrons[0]);
 
 HostMem.num_terminated_neutrons[0]+=count_lives(gridx,blockx,DeviceMem,HostMem);
@@ -69,17 +69,15 @@ while(0!=active){
   //about twice sort in one loop
   //1. add extra sort here
   //2. only sort before xs evaluation, allows thread divergence in ray tracing
-  start_neutrons(gridx, blockx, mat, mp_para, DeviceMem, num_src,0);
-
+  start_neutrons(gridx, blockx, DeviceMem, num_src,0,1);
   active = count_lives(gridx, blockx, DeviceMem, HostMem);
-
-  transport_neutrons(gridx, blockx, DeviceMem, mat, 0); 
+  active = 0;
 }
 clock_end   = clock();
 time_elapsed = (float)(clock_end-clock_start)/CLOCKS_PER_SEC*1000.f;
 printf("[time], active + remain cycles costs %f ms\/%d neutrons\n", time_elapsed, HostMem.num_terminated_neutrons[0]);
 print_results(gridx, blockx, num_src, num_bin, DeviceMem, HostMem, time_elapsed);
-*/ 
+
 //============================================================ 
 //=============simulation shut down===========================
 //============================================================

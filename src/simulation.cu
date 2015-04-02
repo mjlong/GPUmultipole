@@ -15,7 +15,7 @@ __device__ void neutron_sample(NeutronInfoStruct nInfo, unsigned id){
   nInfo.live[id] = 1u;
   curandState state = nInfo.rndState[id];
   //TODO: source sampling should take settings dependent on geometry
-  nInfo.pos_x[id] = 0.5f+0.00*curand_uniform(&state);
+  nInfo.pos_x[id] = 2.5f+2*curand_uniform(&state);
   nInfo.pos_y[id] = 0.5f+0.00*curand_uniform(&state);
   nInfo.pos_z[id] = 0.5f+0.00*curand_uniform(&state);
   nInfo.dir_polar[id] = curand_uniform(&state)*2-1;
@@ -41,7 +41,7 @@ __global__ void history(MemStruct DeviceMem, unsigned num_src,unsigned active,un
 
   unsigned istep;
   for(istep=0;istep<devstep;istep++){
-    DeviceMem.tally.cnt[int(DeviceMem.nInfo.pos_x[nid]/0.1)*gridDim.x*blockDim.x+nid]+=1;
+    DeviceMem.tally.cnt[int(DeviceMem.nInfo.pos_x[nid])*gridDim.x*blockDim.x+nid]+=1;
     live = 1u;
 
     rnd = curand_uniform(&localState);
