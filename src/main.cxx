@@ -49,7 +49,7 @@ active = 1;
 clock_start = clock();
 while(active){
 
-  start_neutrons(gridx, blockx, DeviceMem, num_src,1,devstep);
+  start_neutrons(gridx, blockx, DeviceMem, num_src,1,devstep,width,width/num_bin);
   active = count_neutrons(gridx, blockx, DeviceMem, HostMem,num_src);
   //if active=1; transport<<<>>> will renew neutrons with live=0
   //if active=0; transport<<<>>> will leave terminated neutrons
@@ -69,7 +69,7 @@ while(0!=active){
   //about twice sort in one loop
   //1. add extra sort here
   //2. only sort before xs evaluation, allows thread divergence in ray tracing
-  start_neutrons(gridx, blockx, DeviceMem, num_src,0,1);
+  start_neutrons(gridx, blockx, DeviceMem, num_src,0,1,width,width/num_bin);
   active = count_lives(gridx, blockx, DeviceMem, HostMem);
   active = 0;
 }
