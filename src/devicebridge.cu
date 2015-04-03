@@ -12,6 +12,34 @@ void initialize_neutrons(unsigned gridx, unsigned blockx,MemStruct DeviceMem,flo
   initialize<<<gridx, blockx>>>(DeviceMem,width);
 }
 
+unsigned setbank(MemStruct DeviceMem, unsigned gridsize){
+  float* y2 = (float*)malloc(sizeof(float)*gridsize);
+  float* x2 = (float*)malloc(sizeof(float)*gridsize*3);
+  gpuErrchk(cudaMemcpy(y2,DeviceMem.nInfo.pos_y,sizeof(float)*gridsize, cudaMemcpyDeviceToHost));  
+  float y;
+  unsigned j=0;
+  for(int i=0;i<gridsize;i++){
+    y = y2[i];
+    if(0!=y){
+      if(y>0){
+	//number=3;
+	x2[j++]=y;
+	x2[j++]=y;
+	x2[j++]=y;
+      }
+      else{
+	//number=2;
+	x2[j++]=y;
+	x2[j++]=y;
+      }
+    }
+  }
+  gpuErrchk(cudaMemcpy(DeviceMem.nInfo.pos_x,x2,sizeof(float)*gridsize*3, cudaMemcpyHostToDevice));  
+  free(x2);
+  free(y2);
+  return j;
+}
+
 void start_neutrons(unsigned gridx, unsigned blockx, MemStruct DeviceMem, unsigned num_src,unsigned active,unsigned banksize){
   history<<<gridx, blockx, blockx*sizeof(unsigned)>>>(DeviceMem, num_src,active,banksize);
 } 
