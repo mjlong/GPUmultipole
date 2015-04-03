@@ -61,14 +61,14 @@ int main(int argc, char **argv){
 
   banksize = setbank(DeviceMem, gridsize);
   //printf("[%3d]%4d-->%4d: ", ibat,gridsize,banksize);
-  save_results(0,gridx, blockx, num_src, num_bin, DeviceMem, HostMem);
+  save_results(ibat,gridx, blockx, num_src, num_bin, DeviceMem, HostMem);
   //resetcount(DeviceMem);
 
   }
   clock_end   = clock();
   time_elapsed = (float)(clock_end-clock_start)/CLOCKS_PER_SEC*1000.f;
   printf("[time], %d batches (*%d neutrons/batch) costs %f ms\n", num_bat,gridsize, time_elapsed);
- 
+  //print_results(num_bin,num_bat,HostMem.batchmeans);
 
 //============================================================ 
 //=============simulation shut down===========================
