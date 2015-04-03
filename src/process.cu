@@ -66,8 +66,8 @@ double autok(double *batmeans, unsigned n, unsigned k, unsigned meshes, unsigned
 void fitrho(double* rho, unsigned m, double* rho0, double* q){
   double sum1=0; double sum2=0;
   for(int i=0;i<m;i++){
-    sum1 += log(rho[i]);
-    sum2 += log(rho[i])*(i+1);
+    sum1 += log(abs(rho[i]));
+    sum2 += log(abs(rho[i]))*(i+1);
   }
   *rho0 = exp(2.0*(sum1+2.0*m*sum1-3.0*sum2)/(m*(m-1.0)));
   *q = exp((6.0*sum1+6.0*m*sum1-12.0*sum2)/(m*(1.0-m*m)));
@@ -82,9 +82,9 @@ void fitrho(double* rho, unsigned m, double* rho0, double* q){
 
 void fitrho1(double* rho, unsigned m, double* rho0, double* q){
   double sum1 = 0;
-  double rho1 = rho[0];
+  double rho1 = abs(rho[0]);
   for(int i=0;i<m;i++)
-    sum1 += log(rho[i])*i;
+    sum1 += log(abs(rho[i]))*i;
   *q = exp((sum1-m*(m-1.0)*0.5*log(rho1))/(1.0/6*(m-1.0)*m*(2.0*m-1.0)));
   *rho0 = rho1/(*q);
 }
