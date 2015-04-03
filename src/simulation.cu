@@ -25,7 +25,12 @@ __device__ void neutron_sample(NeutronInfoStruct nInfo, unsigned id,float width)
 }
 
 
-__global__ void history(MemStruct DeviceMem, unsigned num_src,unsigned active,unsigned devstep,float width, float dx){
+__global__ void history(MemStruct DeviceMem, unsigned num_src,unsigned active,unsigned devstep){
+  float width = DeviceMem.wdspp[0];
+  float dx = DeviceMem.wdspp[1];
+  float sigt = DeviceMem.wdspp[2];
+  float pf = DeviceMem.wdspp[3];
+  float pc = DeviceMem.wdspp[4];
   //try others when real simulation structure becomes clear
   int idl = threadIdx.x;
   int id = blockDim.x * blockIdx.x + threadIdx.x;
@@ -40,7 +45,7 @@ __global__ void history(MemStruct DeviceMem, unsigned num_src,unsigned active,un
   curandState localState = DeviceMem.nInfo.rndState[nid];
 
   unsigned istep;
-  //printf("[%2d],x=%.5f\n",id,DeviceMem.nInfo.pos_x[nid]);
+  //printf("[%2d],x=%.5f,pf=%.5f\n",id,DeviceMem.nInfo.pos_x[nid],pf);
   for(istep=0;istep<devstep;istep++){
     DeviceMem.tally.cnt[int(x/dx)*gridDim.x*blockDim.x+nid]+=1;
     rnd = curand_uniform(&localState);

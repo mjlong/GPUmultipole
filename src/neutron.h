@@ -42,6 +42,7 @@ typedef struct {
 }NeutronInfoStruct;
 
 typedef struct {
+  float *wdspp;
   NeutronInfoStruct nInfo;
   unsigned int *block_terminated_neutrons;
   unsigned int *num_terminated_neutrons;

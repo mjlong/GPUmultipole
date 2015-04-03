@@ -11,5 +11,6 @@ void initialize_device();
 void initialize_memory(MemStruct *DeviceMem, MemStruct *HostMem, unsigned numbins, unsigned gridx, unsigned blockx, unsigned numbatches);
 void release_memory(MemStruct DeviceMem, MemStruct HostMem);
 void copymeans(unsigned *h_cnt, unsigned *batchmeans, unsigned meshes, unsigned offset);
+void copydata(MemStruct DeviceMem, MemStruct HostMem);
 
 #endif

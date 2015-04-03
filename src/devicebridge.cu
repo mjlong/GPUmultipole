@@ -12,8 +12,8 @@ void initialize_neutrons(unsigned gridx, unsigned blockx,MemStruct DeviceMem,flo
   initialize<<<gridx, blockx>>>(DeviceMem,width);
 }
 
-void start_neutrons(unsigned gridx, unsigned blockx, MemStruct DeviceMem, unsigned num_src,unsigned active,unsigned devstep,float width, float dx){
-  history<<<gridx, blockx, blockx*sizeof(unsigned)>>>(DeviceMem, num_src,active,devstep,width,dx);
+void start_neutrons(unsigned gridx, unsigned blockx, MemStruct DeviceMem, unsigned num_src,unsigned active,unsigned devstep){
+  history<<<gridx, blockx, blockx*sizeof(unsigned)>>>(DeviceMem, num_src,active,devstep);
 } 
 
 unsigned count_neutrons(unsigned gridx, unsigned blockx, MemStruct DeviceMem, MemStruct HostMem, unsigned num_src){
