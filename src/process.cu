@@ -31,3 +31,34 @@ void getASE(float *accmeans,unsigned meshes, unsigned nbat, unsigned ubat, float
     }
   }
 }
+
+
+void getCOR(float *batmeans, unsigned meshes, unsigned nbat, unsigned ubat, unsigned upto,float *COR){
+  int im,ib;
+  float *batmeans_active = batmeans+ubat*meshes;
+  for(im=0;im<meshes;im++){
+    for(ib=0;ib<upto;ib++){
+      COR[im*upto+ib] = autok(batmeans_active,nbat-ubat,ib+1,meshes,im);
+    }
+  }
+  
+
+}
+
+float autok(float *batmeans, unsigned n, unsigned k, unsigned meshes, unsigned im){
+  double sum1=0; double sum2=0; double sum3=0; double sum4=0; double sum5 = 0;
+  double xi,xik;
+  int ib;
+  for(ib=0;ib<n-k;ib++){
+    //printf("in autok, ib=%d\n",ib);
+    xi = batmeans[ib*meshes+im];
+    xik= batmeans[(ib+k)*meshes+im];
+    sum1+=xi;
+    sum2+=xik;
+    sum3+=xi*xik;
+    sum4+=xi*xi;
+    sum5+=xik*xik;
+  }
+  
+  return ((n-k)*sum3-sum1*sum2)/sqrt(((n-k)*sum4-sum1*sum1)*((n-k)*sum5-sum2*sum2));
+}
