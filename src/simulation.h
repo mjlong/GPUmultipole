@@ -14,4 +14,5 @@ __global__ void history(MemStruct, unsigned num_src,unsigned active,unsigned dev
 __global__ void initialize(MemStruct,float);
 __global__ void reduce_sum_plus(unsigned *threadcnt, unsigned* cnt);
 __global__ void reduce_sum_equal(unsigned* thread_active, unsigned* active);
+__device__ unsigned notleak(float x,float a);
 #endif
