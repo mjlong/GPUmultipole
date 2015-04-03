@@ -101,3 +101,13 @@ void fitall1(double *rhos,unsigned upto, unsigned meshes, double *rho0s, double 
     fitrho1(rhos+im*upto, upto, rho0s+im, qs+im);
   }
 }
+
+double variance(double *x, unsigned n){
+  double sum1=0; double sum2=0;double xi;
+  for(int i=0;i<n;i++){
+    xi = x[i];
+    sum1+=xi;
+    sum2+=xi*xi;
+  }
+  return (sum2-sum1*sum1/n)/(n-1);
+}
