@@ -63,8 +63,6 @@ int main(int argc, char **argv){
 
   printf("[time], this batch costs %f ms\/%d neutrons\n", time_elapsed, HostMem.num_terminated_neutrons[0]);
 
-  HostMem.num_terminated_neutrons[0]+=count_lives(gridx,blockx,DeviceMem,HostMem);
-
   print_results(0,gridx, blockx, num_src, num_bin, DeviceMem, HostMem, time_elapsed);
 
  
