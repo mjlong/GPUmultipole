@@ -12,6 +12,10 @@ void initialize_neutrons(unsigned gridx, unsigned blockx,MemStruct DeviceMem,flo
   initialize<<<gridx, blockx>>>(DeviceMem,width);
 }
 
+void resetcount(MemStruct DeviceMem){
+  unsigned x=0;
+  gpuErrchk(cudaMemcpy(DeviceMem.num_terminated_neutrons,&x,sizeof(unsigned), cudaMemcpyHostToDevice));  
+}
 unsigned setbank(MemStruct DeviceMem, unsigned gridsize){
   float* y2 = (float*)malloc(sizeof(float)*gridsize);
   float* x2 = (float*)malloc(sizeof(float)*gridsize*3);
@@ -67,7 +71,7 @@ unsigned count_lives(unsigned gridx, unsigned blockx, MemStruct DeviceMem, MemSt
   return active;
 }
 
-void print_results(unsigned ibat, unsigned gridx, unsigned blockx, unsigned num_src, unsigned num_bin, MemStruct DeviceMem, MemStruct HostMem, float timems){
+void print_results(unsigned ibat, unsigned gridx, unsigned blockx, unsigned num_src, unsigned num_bin, MemStruct DeviceMem, MemStruct HostMem){
   
   unsigned *d_cnt, *h_cnt;
   gpuErrchk(cudaMalloc((void**)&d_cnt, num_bin*sizeof(unsigned)));
@@ -85,14 +89,14 @@ void print_results(unsigned ibat, unsigned gridx, unsigned blockx, unsigned num_
   copymeans(h_cnt,HostMem.batchmeans,num_bin,num_bin*ibat);
 
 /*print collision cnt and time*/
+/*
   unsigned sum=0;
   for(int j=0;j<num_bin;j++){ 
     sum+=h_cnt[j];
-    printf("%4d \n",h_cnt[j]);
+    printf("%6d ",h_cnt[j]);
   }
-  printf("%u\n",HostMem.num_terminated_neutrons[0]);
-  printf("time elapsed:%g mus\n", timems*1000/sum);
-  
+  printf("|||%u +++ %u\n",HostMem.num_terminated_neutrons[0],sum);
+*/
   free(h_cnt);
   gpuErrchk(cudaFree(d_cnt));
   /*
