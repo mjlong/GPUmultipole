@@ -32,6 +32,7 @@ int main(int argc, char **argv){
   MemStruct HostMem, DeviceMem;
   unsigned num_bin = atoi(argv[6]);
   unsigned num_bat = atoi(argv[5]);
+  unsigned print;
   initialize_memory(&DeviceMem, &HostMem, num_bin, gridx,blockx,num_bat);
   float width = atof(argv[7]);
 
@@ -44,6 +45,7 @@ int main(int argc, char **argv){
   copydata(DeviceMem,HostMem);
   printf("grid=[%3dx%3d],nhis=%-6d,ubat=%3d,nbat=%-6d,meshes=%-6d,box width=%.2f\n",gridx,blockx,gridx*blockx,ubat,num_bat,num_bin,width);
   printf("mfp=%.5f, pf=%.5f, pc=%.5f, ps=%.5f\n",HostMem.wdspp[2], HostMem.wdspp[3], HostMem.wdspp[4],1-(HostMem.wdspp[3]+HostMem.wdspp[4]));
+  print = atoi(argv[11]);
 //============================================================ 
 //===============main simulation body=========================
 //============================================================
@@ -81,27 +83,31 @@ int main(int argc, char **argv){
   //print_results(num_bin,num_bat,HostMem.acccnt);
   //print_results(num_bin,num_bat,HostMem.accmeans);
   printf("Batch means done:\n");
-  //print_results(num_bin,num_bat,HostMem.batchmeans);
+  if(0==print)
+    print_results(num_bin,num_bat,HostMem.batchmeans);
 
   //========================Average Square Error================================
   double *ASE = (double*)malloc(sizeof(double)*(num_bat-ubat));
   getASE(HostMem.accmeans, num_bin, num_bat,ubat, ref, ASE);
   printf("ASE done:\n");
-
+  if(0==print)
+    print_results(num_bat-ubat,1,ASE);
   //=====================Auto-Correlation Coefficients==========================
   double *COR = (double*)malloc(sizeof(double)*upto*num_bin);
   getCOR(HostMem.batchmeans,num_bin,num_bat,ubat,upto,COR);
   printf("Mesh correlations done:\n");
-  //print_results(upto,num_bin, COR);
+  if(0==print)
+    print_results(upto,num_bin, COR);
 
   //==================== ACC fit ===============================================
   double *rho0s = (double*)malloc(sizeof(double)*num_bin);
   double *qs    = (double*)malloc(sizeof(double)*num_bin);
   fitall(COR,upto,num_bin,rho0s,qs);
   printf("ACC fit done:\n");
-  //print_results(num_bin,1,rho0s);
-  //print_results(num_bin,1,qs);
-
+  if(0==print){
+    print_results(num_bin,1,rho0s);
+    print_results(num_bin,1,qs);
+  }
   //fitall1(COR,upto,num_bin,rho0s,qs);
   //printf("ACC fit done:\n");
   //print_results(num_bin,1,rho0s);
@@ -112,14 +118,16 @@ int main(int argc, char **argv){
   for(int im=0;im<num_bin;im++)
     vars[im] = variance(HostMem.batchmeans,num_bat,ubat,num_bin,im);
   printf("Variance done:\n");
-  //print_results(num_bin,1,vars);
+  if(0==print)
+    print_results(num_bin,1,vars);
 
 
   //================= MASE (Mean average square error) =========================  
   double *EASE = (double*)malloc(sizeof(double)*(num_bat-ubat));
   getEASE(vars,num_bin,ubat,num_bat-ubat,rho0s,qs,EASE);
   printf("EASE done:\n");
-  //print_results(num_bat-ubat,1,EASE);
+  if(0==print)
+    print_results(num_bat-ubat,1,EASE);
 
   char name1[10];  char name2[10];  char name3[10];  char name[50];
   sprintf(name1,"_%d",gridx*blockx);
