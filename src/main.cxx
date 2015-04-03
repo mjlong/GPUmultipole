@@ -36,12 +36,12 @@ int main(int argc, char **argv){
 
   HostMem.wdspp[0] = width;
   HostMem.wdspp[1] = width/num_bin;
-  HostMem.wdspp[2] = atof(argv[8]); //sigmat
+  HostMem.wdspp[2] = 1.0/atof(argv[8]); //sigmat
   HostMem.wdspp[3] = atof(argv[9]); //pf
   HostMem.wdspp[4] = atof(argv[10]);//pc
   copydata(DeviceMem,HostMem);
   printf("grid=[%3dx%3d],devstep=%3d,nhis=%-6d,nbat=%-6d,meshes=%-6d,box width=%.2f\n",gridx,blockx,devstep,num_src,num_bat,num_bin,width);
-  printf("Sigmat=%.5f, pf=%.5f, pc=%.5f, ps=%.5f\n",HostMem.wdspp[2], HostMem.wdspp[3], HostMem.wdspp[4],1-(HostMem.wdspp[3]+HostMem.wdspp[4]));
+  printf("mfp=%.5f, pf=%.5f, pc=%.5f, ps=%.5f\n",HostMem.wdspp[2], HostMem.wdspp[3], HostMem.wdspp[4],1-(HostMem.wdspp[3]+HostMem.wdspp[4]));
 //============================================================ 
 //===============main simulation body=========================
 //============================================================
