@@ -32,18 +32,23 @@ __global__ void history(MemStruct DeviceMem, unsigned num_src,unsigned active,un
   float width = DeviceMem.wdspp[0];
   float dx = DeviceMem.wdspp[1];
   float mfp = DeviceMem.wdspp[2];
-  float Ps = DeviceMem.wdspp[3]+DeviceMem.wdspp[4];
+  float Ps = 1-(DeviceMem.wdspp[3]+DeviceMem.wdspp[4]);
   float Pc = Ps+DeviceMem.wdspp[4];
   float s;
   //try others when real simulation structure becomes clear
   int idl = threadIdx.x;
+  //id is the thread index
+  //nid is the sampled index to get neutron position
+  //in this scheme, normalization is realized by forcefully 
+  //select gridsize neutrons from banksize neutrons
   int id = blockDim.x * blockIdx.x + threadIdx.x;
-  int nid = id;
+  curandState localState = DeviceMem.nInfo.rndState[id];
+  int nid = int(curand_uniform(&localState)*banksize);
   extern __shared__ unsigned blockTerminated[];
 
   CMPTYPE rnd;
   float x = DeviceMem.nInfo.pos_x[nid];
-  curandState localState = DeviceMem.nInfo.rndState[nid];
+
 
   int dir = 1-2*int((curand_uniform(&localState))<=0.5);
   /* Copy state to local memory for efficiency */ 
@@ -60,7 +65,7 @@ __global__ void history(MemStruct DeviceMem, unsigned num_src,unsigned active,un
       x=((1==dir)*2*width+(-1==dir)*0-x);
       dir = -1*dir;
     }
-    DeviceMem.tally.cnt[int(x/dx)*gridDim.x*blockDim.x+nid]+=1;
+    DeviceMem.tally.cnt[int(x/dx)*gridDim.x*blockDim.x+id]+=1;
     
     rnd = curand_uniform(&localState);
     if(rnd<Ps)
@@ -71,10 +76,10 @@ __global__ void history(MemStruct DeviceMem, unsigned num_src,unsigned active,un
 	rnd = curand_uniform(&localState);
 	//newneu = 2*(rnd<=0.55)+3*(rand>0.55);
 	newneu = 1-2*(rnd<=0.55); //-1 --> 2 fission; +1 --> 3 fission
-	DeviceMem.nInfo.pos_y[nid] = x*newneu;
+	DeviceMem.nInfo.pos_y[id] = x*newneu;
       }
       else{  //rnd<Pc, capture, nothing to do
-	DeviceMem.nInfo.pos_y[nid] = 0;
+	DeviceMem.nInfo.pos_y[id] = 0;
       }
     }//end collision type
   }//end one history
@@ -86,7 +91,7 @@ __global__ void history(MemStruct DeviceMem, unsigned num_src,unsigned active,un
   //atomicAdd(Info.num_terminated_neutrons,!live);
   //Info.thread_active[id] =  blockDim.x*gridDim.x + *Info.num_terminated_neutrons < num_src;
   /* Copy state back to global memory */ 
-  DeviceMem.nInfo.rndState[nid] = localState; 
+  DeviceMem.nInfo.rndState[id] = localState; 
 
   /*
   else{
