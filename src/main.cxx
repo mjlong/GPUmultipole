@@ -53,19 +53,21 @@ int main(int argc, char **argv){
 
   initialize_neutrons(gridx, blockx, DeviceMem,width); 
   clock_start = clock();
+
+  for(int ibat=0;ibat<num_bat;ibat++){
   start_neutrons(gridx, blockx, DeviceMem, num_src,1,banksize);
   active = count_neutrons(gridx, blockx, DeviceMem, HostMem,num_src);
+
+
+  banksize = setbank(DeviceMem, gridsize);
+  //printf("[%3d]%4d-->%4d: ", ibat,gridsize,banksize);
+  print_results(0,gridx, blockx, num_src, num_bin, DeviceMem, HostMem);
+  //resetcount(DeviceMem);
+
+  }
   clock_end   = clock();
   time_elapsed = (float)(clock_end-clock_start)/CLOCKS_PER_SEC*1000.f;
-
-
-  printf("[time], this batch costs %f ms\/%d neutrons\n", time_elapsed, HostMem.num_terminated_neutrons[0]);
-  banksize = setbank(DeviceMem, gridsize);
-  printf("Next batch will run %6d neutrons\n", banksize);
-
-
-  print_results(0,gridx, blockx, num_src, num_bin, DeviceMem, HostMem, time_elapsed);
-
+  printf("[time], %d batches (*%d neutrons/batch) costs %f ms\n", num_bat,gridsize, time_elapsed);
  
 
 //============================================================ 
