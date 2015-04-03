@@ -73,6 +73,8 @@ int main(int argc, char **argv){
   //============================================================================
   //=========================process the results ===============================
   //============================================================================
+  clock_start = clock();
+
   FILE *fp=NULL;
   fp = fopen("boxtally","a+");
 
@@ -84,11 +86,16 @@ int main(int argc, char **argv){
 
   float *ASE = (float*)malloc(sizeof(float)*(num_bat-ubat));
   getASE(HostMem.accmeans, num_bin, num_bat,ubat, ref, ASE);
+
+
   for(int i=0;i<num_bat-ubat;i++)
     fprintf(fp,"%.5e\n",ASE[i]);
 
   free(ASE);
   fclose(fp);
+  clock_end   = clock();
+  time_elapsed = (float)(clock_end-clock_start)/CLOCKS_PER_SEC*1000.f;
+  printf("[time], statistics costs %f ms\n", time_elapsed);
 
 
 //============================================================ 
