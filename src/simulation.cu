@@ -29,13 +29,13 @@ __global__ void history(MemStruct DeviceMem, unsigned num_src,unsigned active,un
   float width = DeviceMem.wdspp[0];
   float dx = DeviceMem.wdspp[1];
   float sigt = DeviceMem.wdspp[2];
-  float pf = DeviceMem.wdspp[3];
-  float pc = DeviceMem.wdspp[4];
+  float Ps = DeviceMem.wdspp[3]+DeviceMem.wdspp[4];
+  float Pc = Ps+DeviceMem.wdspp[4];
   //try others when real simulation structure becomes clear
   int idl = threadIdx.x;
   int id = blockDim.x * blockIdx.x + threadIdx.x;
   int nid = id;
-  unsigned live;
+  unsigned live=1;
   extern __shared__ unsigned blockTerminated[];
 
   CMPTYPE rnd;
@@ -46,7 +46,8 @@ __global__ void history(MemStruct DeviceMem, unsigned num_src,unsigned active,un
 
   unsigned istep;
   //printf("[%2d],x=%.5f,pf=%.5f\n",id,DeviceMem.nInfo.pos_x[nid],pf);
-  for(istep=0;istep<devstep;istep++){
+  //for(istep=0;istep<devstep;istep++){
+  while(live){
     DeviceMem.tally.cnt[int(x/dx)*gridDim.x*blockDim.x+nid]+=1;
     rnd = curand_uniform(&localState);
     
@@ -54,12 +55,9 @@ __global__ void history(MemStruct DeviceMem, unsigned num_src,unsigned active,un
     rnd = curand_uniform(&localState);
 
     DeviceMem.nInfo.live[nid] = live;  
-    //energy can be updated efficiently here, live state is upated after sorting
-    live = rnd<0.5;
-    //terminated += !live;
-
   }
-  blockTerminated[idl] = !live;
+  //}
+  blockTerminated[idl] =1;// !live;
   
   /*Note: from now on, live does not indicate neutron but thread active */
   //blockActive[threadIdx.x] = (((terminated*2)*blockDim.x*gridDim.x + atomicAdd(Info.num_terminated_neutrons, terminated)) < num_src);
