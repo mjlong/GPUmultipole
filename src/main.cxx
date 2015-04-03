@@ -45,29 +45,29 @@ int main(int argc, char **argv){
 //============================================================ 
 //===============main simulation body=========================
 //============================================================
-clock_t clock_start, clock_end;
-float time_elapsed = 0.f;
-unsigned active;
-active = 1;
+  clock_t clock_start, clock_end;
+  float time_elapsed = 0.f;
+  unsigned active;
+  active = 1;
 
 
- initialize_neutrons(gridx, blockx, DeviceMem,width); 
-clock_start = clock();
+  initialize_neutrons(gridx, blockx, DeviceMem,width); 
+  clock_start = clock();
   start_neutrons(gridx, blockx, DeviceMem, num_src,1,devstep);
   active = count_neutrons(gridx, blockx, DeviceMem, HostMem,num_src);
-  //if active=1; transport<<<>>> will renew neutrons with live=0
-  //if active=0; transport<<<>>> will leave terminated neutrons
-  //set active always 1 to make sure number of neutrons simulated exactly equal to num_src
+ 
 
-clock_end   = clock();
-time_elapsed = (float)(clock_end-clock_start)/CLOCKS_PER_SEC*1000.f;
+  clock_end   = clock();
+  time_elapsed = (float)(clock_end-clock_start)/CLOCKS_PER_SEC*1000.f;
 
 
-printf("[time], this batch costs %f ms\/%d neutrons\n", time_elapsed, HostMem.num_terminated_neutrons[0]);
+  printf("[time], this batch costs %f ms\/%d neutrons\n", time_elapsed, HostMem.num_terminated_neutrons[0]);
 
-HostMem.num_terminated_neutrons[0]+=count_lives(gridx,blockx,DeviceMem,HostMem);
+  HostMem.num_terminated_neutrons[0]+=count_lives(gridx,blockx,DeviceMem,HostMem);
 
-print_results(0,gridx, blockx, num_src, num_bin, DeviceMem, HostMem, time_elapsed);
+  print_results(0,gridx, blockx, num_src, num_bin, DeviceMem, HostMem, time_elapsed);
+
+ 
 
 //============================================================ 
 //=============simulation shut down===========================
