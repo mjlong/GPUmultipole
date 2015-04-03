@@ -86,7 +86,7 @@ void save_results(unsigned ibat, unsigned gridx, unsigned blockx, unsigned num_s
                    DeviceMem.block_spectrum+i*gridx, d_cnt+i);
   }
   gpuErrchk(cudaMemcpy(h_cnt,d_cnt,sizeof(unsigned)*num_bin, cudaMemcpyDeviceToHost));
-  copymeans(h_cnt,HostMem.accmeans,num_bin,num_bin*ibat);
+  copymeans(h_cnt,HostMem.acccnt,num_bin,num_bin*ibat);
 
 /*print collision cnt and time*/
 /*
