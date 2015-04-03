@@ -63,7 +63,7 @@ __global__ void history(MemStruct DeviceMem, unsigned num_src,unsigned active,un
 
     while(!notleak(x,width)){
       x=((1==dir)*2*width+(-1==dir)*0-x);
-      dir = -1*dir;
+      dir = 0-dir;
     }
     DeviceMem.tally.cnt[int(x/dx)*gridDim.x*blockDim.x+id]+=1;
     
