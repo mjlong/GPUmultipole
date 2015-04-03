@@ -61,7 +61,7 @@ int main(int argc, char **argv){
 
   banksize = setbank(DeviceMem, gridsize);
   //printf("[%3d]%4d-->%4d: ", ibat,gridsize,banksize);
-  print_results(0,gridx, blockx, num_src, num_bin, DeviceMem, HostMem);
+  save_results(0,gridx, blockx, num_src, num_bin, DeviceMem, HostMem);
   //resetcount(DeviceMem);
 
   }

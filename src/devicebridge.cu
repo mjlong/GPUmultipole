@@ -71,7 +71,7 @@ unsigned count_lives(unsigned gridx, unsigned blockx, MemStruct DeviceMem, MemSt
   return active;
 }
 
-void print_results(unsigned ibat, unsigned gridx, unsigned blockx, unsigned num_src, unsigned num_bin, MemStruct DeviceMem, MemStruct HostMem){
+void save_results(unsigned ibat, unsigned gridx, unsigned blockx, unsigned num_src, unsigned num_bin, MemStruct DeviceMem, MemStruct HostMem){
   
   unsigned *d_cnt, *h_cnt;
   gpuErrchk(cudaMalloc((void**)&d_cnt, num_bin*sizeof(unsigned)));
