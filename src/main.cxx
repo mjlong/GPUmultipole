@@ -121,9 +121,14 @@ int main(int argc, char **argv){
   printf("EASE done:\n");
   //print_results(num_bat-ubat,1,EASE);
 
-  
+  char name1[10];  char name2[10];  char name3[10];  char name[50];
+  sprintf(name1,"_%d",gridx*blockx);
+  sprintf(name2,"_%d",ubat);
+  sprintf(name3,"_%d",num_bat);
+  strcpy(name,"boxtally");  strcat(name,name1);  strcat(name,name2);  strcat(name,name3);
   FILE *fp=NULL;
-  fp = fopen("boxtally","a+");  
+  fp = fopen(name,"a+");  
+  fprintf(fp,"%8d %8d\n", gridx*blockx, num_bat-ubat);
   for(int i=0;i<num_bat-ubat;i++)
     fprintf(fp,"%.8e %.8e\n",ASE[i],EASE[i]);
 
