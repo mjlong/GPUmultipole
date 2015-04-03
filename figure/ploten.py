@@ -20,7 +20,7 @@ space = np.linspace(1,nbat,nbat);
 plt.figure();
 plt.plot(tally);
 plt.plot(refer);
-plt.savefig(sys.argv[1]+'dist'+'.png');
+plt.savefig('dist'+'.png');
 
 plt.figure();
 plt.loglog(space,ASE,label='Average Square Error: numhist='+str(nhis));
@@ -28,5 +28,16 @@ plt.loglog(space,EASE,label='Expectation of ASE: numhist='+str(nhis));
 plt.legend(loc='lower left',prop={'size':16});
 plt.xlabel('number of batch');
 plt.ylabel('Absolute error (/cm/neutron)');
-plt.savefig(sys.argv[1]+'ASE-n'+'.png');
+plt.savefig('ASE-n'+'.png');
+
+x = np.loadtxt('../acc_0',delimiter=' ',unpack=False);
+rho0 = x[0];
+q    = x[1];
+rhos = x[2:];
+upto = len(x)-2;
+plt.figure();
+space = np.linspace(1,upto,upto);
+plt.plot(space,rhos);
+plt.plot(space,rho0*(q**space));
+plt.savefig('acc.png');
 
