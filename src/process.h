@@ -6,4 +6,8 @@ void getASE(double *accmeans,unsigned meshes, unsigned nbat, unsigned ubat, doub
 void cnt2flux(MemStruct HostMem, unsigned numhis, float dx, unsigned meshes, unsigned nbat);
 double autok(double *batmeans, unsigned n, unsigned k, unsigned meshes, unsigned im);
 void getCOR(double *batmeans, unsigned meshes, unsigned nbat, unsigned ubat, unsigned upto,double *COR);
+void fitall(double *rhos,unsigned upto, unsigned meshes, double *rho0s, double *qs);
+void fitall1(double *rhos,unsigned upto, unsigned meshes, double *rho0s, double *qs);
+void fitrho1(double* rho, unsigned m, double* rho0, double* q);
+void fitrho(double* rho, unsigned m, double* rho0, double* q);
 #endif

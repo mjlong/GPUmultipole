@@ -96,7 +96,22 @@ int main(int argc, char **argv){
   getCOR(HostMem.batchmeans,num_bin,num_bat,ubat,upto,COR);
   printf("Mesh correlations done:\n");
   //print_results(upto,num_bin, COR);
-  
+
+  double *rho0s = (double*)malloc(sizeof(double)*num_bin);
+  double *qs    = (double*)malloc(sizeof(double)*num_bin);
+  fitall(COR,upto,num_bin,rho0s,qs);
+  printf("ACC fit done:\n");
+  //print_results(num_bin,1,rho0s);
+  //print_results(num_bin,1,qs);
+
+  //fitall1(COR,upto,num_bin,rho0s,qs);
+  //printf("ACC fit done:\n");
+  //print_results(num_bin,1,rho0s);
+  //print_results(num_bin,1,qs);
+
+
+  free(rho0s);
+  free(qs);
   free(COR);
   free(ASE);
   //fclose(fp);

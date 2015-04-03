@@ -62,3 +62,42 @@ double autok(double *batmeans, unsigned n, unsigned k, unsigned meshes, unsigned
   
   return ((n-k)*sum3-sum1*sum2)/sqrt(((n-k)*sum4-sum1*sum1)*((n-k)*sum5-sum2*sum2));
 }
+
+void fitrho(double* rho, unsigned m, double* rho0, double* q){
+  double sum1=0; double sum2=0;
+  for(int i=0;i<m;i++){
+    sum1 += log(rho[i]);
+    sum2 += log(rho[i])*(i+1);
+  }
+  *rho0 = exp(2.0*(sum1+2.0*m*sum1-3.0*sum2)/(m*(m-1.0)));
+  *q = exp((6.0*sum1+6.0*m*sum1-12.0*sum2)/(m*(1.0-m*m)));
+  /*
+    m = length(ρ);
+    A = [m              0.5*m*(m+1);
+         0.5*m*(m+1)    1.0/6*m*(m+1)*(2*m+1)];
+    c = inv(A)*[sum(log(ρ)), sum(log(ρ).*range(1,m))];
+    return exp(c[1]),exp(c[2]); #ρ0, q
+  */
+}
+
+void fitrho1(double* rho, unsigned m, double* rho0, double* q){
+  double sum1 = 0;
+  double rho1 = rho[0];
+  for(int i=0;i<m;i++)
+    sum1 += log(rho[i])*i;
+  *q = exp((sum1-m*(m-1.0)*0.5*log(rho1))/(1.0/6*(m-1.0)*m*(2.0*m-1.0)));
+  *rho0 = rho1/(*q);
+}
+
+
+void fitall(double *rhos,unsigned upto, unsigned meshes, double *rho0s, double *qs){
+  for(int im=0;im<meshes;im++){
+    fitrho(rhos+im*upto, upto, rho0s+im, qs+im);
+  }
+}
+
+void fitall1(double *rhos,unsigned upto, unsigned meshes, double *rho0s, double *qs){
+  for(int im=0;im<meshes;im++){
+    fitrho1(rhos+im*upto, upto, rho0s+im, qs+im);
+  }
+}
