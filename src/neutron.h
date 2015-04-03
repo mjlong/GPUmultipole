@@ -50,6 +50,7 @@ typedef struct {
   unsigned int *block_spectrum;
   unsigned int *spectrum;
   unsigned int *batchmeans;
+  unsigned int *accmeans;
   float *tallybins;
   TallyStruct tally;
 }MemStruct;
