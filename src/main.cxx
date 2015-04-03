@@ -86,7 +86,7 @@ int main(int argc, char **argv){
   //========================Average Square Error================================
   double *ASE = (double*)malloc(sizeof(double)*(num_bat-ubat));
   getASE(HostMem.accmeans, num_bin, num_bat,ubat, ref, ASE);
-
+  printf("ASE done:\n");
 
   //=====================Auto-Correlation Coefficients==========================
   double *COR = (double*)malloc(sizeof(double)*upto*num_bin);
@@ -125,15 +125,20 @@ int main(int argc, char **argv){
   sprintf(name1,"_%d",gridx*blockx);
   sprintf(name2,"_%d",ubat);
   sprintf(name3,"_%d",num_bat);
-  strcpy(name,"boxtally");  strcat(name,name1);  strcat(name,name2);  strcat(name,name3);
+  strcpy(name,"ASE_EASE");  strcat(name,name1);  strcat(name,name2);  strcat(name,name3);
   FILE *fp=NULL;
-  fp = fopen(name,"a+");  
-  fprintf(fp,"%8d %8d\n", gridx*blockx, num_bat-ubat);
+  fp = fopen(name,"w");  
+  fprintf(fp,"%.8e %.8e\n", gridx*blockx*1.0, num_bat*1.0-ubat);
   for(int i=0;i<num_bat-ubat;i++)
     fprintf(fp,"%.8e %.8e\n",ASE[i],EASE[i]);
-
-
   fclose(fp);
+
+  strcpy(name,"boxtally");  strcat(name,name1);  strcat(name,name2);  strcat(name,name3);
+  fp = fopen(name,"w");  
+  for(int i=0;i<num_bin;i++)
+    fprintf(fp,"%.8e %.8e\n",HostMem.batchmeans[(num_bat-ubat-1)*num_bin+i],ref);
+  fclose(fp);
+
   free(EASE);
   free(vars);
   free(rho0s);
