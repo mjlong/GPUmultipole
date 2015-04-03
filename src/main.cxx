@@ -16,12 +16,13 @@ int main(int argc, char **argv){
 //============================================================
 
   unsigned gridx, blockx, gridsize,num_src;
-  unsigned ubat;
+  unsigned ubat,upto;
 
   gridx = atoi(argv[1]);
   blockx = atoi(argv[2]);
   gridsize = gridx*blockx;
   num_src = atoi(argv[3]);
+  upto = num_src; //num_src is not used but appears somewhere
   ubat = atoi(argv[4]);
 //============================================================ 
 //=============simulation memory allocation===================
@@ -75,24 +76,30 @@ int main(int argc, char **argv){
   //============================================================================
   clock_start = clock();
 
-  FILE *fp=NULL;
-  fp = fopen("boxtally","a+");
+  //FILE *fp=NULL;
+  //fp = fopen("boxtally","a+");
 
   cnt2flux(HostMem,gridsize,width/num_bin,num_bin,num_bat);
   //print_results(num_bin,num_bat,HostMem.acccnt);
   //print_results(num_bin,num_bat,HostMem.accmeans);
-  //printf("\n");
+  printf("Batch means done:\n");
   //print_results(num_bin,num_bat,HostMem.batchmeans);
 
+  //Average Square Error
   float *ASE = (float*)malloc(sizeof(float)*(num_bat-ubat));
   getASE(HostMem.accmeans, num_bin, num_bat,ubat, ref, ASE);
 
-
-  for(int i=0;i<num_bat-ubat;i++)
-    fprintf(fp,"%.5e\n",ASE[i]);
-
+  //for(int i=0;i<num_bat-ubat;i++)
+  //  fprintf(fp,"%.5e\n",ASE[i]);
+  //Auto-Correlation Coefficients
+  float *COR = (float*)malloc(sizeof(float)*upto*num_bin);
+  getCOR(HostMem.batchmeans,num_bin,num_bat,ubat,upto,COR);
+  printf("Mesh correlations done:\n");
+  //print_results(upto,num_bin, COR);
+  
+  free(COR);
   free(ASE);
-  fclose(fp);
+  //fclose(fp);
   clock_end   = clock();
   time_elapsed = (float)(clock_end-clock_start)/CLOCKS_PER_SEC*1000.f;
   printf("[time], statistics costs %f ms\n", time_elapsed);
