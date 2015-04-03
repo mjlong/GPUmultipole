@@ -89,10 +89,15 @@ void fitrho1(double* rho, unsigned m, double* rho0, double* q){
   *rho0 = rho1/(*q);
 }
 
+void fitrho2(double* rho, unsigned m, double* rho0, double* q){
+  *q = rho[1]/rho[0];
+  *rho0 = rho[0]/(*q);
+}
+
 
 void fitall(double *rhos,unsigned upto, unsigned meshes, double *rho0s, double *qs){
   for(int im=0;im<meshes;im++){
-    fitrho(rhos+im*upto, upto, rho0s+im, qs+im);
+    fitrho2(rhos+im*upto, upto, rho0s+im, qs+im);
   }
 }
 
