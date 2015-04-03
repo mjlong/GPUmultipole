@@ -5,6 +5,7 @@
 #include <manmemory.h>
 #include "devicebridge.h"
 
+#include "process.h"
 
 #include <time.h>
 void printbless();
@@ -68,6 +69,10 @@ int main(int argc, char **argv){
   clock_end   = clock();
   time_elapsed = (float)(clock_end-clock_start)/CLOCKS_PER_SEC*1000.f;
   printf("[time], %d batches (*%d neutrons/batch) costs %f ms\n", num_bat,gridsize, time_elapsed);
+  cnt2flux(HostMem,gridsize,width/num_bin,num_bin,num_bat);
+  //print_results(num_bin,num_bat,HostMem.acccnt);
+  //print_results(num_bin,num_bat,HostMem.accmeans);
+  //printf("\n");
   //print_results(num_bin,num_bat,HostMem.batchmeans);
 
 //============================================================ 
