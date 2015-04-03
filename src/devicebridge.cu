@@ -29,8 +29,8 @@ unsigned setbank(MemStruct DeviceMem, unsigned gridsize){
       }
       else{
 	//number=2;
-	x2[j++]=y;
-	x2[j++]=y;
+	x2[j++]=0-y;
+	x2[j++]=0-y;
       }
     }
   }
