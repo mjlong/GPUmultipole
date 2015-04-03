@@ -111,6 +111,16 @@ void save_results(unsigned ibat, unsigned gridx, unsigned blockx, unsigned num_s
   */
 }
 
+
+void print_results(unsigned meshes, unsigned nbat, unsigned *tally){
+  int im,ib;
+  for(ib=0;ib<nbat;ib++){
+    for(im=0;im<meshes;im++){
+      printf("%6d ",tally[ib*meshes+im]);
+    }
+    printf("\n");
+  }
+}
 void printdevice(){
   cudaDeviceProp prop; 
   int count;
