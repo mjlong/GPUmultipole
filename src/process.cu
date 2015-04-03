@@ -20,6 +20,14 @@ void cnt2flux(MemStruct HostMem, unsigned numhis, float dx, unsigned meshes, uns
   
 }
 
-void getASE(float accmeans, float ref){
-
+void getASE(float *accmeans,unsigned meshes, unsigned nbat, unsigned ubat, float ref, float* ASE){
+  int ib,im,index;
+  for(ib=ubat;ib<nbat;ib++)
+    ASE[ib-ubat]=0.0;
+  for(ib=ubat;ib<nbat;ib++){
+    for(im=0;im<meshes;im++){
+      index = ib*meshes+im;
+      ASE[ib-ubat] += (accmeans[index]-ref)*(accmeans[index]-ref)/meshes;
+    }
+  }
 }
