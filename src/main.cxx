@@ -78,25 +78,26 @@ int main(int argc, char **argv){
 
   //FILE *fp=NULL;
   //fp = fopen("boxtally","a+");
-
+  //========================collison count to density ==========================
   cnt2flux(HostMem,gridsize,width/num_bin,num_bin,num_bat);
   //print_results(num_bin,num_bat,HostMem.acccnt);
   //print_results(num_bin,num_bat,HostMem.accmeans);
   printf("Batch means done:\n");
   //print_results(num_bin,num_bat,HostMem.batchmeans);
 
-  //Average Square Error
+  //========================Average Square Error================================
   double *ASE = (double*)malloc(sizeof(double)*(num_bat-ubat));
   getASE(HostMem.accmeans, num_bin, num_bat,ubat, ref, ASE);
 
   //for(int i=0;i<num_bat-ubat;i++)
   //  fprintf(fp,"%.5e\n",ASE[i]);
-  //Auto-Correlation Coefficients
+  //=====================Auto-Correlation Coefficients==========================
   double *COR = (double*)malloc(sizeof(double)*upto*num_bin);
   getCOR(HostMem.batchmeans,num_bin,num_bat,ubat,upto,COR);
   printf("Mesh correlations done:\n");
   //print_results(upto,num_bin, COR);
 
+  //==================== ACC fit ===============================================
   double *rho0s = (double*)malloc(sizeof(double)*num_bin);
   double *qs    = (double*)malloc(sizeof(double)*num_bin);
   fitall(COR,upto,num_bin,rho0s,qs);
@@ -108,8 +109,15 @@ int main(int argc, char **argv){
   //printf("ACC fit done:\n");
   //print_results(num_bin,1,rho0s);
   //print_results(num_bin,1,qs);
-
-
+  
+  //=========================cell variance =====================================
+  double *vars = (double*)malloc(sizeof(double)*num_bin);
+  for(int im=0;im<num_bin;im++)
+    vars[im] = variance(HostMem.batchmeans,num_bat,ubat,num_bin,im);
+  printf("Variance done:\n");
+  //print_results(num_bin,1,vars);
+  
+  free(vars);
   free(rho0s);
   free(qs);
   free(COR);

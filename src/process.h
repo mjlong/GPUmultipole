@@ -11,4 +11,6 @@ void fitall1(double *rhos,unsigned upto, unsigned meshes, double *rho0s, double 
 void fitrho1(double* rho, unsigned m, double* rho0, double* q);
 void fitrho(double* rho, unsigned m, double* rho0, double* q);
 double variance(double *x, unsigned n);
+double variance(double *x, unsigned nbat,unsigned ubat, unsigned meshes, unsigned im);
+void varcorrect(double rho0,double q,unsigned m, double *correct);
 #endif

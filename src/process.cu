@@ -111,3 +111,19 @@ double variance(double *x, unsigned n){
   }
   return (sum2-sum1*sum1/n)/(n-1);
 }
+
+double variance(double *x, unsigned nbat,unsigned ubat, unsigned meshes, unsigned im){
+  double sum1=0; double sum2=0;double xi;
+  for(int ib=ubat;ib<nbat;ib++){
+    xi = x[ib*meshes+im];
+    sum1+=xi;
+    sum2+=xi*xi;
+  }
+  return (sum2-sum1*sum1/(nbat-ubat))/(nbat-ubat-1);
+}
+
+
+void varcorrect(double rho0,double q,unsigned m, double *correct){
+  for(int n=1;n<=m;n++)
+    correct[n-1] = (1+2.0*rho0*(q/(1-q)-(q*q-pow(q,n))/((1-q)*(1-q)*n) -(q+pow(q,n))/((1-q)*n)  ))/n;
+}
