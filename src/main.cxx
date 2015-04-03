@@ -76,8 +76,6 @@ int main(int argc, char **argv){
   //============================================================================
   clock_start = clock();
 
-  //FILE *fp=NULL;
-  //fp = fopen("boxtally","a+");
   //========================collison count to density ==========================
   cnt2flux(HostMem,gridsize,width/num_bin,num_bin,num_bat);
   //print_results(num_bin,num_bat,HostMem.acccnt);
@@ -89,8 +87,7 @@ int main(int argc, char **argv){
   double *ASE = (double*)malloc(sizeof(double)*(num_bat-ubat));
   getASE(HostMem.accmeans, num_bin, num_bat,ubat, ref, ASE);
 
-  //for(int i=0;i<num_bat-ubat;i++)
-  //  fprintf(fp,"%.5e\n",ASE[i]);
+
   //=====================Auto-Correlation Coefficients==========================
   double *COR = (double*)malloc(sizeof(double)*upto*num_bin);
   getCOR(HostMem.batchmeans,num_bin,num_bat,ubat,upto,COR);
@@ -116,13 +113,29 @@ int main(int argc, char **argv){
     vars[im] = variance(HostMem.batchmeans,num_bat,ubat,num_bin,im);
   printf("Variance done:\n");
   //print_results(num_bin,1,vars);
+
+
+  //================= MASE (Mean average square error) =========================  
+  double *EASE = (double*)malloc(sizeof(double)*(num_bat-ubat));
+  getEASE(vars,num_bin,ubat,num_bat-ubat,rho0s,qs,EASE);
+  printf("EASE done:\n");
+  //print_results(num_bat-ubat,1,EASE);
+
   
+  FILE *fp=NULL;
+  fp = fopen("boxtally","a+");  
+  for(int i=0;i<num_bat-ubat;i++)
+    fprintf(fp,"%.8e %.8e\n",ASE[i],EASE[i]);
+
+
+  fclose(fp);
+  free(EASE);
   free(vars);
   free(rho0s);
   free(qs);
   free(COR);
   free(ASE);
-  //fclose(fp);
+
   clock_end   = clock();
   time_elapsed = (float)(clock_end-clock_start)/CLOCKS_PER_SEC*1000.f;
   printf("[time], statistics costs %f ms\n", time_elapsed);
