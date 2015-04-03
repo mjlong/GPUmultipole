@@ -45,7 +45,7 @@ unsigned setbank(MemStruct DeviceMem, unsigned gridsize){
 }
 
 void start_neutrons(unsigned gridx, unsigned blockx, MemStruct DeviceMem, unsigned num_src,unsigned active,unsigned banksize){
-  history<<<gridx, blockx, blockx*sizeof(unsigned)>>>(DeviceMem, num_src,active,banksize);
+  history<<<gridx, blockx/*, blockx*sizeof(unsigned)*/>>>(DeviceMem, num_src,active,banksize);
 } 
 
 unsigned count_neutrons(unsigned gridx, unsigned blockx, MemStruct DeviceMem, MemStruct HostMem, unsigned num_src){
