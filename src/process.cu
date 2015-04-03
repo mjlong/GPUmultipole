@@ -127,3 +127,19 @@ void varcorrect(double rho0,double q,unsigned m, double *correct){
   for(int n=1;n<=m;n++)
     correct[n-1] = (1+2.0*rho0*(q/(1-q)-(q*q-pow(q,n))/((1-q)*(1-q)*n) -(q+pow(q,n))/((1-q)*n)  ))/n;
 }
+
+void getEASE(double *vars, unsigned meshes, unsigned ubat, unsigned abat, double *rho0s, double *qs, double *EASE){
+  int im,ib;
+  double sum=0;
+  double *correct = (double*)malloc(sizeof(double)*abat*meshes);
+  for(im=0;im<meshes;im++)
+    varcorrect(rho0s[im],qs[im],abat,correct+im*abat);
+  for(ib=0;ib<abat;ib++){
+    sum = 0;
+    for(im=0;im<meshes;im++){
+      sum += vars[im]*correct[im*abat+ib];
+    }
+    EASE[ib] = sum/meshes;
+  }
+  free(correct);
+}

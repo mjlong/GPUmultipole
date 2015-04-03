@@ -13,4 +13,5 @@ void fitrho(double* rho, unsigned m, double* rho0, double* q);
 double variance(double *x, unsigned n);
 double variance(double *x, unsigned nbat,unsigned ubat, unsigned meshes, unsigned im);
 void varcorrect(double rho0,double q,unsigned m, double *correct);
+void getEASE(double *vars, unsigned meshes, unsigned ubat, unsigned abat, double *rho0s, double *qs, double *EASE);
 #endif
