@@ -28,7 +28,7 @@ __device__ unsigned notleak(float x,float a){
   return (x>=0)&&(x<=a);
 }
 
-__global__ void history(MemStruct DeviceMem, unsigned num_src,unsigned active,unsigned devstep){
+__global__ void history(MemStruct DeviceMem, unsigned num_src,unsigned active,unsigned banksize){
   float width = DeviceMem.wdspp[0];
   float dx = DeviceMem.wdspp[1];
   float mfp = DeviceMem.wdspp[2];

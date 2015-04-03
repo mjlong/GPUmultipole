@@ -47,13 +47,13 @@ int main(int argc, char **argv){
 //============================================================
   clock_t clock_start, clock_end;
   float time_elapsed = 0.f;
-  unsigned active;
+  unsigned active,banksize;
   active = 1;
-
+  banksize = gridx*blockx;
 
   initialize_neutrons(gridx, blockx, DeviceMem,width); 
   clock_start = clock();
-  start_neutrons(gridx, blockx, DeviceMem, num_src,1,devstep);
+  start_neutrons(gridx, blockx, DeviceMem, num_src,1,banksize);
   active = count_neutrons(gridx, blockx, DeviceMem, HostMem,num_src);
  
 
