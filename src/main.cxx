@@ -15,15 +15,14 @@ int main(int argc, char **argv){
 //====================calculation dimension===================
 //============================================================
 
-  unsigned gridx, blockx, gridsize;
-  unsigned num_src;
+  unsigned gridx, blockx, gridsize,num_src;
+  unsigned ubat;
 
   gridx = atoi(argv[1]);
   blockx = atoi(argv[2]);
   gridsize = gridx*blockx;
   num_src = atoi(argv[3]);
-  unsigned devstep;
-  devstep = atoi(argv[4]);
+  ubat = atoi(argv[4]);
 //============================================================ 
 //=============simulation memory allocation===================
 //============================================================
@@ -40,8 +39,9 @@ int main(int argc, char **argv){
   HostMem.wdspp[2] = 1.0/atof(argv[8]); //sigmat
   HostMem.wdspp[3] = atof(argv[9]); //pf
   HostMem.wdspp[4] = atof(argv[10]);//pc
+  float ref = 1.0/(HostMem.wdspp[3]+HostMem.wdspp[4])/width;
   copydata(DeviceMem,HostMem);
-  printf("grid=[%3dx%3d],devstep=%3d,nhis=%-6d,nbat=%-6d,meshes=%-6d,box width=%.2f\n",gridx,blockx,devstep,num_src,num_bat,num_bin,width);
+  printf("grid=[%3dx%3d],nhis=%-6d,ubat=%3d,nbat=%-6d,meshes=%-6d,box width=%.2f\n",gridx,blockx,gridx*blockx,ubat,num_bat,num_bin,width);
   printf("mfp=%.5f, pf=%.5f, pc=%.5f, ps=%.5f\n",HostMem.wdspp[2], HostMem.wdspp[3], HostMem.wdspp[4],1-(HostMem.wdspp[3]+HostMem.wdspp[4]));
 //============================================================ 
 //===============main simulation body=========================
@@ -69,11 +69,27 @@ int main(int argc, char **argv){
   clock_end   = clock();
   time_elapsed = (float)(clock_end-clock_start)/CLOCKS_PER_SEC*1000.f;
   printf("[time], %d batches (*%d neutrons/batch) costs %f ms\n", num_bat,gridsize, time_elapsed);
+
+  //============================================================================
+  //=========================process the results ===============================
+  //============================================================================
+  FILE *fp=NULL;
+  fp = fopen("boxtally","a+");
+
   cnt2flux(HostMem,gridsize,width/num_bin,num_bin,num_bat);
   //print_results(num_bin,num_bat,HostMem.acccnt);
   //print_results(num_bin,num_bat,HostMem.accmeans);
   //printf("\n");
   //print_results(num_bin,num_bat,HostMem.batchmeans);
+
+  float *ASE = (float*)malloc(sizeof(float)*(num_bat-ubat));
+  getASE(HostMem.accmeans, num_bin, num_bat,ubat, ref, ASE);
+  for(int i=0;i<num_bat-ubat;i++)
+    fprintf(fp,"%.5e\n",ASE[i]);
+
+  free(ASE);
+  fclose(fp);
+
 
 //============================================================ 
 //=============simulation shut down===========================
