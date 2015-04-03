@@ -40,7 +40,7 @@ int main(int argc, char **argv){
   HostMem.wdspp[2] = 1.0/atof(argv[8]); //sigmat
   HostMem.wdspp[3] = atof(argv[9]); //pf
   HostMem.wdspp[4] = atof(argv[10]);//pc
-  float ref = 1.0/(HostMem.wdspp[3]+HostMem.wdspp[4])/width;
+  double ref = 1.0/(HostMem.wdspp[3]+HostMem.wdspp[4])/width;
   copydata(DeviceMem,HostMem);
   printf("grid=[%3dx%3d],nhis=%-6d,ubat=%3d,nbat=%-6d,meshes=%-6d,box width=%.2f\n",gridx,blockx,gridx*blockx,ubat,num_bat,num_bin,width);
   printf("mfp=%.5f, pf=%.5f, pc=%.5f, ps=%.5f\n",HostMem.wdspp[2], HostMem.wdspp[3], HostMem.wdspp[4],1-(HostMem.wdspp[3]+HostMem.wdspp[4]));
@@ -86,13 +86,13 @@ int main(int argc, char **argv){
   //print_results(num_bin,num_bat,HostMem.batchmeans);
 
   //Average Square Error
-  float *ASE = (float*)malloc(sizeof(float)*(num_bat-ubat));
+  double *ASE = (double*)malloc(sizeof(double)*(num_bat-ubat));
   getASE(HostMem.accmeans, num_bin, num_bat,ubat, ref, ASE);
 
   //for(int i=0;i<num_bat-ubat;i++)
   //  fprintf(fp,"%.5e\n",ASE[i]);
   //Auto-Correlation Coefficients
-  float *COR = (float*)malloc(sizeof(float)*upto*num_bin);
+  double *COR = (double*)malloc(sizeof(double)*upto*num_bin);
   getCOR(HostMem.batchmeans,num_bin,num_bat,ubat,upto,COR);
   printf("Mesh correlations done:\n");
   //print_results(upto,num_bin, COR);

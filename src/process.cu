@@ -20,7 +20,7 @@ void cnt2flux(MemStruct HostMem, unsigned numhis, float dx, unsigned meshes, uns
   
 }
 
-void getASE(float *accmeans,unsigned meshes, unsigned nbat, unsigned ubat, float ref, float* ASE){
+void getASE(double *accmeans,unsigned meshes, unsigned nbat, unsigned ubat, double ref, double* ASE){
   int ib,im,index;
   for(ib=ubat;ib<nbat;ib++)
     ASE[ib-ubat]=0.0;
@@ -33,9 +33,9 @@ void getASE(float *accmeans,unsigned meshes, unsigned nbat, unsigned ubat, float
 }
 
 
-void getCOR(float *batmeans, unsigned meshes, unsigned nbat, unsigned ubat, unsigned upto,float *COR){
+void getCOR(double *batmeans, unsigned meshes, unsigned nbat, unsigned ubat, unsigned upto,double *COR){
   int im,ib;
-  float *batmeans_active = batmeans+ubat*meshes;
+  double *batmeans_active = batmeans+ubat*meshes;
   for(im=0;im<meshes;im++){
     for(ib=0;ib<upto;ib++){
       COR[im*upto+ib] = autok(batmeans_active,nbat-ubat,ib+1,meshes,im);
@@ -45,7 +45,7 @@ void getCOR(float *batmeans, unsigned meshes, unsigned nbat, unsigned ubat, unsi
 
 }
 
-float autok(float *batmeans, unsigned n, unsigned k, unsigned meshes, unsigned im){
+double autok(double *batmeans, unsigned n, unsigned k, unsigned meshes, unsigned im){
   double sum1=0; double sum2=0; double sum3=0; double sum4=0; double sum5 = 0;
   double xi,xik;
   int ib;

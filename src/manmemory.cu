@@ -21,8 +21,8 @@ void initialize_memory(MemStruct *DeviceMem, MemStruct *HostMem, unsigned numbin
 
   gpuErrchk(cudaMalloc((void**)&((*DeviceMem).spectrum), numbins*sizeof(unsigned int)));
   (*HostMem).spectrum = (unsigned*)malloc(sizeof(unsigned)*numbins);  
-  (*HostMem).batchmeans = (float*)malloc(sizeof(float)*nbat*numbins);
-  (*HostMem).accmeans   = (float*)malloc(sizeof(float)*nbat*numbins);
+  (*HostMem).batchmeans = (double*)malloc(sizeof(double)*nbat*numbins);
+  (*HostMem).accmeans   = (double*)malloc(sizeof(double)*nbat*numbins);
   (*HostMem).acccnt     = (unsigned*)malloc(sizeof(unsigned)*nbat*numbins);
   (*HostMem).wdspp = (float*)malloc(sizeof(float)*5);
   gpuErrchk(cudaMalloc((void**)&((*DeviceMem).wdspp), 5*sizeof(float)));

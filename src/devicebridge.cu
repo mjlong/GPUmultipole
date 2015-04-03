@@ -112,7 +112,7 @@ void save_results(unsigned ibat, unsigned gridx, unsigned blockx, unsigned num_s
 }
 
 
-void print_results(unsigned meshes, unsigned nbat, float *tally){
+void print_results(unsigned meshes, unsigned nbat, double *tally){
   int im,ib;
   for(ib=0;ib<nbat;ib++){
     for(im=0;im<meshes;im++){
