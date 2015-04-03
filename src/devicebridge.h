@@ -10,7 +10,7 @@ unsigned count_neutrons(unsigned gridx, unsigned blockx, MemStruct DeviceMem, Me
 unsigned count_lives(unsigned gridx, unsigned blockx, MemStruct DeviceMem, MemStruct HostMem);
 
 void save_results(unsigned ibat, unsigned gridx, unsigned blockx, unsigned num_src, unsigned num_bin, MemStruct DeviceMem, MemStruct HostMem);
-void print_results(unsigned meshes, unsigned nbat, unsigned *tally);
+void print_results(unsigned meshes, unsigned nbat, float *tally);
 unsigned setbank(MemStruct DeviceMem, unsigned gridsize);
 void resetcount(MemStruct DeviceMem);
 #endif
