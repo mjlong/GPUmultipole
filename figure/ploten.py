@@ -23,11 +23,12 @@ plt.plot(refer);
 plt.savefig('dist'+'.png');
 
 plt.figure();
-plt.loglog(space,ASE,label='Average Square Error: numhist='+str(nhis));
-plt.loglog(space,EASE,label='Expectation of ASE: numhist='+str(nhis));
-plt.legend(loc='lower left',prop={'size':16});
+plt.loglog(space,ASE,label='Average Square Error');
+plt.loglog(space,EASE,label='Expectation of ASE');
+plt.legend(loc='center left',prop={'size':10});
 plt.xlabel('number of batch');
 plt.ylabel('Absolute error (/cm/neutron)');
+plt.title( 'numhist='+str(int(nhis)))
 plt.savefig('ASE-n'+'.png');
 
 x = np.loadtxt('../acc_0',delimiter=' ',unpack=False);
