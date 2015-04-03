@@ -60,8 +60,7 @@ int main(int argc, char **argv){
 
   for(int ibat=0;ibat<num_bat;ibat++){
   start_neutrons(gridx, blockx, DeviceMem, num_src,1,banksize);
-  active = count_neutrons(gridx, blockx, DeviceMem, HostMem,num_src);
-
+  //active = count_neutrons(gridx, blockx, DeviceMem, HostMem,num_src);
 
   banksize = setbank(DeviceMem, gridsize);
   //printf("[%3d]%4d-->%4d: ", ibat,gridsize,banksize);
@@ -140,13 +139,26 @@ int main(int argc, char **argv){
   for(int i=0;i<num_bat-ubat;i++)
     fprintf(fp,"%.8e %.8e\n",ASE[i],EASE[i]);
   fclose(fp);
+  
 
   strcpy(name,"boxtally");  strcat(name,name1);  strcat(name,name2);  strcat(name,name3);
+  fp = NULL;
   fp = fopen(name,"w");  
   for(int i=0;i<num_bin;i++)
     fprintf(fp,"%.8e %.8e\n",HostMem.batchmeans[(num_bat-ubat-1)*num_bin+i],ref);
   fclose(fp);
 
+  //view ACC at cell print-1
+  if(0<print){
+    fp=NULL;
+    strcpy(name,"acc");    sprintf(name1,"_%d",print-1);    strcat(name,name1);
+    fp = fopen(name,"w");
+    fprintf(fp,"%.8e\n",rho0s[print-1]);
+    fprintf(fp,"%.8e\n",   qs[print-1]);
+    for(int i=0;i<upto;i++)
+      fprintf(fp,"%.8e\n",COR[(print-1)*upto+i]);
+    fclose(fp);
+  }
   free(EASE);
   free(vars);
   free(rho0s);
