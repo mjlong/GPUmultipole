@@ -145,7 +145,7 @@ int main(int argc, char **argv){
   fp = NULL;
   fp = fopen(name,"w");  
   for(int i=0;i<num_bin;i++)
-    fprintf(fp,"%.8e %.8e\n",HostMem.batchmeans[(num_bat-ubat-1)*num_bin+i],ref);
+    fprintf(fp,"%.8e %.8e\n",HostMem.accmeans[(num_bat-ubat-1)*num_bin+i],ref);
   fclose(fp);
 
   //view ACC at cell print-1
