@@ -97,7 +97,7 @@ void fitrho2(double* rho, unsigned m, double* rho0, double* q){
 
 void fitall(double *rhos,unsigned upto, unsigned meshes, double *rho0s, double *qs){
   for(int im=0;im<meshes;im++){
-    fitrho2(rhos+im*upto, upto, rho0s+im, qs+im);
+    fitrho(rhos+im*upto, upto, rho0s+im, qs+im);
   }
 }
 
