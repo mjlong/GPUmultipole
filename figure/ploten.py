@@ -8,6 +8,9 @@ import sys
 num = len(sys.argv)-1;#num must be at least 2
 print num;
 
+# ==============================================================================
+# ============================plot over batches ================================
+print 'plotting over batches'
 plt.figure();
 for i in range(num):
   x=np.loadtxt('../ASE_EASE_'+sys.argv[i+1],delimiter=' ',unpack=False);
@@ -28,8 +31,31 @@ plt.loglog(space,EASE,'-',color='black',label='Expectation of ASE');
 plt.loglog(space,EASE[0]/space,'-.',color='black', label='Variance over N');
 plt.legend(loc='lower left',prop={'size':10});
 plt.xlabel('number of batch');
-plt.ylabel('Absolute error (/cm/neutron)');
+plt.ylabel('Absolute error (/cm/neutron)^2');
 plt.savefig('ASE-n'+'.png');
+
+# ==============================================================================
+# ============================plot over histories ================================
+'''
+print 'plotting over histories'
+plt.figure();
+for i in range(num):
+  x=np.loadtxt('../ASE_EASE_'+sys.argv[i+1],delimiter=' ',unpack=False);
+  ASE = x[1:,0];
+  EASE= x[1:,1];
+  nhis = x[0,0];
+  nbat = x[0,1];
+  #nbin = len(tally);
+  space = np.linspace(1,nbat,nbat)*nhis;
+  plt.loglog(space,ASE,label='Average Square Error nhis:'+str(int(nhis)));
+  plt.loglog(space,EASE,label='Expectation of ASE:'+str(int(nhis)));
+  print 'plotting ASE of'+sys.argv[i+1]
+
+plt.legend(loc='lower left',prop={'size':10});
+plt.xlabel('number of histories');
+plt.ylabel('Absolute error (/cm/neutron)^2');
+plt.savefig('ASE-h'+'.png');
+'''
 
 for i in range(num):
   print 'plotting independent'+sys.argv[i+1]
@@ -45,7 +71,7 @@ for i in range(num):
   plt.loglog(space,EASE[0]/space,'-.',color='black', label='Variance over N');
   plt.legend(loc='lower left',prop={'size':10});
   plt.xlabel('number of batch');
-  plt.ylabel('Absolute error (/cm/neutron)');
+  plt.ylabel('Absolute error (/cm/neutron)^2');
   plt.title( 'numhist='+str(int(nhis)))
   plt.savefig('ASE-n'+sys.argv[i+1]+'.png');
 
