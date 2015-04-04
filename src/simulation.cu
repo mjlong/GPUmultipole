@@ -4,7 +4,7 @@ __global__ void initialize(MemStruct pInfo,float width){
   //int id = ((blockDim.x*blockDim.y*blockDim.z)*(blockIdx.y*gridDim.x+blockIdx.x)+(blockDim.x*blockDim.y)*threadIdx.z+blockDim.x*threadIdx.y+threadIdx.x);//THREADID;
   int id = blockDim.x * blockIdx.x + threadIdx.x;
   /* Each thread gets same seed, a different sequence number, no offset */
-  curand_init(id*75684321478, id, 0, &(pInfo.nInfo.rndState[id]));
+  curand_init(id*7546861334684321478, id, id+14412078966483154, &(pInfo.nInfo.rndState[id]));
 
   neutron_sample(pInfo.nInfo, id,width);
   pInfo.nInfo.id[id] = id;
@@ -15,7 +15,7 @@ __device__ void neutron_sample(NeutronInfoStruct nInfo, unsigned id,float width)
   nInfo.live[id] = 1u;
   curandState state = nInfo.rndState[id];
   //TODO: source sampling should take settings dependent on geometry
-  nInfo.pos_x[id] = width/PI*acos(1-2*curand_uniform_double(&state));
+  nInfo.pos_x[id] = width/PI*acos(1-2*curand_uniform_double(&state));//width*curand_uniform_double(&state);
   nInfo.pos_y[id] = 0.5f+0.00*curand_uniform(&state);
   nInfo.pos_z[id] = 0.5f+0.00*curand_uniform(&state);
   nInfo.dir_polar[id] = curand_uniform(&state)*2-1;
