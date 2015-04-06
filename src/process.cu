@@ -1,24 +1,25 @@
 #include "process.h"
-void cnt2flux(MemStruct HostMem, unsigned numhis, float dx, unsigned meshes, unsigned nbat){
-  int im, ib;
+void cnt2flux(MemStruct HostMem, unsigned numhis, float dx, unsigned meshes, unsigned nbat, unsigned ubat){
+  int im, ib, ibb;
+  //cnt to flux
   for(ib=0;ib<nbat;ib++){
     for(im=0;im<meshes;im++){
-      HostMem.accmeans[ib*meshes+im] = HostMem.acccnt[ib*meshes+im]/(numhis*dx*(ib+1));
+      HostMem.batchmeans[ib*meshes+im] = HostMem.batcnt[ib*meshes+im]/(numhis*dx);
     }
   }
 
-  ib = 0;
-  for(im=0;im<meshes;im++)
-    HostMem.batchmeans[im] = HostMem.accmeans[im];
-
-  for(ib=1;ib<nbat;ib++){
+  //accumulate
+    for(im=0;im<meshes;im++)
+      HostMem.accmeans[im] = HostMem.batchmeans[ubat*meshes+im];
+  ibb = 1;
+  for(ib=ubat+1;ib<nbat;ib++){
     for(im=0;im<meshes;im++){
-      HostMem.batchmeans[ib*meshes+im] = (HostMem.acccnt[ib*meshes+im]-HostMem.acccnt[(ib-1)*meshes+im])/(numhis*dx);
+      HostMem.accmeans[ibb*meshes+im] = (HostMem.batchmeans[ib*meshes+im] + ibb*HostMem.accmeans[(ibb-1)*meshes+im])/(ibb+1);
     }
+    ibb++;
   }
-
-  
 }
+
 
 void getASE(double *accmeans,unsigned meshes, unsigned nbat, unsigned ubat, double ref, double* ASE){
   int ib,im,index;
