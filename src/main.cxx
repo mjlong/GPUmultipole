@@ -8,6 +8,8 @@
 #include "process.h"
 
 #include <time.h>
+extern void createmptyh5(char *filename);
+extern void writeh5_nxm_(char *filename, char *dsetname, double *vec1, int *num_vec, int *length);
 void printbless();
 int main(int argc, char **argv){
   //printbless();
@@ -73,28 +75,43 @@ int main(int argc, char **argv){
   printf("[time], %d batches (*%d neutrons/batch) costs %f ms\n", num_bat,gridsize, time_elapsed);
 
   //============================================================================
+  //==================== Write all to a hdf5 file ==============================
+  //============================================================================
+  char name1[10];  char name2[10];  char name3[10];  char name[50];
+  sprintf(name1,"_%d",gridx*blockx);
+  sprintf(name2,"_%d",ubat);
+  sprintf(name3,"_%d",num_bat);
+  int nbat=num_bat; int meshes=num_bin;
+  strcpy(name,"Alltally"); strcat(name,name1); strcat(name,name2); strcat(name,name3); strcat(name,".h5");
+  createmptyh5(name);
+  //============================================================================
   //=========================process the results ===============================
   //============================================================================
   clock_start = clock();
-
   //========================collison count to density ==========================
   cnt2flux(HostMem,gridsize,width/num_bin,num_bin,num_bat);
   //print_results(num_bin,num_bat,HostMem.acccnt);
   //print_results(num_bin,num_bat,HostMem.accmeans);
-  printf("Batch means done:\n");
+  printf("[Stat],Batch means done:\n");
   if(0==print)
     print_results(num_bin,num_bat,HostMem.batchmeans);
+
+  writeh5_nxm_(name,"batchmeans", HostMem.batchmeans, &nbat, &meshes);
+  printf("[Save],Writing means to hdf5 done:\n");
+
+  writeh5_nxm_(name,"batchaccumu", HostMem.accmeans, &nbat, &meshes);
+  printf("[Save],Writing acc means to hdf5 done:\n");
 
   //========================Average Square Error================================
   double *ASE = (double*)malloc(sizeof(double)*(num_bat-ubat));
   getASE(HostMem.accmeans, num_bin, num_bat,ubat, ref, ASE);
-  printf("ASE done:\n");
+  printf("[Stat],ASE done:\n");
   if(0==print)
     print_results(num_bat-ubat,1,ASE);
   //=====================Auto-Correlation Coefficients==========================
   double *COR = (double*)malloc(sizeof(double)*upto*num_bin);
   getCOR(HostMem.batchmeans,num_bin,num_bat,ubat,upto,COR);
-  printf("Mesh correlations done:\n");
+  printf("[Stat],Mesh correlations done:\n");
   if(0==print)
     print_results(upto,num_bin, COR);
 
@@ -102,7 +119,7 @@ int main(int argc, char **argv){
   double *rho0s = (double*)malloc(sizeof(double)*num_bin);
   double *qs    = (double*)malloc(sizeof(double)*num_bin);
   fitall(COR,upto,num_bin,rho0s,qs);
-  printf("ACC fit done:\n");
+  printf("[Stat],ACC fit done:\n");
   if(0==print){
     print_results(num_bin,1,rho0s);
     print_results(num_bin,1,qs);
@@ -116,7 +133,7 @@ int main(int argc, char **argv){
   double *vars = (double*)malloc(sizeof(double)*num_bin);
   for(int im=0;im<num_bin;im++)
     vars[im] = variance(HostMem.batchmeans,num_bat,ubat,num_bin,im);
-  printf("Variance done:\n");
+  printf("[Stat],Variance done:\n");
   if(0==print)
     print_results(num_bin,1,vars);
 
@@ -124,15 +141,12 @@ int main(int argc, char **argv){
   //================= MASE (Mean average square error) =========================  
   double *EASE = (double*)malloc(sizeof(double)*(num_bat-ubat));
   getEASE(vars,num_bin,ubat,num_bat-ubat,rho0s,qs,EASE);
-  printf("EASE done:\n");
+  printf("[Stat],EASE done:\n");
   if(0==print)
     print_results(num_bat-ubat,1,EASE);
 
-  char name1[10];  char name2[10];  char name3[10];  char name[50];
-  sprintf(name1,"_%d",gridx*blockx);
-  sprintf(name2,"_%d",ubat);
-  sprintf(name3,"_%d",num_bat);
-  strcpy(name,"ASE_EASE");  strcat(name,name1);  strcat(name,name2);  strcat(name,name3);
+  /*
+
   FILE *fp=NULL;
   fp = fopen(name,"w");  
   fprintf(fp,"%.8e %.8e\n", gridx*blockx*1.0, num_bat*1.0-ubat);
@@ -159,6 +173,8 @@ int main(int argc, char **argv){
       fprintf(fp,"%.8e\n",COR[(print-1)*upto+i]);
     fclose(fp);
   }
+
+*/
   free(EASE);
   free(vars);
   free(rho0s);
