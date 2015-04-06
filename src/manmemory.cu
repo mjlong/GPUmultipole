@@ -6,7 +6,7 @@ void initialize_device(){
   gpuErrchk(cudaSetDeviceFlags(cudaDeviceMapHost | cudaDeviceLmemResizeToMax));
 }
 
-void copymeans(unsigned *h_cnt, unsigned *batcnt, unsigned meshes, unsigned offset){
+void copymeans(int *h_cnt, int *batcnt, unsigned meshes, unsigned offset){
   for(int im=0;im<meshes;im++)
     batcnt[offset+im] = h_cnt[im];
 
@@ -19,11 +19,11 @@ void initialize_memory(MemStruct *DeviceMem, MemStruct *HostMem, unsigned numbin
   unsigned gridsize;
   gridsize = gridx*blockx;
 
-  gpuErrchk(cudaMalloc((void**)&((*DeviceMem).spectrum), numbins*sizeof(unsigned int)));
-  (*HostMem).spectrum = (unsigned*)malloc(sizeof(unsigned)*numbins);  
+  gpuErrchk(cudaMalloc((void**)&((*DeviceMem).spectrum), numbins*sizeof(int)));
+  (*HostMem).spectrum = (int*)malloc(sizeof(int)*numbins);  
   (*HostMem).batchmeans = (double*)malloc(sizeof(double)*nbat*numbins);
   (*HostMem).accmeans   = (double*)malloc(sizeof(double)*(nbat-ubat)*numbins);
-  (*HostMem).batcnt     = (unsigned*)malloc(sizeof(unsigned)*nbat*numbins);
+  (*HostMem).batcnt     = (int*)malloc(sizeof(int)*nbat*numbins);
   (*HostMem).wdspp = (float*)malloc(sizeof(float)*5);
   gpuErrchk(cudaMalloc((void**)&((*DeviceMem).wdspp), 5*sizeof(float)));
   
@@ -56,14 +56,14 @@ void initialize_memory(MemStruct *DeviceMem, MemStruct *HostMem, unsigned numbin
   gpuErrchk(cudaMallocHost((void**)&((*HostMem).num_terminated_neutrons), sizeof(unsigned int)));
   (*HostMem).num_terminated_neutrons[0] = 0u;
 
-  gpuErrchk(cudaMalloc((void**)&((*DeviceMem).tally.cnt), gridsize*numbins*sizeof(unsigned)));
-  gpuErrchk(cudaMemset((*DeviceMem).tally.cnt, 0, numbins*gridsize*sizeof(unsigned)));  
+  gpuErrchk(cudaMalloc((void**)&((*DeviceMem).tally.cnt), gridsize*numbins*sizeof(int)));
+  gpuErrchk(cudaMemset((*DeviceMem).tally.cnt, 0, numbins*gridsize*sizeof(int)));  
 
   return;
 }
 
-void resettally(unsigned *cnt, unsigned totbins){
-  gpuErrchk(cudaMemset(cnt, 0, totbins*sizeof(unsigned)));}
+void resettally(int *cnt, unsigned totbins){
+  gpuErrchk(cudaMemset(cnt, 0, totbins*sizeof(int)));}
 
 void release_memory(MemStruct DeviceMem, MemStruct HostMem){
   free(HostMem.spectrum);
