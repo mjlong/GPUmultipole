@@ -96,6 +96,10 @@ int main(int argc, char **argv){
   if(0==print)
     print_results(num_bin,num_bat,HostMem.batchmeans);
 
+  int intone=1;  double tempd;
+  tempd = gridsize*1.0;  writeh5_nxm_(name,"num_history", &(tempd),  &intone, &intone);
+  tempd = num_bat*1.0;   writeh5_nxm_(name,"num_batch",   &(tempd),  &intone, &intone);
+  tempd = meshes*1.0;    writeh5_nxm_(name,"num_cells",   &(tempd),  &intone, &intone);
   writeh5_nxm_(name,"batchmeans", HostMem.batchmeans, &nbat, &meshes);
   printf("[Save] Writing means to hdf5 done:\n");
 
