@@ -51,8 +51,8 @@ void start_neutrons(unsigned gridx, unsigned blockx, MemStruct DeviceMem, unsign
 unsigned count_neutrons(unsigned gridx, unsigned blockx, MemStruct DeviceMem, MemStruct HostMem, unsigned num_src){
 //count terminated neutrons 
   unsigned active;
-  reduce_sum_plus<<<1, gridx, gridx*sizeof(unsigned)>>>(DeviceMem.block_terminated_neutrons, DeviceMem.num_terminated_neutrons);
-  gpuErrchk(cudaMemcpy(HostMem.num_terminated_neutrons,DeviceMem.num_terminated_neutrons,sizeof(unsigned int), cudaMemcpyDeviceToHost));
+  reduce_sum_plus<<<1, gridx, gridx*sizeof(int)>>>(DeviceMem.block_terminated_neutrons, DeviceMem.num_terminated_neutrons);
+  gpuErrchk(cudaMemcpy(HostMem.num_terminated_neutrons,DeviceMem.num_terminated_neutrons,sizeof(int), cudaMemcpyDeviceToHost));
   active = HostMem.num_terminated_neutrons[0] + gridx*blockx < num_src;  
 #if defined(__PRINTTRACK__)
   printf("[active]%d terminated\n",HostMem.num_terminated_neutrons[0]);
@@ -62,31 +62,31 @@ unsigned count_neutrons(unsigned gridx, unsigned blockx, MemStruct DeviceMem, Me
 
 unsigned count_lives(unsigned gridx, unsigned blockx, MemStruct DeviceMem, MemStruct HostMem){
 //count neutrons still marked "live"
-  unsigned active;
-  reduce_sum_equal<<<gridx,blockx,blockx*sizeof(unsigned)>>>(DeviceMem.nInfo.live, DeviceMem.block_terminated_neutrons);
+  int active;
+  reduce_sum_equal<<<gridx,blockx,blockx*sizeof(int)>>>(DeviceMem.nInfo.live, DeviceMem.block_terminated_neutrons);
   //I made a mistake to reuse block_terminated_neutrons here. 
   //However, as long as blockx<=gridx(size of block_terminated_neutrons), there would be no problem
-  reduce_sum_equal<<<1,gridx, gridx*sizeof(unsigned)>>>(DeviceMem.block_terminated_neutrons, DeviceMem.num_live_neutrons);
-  gpuErrchk(cudaMemcpy(&active, DeviceMem.num_live_neutrons, sizeof(unsigned), cudaMemcpyDeviceToHost));  
+  reduce_sum_equal<<<1,gridx, gridx*sizeof(int)>>>(DeviceMem.block_terminated_neutrons, DeviceMem.num_live_neutrons);
+  gpuErrchk(cudaMemcpy(&active, DeviceMem.num_live_neutrons, sizeof(int), cudaMemcpyDeviceToHost));  
   return active;
 }
 
 void save_results(unsigned ibat, unsigned gridx, unsigned blockx, unsigned num_src, unsigned num_bin, MemStruct DeviceMem, MemStruct HostMem){
   
-  unsigned *d_cnt, *h_cnt;
-  gpuErrchk(cudaMalloc((void**)&d_cnt, num_bin*sizeof(unsigned)));
-  h_cnt = (unsigned*)malloc(num_bin*sizeof(unsigned));
+  int *d_cnt, *h_cnt;
+  gpuErrchk(cudaMalloc((void**)&d_cnt, num_bin*sizeof(int)));
+  h_cnt = (int*)malloc(num_bin*sizeof(int));
   for(int i=0;i<num_bin;i++){
-    reduce_sum_equal<<<gridx, blockx, blockx*sizeof(unsigned)>>>(
+    reduce_sum_equal<<<gridx, blockx, blockx*sizeof(int)>>>(
                    DeviceMem.tally.cnt+i*gridx*blockx, 
                    DeviceMem.block_spectrum+i*gridx);
   }
   for(int i=0;i<num_bin;i++){
-    reduce_sum_equal<<<1, gridx, gridx*sizeof(unsigned)>>>(
+    reduce_sum_equal<<<1, gridx, gridx*sizeof(int)>>>(
                    DeviceMem.block_spectrum+i*gridx, d_cnt+i);
   }
-  gpuErrchk(cudaMemcpy(h_cnt,d_cnt,sizeof(unsigned)*num_bin, cudaMemcpyDeviceToHost));
-  copymeans(h_cnt,HostMem.acccnt,num_bin,num_bin*ibat);
+  gpuErrchk(cudaMemcpy(h_cnt,d_cnt,sizeof(int)*num_bin, cudaMemcpyDeviceToHost));
+  copymeans(h_cnt,HostMem.batcnt,num_bin,num_bin*ibat);
 
 /*print collision cnt and time*/
 /*
