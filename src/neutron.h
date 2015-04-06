@@ -51,7 +51,7 @@ typedef struct {
   unsigned int *spectrum;
   double *batchmeans;
   double *accmeans;
-  unsigned int *acccnt;
+  unsigned int *batcnt;
   float *tallybins;
   TallyStruct tally;
 }MemStruct;
