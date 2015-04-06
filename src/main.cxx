@@ -72,7 +72,7 @@ int main(int argc, char **argv){
   }
   clock_end   = clock();
   time_elapsed = (float)(clock_end-clock_start)/CLOCKS_PER_SEC*1000.f;
-  printf("[time], %d batches (*%d neutrons/batch) costs %f ms\n", num_bat,gridsize, time_elapsed);
+  printf("[time]  %d batches (*%d neutrons/batch) costs %f ms\n", num_bat,gridsize, time_elapsed);
 
   //============================================================================
   //==================== Write all to a hdf5 file ==============================
@@ -92,26 +92,26 @@ int main(int argc, char **argv){
   cnt2flux(HostMem,gridsize,width/num_bin,num_bin,num_bat);
   //print_results(num_bin,num_bat,HostMem.acccnt);
   //print_results(num_bin,num_bat,HostMem.accmeans);
-  printf("[Stat],Batch means done:\n");
+  printf("[Stat] Batch means done:\n");
   if(0==print)
     print_results(num_bin,num_bat,HostMem.batchmeans);
 
   writeh5_nxm_(name,"batchmeans", HostMem.batchmeans, &nbat, &meshes);
-  printf("[Save],Writing means to hdf5 done:\n");
+  printf("[Save] Writing means to hdf5 done:\n");
 
   writeh5_nxm_(name,"batchaccumu", HostMem.accmeans, &nbat, &meshes);
-  printf("[Save],Writing acc means to hdf5 done:\n");
+  printf("[Save] Writing acc means to hdf5 done:\n");
 
   //========================Average Square Error================================
   double *ASE = (double*)malloc(sizeof(double)*(num_bat-ubat));
   getASE(HostMem.accmeans, num_bin, num_bat,ubat, ref, ASE);
-  printf("[Stat],ASE done:\n");
+  printf("[Stat] ASE done:\n");
   if(0==print)
     print_results(num_bat-ubat,1,ASE);
   //=====================Auto-Correlation Coefficients==========================
   double *COR = (double*)malloc(sizeof(double)*upto*num_bin);
   getCOR(HostMem.batchmeans,num_bin,num_bat,ubat,upto,COR);
-  printf("[Stat],Mesh correlations done:\n");
+  printf("[Stat] Mesh correlations done:\n");
   if(0==print)
     print_results(upto,num_bin, COR);
 
@@ -119,7 +119,7 @@ int main(int argc, char **argv){
   double *rho0s = (double*)malloc(sizeof(double)*num_bin);
   double *qs    = (double*)malloc(sizeof(double)*num_bin);
   fitall(COR,upto,num_bin,rho0s,qs);
-  printf("[Stat],ACC fit done:\n");
+  printf("[Stat] ACC fit done:\n");
   if(0==print){
     print_results(num_bin,1,rho0s);
     print_results(num_bin,1,qs);
@@ -133,7 +133,7 @@ int main(int argc, char **argv){
   double *vars = (double*)malloc(sizeof(double)*num_bin);
   for(int im=0;im<num_bin;im++)
     vars[im] = variance(HostMem.batchmeans,num_bat,ubat,num_bin,im);
-  printf("[Stat],Variance done:\n");
+  printf("[Stat] Variance done:\n");
   if(0==print)
     print_results(num_bin,1,vars);
 
@@ -141,7 +141,7 @@ int main(int argc, char **argv){
   //================= MASE (Mean average square error) =========================  
   double *EASE = (double*)malloc(sizeof(double)*(num_bat-ubat));
   getEASE(vars,num_bin,ubat,num_bat-ubat,rho0s,qs,EASE);
-  printf("[Stat],EASE done:\n");
+  printf("[Stat] EASE done:\n");
   if(0==print)
     print_results(num_bat-ubat,1,EASE);
 
@@ -184,7 +184,7 @@ int main(int argc, char **argv){
 
   clock_end   = clock();
   time_elapsed = (float)(clock_end-clock_start)/CLOCKS_PER_SEC*1000.f;
-  printf("[time], statistics costs %f ms\n", time_elapsed);
+  printf("[time]  statistics costs %f ms\n", time_elapsed);
 
 
 //============================================================ 
