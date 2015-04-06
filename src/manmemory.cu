@@ -6,24 +6,24 @@ void initialize_device(){
   gpuErrchk(cudaSetDeviceFlags(cudaDeviceMapHost | cudaDeviceLmemResizeToMax));
 }
 
-void copymeans(unsigned *h_cnt, unsigned *acccnt, unsigned meshes, unsigned offset){
+void copymeans(unsigned *h_cnt, unsigned *batcnt, unsigned meshes, unsigned offset){
   for(int im=0;im<meshes;im++)
-    acccnt[offset+im] = h_cnt[im];
+    batcnt[offset+im] = h_cnt[im];
 
 }
 
 void copydata(MemStruct DeviceMem, MemStruct HostMem){
   gpuErrchk(cudaMemcpy(DeviceMem.wdspp,  HostMem.wdspp,   sizeof(float)*5, cudaMemcpyHostToDevice));
 }
-void initialize_memory(MemStruct *DeviceMem, MemStruct *HostMem, unsigned numbins, unsigned gridx, unsigned blockx,unsigned nbat){
+void initialize_memory(MemStruct *DeviceMem, MemStruct *HostMem, unsigned numbins, unsigned gridx, unsigned blockx,unsigned nbat,unsigned ubat){
   unsigned gridsize;
   gridsize = gridx*blockx;
 
   gpuErrchk(cudaMalloc((void**)&((*DeviceMem).spectrum), numbins*sizeof(unsigned int)));
   (*HostMem).spectrum = (unsigned*)malloc(sizeof(unsigned)*numbins);  
   (*HostMem).batchmeans = (double*)malloc(sizeof(double)*nbat*numbins);
-  (*HostMem).accmeans   = (double*)malloc(sizeof(double)*nbat*numbins);
-  (*HostMem).acccnt     = (unsigned*)malloc(sizeof(unsigned)*nbat*numbins);
+  (*HostMem).accmeans   = (double*)malloc(sizeof(double)*(nbat-ubat)*numbins);
+  (*HostMem).batcnt     = (unsigned*)malloc(sizeof(unsigned)*nbat*numbins);
   (*HostMem).wdspp = (float*)malloc(sizeof(float)*5);
   gpuErrchk(cudaMalloc((void**)&((*DeviceMem).wdspp), 5*sizeof(float)));
   
@@ -62,11 +62,14 @@ void initialize_memory(MemStruct *DeviceMem, MemStruct *HostMem, unsigned numbin
   return;
 }
 
+void resettally(unsigned *cnt, unsigned totbins){
+  gpuErrchk(cudaMemset(cnt, 0, totbins*sizeof(unsigned)));}
+
 void release_memory(MemStruct DeviceMem, MemStruct HostMem){
   free(HostMem.spectrum);
   free(HostMem.batchmeans);
   free(HostMem.accmeans);
-  free(HostMem.acccnt);
+  free(HostMem.batcnt);
   free(HostMem.wdspp);
 
   gpuErrchk(cudaFree(DeviceMem.wdspp));
