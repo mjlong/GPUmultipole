@@ -12,7 +12,7 @@
 __device__ void neutron_sample(NeutronInfoStruct nInfo, unsigned id,float width);
 __global__ void history(MemStruct, unsigned num_src,unsigned active,unsigned banksize);
 __global__ void initialize(MemStruct,float);
-__global__ void reduce_sum_plus(unsigned *threadcnt, unsigned* cnt);
-__global__ void reduce_sum_equal(unsigned* thread_active, unsigned* active);
+__global__ void reduce_sum_plus(int *threadcnt, int* cnt);
+__global__ void reduce_sum_equal(int* thread_active, int* active);
 __device__ unsigned notleak(float x,float a);
 #endif

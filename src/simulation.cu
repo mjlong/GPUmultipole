@@ -118,7 +118,7 @@ __global__ void history(MemStruct DeviceMem, unsigned num_src,unsigned active,un
   */
 }
 
-__global__ void reduce_sum_plus(unsigned *threadcnt, unsigned* cnt){
+__global__ void reduce_sum_plus(int *threadcnt, int* cnt){
 // reduce threadcnt[] to cnt[], cnt is updated by self increase
 // this is used to count terminated neurtons
   /*reduce tally*/
@@ -129,7 +129,7 @@ __global__ void reduce_sum_plus(unsigned *threadcnt, unsigned* cnt){
   */
   int id = blockDim.x * blockIdx.x + threadIdx.x;
   unsigned idl = threadIdx.x;
-  extern __shared__ unsigned shared[];
+  extern __shared__ int shared[];
   //size of shared[] is given as 3rd parameter while launching the kernel
   int i;
   shared[idl] = threadcnt[id];
@@ -148,12 +148,12 @@ __global__ void reduce_sum_plus(unsigned *threadcnt, unsigned* cnt){
   }
 }
 
-__global__ void reduce_sum_equal(unsigned* thread_active, unsigned* active){
+__global__ void reduce_sum_equal(int* thread_active, int* active){
 // reduce thread_active to active, active is updated without history
 // this is used to count number of "live" threads
   int id = blockDim.x * blockIdx.x + threadIdx.x;
   unsigned idl = threadIdx.x;
-  extern __shared__ unsigned shared[];
+  extern __shared__ int shared[];
   //size of shared[] is given as 3rd parameter while launching the kernel
   int i;
   shared[idl] = thread_active[id]; 
