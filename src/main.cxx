@@ -11,17 +11,25 @@
 extern void createmptyh5(char *filename);
 extern void writeh5_nxm_(char *filename, char *dsetname, double *vec1, int *num_vec, int *length);
 extern void writeh5_nxm_(char *filename, char *dsetname, int    *vec1, int *num_vec, int *length);
+extern void readh5_(char* filename, int* gridsize, int* nbat, 
+	     int* meshes, double* width, 
+	     double* sigt, double* pf, double* pc);
+extern void readh5_(char* filename, int* cnt);
+
 void printbless();
+void printdone();
 int main(int argc, char **argv){
-  //printbless();
+  clock_t clock_start, clock_end;
+  float time_elapsed = 0.f;
+  printbless();
 //============================================================ 
 //====================calculation dimension===================
 //============================================================
   unsigned print;
-  unsigned gridx, blockx, gridsize,num_src;
-  unsigned num_bin;
-  unsigned num_bat;
-  unsigned ubat,upto;
+  int gridx, blockx, gridsize,num_src;
+  int num_bin;
+  int num_bat;
+  int ubat,upto;
   double width, sigt, pf,pc;
   char name[50];
   int mode; //0=run only; 1=process only; 2=run & process
@@ -45,21 +53,29 @@ int main(int argc, char **argv){
   }
   else{
     mode = 1; //process only
-    //name = argv[1];
     ubat = atoi(argv[2]);
     upto = atoi(argv[3]);
     print = atoi(argv[4]);
+    readh5_(argv[1],&gridsize,&num_bat,&num_bin,&width,&sigt,&pf,&pc);
   }
 
   num_src=1;//num_src is not used but appears somewhere
+  char name1[10];  char name2[10];  char name3[10]; 
+  sprintf(name1,"_%d",gridx*blockx);
+  sprintf(name2,"_%d",ubat);
+  sprintf(name3,"_%d",num_bat);
+
+
 //============================================================ 
 //=============simulation memory allocation===================
 //============================================================
-
   initialize_device();
   MemStruct HostMem, DeviceMem;
 
   initialize_memory(&DeviceMem, &HostMem, num_bin, gridx,blockx,num_bat,ubat);
+  if(1==mode)//process only, need to access the raw collision count
+    readh5_(argv[1], HostMem.batcnt);
+    
 
   HostMem.wdspp[0] = width;
   HostMem.wdspp[1] = width/num_bin;
@@ -68,13 +84,16 @@ int main(int argc, char **argv){
   HostMem.wdspp[4] = pc;
   double ref = 1.0/(HostMem.wdspp[3]+HostMem.wdspp[4])/width;
   copydata(DeviceMem,HostMem);
-  printf("grid=[%3dx%3d],nhis=%-6d,ubat=%3d,nbat=%-6d,meshes=%-6d,box width=%.2f\n",gridx,blockx,gridx*blockx,ubat,num_bat,num_bin,width);
+  printf("nhis=%-6d,ubat=%3d,nbat=%-6d,meshes=%-6d,box width=%.2f\n",gridsize,ubat,num_bat,num_bin,width);
   printf("mfp=%.5f, pf=%.5f, pc=%.5f, ps=%.5f\n",HostMem.wdspp[2], HostMem.wdspp[3], HostMem.wdspp[4],1-(HostMem.wdspp[3]+HostMem.wdspp[4]));
+  int intone=1; 
+  int inttwo=1;
+
 //============================================================ 
 //===============main simulation body=========================
 //============================================================
-  clock_t clock_start, clock_end;
-  float time_elapsed = 0.f;
+  if(1!=mode){//run simulation except 'process only' mode
+    printf("[Info] Running main simulation body ... ");
   unsigned active,banksize;
   active = 1;
   banksize = gridx*blockx;
@@ -94,93 +113,129 @@ int main(int argc, char **argv){
   }
   clock_end   = clock();
   time_elapsed = (float)(clock_end-clock_start)/CLOCKS_PER_SEC*1000.f;
+  printdone();
   printf("[time]  %d batches (*%d neutrons/batch) costs %f ms\n", num_bat,gridsize, time_elapsed);
 
   //============================================================================
   //==================== Write raw cnt to a hdf5 file ==========================
   //============================================================================
-  char name1[10];  char name2[10];  char name3[10]; 
-  sprintf(name1,"_%d",gridx*blockx);
-  sprintf(name2,"_%d",ubat);
-  sprintf(name3,"_%d",num_bat);
-  int nbat=num_bat; int meshes=num_bin;
-  strcpy(name,"Alltally"); strcat(name,name1); strcat(name,name2); strcat(name,name3); strcat(name,".h5");
+
+  printf("[Save] Writing batch cnt to hdf5 .... ");
+  strcpy(name,"Raw cnt"); strcat(name,name1); strcat(name,name2); strcat(name,name3); strcat(name,".h5");
   createmptyh5(name); //create empty file for future add dataset
+  writeh5_nxm_(name,"batch_cnt", HostMem.batcnt, &num_bat, &num_bin);
+  printdone();
 
-  writeh5_nxm_(name,"batch_cnt", HostMem.batcnt, &nbat, &meshes);
-  printf("[Save] Writing batch cnt to hdf5 .... done.\n");
-
-  //============================================================================
-  //=========================process the results ===============================
-  //============================================================================
-
-  clock_start = clock();
-  //========================collison count to density ==========================
-  cnt2flux(HostMem,gridsize,width/num_bin,num_bin,num_bat,ubat);
-  //print_results(num_bin,num_bat,HostMem.acccnt);
-  //print_results(num_bin,num_bat,HostMem.accmeans);
-  printf("[Stat] Batch means and batch accmeans done:\n");
-  if(0==print)
-    print_results(num_bin,num_bat,HostMem.batchmeans);
-
-  int intone=1;  int tempd;
-  tempd = gridsize;  writeh5_nxm_(name,"num_history", &(tempd),  &intone, &intone);
-  tempd = num_bat;   writeh5_nxm_(name,"num_batch",   &(tempd),  &intone, &intone);
-  tempd = meshes;    writeh5_nxm_(name,"num_cells",   &(tempd),  &intone, &intone);
+  writeh5_nxm_(name,"num_history", &(gridsize),  &intone, &intone);
+  writeh5_nxm_(name,"num_batch",   &(num_bat),  &intone, &intone);
+  writeh5_nxm_(name,"num_cells",   &(num_bin),  &intone, &intone);
   writeh5_nxm_(name,"width",   &(width),  &intone, &intone);
   writeh5_nxm_(name,"sigma",   &(sigt),   &intone, &intone);
   writeh5_nxm_(name,"pf",      &(pf),     &intone, &intone);
   writeh5_nxm_(name,"pc",      &(pc),     &intone, &intone);
 
-  //writeh5_nxm_(name,"batchmeans", HostMem.batchmeans, &nbat, &meshes);
-  //printf("[Save] Writing means to hdf5 done:\n");
+  }//end if (1!=mode) 
 
-  //intone=nbat-ubat; writeh5_nxm_(name,"batchaccumu", HostMem.accmeans, &intone, &meshes);
-  //printf("[Save] Writing acc means to hdf5 done:\n");
-
+  //============================================================================
+  //=========================process the results ===============================
+  //============================================================================
+  if(0!=mode){//do process except 'run only' mode
+    printf("[Info] Processing ... \n");
+  strcpy(name,"Result"); strcat(name,name1); strcat(name,name2); strcat(name,name3); strcat(name,".h5");
+  createmptyh5(name); //create empty file for future add dataset
+  clock_start = clock();
+  //========================collison count to density ==========================
+  printf("[Stat] Batch means and batch accmeans .... ");
+  cnt2flux(HostMem,gridsize,width/num_bin,num_bin,num_bat,ubat);
+  printdone();
+  if(0==print)
+    print_results(num_bin,num_bat,HostMem.batchmeans);
+  //----------------------------------------------------------------------------
+  printf("[Save] Writing means to hdf5... ");
+  writeh5_nxm_(name,"batchmeans", HostMem.batchmeans, &num_bat, &num_bin);
+  printf("... writing acc means to hdf5 done:\n");
+  intone=num_bat-ubat; writeh5_nxm_(name,"batchaccumu", HostMem.accmeans, &intone, &num_bin);
+  printdone();
   //========================Average Square Error================================
+  printf("[Stat] Average Square Error ... ");
   double *ASE = (double*)malloc(sizeof(double)*(num_bat-ubat));
   getASE(HostMem.accmeans, num_bin, num_bat,ubat, ref, ASE);
-  printf("[Stat] ASE done:\n");
+  printdone();
   if(0==print)
     print_results(num_bat-ubat,1,ASE);
+  //----------------------------------------------------------------------------
+  printf("[Save] Writing ASE to hdf5... ");
+  inttwo=num_bat-ubat; intone=1; writeh5_nxm_(name,"ASE", ASE, &intone, &inttwo);
+  printdone();
   //=====================Auto-Correlation Coefficients==========================
+  printf("[Stat] Auto-correlation coefficients ... ");
   double *COR = (double*)malloc(sizeof(double)*upto*num_bin);
   getCOR(HostMem.batchmeans,num_bin,num_bat,ubat,upto,COR);
-  printf("[Stat] Mesh correlations done:\n");
+  printdone();
   if(0==print)
     print_results(upto,num_bin, COR);
+  //----------------------------------------------------------------------------
+  printf("[Save] Writing ACC to hdf5... ");
+  writeh5_nxm_(name,"ACC", COR, &num_bin, &upto);
+  printdone();
 
   //==================== ACC fit ===============================================
+  printf("[Stat] ACC fit... \n");
   double *rho0s = (double*)malloc(sizeof(double)*num_bin);
   double *qs    = (double*)malloc(sizeof(double)*num_bin);
   fitall(COR,upto,num_bin,rho0s,qs);
-  printf("[Stat] ACC fit done:\n");
-  if(0==print){
-    print_results(num_bin,1,rho0s);
-    print_results(num_bin,1,qs);
-  }
+  printdone();
   //fitall1(COR,upto,num_bin,rho0s,qs);
   //printf("ACC fit done:\n");
   //print_results(num_bin,1,rho0s);
   //print_results(num_bin,1,qs);
+  if(0==print){
+    print_results(num_bin,1,rho0s);
+    print_results(num_bin,1,qs);
+  }
+  //----------------------------------------------------------------------------
+  printf("[Save] Writing ACC fit result to hdf5... ");
+  intone=1;
+  writeh5_nxm_(name,"rho0s", rho0s, &intone, &num_bin);
+  writeh5_nxm_(name,"qs",    rho0s, &intone, &num_bin);
+  printdone();
   
   //=========================cell variance =====================================
+  printf("[Stat] Variance ....");
   double *vars = (double*)malloc(sizeof(double)*num_bin);
   for(int im=0;im<num_bin;im++)
     vars[im] = variance(HostMem.batchmeans,num_bat,ubat,num_bin,im);
-  printf("[Stat] Variance done:\n");
+  printdone();
   if(0==print)
     print_results(num_bin,1,vars);
-
+  //----------------------------------------------------------------------------
+  printf("[Save] Writing mesh variances to hdf5... ");
+  intone=1; writeh5_nxm_(name,"var", vars, &intone, &num_bin);
+  printdone();
 
   //================= MASE (Mean average square error) =========================  
+  printf("[Stat] Expected Average Square Error ....");
   double *EASE = (double*)malloc(sizeof(double)*(num_bat-ubat));
   getEASE(vars,num_bin,ubat,num_bat-ubat,rho0s,qs,EASE);
-  printf("[Stat] EASE done:\n");
+  printdone();
   if(0==print)
     print_results(num_bat-ubat,1,EASE);
+  printf("[Save] Writing EASE to hdf5 ... ");
+  intone=1; inttwo=num_bat-ubat; writeh5_nxm_(name,"EASE", EASE, &intone, &inttwo);
+  printdone();
 
+  free(EASE);
+  free(vars);
+  free(rho0s);
+  free(qs);
+  free(COR);
+  free(ASE);
+
+  clock_end   = clock();
+  time_elapsed = (float)(clock_end-clock_start)/CLOCKS_PER_SEC*1000.f;
+  printf("[time]  statistics costs %f ms\n", time_elapsed);
+
+  }//end if(0!=mode) //end process
   /*
 
   FILE *fp=NULL;
@@ -211,23 +266,14 @@ int main(int argc, char **argv){
   }
 
 */
-  free(EASE);
-  free(vars);
-  free(rho0s);
-  free(qs);
-  free(COR);
-  free(ASE);
 
-  clock_end   = clock();
-  time_elapsed = (float)(clock_end-clock_start)/CLOCKS_PER_SEC*1000.f;
-  printf("[time]  statistics costs %f ms\n", time_elapsed);
 
 
 //============================================================ 
 //=============simulation shut down===========================
 //============================================================
   release_memory(DeviceMem, HostMem);
-  printf("so far so good\n");
+
 
   return 0;
 }
@@ -264,3 +310,6 @@ void printbless(){
 }
 
 
+void printdone(){
+  printf(" ..... done!\n");
+}
