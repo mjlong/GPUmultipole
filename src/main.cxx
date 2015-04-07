@@ -61,7 +61,7 @@ int main(int argc, char **argv){
 
   num_src=1;//num_src is not used but appears somewhere
   char name1[10];  char name2[10];  char name3[10]; 
-  sprintf(name1,"_%d",gridx*blockx);
+  sprintf(name1,"_%d",gridsize);
   sprintf(name2,"_%d",ubat);
   sprintf(name3,"_%d",num_bat);
 
