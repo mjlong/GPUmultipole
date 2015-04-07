@@ -33,7 +33,7 @@ int main(int argc, char **argv){
   double width, sigt, pf,pc;
   char name[50];
   int mode; //0=run only; 1=process only; 2=run & process
-  if(argc>=8){//run or run+process
+  if(argc>=8+1){//run or run+process
     gridx = atoi(argv[1]);
     blockx = atoi(argv[2]);
     gridsize = gridx*blockx;
@@ -44,7 +44,7 @@ int main(int argc, char **argv){
     pf    = atof(argv[7]);
     pc    = atof(argv[8]);
     mode = 0;   //run only
-    if(argc>=11){
+    if(argc>=11+1){
       ubat = atoi(argv[9]);
       upto = atoi(argv[10]);
       print = atoi(argv[11]);
@@ -121,7 +121,7 @@ int main(int argc, char **argv){
   //============================================================================
 
   printf("[Save] Writing batch cnt to hdf5 .... ");
-  strcpy(name,"Raw cnt"); strcat(name,name1); strcat(name,name2); strcat(name,name3); strcat(name,".h5");
+  strcpy(name,"Rawcnt"); strcat(name,name1); strcat(name,name3); strcat(name,".h5");
   createmptyh5(name); //create empty file for future add dataset
   writeh5_nxm_(name,"batch_cnt", HostMem.batcnt, &num_bat, &num_bin);
   printdone();
@@ -143,6 +143,16 @@ int main(int argc, char **argv){
     printf("[Info] Processing ... \n");
   strcpy(name,"Result"); strcat(name,name1); strcat(name,name2); strcat(name,name3); strcat(name,".h5");
   createmptyh5(name); //create empty file for future add dataset
+  writeh5_nxm_(name,"num_history", &(gridsize),  &intone, &intone);
+  writeh5_nxm_(name,"num_batch",   &(num_bat),  &intone, &intone);
+  writeh5_nxm_(name,"num_cells",   &(num_bin),  &intone, &intone);
+  writeh5_nxm_(name,"width",   &(width),  &intone, &intone);
+  writeh5_nxm_(name,"sigma",   &(sigt),   &intone, &intone);
+  writeh5_nxm_(name,"pf",      &(pf),     &intone, &intone);
+  writeh5_nxm_(name,"pc",      &(pc),     &intone, &intone);
+  writeh5_nxm_(name,"num_ubat",&(ubat),   &intone, &intone);
+  writeh5_nxm_(name,"num_acc", &(upto),   &intone, &intone);
+
   clock_start = clock();
   //========================collison count to density ==========================
   printf("[Stat] Batch means and batch accmeans .... ");
