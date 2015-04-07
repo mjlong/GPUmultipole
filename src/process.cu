@@ -27,7 +27,7 @@ void getASE(double *accmeans,unsigned meshes, unsigned nbat, unsigned ubat, doub
     ASE[ib-ubat]=0.0;
   for(ib=ubat;ib<nbat;ib++){
     for(im=0;im<meshes;im++){
-      index = ib*meshes+im;
+      index = (ib-ubat)*meshes+im;
       ASE[ib-ubat] += (accmeans[index]-ref)*(accmeans[index]-ref)/meshes;
     }
   }
