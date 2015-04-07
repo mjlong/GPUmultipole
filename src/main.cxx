@@ -163,7 +163,7 @@ int main(int argc, char **argv){
   //----------------------------------------------------------------------------
   printf("[Save] Writing means to hdf5... ");
   writeh5_nxm_(name,"batchmeans", HostMem.batchmeans, &num_bat, &num_bin);
-  printf("... writing acc means to hdf5 done:\n");
+  printf("... writing acc means to hdf5... ");
   intone=num_bat-ubat; writeh5_nxm_(name,"batchaccumu", HostMem.accmeans, &intone, &num_bin);
   printdone();
   //========================Average Square Error================================
@@ -190,7 +190,7 @@ int main(int argc, char **argv){
   printdone();
 
   //==================== ACC fit ===============================================
-  printf("[Stat] ACC fit... \n");
+  printf("[Stat] ACC fit...");
   double *rho0s = (double*)malloc(sizeof(double)*num_bin);
   double *qs    = (double*)malloc(sizeof(double)*num_bin);
   fitall(COR,upto,num_bin,rho0s,qs);
