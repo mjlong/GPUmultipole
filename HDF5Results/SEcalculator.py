@@ -16,7 +16,7 @@ def SEcos(L,h,a):
  
 import fastfactorial
 import numpy 
-def ESEcos(Nb,nn,space,ps):
+def ESEany(Nb,nn,space,ps):
     log = numpy.log
     log2= numpy.log2
     exp = numpy.exp
