@@ -48,8 +48,7 @@ def ESEany1(Nb,nn,ps):
     return log2(nn)-sum/nn;
     
 
-def ESEuni2(Nb,nn,ps):
-    eps = 5.0e-2;
+def ESEuni2(Nb,nn,ps,eps):
     log = numpy.log
     log2= numpy.log2
     exp = numpy.exp
@@ -62,8 +61,7 @@ def ESEuni2(Nb,nn,ps):
         sum = sum + exp(lncnx+log(1-ps)*(nn-xi)+log(ps)*xi+log(xi)+log(log2(xi)));
     return log2(nn)-Nb*sum/nn;
 
-def ESEany2(Nb,nn,ps):
-    eps = 5.0e-2;
+def ESEany2(Nb,nn,ps,eps):
     log = numpy.log
     log2= numpy.log2
     exp = numpy.exp
