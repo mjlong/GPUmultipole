@@ -57,7 +57,7 @@ def ESEany(Nb,nn,ps,nm):
         np = nn*ps[ii];
         sum = sum + np*log(np);
         for im in range(2,nm+1):
-            sum = sum + BnpMoment(nn,ps[ii],im)/(fastfactorial.fac(im)*np**(im-1))*(-1)**im;    
+            sum = sum + BnpMoment(nn,ps[ii],im)/(im*(im-1)*np**(im-1))*(-1)**im;    
     return log2(nn)-sum/log(2.0)/nn;
 
 def ESEuni(Nb,nn,ps,nm):
@@ -68,7 +68,7 @@ def ESEuni(Nb,nn,ps,nm):
     np = nn*ps;
     sum = sum + np*log(np);
     for im in range(2,nm+1):
-        sum = sum + BnpMoment(nn,ps,im)/(fastfactorial.fac(im)*np**(im-1))*(-1)**im;    
+        sum = sum + BnpMoment(nn,ps,im)/(im*(im-1)*np**(im-1))*(-1)**im;    
     return log2(nn)-sum*Nb/log(2.0)/nn;
 
 def BnpMoment(n,P,m):
