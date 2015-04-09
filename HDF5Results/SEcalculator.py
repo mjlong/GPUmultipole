@@ -16,6 +16,9 @@ def SEcos(L,h,a):
  
 import fastfactorial
 import numpy 
+
+def ESEunilec(Nb,nn):
+    return numpy.log2(Nb)+numpy.log2(1-(1-1.0/Nb)**nn);
 def ESEuni1(Nb,nn,ps):
     log = numpy.log
     log2= numpy.log2
