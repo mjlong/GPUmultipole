@@ -48,6 +48,38 @@ def ESEany1(Nb,nn,ps):
     return log2(nn)-sum/nn;
     
 
+def ESEuni2(Nb,nn,ps):
+    eps = 5.0e-2;
+    log = numpy.log
+    log2= numpy.log2
+    exp = numpy.exp
+    np = int(nn*ps);
+    n1 = max(2,np-int(nn**(0.5+eps)));
+    n2 = min(np+int(nn**(0.5+eps))+1,nn+1);
+    sum = 0.0;
+    for xi in range(n1,n2):
+        lncnx = fastfactorial.lncnm(nn,xi);
+        sum = sum + exp(lncnx+log(1-ps)*(nn-xi)+log(ps)*xi+log(xi)+log(log2(xi)));
+    return log2(nn)-Nb*sum/nn;
+
+def ESEany2(Nb,nn,ps):
+    eps = 5.0e-2;
+    log = numpy.log
+    log2= numpy.log2
+    exp = numpy.exp
+    sum = 0.0;
+    for ii in range(Nb):
+        np = int(nn*ps[ii]);
+        n1 = max(2,np-int(nn**(0.5+eps)));
+        n2 = min(np+int(nn**(0.5+eps))+1,nn+1);
+        for xi in range(n1,n2):
+            lncnx = fastfactorial.lncnm(nn,xi);
+            sum = sum + exp(lncnx+log(1-ps[ii])*(nn-xi)+log(ps[ii])*xi+log(xi)+log(log2(xi)));
+    return log2(nn)-sum/nn;
+ 
+
+
+
 def ESEany(Nb,nn,ps,nm):
     log = numpy.log
     log2= numpy.log2
