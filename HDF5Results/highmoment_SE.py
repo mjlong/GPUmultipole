@@ -12,13 +12,14 @@ batmeans=numpy.transpose(files['batchmeans']);
 accmeans=numpy.transpose(files['batchaccumu']);
 accmeanw=numpy.transpose(filew['batchaccumu']);
 
-plt.plot(accmeans[:,995999]);
-plt.plot(batmeans[:,999999]);
-plt.ylim([0,0.5]);
-plt.show()
-
 abat=accmeans.shape[1];
 abatw=accmeanw.shape[1];
+
+plt.plot(accmeans[:,-1]);
+plt.plot(accmeanw[:,-1]);
+#plt.ylim([0,0.5]);
+plt.show()
+
 
 width=files['width'][0][0]
 meshes=files['num_cells'][0][0]
@@ -31,7 +32,7 @@ for i in range(abat):
     batprob[:,i]=accmeans[:,i]/numpy.sum(accmeans[:,i]);
 
 for i in range(abatw):
-    batprobwe[:,i]=accmeanw[:,i]/numpy.sum(accmeanw[:,i]);
+    batprobw[:,i]=accmeanw[:,i]/numpy.sum(accmeanw[:,i]);
 
 # ============================================================================== 
 # =====================N-th order Legendre moment===============================
