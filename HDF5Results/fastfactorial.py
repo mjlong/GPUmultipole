@@ -1,4 +1,6 @@
 import numpy
+def fac(n):
+    return numpy.exp(numpy.sum(numpy.log(range(2,n+1))));
 def lncnm(n,m):
     if(m==n):
         return 0;   
