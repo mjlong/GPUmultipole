@@ -121,7 +121,7 @@ int main(int argc, char **argv){
   //============================================================================
 
   printf("[Save] Writing batch cnt to hdf5 .... ");
-  strcpy(name,"Rawcnt"); strcat(name,name1); strcat(name,name3); strcat(name,".h5");
+  strcpy(name,"RRawcnt"); strcat(name,name1); strcat(name,name3); strcat(name,".h5");
   createmptyh5(name); //create empty file for future add dataset
   writeh5_nxm_(name,"batch_cnt", HostMem.batcnt, &num_bat, &num_bin);
   printdone();
@@ -141,7 +141,7 @@ int main(int argc, char **argv){
   //============================================================================
   if(0!=mode){//do process except 'run only' mode
     printf("[Info] Processing ... \n");
-  strcpy(name,"Result"); strcat(name,name1); strcat(name,name2); strcat(name,name3); strcat(name,".h5");
+  strcpy(name,"RResult"); strcat(name,name1); strcat(name,name2); strcat(name,name3); strcat(name,".h5");
   createmptyh5(name); //create empty file for future add dataset
   writeh5_nxm_(name,"num_history", &(gridsize),  &intone, &intone);
   writeh5_nxm_(name,"num_batch",   &(num_bat),  &intone, &intone);
