@@ -93,6 +93,16 @@ def ESEany(Nb,nn,ps,nm):
             sum = sum + BnpMoment(nn,ps[ii],im)/(im*(im-1)*np**(im-1))*(-1)**im;    
     return log2(nn)-sum/log(2.0)/nn;
 
+def ESEuni3(Nb,nn,ps):
+    log = numpy.log
+    log2= numpy.log2
+    exp = numpy.exp
+    sum = 0.0;
+    np = nn*ps;
+    sum = sum + np*log(np)+0.5*(1-ps);
+    return log2(nn)-sum*Nb/log(2.0)/nn;
+
+
 def ESEuni(Nb,nn,ps,nm):
     log = numpy.log
     log2= numpy.log2
