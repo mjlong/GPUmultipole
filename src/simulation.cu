@@ -28,6 +28,14 @@ __device__ unsigned notleak(float x,float a){
   return (x>=0)&&(x<=a);
 }
 
+__device__ void intersecbox(double x, double y, double z, double a, double b, double c, double vx, double vy, double vz){
+  double t1,t2;
+  t1 = max(min(x/vx,(a-x)/vx),max(min(y/vy,(b-y)/vy),min(z/vz,(c-z)/vz)));
+  t2 = min(max(x/vx,(a-x)/vx),min(max(y/vy,(b-y)/vy),max(z/vz,(c-z)/vz)));
+  printf("id=%2d,from (%.5f,%.5f,%.5f) along (%.5f,%.5f,%.5f), t1=%.5f,t2=%.5f\n",x,y,z,vx,vy,vz,t1,t2);
+}
+
+
 __global__ void history(MemStruct DeviceMem, unsigned num_src,unsigned active,unsigned banksize){
   float width = DeviceMem.wdspp[0];
   float dx = DeviceMem.wdspp[1];
