@@ -7,13 +7,8 @@ void initialize_context(RTcontext context, int width, int n, int m, float *data,
     RTmaterial          material;
   
     /* Setup state */
-#if defined(__HEXPRISM__)
-    unsigned num_geobj = (1+3*n*(n+1))*(1+3*m*(m+1))+1 ;
-    createContext( width,sqrt(3.f*m*m+3.f*m+1.f)*(n+1)*data[3]/*p*/,data[2]/*hh*/,num_geobj, context, nInfo);
-#else
     unsigned num_geobj = m*m*n*n*2+1 ;
     createContext( width,sqrt(2.0)*m*0.5*(n+2)*data[3]/*p*/,data[2]/*hh*/,num_geobj, context, nInfo);
-#endif
 
 #if defined(__PRINTTRACK__)
     printf("%g,%g,%g,%g,%g\n",data[0],data[1],data[2],data[3],data[4]);
