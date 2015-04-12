@@ -1,12 +1,3 @@
-#MITW = 0
-#QUICKW_GLOABAL = 11
-#QUICKW_TEXTURE = 12
-#QUICKW_CONST   = 13
-#WHPW = 2
-#FOURIEREXPANSION = 3
-#QUICKW FOURIER   = 31
-#Directories
-#TODO: -use-fast-math;
 DIR_SRC = ./src
 DIR_SRC_PTX = ./src/ptx
 DIR_SRC_OPT = ./src/optix
@@ -22,19 +13,14 @@ INC_CUDA6 = -I${DIR_CUDA6}/include
 INC_OPTIX = -I${DIR_OPTIX}/include -I${DIR_SRC_OPT}
 NCINCFLAGS  = $(INC_SRC) $(INC_CUDA6) $(INC_OPTIX)
 CCINCFLAGS  = $(INC_SRC) $(INC_HDF5) $(INC_OPTIX)
-ifeq ($(compare),1)
-DIR_BIN = ./bin/test
-endif
 CC=h5cc #g++ #h5pcc #g++
 NVCC = nvcc
 ifeq ($(ver),debug)
 NCFLAGS=-g -G -dc -arch=sm_20 $(NCINCFLAGS)  #-Xptxas="-v"
-NCPLAGS=-ptx -m64 -arch=sm_20 $(NCINCFLAGS)
 CCFLAGS=-c -g                 $(CCINCFLAGS) 
 DIR_BIN = ./bin/debug
 else
 NCFLAGS=      -dc -arch=sm_20 $(NCINCFLAGS)  #-Xptxas="-v"
-NCPLAGS=-ptx -m64 -arch=sm_20 $(NCINCFLAGS)
 CCFLAGS=-c                    $(CCINCFLAGS) 
 DIR_BIN = ./bin/release
 endif
@@ -51,9 +37,11 @@ RTMETHOD=
 PTXFIX =_one.ptx
 EXEFIX = _one
 endif
+EXENAME=$(DIR_BIN)/gpu_box
+EXECUTABLE=$(EXENAME)
+
 CSOURCES=$(wildcard ${DIR_SRC}/*.cc)
 MSOURCES=$(wildcard ${DIR_SRC}/*.cxx)
-#MSOURCES = main.cxx; 
 CNVCCSRC=$(wildcard ${DIR_SRC_OPT}/*.cxx)
 COBJECTS=$(patsubst %.cc, ${DIR_OBJ}/%.obj, $(notdir ${CSOURCES}))
 MOBJECTS=$(patsubst %.cxx, ${DIR_OBJ}/%.ob, $(notdir ${MSOURCES}))

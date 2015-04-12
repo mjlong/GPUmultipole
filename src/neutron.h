@@ -19,14 +19,14 @@ typedef struct {
 }basicneutronInfo;
 
 typedef struct {
-  unsigned *cnt;
+  int *cnt;
   //CMPTYPE   *unknown;
 }TallyStruct;
 
 typedef struct {
   unsigned *id;
   unsigned *imat;
-  unsigned *live;
+  int *live;
   CMPTYPE *energy;
   CMPTYPE *sigT;
   CMPTYPE *sigA;
@@ -42,12 +42,16 @@ typedef struct {
 }NeutronInfoStruct;
 
 typedef struct {
+  float *wdspp;
   NeutronInfoStruct nInfo;
-  unsigned int *block_terminated_neutrons;
-  unsigned int *num_terminated_neutrons;
-  unsigned int *num_live_neutrons;
-  unsigned int *block_spectrum;
-  unsigned int *spectrum;
+  int *block_terminated_neutrons;
+  int *num_terminated_neutrons;
+  int *num_live_neutrons;
+  int *block_spectrum;
+  int *spectrum;
+  double *batchmeans;
+  double *accmeans;
+  int *batcnt;
   float *tallybins;
   TallyStruct tally;
 }MemStruct;

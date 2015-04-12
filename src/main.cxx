@@ -1,214 +1,290 @@
-#include "CPUComplex.h"
-#include "multipole_data.h"
-#include "material_data.h"
-#include "tallybin.h"
 #include <stdio.h>
 #include <string.h>
 
-#include <optix.h>
-#include <cudpp.h>
-#include <cudpp_config.h>
 #include <neutron.h>
 #include <manmemory.h>
 #include "devicebridge.h"
 
-#include "multipole.h"
-#include "material.h"
-#include "optixmain.h"
+#include "process.h"
 
 #include <time.h>
+extern void createmptyh5(char *filename);
+extern void writeh5_nxm_(char *filename, char *dsetname, double *vec1, int *num_vec, int *length);
+extern void writeh5_nxm_(char *filename, char *dsetname, int    *vec1, int *num_vec, int *length);
+extern void readh5_(char* filename, int* gridsize, int* nbat, 
+	     int* meshes, double* width, 
+	     double* sigt, double* pf, double* pc);
+extern void readh5_(char* filename, int* cnt);
+
 void printbless();
+void printdone();
 int main(int argc, char **argv){
+  clock_t clock_start, clock_end;
+  float time_elapsed = 0.f;
   printbless();
 //============================================================ 
 //====================calculation dimension===================
 //============================================================
-  unsigned gridx, blockx, gridsize;
-  unsigned num_src;
-  gridx = atoi(argv[1]);
-  blockx = atoi(argv[2]);
-  gridsize = gridx*blockx;
-  num_src = atoi(argv[3]);
+  unsigned print;
+  int gridx, blockx, gridsize,num_src;
+  int num_bin;
+  int num_bat;
+  int ubat,upto;
+  double width, sigt, pf,pc;
+  char name[50];
+  int mode; //0=run only; 1=process only; 2=run & process
+  if(argc>=8+1){//run or run+process
+    gridx = atoi(argv[1]);
+    blockx = atoi(argv[2]);
+    gridsize = gridx*blockx;
+    num_bat = atoi(argv[3]);    
+    num_bin = atoi(argv[4]);
+    width = atof(argv[5]);
+    sigt  = atof(argv[6]);
+    pf    = atof(argv[7]);
+    pc    = atof(argv[8]);
+    mode = 0;   //run only
+    if(argc>=11+1){
+      ubat = atoi(argv[9]);
+      upto = atoi(argv[10]);
+      print = atoi(argv[11]);
+      mode = 2; //run+process
+    }
+  }
+  else{
+    mode = 1; //process only
+    ubat = atoi(argv[2]);
+    upto = atoi(argv[3]);
+    print = atoi(argv[4]);
+    readh5_(argv[1],&gridsize,&num_bat,&num_bin,&width,&sigt,&pf,&pc);
+  }
+
+  num_src=1;//num_src is not used but appears somewhere
+  char name1[10];  char name2[10];  char name3[10]; 
+  sprintf(name1,"_%d",gridsize);
+  sprintf(name2,"_%d",ubat);
+  sprintf(name3,"_%d",num_bat);
+
+
 //============================================================ 
 //=============simulation memory allocation===================
 //============================================================
   initialize_device();
   MemStruct HostMem, DeviceMem;
-  unsigned num_bin = readbins(&(HostMem.tallybins),"tallybins")-1;
-  initialize_memory(&DeviceMem, &HostMem, num_bin, gridx,blockx);
-  free(HostMem.tallybins);
-//============================================================ 
-//===============Faddeeva tables==============================
-//============================================================
-//
-//===construct coefficients a[n] for fourier expansion w======
-//
-#if defined(__FOURIERW)
-  CMPTYPE *da;
-  CMPTYPE *db;
-  fill_wtables(&da,&db);
-#endif
-//
-//=============fill exp(z) table for fourierw=================
-//
-#if defined(__INTERPEXP)
-  CComplex<CMPTYPE> *exptable;
-  fill_wtables(&exptable);
-#endif
-//
-//==========fill w function table for Quick W=================
-//
-#if defined(__QUICKW)
-  CComplex<CMPTYPE> *wtable;
-  fill_wtables(&wtable);
-#endif
 
-//============================================================ 
-//===============Optix Ray Tracing Context====================
-//============================================================
-  RTcontext context;
-  RT_CHECK_ERROR(rtContextCreate(&context));
-  int id=0;
-  rtContextSetDevices(context, 1, &id);
-  float geoPara[6] = {0.48f,0.5f,50.f,1.2f,100.f,100.f};
-  //float geoPara[6] = {0.00048f,0.0005f,0.050f,0.0012f,0.100f,0.100f};
-                      //r1,  r2,  h/2, p,   t,    H/2
-  initialize_context(context, gridsize, 
-                     atoi(argv[5]),atoi(argv[6]), 
-                     geoPara, DeviceMem.nInfo);
-//============================================================ 
-//=============CUDPP Initialization===========================
-//============================================================
-  CUDPPHandle theCudpp;
-  cudppCreate(&theCudpp);
-  CUDPPConfiguration config;
-  config.datatype = CUDPP_DOUBLE;
-  config.algorithm = CUDPP_SORT_RADIX;
-  config.options=CUDPP_OPTION_KEY_VALUE_PAIRS;
-  config.options=CUDPP_OPTION_BACKWARD;
-  CUDPPHandle sortplan = 0;
-  CUDPPResult res = cudppPlan(theCudpp, &sortplan, config, gridsize, 1, 0);
-  if (CUDPP_SUCCESS != res)
-  {
-      printf("Error creating CUDPPPlan\n");
-      exit(-1);
-  }
-//============================================================ 
-//=============Read Isotopes(multipole data)==================
-//============================================================
-  int numIso,totIso;
-//read from hdf5 file to host memory
-  numIso = count_isotopes(argv[7]);
-  struct multipoledata *isotopes;
-  isotopes = (struct multipoledata*)malloc(sizeof(struct multipoledata)*numIso);
-  isotope_read(argv[7],isotopes);
-//copy host isotope data to device
-#if defined(__QUICKWG)
-  multipole mp_para(isotopes, numIso, wtable);
-#else
-  multipole mp_para(isotopes, numIso);
-#endif 
-//release host isotope data memory
-  freeMultipoleData(numIso,isotopes);
-//============================================================ 
-//=======Read Materials([isotope, density] pairs)=============
-//============================================================
-//read from text setting file to host memory 
-  struct matdata *pmat=(struct matdata*)malloc(sizeof(struct matdata));
-  totIso=matread(pmat,argv[8]); 
-//copy host material setting to device
-  material mat(pmat, totIso);
-//release host material memory
-  freeMaterialData(pmat);
+  initialize_memory(&DeviceMem, &HostMem, num_bin, gridx,blockx,num_bat,ubat);
+  if(1==mode)//process only, need to access the raw collision count
+    readh5_(argv[1], HostMem.batcnt);
+    
+
+  HostMem.wdspp[0] = width;
+  HostMem.wdspp[1] = width/num_bin;
+  HostMem.wdspp[2] = 1.0/sigt;
+  HostMem.wdspp[3] = pf;
+  HostMem.wdspp[4] = pc;
+  double ref = 1.0/(HostMem.wdspp[3]+HostMem.wdspp[4])/width;
+  copydata(DeviceMem,HostMem);
+  printf("nhis=%-6d,ubat=%3d,nbat=%-6d,meshes=%-6d,box width=%.2f\n",gridsize,ubat,num_bat,num_bin,width);
+  printf("mfp=%.5f, pf=%.5f, pc=%.5f, ps=%.5f\n",HostMem.wdspp[2], HostMem.wdspp[3], HostMem.wdspp[4],1-(HostMem.wdspp[3]+HostMem.wdspp[4]));
+  int intone=1; 
+  int inttwo=1;
+
 //============================================================ 
 //===============main simulation body=========================
 //============================================================
-clock_t clock_start, clock_end;
-float time_elapsed = 0.f;
-unsigned active;
-#if defined(__PROCESS) //|| defined(__TRACK)
-  active = 0u;
-#else
-  active = 1u;
-#endif
-initialize_neutrons(gridx, blockx, DeviceMem); 
-clock_start = clock();
-while(active){
-  //since transport_neutrons() surrects all neutrons, rtLaunch always works full load, no need to sort here
-  RT_CHECK_ERROR(rtContextLaunch1D(context, 0, gridsize));
-  //sort key = live*(isotopeID*MAXENERGY+energy)
-  sort_prepare(gridx, blockx, DeviceMem, mat);
-  cudppRadixSort(sortplan, DeviceMem.nInfo.isoenergy, DeviceMem.nInfo.id, gridsize);
-  //                          keys,                   values,             numElements
-  //neutrons found leaked in *locate* will not be evaluated 
-  start_neutrons(gridx, blockx, mat, mp_para, DeviceMem, num_src,1);
-  //besides moving, neutrons terminated is initiated as new 
-  active = count_neutrons(gridx, blockx, DeviceMem, HostMem,num_src);
-  transport_neutrons(gridx, blockx, DeviceMem, mat, active); 
-  //if active=1; transport<<<>>> will renew neutrons with live=0
-  //if active=0; transport<<<>>> will leave terminated neutrons
-  //set active always 1 to make sure number of neutrons simulated exactly equal to num_src
-}
-clock_end   = clock();
-time_elapsed = (float)(clock_end-clock_start)/CLOCKS_PER_SEC*1000.f;
-printf("[time], active cycles costs %f ms\/%d neutrons\n", time_elapsed, HostMem.num_terminated_neutrons[0]);
-#if defined(__PRINTTRACK__)
-unsigned left = count_lives(gridx,blockx,DeviceMem,HostMem);
-#else
-HostMem.num_terminated_neutrons[0]+=count_lives(gridx,blockx,DeviceMem,HostMem);
-#endif
-active = 1;
-while(0!=active){
-  //about twice sort in one loop
-  //1. add extra sort here
-  //2. only sort before xs evaluation, allows thread divergence in ray tracing
-  sort_prepare(gridx, blockx, DeviceMem, mat);
-  cudppRadixSort(sortplan, DeviceMem.nInfo.isoenergy, DeviceMem.nInfo.id, gridsize);
-  RT_CHECK_ERROR(rtContextLaunch1D(context, 0, gridsize));
+  if(1!=mode){//run simulation except 'process only' mode
+    printf("[Info] Running main simulation body ... ");
+  unsigned active,banksize;
+  active = 1;
+  banksize = gridx*blockx;
 
-  sort_prepare(gridx, blockx, DeviceMem, mat);
-  cudppRadixSort(sortplan, DeviceMem.nInfo.isoenergy, DeviceMem.nInfo.id, gridsize);
-  start_neutrons(gridx, blockx, mat, mp_para, DeviceMem, num_src,0);
+  initialize_neutrons(gridx, blockx, DeviceMem,width); 
+  clock_start = clock();
 
-  active = count_lives(gridx, blockx, DeviceMem, HostMem);
-#if defined(__PRINTTRACK__)
-  HostMem.num_terminated_neutrons[0]+=left-active;
-  left = active;
-  printf("[remaining]%d terminated, %d left\n",HostMem.num_terminated_neutrons[0],left);
-#endif
-  transport_neutrons(gridx, blockx, DeviceMem, mat, 0); 
-}
-clock_end   = clock();
-time_elapsed = (float)(clock_end-clock_start)/CLOCKS_PER_SEC*1000.f;
-printf("[time], active + remain cycles costs %f ms\/%d neutrons\n", time_elapsed, HostMem.num_terminated_neutrons[0]);
-print_results(gridx, blockx, num_src, num_bin, DeviceMem, HostMem, time_elapsed);
- 
+  for(int ibat=0;ibat<num_bat;ibat++){
+  start_neutrons(gridx, blockx, DeviceMem, num_src,1,banksize);
+  //active = count_neutrons(gridx, blockx, DeviceMem, HostMem,num_src);
+
+  banksize = setbank(DeviceMem, gridsize);
+  //printf("[%3d]%4d-->%4d: ", ibat,gridsize,banksize);
+  save_results(ibat,gridx, blockx, num_src, num_bin, DeviceMem, HostMem);
+  //resetcount(DeviceMem);
+  resettally(DeviceMem.tally.cnt, num_bin*gridsize);
+  }
+  clock_end   = clock();
+  time_elapsed = (float)(clock_end-clock_start)/CLOCKS_PER_SEC*1000.f;
+  printdone();
+  printf("[time]  %d batches (*%d neutrons/batch) costs %f ms\n", num_bat,gridsize, time_elapsed);
+
+  //============================================================================
+  //==================== Write raw cnt to a hdf5 file ==========================
+  //============================================================================
+
+  printf("[Save] Writing batch cnt to hdf5 .... ");
+  strcpy(name,"Rawcnt"); strcat(name,name1); strcat(name,name3); strcat(name,".h5");
+  createmptyh5(name); //create empty file for future add dataset
+  writeh5_nxm_(name,"batch_cnt", HostMem.batcnt, &num_bat, &num_bin);
+  printdone();
+
+  writeh5_nxm_(name,"num_history", &(gridsize),  &intone, &intone);
+  writeh5_nxm_(name,"num_batch",   &(num_bat),  &intone, &intone);
+  writeh5_nxm_(name,"num_cells",   &(num_bin),  &intone, &intone);
+  writeh5_nxm_(name,"width",   &(width),  &intone, &intone);
+  writeh5_nxm_(name,"sigma",   &(sigt),   &intone, &intone);
+  writeh5_nxm_(name,"pf",      &(pf),     &intone, &intone);
+  writeh5_nxm_(name,"pc",      &(pc),     &intone, &intone);
+
+  }//end if (1!=mode) 
+
+  //============================================================================
+  //=========================process the results ===============================
+  //============================================================================
+  if(0!=mode){//do process except 'run only' mode
+    printf("[Info] Processing ... \n");
+  strcpy(name,"Result"); strcat(name,name1); strcat(name,name2); strcat(name,name3); strcat(name,".h5");
+  createmptyh5(name); //create empty file for future add dataset
+  writeh5_nxm_(name,"num_history", &(gridsize),  &intone, &intone);
+  writeh5_nxm_(name,"num_batch",   &(num_bat),  &intone, &intone);
+  writeh5_nxm_(name,"num_cells",   &(num_bin),  &intone, &intone);
+  writeh5_nxm_(name,"width",   &(width),  &intone, &intone);
+  writeh5_nxm_(name,"sigma",   &(sigt),   &intone, &intone);
+  writeh5_nxm_(name,"pf",      &(pf),     &intone, &intone);
+  writeh5_nxm_(name,"pc",      &(pc),     &intone, &intone);
+  writeh5_nxm_(name,"num_ubat",&(ubat),   &intone, &intone);
+  writeh5_nxm_(name,"num_acc", &(upto),   &intone, &intone);
+
+  clock_start = clock();
+  //========================collison count to density ==========================
+  printf("[Stat] Batch means and batch accmeans .... ");
+  cnt2flux(HostMem,gridsize,width/num_bin,num_bin,num_bat,ubat);
+  printdone();
+  if(0==print)
+    print_results(num_bin,num_bat,HostMem.batchmeans);
+  //----------------------------------------------------------------------------
+  printf("[Save] Writing means to hdf5... ");
+  writeh5_nxm_(name,"batchmeans", HostMem.batchmeans, &num_bat, &num_bin);
+  printf("... writing acc means to hdf5... ");
+  intone=num_bat-ubat; writeh5_nxm_(name,"batchaccumu", HostMem.accmeans, &intone, &num_bin);
+  printdone();
+  //========================Average Square Error================================
+  printf("[Stat] Average Square Error ... ");
+  double *ASE = (double*)malloc(sizeof(double)*(num_bat-ubat));
+  getASE(HostMem.accmeans, num_bin, num_bat,ubat, ref, ASE);
+  printdone();
+  if(0==print)
+    print_results(num_bat-ubat,1,ASE);
+  //----------------------------------------------------------------------------
+  printf("[Save] Writing ASE to hdf5... ");
+  inttwo=num_bat-ubat; intone=1; writeh5_nxm_(name,"ASE", ASE, &intone, &inttwo);
+  printdone();
+  //=====================Auto-Correlation Coefficients==========================
+  printf("[Stat] Auto-correlation coefficients ... ");
+  double *COR = (double*)malloc(sizeof(double)*upto*num_bin);
+  getCOR(HostMem.batchmeans,num_bin,num_bat,ubat,upto,COR);
+  printdone();
+  if(0==print)
+    print_results(upto,num_bin, COR);
+  //----------------------------------------------------------------------------
+  printf("[Save] Writing ACC to hdf5... ");
+  writeh5_nxm_(name,"ACC", COR, &num_bin, &upto);
+  printdone();
+
+  //==================== ACC fit ===============================================
+  printf("[Stat] ACC fit...");
+  double *rho0s = (double*)malloc(sizeof(double)*num_bin);
+  double *qs    = (double*)malloc(sizeof(double)*num_bin);
+  fitall(COR,upto,num_bin,rho0s,qs);
+  printdone();
+  //fitall1(COR,upto,num_bin,rho0s,qs);
+  //printf("ACC fit done:\n");
+  //print_results(num_bin,1,rho0s);
+  //print_results(num_bin,1,qs);
+  if(0==print){
+    print_results(num_bin,1,rho0s);
+    print_results(num_bin,1,qs);
+  }
+  //----------------------------------------------------------------------------
+  printf("[Save] Writing ACC fit result to hdf5... ");
+  intone=1;
+  writeh5_nxm_(name,"rho0s", rho0s, &intone, &num_bin);
+  writeh5_nxm_(name,"qs",    rho0s, &intone, &num_bin);
+  printdone();
+  
+  //=========================cell variance =====================================
+  printf("[Stat] Variance ....");
+  double *vars = (double*)malloc(sizeof(double)*num_bin);
+  for(int im=0;im<num_bin;im++)
+    vars[im] = variance(HostMem.batchmeans,num_bat,ubat,num_bin,im);
+  printdone();
+  if(0==print)
+    print_results(num_bin,1,vars);
+  //----------------------------------------------------------------------------
+  printf("[Save] Writing mesh variances to hdf5... ");
+  intone=1; writeh5_nxm_(name,"var", vars, &intone, &num_bin);
+  printdone();
+
+  //================= MASE (Mean average square error) =========================  
+  printf("[Stat] Expected Average Square Error ....");
+  double *EASE = (double*)malloc(sizeof(double)*(num_bat-ubat));
+  getEASE(vars,num_bin,ubat,num_bat-ubat,rho0s,qs,EASE);
+  printdone();
+  if(0==print)
+    print_results(num_bat-ubat,1,EASE);
+  printf("[Save] Writing EASE to hdf5 ... ");
+  intone=1; inttwo=num_bat-ubat; writeh5_nxm_(name,"EASE", EASE, &intone, &inttwo);
+  printdone();
+
+  free(EASE);
+  free(vars);
+  free(rho0s);
+  free(qs);
+  free(COR);
+  free(ASE);
+
+  clock_end   = clock();
+  time_elapsed = (float)(clock_end-clock_start)/CLOCKS_PER_SEC*1000.f;
+  printf("[time]  statistics costs %f ms\n", time_elapsed);
+
+  }//end if(0!=mode) //end process
+  /*
+
+  FILE *fp=NULL;
+  fp = fopen(name,"w");  
+  fprintf(fp,"%.8e %.8e\n", gridx*blockx*1.0, num_bat*1.0-ubat);
+  for(int i=0;i<num_bat-ubat;i++)
+    fprintf(fp,"%.8e %.8e\n",ASE[i],EASE[i]);
+  fclose(fp);
+  
+
+  strcpy(name,"boxtally");  strcat(name,name1);  strcat(name,name2);  strcat(name,name3);
+  fp = NULL;
+  fp = fopen(name,"w");  
+  for(int i=0;i<num_bin;i++)
+    fprintf(fp,"%.8e %.8e\n",HostMem.accmeans[(num_bat-ubat-1)*num_bin+i],ref);
+  fclose(fp);
+
+  //view ACC at cell print-1
+  if(0<print){
+    fp=NULL;
+    strcpy(name,"acc");    sprintf(name1,"_%d",print-1);    strcat(name,name1);
+    fp = fopen(name,"w");
+    fprintf(fp,"%.8e\n",rho0s[print-1]);
+    fprintf(fp,"%.8e\n",   qs[print-1]);
+    for(int i=0;i<upto;i++)
+      fprintf(fp,"%.8e\n",COR[(print-1)*upto+i]);
+    fclose(fp);
+  }
+
+*/
+
+
+
 //============================================================ 
 //=============simulation shut down===========================
 //============================================================
   release_memory(DeviceMem, HostMem);
-  mp_para.release_pointer();
-  mat.release_pointer();
-#if defined(__FOURIERW)
-  release_wtables(da,db);
-#endif
-#if defined(__INTERPEXP)
-  release_wtables(exptable);
-#endif
-#if defined(__QUICKW)
-  release_wtables(wtable);
-#endif
-  res = cudppDestroyPlan(sortplan);
-  if (CUDPP_SUCCESS != res)
-  {
-      printf("Error destroying CUDPPPlan\n");
-      exit(-1);
-  }
 
-// shut down the CUDPP library
-  cudppDestroy(theCudpp);
-// destroy the optix ray tracing context
-  rtContextDestroy(context); 
+
   return 0;
 }
 
@@ -244,3 +320,6 @@ void printbless(){
 }
 
 
+void printdone(){
+  printf(" ..... done!\n");
+}

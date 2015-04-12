@@ -3,31 +3,14 @@
 
 #include "gpuerrchk.h"
 #include "neutron.h"
-#include "CComplex.h"
 
 //initialize device
 void initialize_device();
 
 //Simulation memory allocate and deallocate
-void initialize_memory(MemStruct *DeviceMem, MemStruct *HostMem, unsigned numbins, unsigned gridx, unsigned blockx );
+void initialize_memory(MemStruct *DeviceMem, MemStruct *HostMem, unsigned numbins, unsigned gridx, unsigned blockx, unsigned numbatches,unsigned ubat);
 void release_memory(MemStruct DeviceMem, MemStruct HostMem);
-
-//Faddeeva function table management
-#if defined(__FOURIERW)
-void fill_wtables(CMPTYPE** da, CMPTYPE** db);
-void release_wtables(CMPTYPE* da, CMPTYPE* db);
-#endif
-
-#if defined(__INTERPEXP)
-void fill_wtables(CComplex<CMPTYPE>** exptable);
-void release_wtables(CComplex<CMPTYPE>* exptable);
-#endif
-
-#if defined(__QUICKW)
-void fill_wtables(CComplex<CMPTYPE>** wtable);
-void release_wtables(CComplex<CMPTYPE>* wtable);
-#endif
-
-
-
+void copymeans(int *h_cnt, int *batcnt, unsigned meshes, unsigned offset);
+void copydata(MemStruct DeviceMem, MemStruct HostMem);
+void resettally(int *cnt, unsigned totbins);
 #endif
