@@ -1,12 +1,13 @@
 #include <stdio.h>
 #include <string.h>
 
+#include <optix.h>
 #include <neutron.h>
 #include <manmemory.h>
 #include "devicebridge.h"
 
 #include "process.h"
-
+#include "optixmain.h"
 #include <time.h>
 extern void createmptyh5(char *filename);
 extern void writeh5_nxm_(char *filename, char *dsetname, double *vec1, int *num_vec, int *length);
