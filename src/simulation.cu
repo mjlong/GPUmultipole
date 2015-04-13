@@ -39,15 +39,33 @@ __device__ float intersectbox(float x, float y, float z, float a, float b, float
 }
 
 
+__device__ float product(float* n1, float* n2){
+  return n1[0]*n2[0]+n1[1]*n2[1]+n1[2]*n2[2];
+}
+
+__device__ void add(float *v1, float* v2, float multi){
+  v1[0]+=v2[0]*multi;
+  v1[1]+=v2[1]*multi;
+  v1[2]+=v2[2]*multi;
+}
+
 __global__ void history_3d_ref(MemStruct DeviceMem, unsigned num_src,unsigned active,unsigned banksize){
+  float deltat = 1.0e5;
   float a=400.0;
   float b=400.0;
   float c=400.0;
+  float n[3] = {0.0, 0.0,0.0};
+  float v[3];
 
   float mfp = 1.0/0.3004137931034483;
   float Ps = 1-(0.041322314049586764+0.05991735537190082);
   float Pc = Ps+0.05991735537190082;
-  float s;
+
+  float v1 = sqrt(0.1/0.0253)*2200.049532714293*100.0;
+  
+  float s;//sampled path
+  float t;//length to boundary
+  float time=0.0;//real time
   //try others when real simulation structure becomes clear
   //int idl = threadIdx.x;
   //id is the thread index
@@ -66,9 +84,38 @@ __global__ void history_3d_ref(MemStruct DeviceMem, unsigned num_src,unsigned ac
 
   float mu = curand_uniform(&localState)*2-1;
   float phi= curand_uniform(&localState)*2*PI;
+  v[0] = sqrt(1.0-mu*mu)*cos(phi);
+  v[1] = sqrt(1.0-mu*mu)*sin(phi);
+  v[2] = mu; 
+  
+  s = -log(curand_uniform_double(&localState))*mfp;
+  printf("\n s=%.5e\n",s);
+  t = intersectbox(x,y,z,a,b,c,v[0],v[1],v[2]);
 
-  intersectbox(x,y,z,a,b,c,sqrt(1.0-mu*mu)*cos(phi),sqrt(1.0-mu*mu)*sin(phi),mu);
+  //printf("\n id=%2d, from (%.10e,%.10e,%.10e) along (%.10e,%.10e,%.10e)\n", blockDim.x * blockIdx.x + threadIdx.x,x,y,z,v[0],v[1],v[2]);
+  s = min(s,min(t,(deltat-time)*v1));
+  if(t==s){//reflect
+    //if slow, i can use the specific form for the box, which is changing sign of reflected component
+    x=x+t*v[0]; y=y+t*v[1]; z=z+t*v[2];
+    if((x-0)<TEPSILON)
+      n[0]=-1.0;
+    if((y-0)<TEPSILON)
+      n[1]=-1.0;
+    if((z-0)<TEPSILON)
+      n[2]=-1.0;
 
+    if((a-x)<TEPSILON)
+      n[0]= 1.0;
+    if((b-y)<TEPSILON)
+      n[1]= 1.0;
+    if((c-z)<TEPSILON)
+      n[2]= 1.0;
+    add(v,n,-2*product(v,n));
+    //printf("\n id=%2d, to (%.10e,%.10e,%.10e) along (%.10e,%.10e,%.10e)\n", blockDim.x * blockIdx.x + threadIdx.x,x,y,z,v[0],v[1],v[2]);
+  }  
+  if(s==(deltat-time)*v1){//time boundary
+
+  }
   /* Copy state to local memory for efficiency */ 
 
   int newneu;

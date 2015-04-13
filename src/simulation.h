@@ -17,4 +17,6 @@ __global__ void reduce_sum_equal(int* thread_active, int* active);
 __device__ unsigned notleak(float x,float a);
 __global__ void history_ref(MemStruct DeviceMem, unsigned num_src,unsigned active,unsigned banksize);
 __global__ void history_3d_ref(MemStruct DeviceMem, unsigned num_src,unsigned active,unsigned banksize);
+
+#define TEPSILON 1.0e-5
 #endif
