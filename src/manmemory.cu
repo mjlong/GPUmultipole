@@ -81,6 +81,14 @@ void resettally(int *cnt, unsigned totbins){
   gpuErrchk(cudaMemset(cnt, 0, totbins*sizeof(int)));}
 
 void release_memory(MemStruct DeviceMem, MemStruct HostMem){
+  free(HostMem.nInfo.pos_x);
+  free(HostMem.nInfo.pos_y);
+  free(HostMem.nInfo.pos_z);
+  free(HostMem.nInfo.dir_polar);
+  free(HostMem.nInfo.dir_azimu);
+  free(HostMem.nInfo.d_closest);
+  free(HostMem.nInfo.live);
+
   free(HostMem.spectrum);
   free(HostMem.batchmeans);
   free(HostMem.accmeans);
