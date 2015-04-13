@@ -33,6 +33,7 @@ int main(int argc, char **argv){
   double width, sigt, pf,pc;
   char name[50];
   int mode; //0=run only; 1=process only; 2=run & process
+  int isSteady=0;
   if(argc>=8+1){//run or run+process
     gridx = atoi(argv[1]);
     blockx = atoi(argv[2]);
@@ -102,6 +103,7 @@ int main(int argc, char **argv){
     clock_start = clock();
 
     for(int ibat=0;ibat<num_bat;ibat++){
+      if(isSteady){
       start_neutrons(gridx, blockx, DeviceMem, num_src,1,banksize);
       //active = count_neutrons(gridx, blockx, DeviceMem, HostMem,num_src);
 
@@ -110,6 +112,10 @@ int main(int argc, char **argv){
       save_results(ibat,gridx, blockx, num_src, num_bin, DeviceMem, HostMem);
       //resetcount(DeviceMem);
       resettally(DeviceMem.tally.cnt, num_bin*gridsize);
+      }
+      else{
+	start_neutrons(gridx, blockx, DeviceMem, num_src,1,banksize);
+      }
     }
     clock_end   = clock();
     time_elapsed = (float)(clock_end-clock_start)/CLOCKS_PER_SEC*1000.f;
