@@ -44,7 +44,7 @@ unsigned setbank(MemStruct DeviceMem, unsigned gridsize){
   return j;
 }
 
-int flushbank(MemStruct DeviceMem, MemStruct HostMem,unsigned lastpop,float a,unsigned gridsize){
+int flushbank(MemStruct DeviceMem, MemStruct HostMem,unsigned lastpop,float a,unsigned gridsize, int *allOld){
   gpuErrchk(cudaMemcpy(HostMem.nInfo.pos_x,DeviceMem.nInfo.pos_x,sizeof(float)*gridsize, cudaMemcpyDeviceToHost));  
   gpuErrchk(cudaMemcpy(HostMem.nInfo.pos_y,DeviceMem.nInfo.pos_y,sizeof(float)*gridsize, cudaMemcpyDeviceToHost));  
   gpuErrchk(cudaMemcpy(HostMem.nInfo.pos_z,DeviceMem.nInfo.pos_z,sizeof(float)*gridsize, cudaMemcpyDeviceToHost)); 
@@ -53,22 +53,22 @@ int flushbank(MemStruct DeviceMem, MemStruct HostMem,unsigned lastpop,float a,un
   gpuErrchk(cudaMemcpy(HostMem.nInfo.d_closest,DeviceMem.nInfo.d_closest,sizeof(float)*gridsize, cudaMemcpyDeviceToHost));  
   gpuErrchk(cudaMemcpy(HostMem.nInfo.live,DeviceMem.nInfo.live,sizeof(int)*gridsize, cudaMemcpyDeviceToHost));  
 
-  printf("\n last pop = %d\n",lastpop);
   for(int i=0;i<gridsize;i++)
     printf("%2d ", HostMem.nInfo.live[i]);
-  printf("\n");
+  printf("[l:%d]\n",lastpop);
 
   unsigned unlivestart=0;
   int i,j,ilp,inp,inp2,livi;
   ilp = 0; i=0; inp=0; inp2=0;
-
+  *allOld = 1;
   while((ilp<lastpop)&&(i<gridsize)){// I assert ilp reaches lastpop no later than i reaches gridsize
-    //printf("i=%d, ilp=%d, lastpop=%d, live=%d\n",i,ilp,lastpop,HostMem.nInfo.live[i]);
     livi = HostMem.nInfo.live[i];
+    *allOld = (*allOld)&&(livi<=-3);
+
     ilp += (0!=livi)&&(-2!=livi)&&(-4!=livi); 
     inp += (1<=livi)*livi;
     inp2+= (1<=livi);
-    printf("i=%d, ilp=%d, lastpop=%d, live=%d\n",i,ilp,lastpop,livi);
+    //printf("i=%d, ilp=%d, lastpop=%d, live=%d,allold=%d\n",i,ilp,lastpop,livi,*allOld);
 
     while(1<livi){
       //live=1 continue; 
@@ -80,7 +80,7 @@ int flushbank(MemStruct DeviceMem, MemStruct HostMem,unsigned lastpop,float a,un
       while((1<=HostMem.nInfo.live[j])||(-1>HostMem.nInfo.live[j])){//live==-1 or 0 can be refreshed
 	j++;
       }
-      printf("      live[%d] is changed from %d to -2\n",j,HostMem.nInfo.live[j]);
+      //printf("      live[%d] is changed from %d to -2\n",j,HostMem.nInfo.live[j]);
       unlivestart = j+1; //update unlive start
       HostMem.nInfo.pos_x[j] = HostMem.nInfo.pos_x[i];
       HostMem.nInfo.pos_y[j] = HostMem.nInfo.pos_y[i];
@@ -98,10 +98,9 @@ int flushbank(MemStruct DeviceMem, MemStruct HostMem,unsigned lastpop,float a,un
     }
     i++;
   }
-  printf("\n next pop = %d?=%d\n",inp,inp2);
   for(int i=0;i<gridsize;i++)
     printf("%2d ", HostMem.nInfo.live[i]);
-  printf("\n");
+  printf("[n:%d?=%d][%d]\n\n",inp,inp2,*allOld);
 
   //If a threads has live=-1 or 0 but has not been refreshed here, it must be treated with care at first of history<<<>>>
   //all possible live are: -1 terminated and not refreshed; 
