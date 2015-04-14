@@ -114,12 +114,18 @@ int main(int argc, char **argv){
     }
     }
     else{
-    banksize = 10;
+    int allOld=0;
+    banksize = 40;
     initialize_neutrons(gridx, blockx, DeviceMem,width,banksize); 
 
     for(int ibat=0;ibat<num_bat;ibat++){
-      transient_neutrons(gridx, blockx, DeviceMem, num_src,1,banksize);
-      banksize = flushbank(DeviceMem,HostMem,banksize,400.0,gridsize);
+      while(!allOld){
+	transient_neutrons(gridx, blockx, DeviceMem, num_src,1,banksize);
+	banksize = flushbank(DeviceMem,HostMem,banksize,400.0,gridsize);
+	allOld = (0==banksize);
+      }
+      banksize = count_pop(HostMem.nInfo.live,gridsize);
+      allOld=0;
     }
     }
 
