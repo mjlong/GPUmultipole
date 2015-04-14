@@ -44,7 +44,7 @@ unsigned setbank(MemStruct DeviceMem, unsigned gridsize){
   return j;
 }
 
-int flushbank(MemStruct DeviceMem, MemStruct HostMem,unsigned lastpop,float a,unsigned gridsize, int *allOld){
+int flushbank(MemStruct DeviceMem, MemStruct HostMem,unsigned lastpop,float a,unsigned gridsize){
   gpuErrchk(cudaMemcpy(HostMem.nInfo.pos_x,DeviceMem.nInfo.pos_x,sizeof(float)*gridsize, cudaMemcpyDeviceToHost));  
   gpuErrchk(cudaMemcpy(HostMem.nInfo.pos_y,DeviceMem.nInfo.pos_y,sizeof(float)*gridsize, cudaMemcpyDeviceToHost));  
   gpuErrchk(cudaMemcpy(HostMem.nInfo.pos_z,DeviceMem.nInfo.pos_z,sizeof(float)*gridsize, cudaMemcpyDeviceToHost)); 
@@ -60,7 +60,6 @@ int flushbank(MemStruct DeviceMem, MemStruct HostMem,unsigned lastpop,float a,un
   unsigned unlivestart=0;
   int i,j,ilp,inp,inp2,livi;
   ilp = 0; i=0; inp=0; inp2=0;
-  *allOld = 1;
   while((ilp<lastpop)&&(i<gridsize)){// I assert ilp reaches lastpop no later than i reaches gridsize
     livi = HostMem.nInfo.live[i];
     //*allOld = (*allOld)&&((livi<=-3));
@@ -68,7 +67,7 @@ int flushbank(MemStruct DeviceMem, MemStruct HostMem,unsigned lastpop,float a,un
     ilp += (0!=livi)&&(-2!=livi)&&(-4!=livi); 
     inp += (1<=livi)*livi;
     inp2+= (1<=livi);
-    //printf("i=%d, ilp=%d, lastpop=%d, live=%d,allold=%d\n",i,ilp,lastpop,livi,*allOld);
+    //printf("i=%d, ilp=%d, lastpop=%d, live=%d\n",i,ilp,lastpop,livi);
 
     while(1<livi){
       //live=1 continue; 
@@ -101,9 +100,17 @@ int flushbank(MemStruct DeviceMem, MemStruct HostMem,unsigned lastpop,float a,un
   for(int i=0;i<gridsize;i++)
     printf("%2d ", HostMem.nInfo.live[i]);
 
-  *allOld = (0==inp);
-  printf("[n:%d?=%d][%d]\n\n",inp,inp2,*allOld);
+  printf("[n:%d?=%d]\n",inp,inp2);
 
+  if(0==inp){
+    for(int i=0;i<gridsize;i++){
+      livi = HostMem.nInfo.live[i];
+      HostMem.nInfo.live[i] = (-3==livi)||(-4==livi);
+      printf("%2d ", HostMem.nInfo.live[i]);
+    }
+    printf("\n");
+  }
+  printf("\n");
   //If a threads has live=-1 or 0 but has not been refreshed here, it must be treated with care at first of history<<<>>>
   //all possible live are: -1 terminated and not refreshed; 
   //                        0 didn't run and not refreshed
@@ -118,6 +125,13 @@ int flushbank(MemStruct DeviceMem, MemStruct HostMem,unsigned lastpop,float a,un
   gpuErrchk(cudaMemcpy(DeviceMem.nInfo.live,     HostMem.nInfo.live,     sizeof(int)  *gridsize, cudaMemcpyHostToDevice));  
 
   return inp;
+}
+
+int count_pop(int *live, int gridsize){
+  int sum = 0;
+  for(int i=0;i<gridsize;i++)
+    sum += (1==live[i]);
+  return sum;
 }
 
 void start_neutrons(unsigned gridx, unsigned blockx, MemStruct DeviceMem, unsigned num_src,unsigned active,unsigned banksize){
