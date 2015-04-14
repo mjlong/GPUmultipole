@@ -24,7 +24,6 @@ __device__ void neutron_sample(NeutronInfoStruct nInfo, unsigned id,float width)
   nInfo.energy[id] = STARTENE;
   nInfo.rndState[id] = state;
   nInfo.d_closest[id] = 0.0; //used as time
-  nInfo.imat[id]      = 1;   //used as isYoung
 }
 
 __device__ unsigned notleak(float x,float a){
@@ -79,7 +78,6 @@ __global__ void history_3d_ref(MemStruct DeviceMem, unsigned num_src,unsigned ac
   //extern __shared__ unsigned blockTerminated[];
 
   CMPTYPE rnd;
-  int isYoung = DeviceMem.nInfo.imat[id];
   int live    = DeviceMem.nInfo.live[id];
   //live can be -4,-3, -2,-1,0,1
   //            -4: over time more than two batches ago     --->-4
@@ -187,7 +185,6 @@ __global__ void history_3d_ref(MemStruct DeviceMem, unsigned num_src,unsigned ac
   DeviceMem.nInfo.dir_polar[id] = v[2];
   phi = v[0]/sqrt(1-v[2]*v[2]);//actually this is cosphi
   DeviceMem.nInfo.dir_azimu[id] = (v[1]>=0)*acos(phi)-(v[1]<0)*acos(phi);
-  DeviceMem.nInfo.imat[id] = isYoung;
   }//end if live
   //printf("id=%d, copying %d\n",id,live);
   DeviceMem.nInfo.live[id] = live;
