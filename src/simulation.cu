@@ -132,7 +132,8 @@ __global__ void history_3d_ref(MemStruct DeviceMem, unsigned num_src,unsigned ac
       add(v,n,-2*product(v,n));
       //printf("\n id=%2d, to (%.10e,%.10e,%.10e) along (%.10e,%.10e,%.10e)\n", blockDim.x * blockIdx.x + threadIdx.x,x,y,z,v[0],v[1],v[2]);
       printf("id=%d, reflecting, time=%.3e\n",id,time);
-
+      //fresh n
+      n[0]=0; n[1]=0; n[2]=0;
     }  
     if(s==(deltat-time)*v1){//time boundary
       live=-3;
