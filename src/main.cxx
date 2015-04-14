@@ -93,17 +93,16 @@ int main(int argc, char **argv){
 //============================================================ 
 //===============main simulation body=========================
 //============================================================
+  printf("[Info] Running main simulation body ... \n");
+  unsigned active,banksize;
   if(1!=mode){//run simulation except 'process only' mode
-    printf("[Info] Running main simulation body ... ");
-    unsigned active,banksize;
     active = 1;
-    banksize = gridx*blockx;
 
-    initialize_neutrons(gridx, blockx, DeviceMem,width); 
     clock_start = clock();
-
+    if(isSteady){
+    banksize = gridx*blockx;
+    initialize_neutrons(gridx, blockx, DeviceMem,width,banksize); 
     for(int ibat=0;ibat<num_bat;ibat++){
-      if(isSteady){
       start_neutrons(gridx, blockx, DeviceMem, num_src,1,banksize);
       //active = count_neutrons(gridx, blockx, DeviceMem, HostMem,num_src);
 
@@ -112,11 +111,18 @@ int main(int argc, char **argv){
       save_results(ibat,gridx, blockx, num_src, num_bin, DeviceMem, HostMem);
       //resetcount(DeviceMem);
       resettally(DeviceMem.tally.cnt, num_bin*gridsize);
-      }
-      else{
-	start_neutrons(gridx, blockx, DeviceMem, num_src,1,banksize);
-      }
     }
+    }
+    else{
+    banksize = 10;
+    initialize_neutrons(gridx, blockx, DeviceMem,width,banksize); 
+
+    for(int ibat=0;ibat<num_bat;ibat++){
+      transient_neutrons(gridx, blockx, DeviceMem, num_src,1,banksize);
+      banksize = flushbank(DeviceMem,HostMem,banksize,400.0,gridsize);
+    }
+    }
+
     clock_end   = clock();
     time_elapsed = (float)(clock_end-clock_start)/CLOCKS_PER_SEC*1000.f;
     printdone();
