@@ -59,17 +59,18 @@ int flushbank(MemStruct DeviceMem, MemStruct HostMem,unsigned lastpop,float a,un
   printf("\n");
 
   unsigned unlivestart=0;
-  int i,j,ilp,inp,inp2;
+  int i,j,ilp,inp,inp2,livi;
   ilp = 0; i=0; inp=0; inp2=0;
 
   while((ilp<lastpop)&&(i<gridsize)){// I assert ilp reaches lastpop no later than i reaches gridsize
     //printf("i=%d, ilp=%d, lastpop=%d, live=%d\n",i,ilp,lastpop,HostMem.nInfo.live[i]);
-    ilp += (0!=HostMem.nInfo.live[i])&&(-2!=HostMem.nInfo.live[i]); 
-    inp += (1<=HostMem.nInfo.live[i])*HostMem.nInfo.live[i];
-    inp2+= (1<=HostMem.nInfo.live[i]);
-    printf("i=%d, ilp=%d, lastpop=%d, live=%d\n",i,ilp,lastpop,HostMem.nInfo.live[i]);
+    livi = HostMem.nInfo.live[i];
+    ilp += (0!=livi)&&(-2!=livi)&&(-4!=livi); 
+    inp += (1<=livi)*livi;
+    inp2+= (1<=livi);
+    printf("i=%d, ilp=%d, lastpop=%d, live=%d\n",i,ilp,lastpop,livi);
 
-    while(1<HostMem.nInfo.live[i]){
+    while(1<livi){
       //live=1 continue; 
       //live=0 didn't run; 
       //live=-1 terminated; 
@@ -92,7 +93,7 @@ int flushbank(MemStruct DeviceMem, MemStruct HostMem,unsigned lastpop,float a,un
       HostMem.nInfo.live[j] = -2;
 
       inp2 += 1; //second next generation population counter
-      HostMem.nInfo.live[i]-=1;
+      livi-=1; HostMem.nInfo.live[i]-=1;
 	
     }
     i++;

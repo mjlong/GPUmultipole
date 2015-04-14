@@ -81,15 +81,18 @@ __global__ void history_3d_ref(MemStruct DeviceMem, unsigned num_src,unsigned ac
   CMPTYPE rnd;
   int isYoung = DeviceMem.nInfo.imat[id];
   int live    = DeviceMem.nInfo.live[id];
-  //live can be -2,-1,0,1
+  //live can be -4,-3, -2,-1,0,1
+  //            -4: over time more than two batches ago     --->-4
+  //            -3: over time last batch                    --->-4
   //            -2: new fissioned                           ---> 1
   //            -1: terminated last time, still unlive      ---> 0
   //             0: terminated last time, still unlive
   //             1: continue
-  float mu,phi; 
+  float mu,phi; mu=0;phi=0;
   mu = DeviceMem.nInfo.dir_polar[id]*(1==live)+(curand_uniform(&localState)*2-1 )*(-2==live);
   phi= DeviceMem.nInfo.dir_azimu[id]*(1==live)+(curand_uniform(&localState)*2*PI)*(-2==live);
-  live = (-1!=live)&&(0!=live); //-1 ---> 0 
+
+  live = ((-1!=live)&&(0!=live)&&(-3!=live)&&(-4!=live))+(-4)*(-3>=live); //-1 ---> 0 
   //live = (-2==live)||(1==live);  // now each neutron is the same
 
   if(1==live){
@@ -105,7 +108,7 @@ __global__ void history_3d_ref(MemStruct DeviceMem, unsigned num_src,unsigned ac
   v[2] = mu; 
 
 
-  while((1==live)&&isYoung){
+  while(1==live){
     l = -log(curand_uniform_double(&localState))*mfp;
   
     t = intersectbox(x,y,z,a,b,c,v[0],v[1],v[2]);
@@ -134,7 +137,7 @@ __global__ void history_3d_ref(MemStruct DeviceMem, unsigned num_src,unsigned ac
 
     }  
     if(s==(deltat-time)*v1){//time boundary
-      isYoung=0;
+      live=-3;
       printf("id=%d, hitting time boundary, live=%d,time=%.3e\n",id,live,time);
     }
 
