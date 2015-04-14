@@ -8,8 +8,8 @@
   allocating device memory, transfering data and partitioning computation sources
 */
 
-void initialize_neutrons(unsigned gridx, unsigned blockx,MemStruct DeviceMem,float width){
-  initialize<<<gridx, blockx>>>(DeviceMem,width);
+void initialize_neutrons(unsigned gridx, unsigned blockx,MemStruct DeviceMem,float width,int banksize){
+  initialize<<<gridx, blockx>>>(DeviceMem,width,banksize);
 }
 
 void resetcount(MemStruct DeviceMem){
@@ -44,7 +44,85 @@ unsigned setbank(MemStruct DeviceMem, unsigned gridsize){
   return j;
 }
 
+int flushbank(MemStruct DeviceMem, MemStruct HostMem,unsigned lastpop,float a,unsigned gridsize){
+  gpuErrchk(cudaMemcpy(HostMem.nInfo.pos_x,DeviceMem.nInfo.pos_x,sizeof(float)*gridsize, cudaMemcpyDeviceToHost));  
+  gpuErrchk(cudaMemcpy(HostMem.nInfo.pos_y,DeviceMem.nInfo.pos_y,sizeof(float)*gridsize, cudaMemcpyDeviceToHost));  
+  gpuErrchk(cudaMemcpy(HostMem.nInfo.pos_z,DeviceMem.nInfo.pos_z,sizeof(float)*gridsize, cudaMemcpyDeviceToHost)); 
+  gpuErrchk(cudaMemcpy(HostMem.nInfo.dir_polar,DeviceMem.nInfo.dir_polar,sizeof(float)*gridsize, cudaMemcpyDeviceToHost));  
+  gpuErrchk(cudaMemcpy(HostMem.nInfo.dir_azimu,DeviceMem.nInfo.dir_azimu,sizeof(float)*gridsize, cudaMemcpyDeviceToHost));  
+  gpuErrchk(cudaMemcpy(HostMem.nInfo.d_closest,DeviceMem.nInfo.d_closest,sizeof(float)*gridsize, cudaMemcpyDeviceToHost));  
+  gpuErrchk(cudaMemcpy(HostMem.nInfo.live,DeviceMem.nInfo.live,sizeof(int)*gridsize, cudaMemcpyDeviceToHost));  
+
+  printf("\n last pop = %d\n",lastpop);
+  for(int i=0;i<gridsize;i++)
+    printf("%2d ", HostMem.nInfo.live[i]);
+  printf("\n");
+
+  unsigned unlivestart=0;
+  int i,j,ilp,inp,inp2;
+  ilp = 0; i=0; inp=0; inp2=0;
+
+  while((ilp<lastpop)&&(i<gridsize)){// I assert ilp reaches lastpop no later than i reaches gridsize
+    //printf("i=%d, ilp=%d, lastpop=%d, live=%d\n",i,ilp,lastpop,HostMem.nInfo.live[i]);
+    ilp += (0!=HostMem.nInfo.live[i])&&(-2!=HostMem.nInfo.live[i]); 
+    inp += (1<=HostMem.nInfo.live[i])*HostMem.nInfo.live[i];
+    inp2+= (1<=HostMem.nInfo.live[i]);
+    printf("i=%d, ilp=%d, lastpop=%d, live=%d\n",i,ilp,lastpop,HostMem.nInfo.live[i]);
+
+    while(1<HostMem.nInfo.live[i]){
+      //live=1 continue; 
+      //live=0 didn't run; 
+      //live=-1 terminated; 
+      //live=-2 refreshed by host
+      //live>1 fission to live neutrons
+      j = unlivestart;
+      while((1<=HostMem.nInfo.live[j])||(-1>HostMem.nInfo.live[j])){//live==-1 or 0 can be refreshed
+	j++;
+      }
+      printf("      live[%d] is changed from %d to -2\n",j,HostMem.nInfo.live[j]);
+      unlivestart = j+1; //update unlive start
+      HostMem.nInfo.pos_x[j] = HostMem.nInfo.pos_x[i];
+      HostMem.nInfo.pos_y[j] = HostMem.nInfo.pos_y[i];
+      HostMem.nInfo.pos_z[j] = HostMem.nInfo.pos_z[i];
+      HostMem.nInfo.dir_polar[j] = HostMem.nInfo.dir_polar[i];
+      HostMem.nInfo.dir_azimu[j] = HostMem.nInfo.dir_azimu[i];
+      HostMem.nInfo.d_closest[j] = HostMem.nInfo.d_closest[i];
+
+      lastpop-=((j>i)&&(-1==HostMem.nInfo.live[j]));//if later j is reflushed, I don't want it to be counted in ilp
+      HostMem.nInfo.live[j] = -2;
+
+      inp2 += 1; //second next generation population counter
+      HostMem.nInfo.live[i]-=1;
+	
+    }
+    i++;
+  }
+  printf("\n next pop = %d?=%d\n",inp,inp2);
+  for(int i=0;i<gridsize;i++)
+    printf("%2d ", HostMem.nInfo.live[i]);
+  printf("\n");
+
+  //If a threads has live=-1 or 0 but has not been refreshed here, it must be treated with care at first of history<<<>>>
+  //all possible live are: -1 terminated and not refreshed; 
+  //                        0 didn't run and not refreshed
+  //                       -2 refreshed, need direction sample
+  //                        1 continue
+  gpuErrchk(cudaMemcpy(DeviceMem.nInfo.pos_x,    HostMem.nInfo.pos_x,    sizeof(float)*gridsize, cudaMemcpyHostToDevice));  
+  gpuErrchk(cudaMemcpy(DeviceMem.nInfo.pos_y,    HostMem.nInfo.pos_y,    sizeof(float)*gridsize, cudaMemcpyHostToDevice));  
+  gpuErrchk(cudaMemcpy(DeviceMem.nInfo.pos_z,    HostMem.nInfo.pos_z,    sizeof(float)*gridsize, cudaMemcpyHostToDevice)); 
+  gpuErrchk(cudaMemcpy(DeviceMem.nInfo.dir_polar,HostMem.nInfo.dir_polar,sizeof(float)*gridsize, cudaMemcpyHostToDevice));  
+  gpuErrchk(cudaMemcpy(DeviceMem.nInfo.dir_azimu,HostMem.nInfo.dir_azimu,sizeof(float)*gridsize, cudaMemcpyHostToDevice));  
+  gpuErrchk(cudaMemcpy(DeviceMem.nInfo.d_closest,HostMem.nInfo.d_closest,sizeof(float)*gridsize, cudaMemcpyHostToDevice));  
+  gpuErrchk(cudaMemcpy(DeviceMem.nInfo.live,     HostMem.nInfo.live,     sizeof(int)  *gridsize, cudaMemcpyHostToDevice));  
+
+  return inp;
+}
+
 void start_neutrons(unsigned gridx, unsigned blockx, MemStruct DeviceMem, unsigned num_src,unsigned active,unsigned banksize){
+  history_ref<<<gridx, blockx/*, blockx*sizeof(unsigned)*/>>>(DeviceMem, num_src,active,banksize);
+} 
+
+void transient_neutrons(unsigned gridx, unsigned blockx, MemStruct DeviceMem, unsigned num_src,unsigned active,unsigned banksize){
   history_3d_ref<<<gridx, blockx/*, blockx*sizeof(unsigned)*/>>>(DeviceMem, num_src,active,banksize);
 } 
 
