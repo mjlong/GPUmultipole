@@ -126,6 +126,10 @@ int main(int argc, char **argv){
       }
       banksize = count_pop(HostMem.nInfo.live,gridsize);
       allOld=0;
+      if(0==banksize){
+	printf("exiting: neutrons die out\n");
+	break;
+      }
     }
     }
 
