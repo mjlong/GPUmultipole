@@ -1,6 +1,6 @@
 #include "simulation.h" 
 
-__global__ void initialize(MemStruct pInfo,float width){
+__global__ void initialize(MemStruct pInfo,float width, int banksize){
   //int id = ((blockDim.x*blockDim.y*blockDim.z)*(blockIdx.y*gridDim.x+blockIdx.x)+(blockDim.x*blockDim.y)*threadIdx.z+blockDim.x*threadIdx.y+threadIdx.x);//THREADID;
   int id = blockDim.x * blockIdx.x + threadIdx.x;
   /* Each thread gets same seed, a different sequence number, no offset */
@@ -9,6 +9,7 @@ __global__ void initialize(MemStruct pInfo,float width){
   neutron_sample(pInfo.nInfo, id,width);
   pInfo.nInfo.id[id] = id;
   pInfo.tally.cnt[id] = 0;
+  pInfo.nInfo.live[id] = 1*(id<banksize);
 }
 
 __device__ void neutron_sample(NeutronInfoStruct nInfo, unsigned id,float width){
@@ -16,12 +17,14 @@ __device__ void neutron_sample(NeutronInfoStruct nInfo, unsigned id,float width)
   curandState state = nInfo.rndState[id];
   //TODO: source sampling should take settings dependent on geometry
   nInfo.pos_x[id] = width/PI*acos(1-2*curand_uniform_double(&state));//width*curand_uniform_double(&state);
-  nInfo.pos_y[id] = 0.5f+0.00*curand_uniform(&state);
-  nInfo.pos_z[id] = 0.5f+0.00*curand_uniform(&state);
+  nInfo.pos_y[id] = width/PI*acos(1-2*curand_uniform_double(&state));
+  nInfo.pos_z[id] = width/PI*acos(1-2*curand_uniform_double(&state));
   nInfo.dir_polar[id] = curand_uniform(&state)*2-1;
   nInfo.dir_azimu[id] = curand_uniform(&state)*PI*2;
   nInfo.energy[id] = STARTENE;
   nInfo.rndState[id] = state;
+  nInfo.d_closest[id] = 0.0; //used as time
+  nInfo.imat[id]      = 1;   //used as isYoung
 }
 
 __device__ unsigned notleak(float x,float a){
@@ -50,106 +53,121 @@ __device__ void add(float *v1, float* v2, float multi){
 }
 
 __global__ void history_3d_ref(MemStruct DeviceMem, unsigned num_src,unsigned active,unsigned banksize){
-  float deltat = 1.0e5;
-  float a=400.0;
-  float b=400.0;
-  float c=400.0;
+  float a = DeviceMem.wdspp[0];
+  float b=a;
+  float c=a;
+
+  float dx = DeviceMem.wdspp[1];
+  float mfp = DeviceMem.wdspp[2];
+  float Ps = 1-(DeviceMem.wdspp[3]+DeviceMem.wdspp[4]);
+  float Pc = Ps+DeviceMem.wdspp[4];
+
+  float deltat = 3.0e-5;
   float n[3] = {0.0, 0.0,0.0};
   float v[3];
 
-  float mfp = 1.0/0.3004137931034483;
-  float Ps = 1-(0.041322314049586764+0.05991735537190082);
-  float Pc = Ps+0.05991735537190082;
-
   float v1 = sqrt(0.1/0.0253)*2200.049532714293*100.0;
   
-  float s;//sampled path
+  float l;//sampled path
   float t;//length to boundary
+  float s;//min s
   float time=0.0;//real time
-  //try others when real simulation structure becomes clear
-  //int idl = threadIdx.x;
-  //id is the thread index
-  //nid is the sampled index to get neutron position
-  //in this scheme, normalization is realized by forcefully 
-  //select gridsize neutrons from banksize neutrons
+
   int id = blockDim.x * blockIdx.x + threadIdx.x;
   curandState localState = DeviceMem.nInfo.rndState[id];
-  int nid = int(curand_uniform_double(&localState)*banksize);
+
   //extern __shared__ unsigned blockTerminated[];
 
   CMPTYPE rnd;
-  float x = curand_uniform(&localState)*a;
-  float y = curand_uniform(&localState)*b;
-  float z = curand_uniform(&localState)*c;
+  int isYoung = DeviceMem.nInfo.imat[id];
+  int live    = DeviceMem.nInfo.live[id];
+  //live can be -2,-1,0,1
+  //            -2: new fissioned                           ---> 1
+  //            -1: terminated last time, still unlive      ---> 0
+  //             0: terminated last time, still unlive
+  //             1: continue
+  float mu,phi; 
+  mu = DeviceMem.nInfo.dir_polar[id]*(1==live)+(curand_uniform(&localState)*2-1 )*(-2==live);
+  phi= DeviceMem.nInfo.dir_azimu[id]*(1==live)+(curand_uniform(&localState)*2*PI)*(-2==live);
+  live = (-1!=live)&&(0!=live); //-1 ---> 0 
+  //live = (-2==live)||(1==live);  // now each neutron is the same
 
-  float mu = curand_uniform(&localState)*2-1;
-  float phi= curand_uniform(&localState)*2*PI;
+  if(1==live){
+  float x = DeviceMem.nInfo.pos_x[id];//curand_uniform(&localState)*a;
+  float y = DeviceMem.nInfo.pos_y[id];//curand_uniform(&localState)*b;
+  float z = DeviceMem.nInfo.pos_z[id];//curand_uniform(&localState)*c;
+
+  time    = DeviceMem.nInfo.d_closest[id]; 
+  
+  
   v[0] = sqrt(1.0-mu*mu)*cos(phi);
   v[1] = sqrt(1.0-mu*mu)*sin(phi);
   v[2] = mu; 
+
+
+  while((1==live)&&isYoung){
+    l = -log(curand_uniform_double(&localState))*mfp;
   
-  s = -log(curand_uniform_double(&localState))*mfp;
-  printf("\n s=%.5e\n",s);
-  t = intersectbox(x,y,z,a,b,c,v[0],v[1],v[2]);
+    t = intersectbox(x,y,z,a,b,c,v[0],v[1],v[2]);
+    //printf("\n id=%2d, from (%.10e,%.10e,%.10e) along (%.10e,%.10e,%.10e)\n", blockDim.x * blockIdx.x + threadIdx.x,x,y,z,v[0],v[1],v[2]);
+    s = min(l,min(t,(deltat-time)*v1));
+    x=x+s*v[0]; y=y+s*v[1]; z=z+s*v[2]; time = time+s/v1;
 
-  //printf("\n id=%2d, from (%.10e,%.10e,%.10e) along (%.10e,%.10e,%.10e)\n", blockDim.x * blockIdx.x + threadIdx.x,x,y,z,v[0],v[1],v[2]);
-  s = min(s,min(t,(deltat-time)*v1));
-  if(t==s){//reflect
-    //if slow, i can use the specific form for the box, which is changing sign of reflected component
-    x=x+t*v[0]; y=y+t*v[1]; z=z+t*v[2];
-    if((x-0)<TEPSILON)
-      n[0]=-1.0;
-    if((y-0)<TEPSILON)
-      n[1]=-1.0;
-    if((z-0)<TEPSILON)
-      n[2]=-1.0;
+    if(t==s){//reflect
+      //if slow, i can use the specific form for the box, which is changing sign of reflected component
+      if((x-0)<TEPSILON)
+	n[0]=-1.0;
+      if((y-0)<TEPSILON)
+	n[1]=-1.0;
+      if((z-0)<TEPSILON)
+	n[2]=-1.0;
 
-    if((a-x)<TEPSILON)
-      n[0]= 1.0;
-    if((b-y)<TEPSILON)
-      n[1]= 1.0;
-    if((c-z)<TEPSILON)
-      n[2]= 1.0;
-    add(v,n,-2*product(v,n));
-    //printf("\n id=%2d, to (%.10e,%.10e,%.10e) along (%.10e,%.10e,%.10e)\n", blockDim.x * blockIdx.x + threadIdx.x,x,y,z,v[0],v[1],v[2]);
-  }  
-  if(s==(deltat-time)*v1){//time boundary
+      if((a-x)<TEPSILON)
+	n[0]= 1.0;
+      if((b-y)<TEPSILON)
+	n[1]= 1.0;
+      if((c-z)<TEPSILON)
+	n[2]= 1.0;
+      add(v,n,-2*product(v,n));
+      //printf("\n id=%2d, to (%.10e,%.10e,%.10e) along (%.10e,%.10e,%.10e)\n", blockDim.x * blockIdx.x + threadIdx.x,x,y,z,v[0],v[1],v[2]);
+      printf("id=%d, reflecting, time=%.3e\n",id,time);
 
-  }
-  /* Copy state to local memory for efficiency */ 
-
-  int newneu;
-  unsigned live=0;
-  //printf("[%2d],x=%.5f,pf=%.5f\n",id,DeviceMem.nInfo.pos_x[nid],pf);
-  //for(istep=0;istep<devstep;istep++){
-  /*
-  while(live){
-    s = -log(curand_uniform_double(&localState))*mfp;
-    x = x+s*dir;
-
-    while(!notleak(x,width)){
-      x=((1==dir)*2*width+(-1==dir)*0-x);
-      dir = 0-dir;
+    }  
+    if(s==(deltat-time)*v1){//time boundary
+      isYoung=0;
+      printf("id=%d, hitting time boundary, live=%d,time=%.3e\n",id,live,time);
     }
-    DeviceMem.tally.cnt[int(x/dx)*gridDim.x*blockDim.x+id]+=1;
+
+    //printf("[%2d],x=%.5f,pf=%.5f\n",id,DeviceMem.nInfo.pos_x[nid],pf);
+    //for(istep=0;istep<devstep;istep++){
+
+    if(s==l){//collison
+      DeviceMem.tally.cnt[int(x/dx)*gridDim.x*blockDim.x+id]+=1;
     
-    rnd = curand_uniform_double(&localState);
-    if(rnd<Ps)
-      dir = 1-2*int((curand_uniform_double(&localState))<=0.5);
-    else{
-      live = 0;
-      if(rnd>Pc){ //fission
-	rnd = curand_uniform_double(&localState);
-	//newneu = 2*(rnd<=0.55)+3*(rand>0.55);
-	newneu = 1-2*(rnd<=0.55); //-1 --> 2 fission; +1 --> 3 fission
-	DeviceMem.nInfo.pos_y[id] = x*newneu;
+      rnd = curand_uniform_double(&localState);
+      if(rnd<Ps){
+	v[2] = curand_uniform_double(&localState)*2-1;
+	phi= curand_uniform_double(&localState)*2*PI;
+	v[0] = sqrt(1-v[2]*v[2])*cos(phi);
+	v[1] = sqrt(1-v[2]*v[2])*sin(phi);
+	printf("id=%d, scattering, live=%d,time=%.3e\n",id,live,time);
+
       }
-      else{  //rnd<Pc, capture, nothing to do
-	DeviceMem.nInfo.pos_y[id] = 0;
-      }
-    }//end collision type
+      else{
+	if(rnd>Pc){ //fission
+	  rnd = curand_uniform_double(&localState);
+	  live = 2*(rnd<=0.55)+3*(rnd>0.55);
+	  printf("id=%d,fission to %d, time=%.3e\n",id,live,time);
+	}
+	else{  //rnd<Pc, capture, nothing to do
+	  live = -1;
+	  printf("id=%d, absorbed, live=%d,time=%.3e\n",id,live,time);
+
+	}
+      }//end collision type
+    }//end if collision
+
   }//end one history
-  /*
   //}
   //blockTerminated[idl] =1;// !live;
   
@@ -158,7 +176,19 @@ __global__ void history_3d_ref(MemStruct DeviceMem, unsigned num_src,unsigned ac
   //atomicAdd(Info.num_terminated_neutrons,!live);
   //Info.thread_active[id] =  blockDim.x*gridDim.x + *Info.num_terminated_neutrons < num_src;
   /* Copy state back to global memory */ 
+  DeviceMem.nInfo.d_closest[id]= time;
   DeviceMem.nInfo.rndState[id] = localState; 
+  DeviceMem.nInfo.pos_x[id] = x;
+  DeviceMem.nInfo.pos_y[id] = y;
+  DeviceMem.nInfo.pos_z[id] = z;
+  DeviceMem.nInfo.dir_polar[id] = v[2];
+  phi = v[0]/sqrt(1-v[2]*v[2]);//actually this is cosphi
+  DeviceMem.nInfo.dir_azimu[id] = (v[1]>=0)*acos(phi)-(v[1]<0)*acos(phi);
+  DeviceMem.nInfo.imat[id] = isYoung;
+  }//end if live
+  //printf("id=%d, copying %d\n",id,live);
+  DeviceMem.nInfo.live[id] = live;
+  //printf("id=%d, %d copied \n",id,DeviceMem.nInfo.live[id]);
 
   /*
   else{
