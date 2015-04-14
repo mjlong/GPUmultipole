@@ -131,13 +131,13 @@ __global__ void history_3d_ref(MemStruct DeviceMem, unsigned num_src,unsigned ac
 	n[2]= 1.0;
       add(v,n,-2*product(v,n));
       //printf("\n id=%2d, to (%.10e,%.10e,%.10e) along (%.10e,%.10e,%.10e)\n", blockDim.x * blockIdx.x + threadIdx.x,x,y,z,v[0],v[1],v[2]);
-      printf("id=%d, reflecting, time=%.3e\n",id,time);
+      //printf("id=%d, reflecting, time=%.3e\n",id,time);
       //fresh n
       n[0]=0; n[1]=0; n[2]=0;
     }  
     if(s==(deltat-time)*v1){//time boundary
       live=-3;
-      printf("id=%d, hitting time boundary, live=%d,time=%.3e\n",id,live,time);
+      //printf("id=%d, hitting time boundary, live=%d,time=%.3e\n",id,live,time);
     }
 
     //printf("[%2d],x=%.5f,pf=%.5f\n",id,DeviceMem.nInfo.pos_x[nid],pf);
@@ -152,19 +152,17 @@ __global__ void history_3d_ref(MemStruct DeviceMem, unsigned num_src,unsigned ac
 	phi= curand_uniform_double(&localState)*2*PI;
 	v[0] = sqrt(1-v[2]*v[2])*cos(phi);
 	v[1] = sqrt(1-v[2]*v[2])*sin(phi);
-	printf("id=%d, scattering, live=%d,time=%.3e\n",id,live,time);
-
+	//printf("id=%d, scattering, live=%d,time=%.3e\n",id,live,time);
       }
       else{
 	if(rnd>Pc){ //fission
 	  rnd = curand_uniform_double(&localState);
 	  live = 2*(rnd<=0.55)+3*(rnd>0.55);
-	  printf("id=%d,fission to %d, time=%.3e\n",id,live,time);
+	  //printf("id=%d,fission to %d, time=%.3e\n",id,live,time);
 	}
 	else{  //rnd<Pc, capture, nothing to do
 	  live = -1;
-	  printf("id=%d, absorbed, live=%d,time=%.3e\n",id,live,time);
-
+	  //printf("id=%d, absorbed, live=%d,time=%.3e\n",id,live,time);
 	}
       }//end collision type
     }//end if collision
