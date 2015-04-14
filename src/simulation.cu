@@ -137,6 +137,7 @@ __global__ void history_3d_ref(MemStruct DeviceMem, unsigned num_src,unsigned ac
     }  
     if(s==(deltat-time)*v1){//time boundary
       live=-3;
+      time = 0;
       //printf("id=%d, hitting time boundary, live=%d,time=%.3e\n",id,live,time);
     }
 
