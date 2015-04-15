@@ -16,14 +16,21 @@ __device__ void neutron_sample(NeutronInfoStruct nInfo, unsigned id,float width)
   nInfo.live[id] = 1u;
   curandState state = nInfo.rndState[id];
   //TODO: source sampling should take settings dependent on geometry
+#if defined(__1D)
+  nInfo.pos_x[id] = width/PI*acos(1-2*curand_uniform_double(&state));//width*curand_uniform_double(&state);
+#endif
+#if defined(__3D)
   nInfo.pos_x[id] = width/PI*acos(1-2*curand_uniform_double(&state));//width*curand_uniform_double(&state);
   nInfo.pos_y[id] = width/PI*acos(1-2*curand_uniform_double(&state));
   nInfo.pos_z[id] = width/PI*acos(1-2*curand_uniform_double(&state));
   nInfo.dir_polar[id] = curand_uniform(&state)*2-1;
   nInfo.dir_azimu[id] = curand_uniform(&state)*PI*2;
-  nInfo.energy[id] = STARTENE;
-  nInfo.rndState[id] = state;
   nInfo.d_closest[id] = 0.0; //used as time
+#endif
+  nInfo.rndState[id] = state;
+#if defined(__WASTE)
+  nInfo.energy[id] = STARTENE;
+#endif
 }
 
 __device__ unsigned notleak(float x,float a){
@@ -145,7 +152,7 @@ __global__ void history_3d_ref(MemStruct DeviceMem, unsigned num_src,unsigned ac
     //for(istep=0;istep<devstep;istep++){
 
     if(s==l){//collison
-      DeviceMem.tally.cnt[int(x/dx)*gridDim.x*blockDim.x+id]+=1;
+      DeviceMem.tally.cnt[ (int(x/dx)   )*gridDim.x*blockDim.x+id]+=1;
     
       rnd = curand_uniform_double(&localState);
       if(rnd<Ps){
