@@ -1,3 +1,8 @@
+ifeq ($(type),3d)
+CIDEN = -D __3D
+else
+CIDEN = -D __1D
+endif
 DIR_SRC = ./src
 DIR_OBJ = ./obj
 DIR_HDF5  = /opt/hdf5/1.8.14-gnu#/home/jlmiao/opt/hdf5
@@ -33,15 +38,15 @@ GOBJECTS=$(patsubst %.cu, ${DIR_OBJ}/%.o, $(notdir ${GSOURCES}))
 LINKJECT=${DIR_OBJ}/dlink.o      
 all: $(EXECUTABLE)
 $(EXECUTABLE): $(MOBJECTS) $(COBJECTS) $(GOBJECTS) $(LINKJECT)
-	$(CC)  $^ $(LDFLAGS) -o $@
+	$(CC) $(CIDEN) $^ $(LDFLAGS) -o $@
 ${DIR_OBJ}/%.obj : ${DIR_SRC}/%.cc
-	$(CC)             $(CMPTYPE) $(CCFLAGS) $^ -o $@
+	$(CC) $(CIDEN)            $(CMPTYPE) $(CCFLAGS) $^ -o $@
 ${DIR_OBJ}/%.ob : ${DIR_SRC}/%.cxx
-	$(NVCC)   $(CMPTYPE) $(NCFLAGS) $^ -o $@
+	$(NVCC) $(CIDEN)   $(CMPTYPE) $(NCFLAGS) $^ -o $@
 ${DIR_OBJ}/%.o : ${DIR_SRC}/%.cu
-	$(NVCC)   $(CMPTYPE) $(NCFLAGS)  $^ -o $@
+	$(NVCC) $(CIDEN)   $(CMPTYPE) $(NCFLAGS)  $^ -o $@
 $(LINKJECT) : $(GOBJECTS) $(WOBJECTS)
-	$(NVCC) $(LINKLAG) $^ -o $@
+	$(NVCC) $(CIDEN) $(LINKLAG) $^ -o $@
 clean :  
 	find ${DIR_OBJ} -name *.o   -exec rm -rf {} \;
 	find ${DIR_OBJ} -name *.obj -exec rm -rf {} \;
