@@ -26,12 +26,6 @@ void initialize_memory(MemStruct *DeviceMem, MemStruct *HostMem, unsigned numbin
   (*HostMem).batcnt     = (int*)malloc(sizeof(int)*nbat*numbins);
   (*HostMem).wdspp = (float*)malloc(sizeof(float)*5);
 
-  (*HostMem).nInfo.pos_x = (float*)malloc(sizeof(float)*gridsize);
-  (*HostMem).nInfo.pos_y = (float*)malloc(sizeof(float)*gridsize);
-  (*HostMem).nInfo.pos_z = (float*)malloc(sizeof(float)*gridsize);
-  (*HostMem).nInfo.dir_polar = (float*)malloc(sizeof(float)*gridsize);
-  (*HostMem).nInfo.dir_azimu = (float*)malloc(sizeof(float)*gridsize);
-  (*HostMem).nInfo.d_closest = (float*)malloc(sizeof(float)*gridsize);
 
   (*HostMem).nInfo.live  = (int*)malloc(sizeof(int)*gridsize);
 
@@ -45,22 +39,37 @@ void initialize_memory(MemStruct *DeviceMem, MemStruct *HostMem, unsigned numbin
   gpuErrchk(cudaMemset((*DeviceMem).nInfo.live, 0, gridsize*sizeof(int)));  
 
   gpuErrchk(cudaMalloc((void**)&((*DeviceMem).nInfo.rndState), gridsize*sizeof(curandState)));
+
+#if defined(__WASTE)
   gpuErrchk(cudaMalloc((void**)&((*DeviceMem).nInfo.energy),   gridsize*sizeof(CMPTYPE)));
   gpuErrchk(cudaMalloc((void**)&((*DeviceMem).nInfo.sigT),   gridsize*sizeof(CMPTYPE)));
   gpuErrchk(cudaMalloc((void**)&((*DeviceMem).nInfo.sigA),   gridsize*sizeof(CMPTYPE)));
   gpuErrchk(cudaMalloc((void**)&((*DeviceMem).nInfo.sigF),   gridsize*sizeof(CMPTYPE)));
-
   gpuErrchk(cudaMalloc((void**)&((*DeviceMem).nInfo.isoenergy),gridsize*sizeof(CMPTYPE)));
-
   gpuErrchk(cudaMalloc((void**)&((*DeviceMem).nInfo.imat),  gridsize*sizeof(int)));
+#endif
 
+#if defined(__1D)
   gpuErrchk(cudaMalloc((void**)&((*DeviceMem).nInfo.pos_x),3*gridsize*sizeof(float)));
+  gpuErrchk(cudaMalloc((void**)&((*DeviceMem).nInfo.pos_y),gridsize*sizeof(float)));
+#endif 
+
+#if defined(__3D)
+  (*HostMem).nInfo.pos_x = (float*)malloc(sizeof(float)*gridsize);
+  (*HostMem).nInfo.pos_y = (float*)malloc(sizeof(float)*gridsize);
+  (*HostMem).nInfo.pos_z = (float*)malloc(sizeof(float)*gridsize);
+  (*HostMem).nInfo.dir_polar = (float*)malloc(sizeof(float)*gridsize);
+  (*HostMem).nInfo.dir_azimu = (float*)malloc(sizeof(float)*gridsize);
+  (*HostMem).nInfo.d_closest = (float*)malloc(sizeof(float)*gridsize);
+
+  gpuErrchk(cudaMalloc((void**)&((*DeviceMem).nInfo.pos_x),gridsize*sizeof(float)));
   gpuErrchk(cudaMalloc((void**)&((*DeviceMem).nInfo.pos_y),gridsize*sizeof(float)));
   gpuErrchk(cudaMalloc((void**)&((*DeviceMem).nInfo.pos_z),gridsize*sizeof(float)));
   gpuErrchk(cudaMalloc((void**)&((*DeviceMem).nInfo.dir_polar),gridsize*sizeof(float)));
   gpuErrchk(cudaMalloc((void**)&((*DeviceMem).nInfo.dir_azimu),gridsize*sizeof(float)));
   gpuErrchk(cudaMalloc((void**)&((*DeviceMem).nInfo.d_closest ),gridsize*sizeof(float)));
   gpuErrchk(cudaMemset((*DeviceMem).nInfo.d_closest, 0, gridsize*sizeof(float)));  //use as time
+#endif
 
   gpuErrchk(cudaMalloc((void**)&((*DeviceMem).num_terminated_neutrons), sizeof(unsigned int)));
   gpuErrchk(cudaMemset((*DeviceMem).num_terminated_neutrons, 0, sizeof(unsigned)));
@@ -70,8 +79,15 @@ void initialize_memory(MemStruct *DeviceMem, MemStruct *HostMem, unsigned numbin
   gpuErrchk(cudaMallocHost((void**)&((*HostMem).num_terminated_neutrons), sizeof(unsigned int)));
   (*HostMem).num_terminated_neutrons[0] = 0u;
 
+#if defined(__1D)
   gpuErrchk(cudaMalloc((void**)&((*DeviceMem).tally.cnt), gridsize*numbins*sizeof(int)));
   gpuErrchk(cudaMemset((*DeviceMem).tally.cnt, 0, numbins*gridsize*sizeof(int)));  
+#endif
+
+#if defined(__3D)
+  gpuErrchk(cudaMalloc((void**)&((*DeviceMem).tally.cnt), gridsize*numbins*numbins*numbins*sizeof(int)));
+  gpuErrchk(cudaMemset((*DeviceMem).tally.cnt, 0, numbins*numbins*numbins*gridsize*sizeof(int)));  
+#endif
 
   return;
 }
@@ -80,14 +96,7 @@ void resettally(int *cnt, unsigned totbins){
   gpuErrchk(cudaMemset(cnt, 0, totbins*sizeof(int)));}
 
 void release_memory(MemStruct DeviceMem, MemStruct HostMem){
-  free(HostMem.nInfo.pos_x);
-  free(HostMem.nInfo.pos_y);
-  free(HostMem.nInfo.pos_z);
-  free(HostMem.nInfo.dir_polar);
-  free(HostMem.nInfo.dir_azimu);
-  free(HostMem.nInfo.d_closest);
   free(HostMem.nInfo.live);
-
   free(HostMem.spectrum);
   free(HostMem.batchmeans);
   free(HostMem.accmeans);
@@ -101,20 +110,37 @@ void release_memory(MemStruct DeviceMem, MemStruct HostMem){
   gpuErrchk(cudaFree(DeviceMem.nInfo.id));
   gpuErrchk(cudaFree(DeviceMem.nInfo.live));
   gpuErrchk(cudaFree(DeviceMem.nInfo.rndState));
+
+#if defined(__WASTE)
   gpuErrchk(cudaFree(DeviceMem.nInfo.energy));
   gpuErrchk(cudaFree(DeviceMem.nInfo.sigT));
   gpuErrchk(cudaFree(DeviceMem.nInfo.sigA));
   gpuErrchk(cudaFree(DeviceMem.nInfo.sigF));
-
   gpuErrchk(cudaFree(DeviceMem.nInfo.isoenergy));
-
   gpuErrchk(cudaFree(DeviceMem.nInfo.imat));
+#endif
+
+#if defined(__1D)
+  gpuErrchk(cudaFree(DeviceMem.nInfo.pos_x));
+  gpuErrchk(cudaFree(DeviceMem.nInfo.pos_y));
+#endif
+
+#if defined(__3D)
+  free(HostMem.nInfo.pos_x);
+  printf("good\n");
+  free(HostMem.nInfo.pos_y);
+  free(HostMem.nInfo.pos_z);
+  free(HostMem.nInfo.dir_polar);
+  free(HostMem.nInfo.dir_azimu);
+  free(HostMem.nInfo.d_closest);
+
   gpuErrchk(cudaFree(DeviceMem.nInfo.pos_x));
   gpuErrchk(cudaFree(DeviceMem.nInfo.pos_y));
   gpuErrchk(cudaFree(DeviceMem.nInfo.pos_z));
   gpuErrchk(cudaFree(DeviceMem.nInfo.dir_polar));
   gpuErrchk(cudaFree(DeviceMem.nInfo.dir_azimu));
   gpuErrchk(cudaFree(DeviceMem.nInfo.d_closest));
+#endif
 
   gpuErrchk(cudaFree(DeviceMem.num_terminated_neutrons));
   gpuErrchk(cudaFree(DeviceMem.num_live_neutrons));
