@@ -127,7 +127,6 @@ void release_memory(MemStruct DeviceMem, MemStruct HostMem){
 
 #if defined(__3D)
   free(HostMem.nInfo.pos_x);
-  printf("good\n");
   free(HostMem.nInfo.pos_y);
   free(HostMem.nInfo.pos_z);
   free(HostMem.nInfo.dir_polar);
