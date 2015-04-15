@@ -80,6 +80,10 @@ int flushbank(MemStruct DeviceMem, MemStruct HostMem,unsigned lastpop,float a,un
 	j++;
       }
       //printf("      live[%d] is changed from %d to -2\n",j,HostMem.nInfo.live[j]);
+      if(j>=gridsize){
+	printf("error bankover flow\n");
+	exit(-1);
+      }
       unlivestart = j+1; //update unlive start
       HostMem.nInfo.pos_x[j] = HostMem.nInfo.pos_x[i];
       HostMem.nInfo.pos_y[j] = HostMem.nInfo.pos_y[i];
@@ -93,7 +97,6 @@ int flushbank(MemStruct DeviceMem, MemStruct HostMem,unsigned lastpop,float a,un
 
       inp2 += 1; //second next generation population counter
       livi-=1; HostMem.nInfo.live[i]-=1;
-	
     }
     i++;
   }
