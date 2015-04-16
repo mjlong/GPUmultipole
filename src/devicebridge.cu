@@ -52,7 +52,6 @@ int flushbank(MemStruct DeviceMem, MemStruct HostMem,unsigned lastpop,float a,un
   gpuErrchk(cudaMemcpy(HostMem.nInfo.dir_azimu,DeviceMem.nInfo.dir_azimu,sizeof(float)*gridsize, cudaMemcpyDeviceToHost));  
   gpuErrchk(cudaMemcpy(HostMem.nInfo.d_closest,DeviceMem.nInfo.d_closest,sizeof(float)*gridsize, cudaMemcpyDeviceToHost));  
   gpuErrchk(cudaMemcpy(HostMem.nInfo.live,DeviceMem.nInfo.live,sizeof(int)*gridsize, cudaMemcpyDeviceToHost));  
-
   //for(int i=0;i<gridsize;i++)
   //  printf("%2d ", HostMem.nInfo.live[i]);
   //printf("[l:%d]\n",lastpop);

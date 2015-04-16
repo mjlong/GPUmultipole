@@ -69,12 +69,10 @@ __global__ void history_3d_ref(MemStruct DeviceMem, unsigned num_src,unsigned ac
   float Ps = 1-(wdspp[3]+wdspp[4]);
   float Pc = Ps+wdspp[4];
 
-  float deltat = 3.0e-5;
+  float deltat = 1.0/(wdspp[3]*2.45*wdspp[6]);
   float n[3] = {0.0, 0.0,0.0};
   float v[3];
 
-  float v1 = sqrt(0.1/0.0253)*2200.049532714293*100.0;
-  
   float l;//sampled path
   float t;//length to boundary
   float s;//min s
@@ -119,8 +117,8 @@ __global__ void history_3d_ref(MemStruct DeviceMem, unsigned num_src,unsigned ac
   
     t = intersectbox(x,y,z,a,b,c,v[0],v[1],v[2]);
     //printf("\n id=%2d, from (%.10e,%.10e,%.10e) along (%.10e,%.10e,%.10e)\n", blockDim.x * blockIdx.x + threadIdx.x,x,y,z,v[0],v[1],v[2]);
-    s = min(l,min(t,(deltat-time)*v1));
-    x=x+s*v[0]; y=y+s*v[1]; z=z+s*v[2]; time = time+s/v1;
+    s = min(l,min(t,(deltat-time)*wdspp[6]));
+    x=x+s*v[0]; y=y+s*v[1]; z=z+s*v[2]; time = time+s/wdspp[6];
 
     if(t==s){//reflect
       //if slow, i can use the specific form for the box, which is changing sign of reflected component
@@ -143,7 +141,7 @@ __global__ void history_3d_ref(MemStruct DeviceMem, unsigned num_src,unsigned ac
       //fresh n
       n[0]=0; n[1]=0; n[2]=0;
     }  
-    if(s==(deltat-time)*v1){//time boundary
+    if(s==(deltat-time)*wdspp[6]){//time boundary
       live=-3;
       time = 0;
       //printf("id=%d, hitting time boundary, live=%d,time=%.3e\n",id,live,time);
