@@ -53,9 +53,9 @@ int flushbank(MemStruct DeviceMem, MemStruct HostMem,unsigned lastpop,float a,un
   gpuErrchk(cudaMemcpy(HostMem.nInfo.d_closest,DeviceMem.nInfo.d_closest,sizeof(float)*gridsize, cudaMemcpyDeviceToHost));  
   gpuErrchk(cudaMemcpy(HostMem.nInfo.live,DeviceMem.nInfo.live,sizeof(int)*gridsize, cudaMemcpyDeviceToHost));  
 
-  for(int i=0;i<gridsize;i++)
-    printf("%2d ", HostMem.nInfo.live[i]);
-  printf("[l:%d]\n",lastpop);
+  //for(int i=0;i<gridsize;i++)
+  //  printf("%2d ", HostMem.nInfo.live[i]);
+  //printf("[l:%d]\n",lastpop);
 
   unsigned unlivestart=0;
   int i,j,ilp,inp,inp2,livi;
@@ -100,20 +100,19 @@ int flushbank(MemStruct DeviceMem, MemStruct HostMem,unsigned lastpop,float a,un
     }
     i++;
   }
-  for(int i=0;i<gridsize;i++)
-    printf("%2d ", HostMem.nInfo.live[i]);
-
-  printf("[n:%d?=%d]\n",inp,inp2);
+  //for(int i=0;i<gridsize;i++)
+  //  printf("%2d ", HostMem.nInfo.live[i]);
+  //printf("[n:%d?=%d]\n",inp,inp2);
 
   if(0==inp){
     for(int i=0;i<gridsize;i++){
       livi = HostMem.nInfo.live[i];
       HostMem.nInfo.live[i] = (-3==livi)||(-4==livi);
-      printf("%2d ", HostMem.nInfo.live[i]);
+      //printf("%2d ", HostMem.nInfo.live[i]);
     }
-    printf("\n");
+    //printf("\n");
   }
-  printf("\n");
+  //printf("\n");
   //If a threads has live=-1 or 0 but has not been refreshed here, it must be treated with care at first of history<<<>>>
   //all possible live are: -1 terminated and not refreshed; 
   //                        0 didn't run and not refreshed
