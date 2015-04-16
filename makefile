@@ -1,7 +1,10 @@
-ifeq ($(type),3d)
+ifeq ($(dim),3d)
 CIDEN = -D __3D
 else
 CIDEN = -D __1D
+endif
+ifeq ($(tran),true)
+CIDEN += -D __TRAN
 endif
 DIR_SRC = ./src
 DIR_OBJ = ./obj
