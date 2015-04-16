@@ -167,7 +167,6 @@ unsigned count_lives(unsigned gridx, unsigned blockx, MemStruct DeviceMem, MemSt
 }
 
 void save_results(unsigned ibat, unsigned gridx, unsigned blockx, unsigned num_bin, MemStruct DeviceMem, MemStruct HostMem){
-  
   int *d_cnt, *h_cnt;
   gpuErrchk(cudaMalloc((void**)&d_cnt, num_bin*sizeof(int)));
   h_cnt = (int*)malloc(num_bin*sizeof(int));
@@ -180,6 +179,8 @@ void save_results(unsigned ibat, unsigned gridx, unsigned blockx, unsigned num_b
     reduce_sum_equal<<<1, gridx, gridx*sizeof(int)>>>(
                    DeviceMem.block_spectrum+i*gridx, d_cnt+i);
   }
+  //printf("%s\n", cudaGetErrorString(cudaPeekAtLastError()));
+  //printf("%s\n", cudaGetErrorString(cudaThreadSynchronize()));
   gpuErrchk(cudaMemcpy(h_cnt,d_cnt,sizeof(int)*num_bin, cudaMemcpyDeviceToHost));
   copymeans(h_cnt,HostMem.batcnt,num_bin,num_bin*ibat);
 
