@@ -70,7 +70,7 @@ int main(int argc, char **argv){
 //============================================================ 
 //=============simulation memory allocation===================
 //============================================================
-  initialize_device();
+  //initialize_device();
   MemStruct HostMem, DeviceMem;
 #if defined(__1D)
   initialize_memory(&DeviceMem, &HostMem, num_bin, gridx,blockx,num_bat,ubat);
@@ -94,6 +94,7 @@ int main(int argc, char **argv){
   copydata(DeviceMem,HostMem);
   printf("nhis=%-6d,ubat=%3d,nbat=%-6d,meshes=%-6d,box width=%.2f\n",gridsize,ubat,num_bat,num_bin,width);
   printf("mfp=%.5f, pf=%.5f, pc=%.5f, ps=%.5f\n",HostMem.wdspp[2], HostMem.wdspp[3], HostMem.wdspp[4],1-(HostMem.wdspp[3]+HostMem.wdspp[4]));
+  
   int intone=1; 
   int inttwo=1;
 
@@ -121,10 +122,11 @@ int main(int argc, char **argv){
     }
 #else
     int allOld=0;
-    banksize = 40;
+    banksize = 100;
     initialize_neutrons(gridx, blockx, DeviceMem,width,banksize); 
     int *pops = (int*)malloc(sizeof(int)*num_bat);
     for(int ibat=0;ibat<num_bat;ibat++){
+      printf("ibat=%5d, banksize=%d\n",ibat,banksize);
       pops[ibat] = banksize;
       while(!allOld){
 	transient_neutrons(gridx, blockx, DeviceMem, num_src,1,banksize);
@@ -138,6 +140,7 @@ int main(int argc, char **argv){
 	printf("exiting: neutrons die out\n");
 	break;
       }
+      resettally(DeviceMem.tally.cnt, tnum_bin*gridsize);
     }
 #endif
 
