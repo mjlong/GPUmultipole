@@ -3,9 +3,15 @@ CIDEN = -D __3D
 else
 CIDEN = -D __1D
 endif
+
 ifeq ($(tran),true)
 CIDEN += -D __TRAN
 endif
+
+ifeq ($(tally),true)
+CIDEN += -D __TALLY
+endif
+
 DIR_SRC = ./src
 DIR_OBJ = ./obj
 DIR_HDF5  = /opt/hdf5/1.8.14-gnu#/home/jlmiao/opt/hdf5
