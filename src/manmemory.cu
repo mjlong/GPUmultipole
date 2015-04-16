@@ -1,5 +1,5 @@
 #include "manmemory.h"
-
+__constant__ float wdspp[5];
 //Simulation memory allocate and deallocate
 void initialize_device(){
   cudaSetDevice(0);
@@ -18,6 +18,7 @@ void copymeans(int *h_cnt, int *batcnt, unsigned meshes, unsigned offset){
 
 void copydata(MemStruct DeviceMem, MemStruct HostMem){
   gpuErrchk(cudaMemcpy(DeviceMem.wdspp,  HostMem.wdspp,   sizeof(float)*5, cudaMemcpyHostToDevice));
+  gpuErrchk(cudaMemcpyToSymbol(wdspp, DeviceMem.wdspp, 5*sizeof(float), 0, cudaMemcpyDeviceToDevice));
 }
 void initialize_memory(MemStruct *DeviceMem, MemStruct *HostMem, unsigned numbins, unsigned gridx, unsigned blockx,unsigned nbat,unsigned ubat){
   unsigned gridsize;

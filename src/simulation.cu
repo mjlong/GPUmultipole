@@ -1,5 +1,6 @@
 #include "simulation.h" 
 
+extern __constant__ float wdspp[];
 __global__ void initialize(MemStruct pInfo,float width, int banksize){
   //int id = ((blockDim.x*blockDim.y*blockDim.z)*(blockIdx.y*gridDim.x+blockIdx.x)+(blockDim.x*blockDim.y)*threadIdx.z+blockDim.x*threadIdx.y+threadIdx.x);//THREADID;
   int id = blockDim.x * blockIdx.x + threadIdx.x;
@@ -59,14 +60,14 @@ __device__ void add(float *v1, float* v2, float multi){
 }
 
 __global__ void history_3d_ref(MemStruct DeviceMem, unsigned num_src,unsigned active,unsigned banksize){
-  float a = DeviceMem.wdspp[0];
+  float a = wdspp[0];
   float b=a;
   float c=a;
 
-  float dx = DeviceMem.wdspp[1];
-  float mfp = DeviceMem.wdspp[2];
-  float Ps = 1-(DeviceMem.wdspp[3]+DeviceMem.wdspp[4]);
-  float Pc = Ps+DeviceMem.wdspp[4];
+  float dx = wdspp[1];
+  float mfp = wdspp[2];
+  float Ps = 1-(wdspp[3]+wdspp[4]);
+  float Pc = Ps+wdspp[4];
 
   float deltat = 3.0e-5;
   float n[3] = {0.0, 0.0,0.0};
@@ -224,11 +225,11 @@ __global__ void history_3d_ref(MemStruct DeviceMem, unsigned num_src,unsigned ac
 
 
 __global__ void history(MemStruct DeviceMem, unsigned num_src,unsigned active,unsigned banksize){
-  float width = DeviceMem.wdspp[0];
-  float dx = DeviceMem.wdspp[1];
-  float mfp = DeviceMem.wdspp[2];
-  float Ps = 1-(DeviceMem.wdspp[3]+DeviceMem.wdspp[4]);
-  float Pc = Ps+DeviceMem.wdspp[4];
+  float width = wdspp[0];
+  float dx = wdspp[1];
+  float mfp = wdspp[2];
+  float Ps = 1-(wdspp[3]+wdspp[4]);
+  float Pc = Ps+wdspp[4];
   float s;
   //try others when real simulation structure becomes clear
   //int idl = threadIdx.x;
@@ -317,11 +318,11 @@ __global__ void history(MemStruct DeviceMem, unsigned num_src,unsigned active,un
 
 
 __global__ void history_ref(MemStruct DeviceMem, unsigned num_src,unsigned active,unsigned banksize){
-  float width = DeviceMem.wdspp[0];
-  float dx = DeviceMem.wdspp[1];
-  float mfp = DeviceMem.wdspp[2];
-  float Ps = 1-(DeviceMem.wdspp[3]+DeviceMem.wdspp[4]);
-  float Pc = Ps+DeviceMem.wdspp[4];
+  float width = wdspp[0];
+  float dx = wdspp[1];
+  float mfp = wdspp[2];
+  float Ps = 1-(wdspp[3]+wdspp[4]);
+  float Pc = Ps+wdspp[4];
   float s;
   //try others when real simulation structure becomes clear
   //int idl = threadIdx.x;
