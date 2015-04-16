@@ -38,6 +38,7 @@ __device__ unsigned notleak(float x,float a){
   return (x>=0)&&(x<=a);
 }
 
+#if defined(__3D)
 __device__ float intersectbox(float x, float y, float z, float a, float b, float c, float vx, float vy, float vz){
   //float t1,t2;
   /*t1 = max(min(-x/vx,(a-x)/vx),max(min(-y/vy,(b-y)/vy),min(-z/vz,(c-z)/vz)));*/
@@ -151,8 +152,9 @@ __global__ void history_3d_ref(MemStruct DeviceMem, unsigned num_src,unsigned ac
     //for(istep=0;istep<devstep;istep++){
 
     if(s==l){//collison
+#if defined(__TALLY)
       DeviceMem.tally.cnt[ (int(int(x/dx) + int(y/dx)*wdspp[5] + int (z/dx)*wdspp[5]*wdspp[5]) )*gridDim.x*blockDim.x+id]+=1;
-      
+#endif
     
       rnd = curand_uniform_double(&localState);
       if(rnd<Ps){
@@ -222,7 +224,9 @@ __global__ void history_3d_ref(MemStruct DeviceMem, unsigned num_src,unsigned ac
   */
 }
 
+#endif
 
+#if defined(__1D)
 __global__ void history(MemStruct DeviceMem, unsigned num_src,unsigned active,unsigned banksize){
   float width = wdspp[0];
   float dx = wdspp[1];
@@ -406,6 +410,7 @@ __global__ void history_ref(MemStruct DeviceMem, unsigned num_src,unsigned activ
   */
 }
 
+#endif
 __global__ void reduce_sum_plus(int *threadcnt, int* cnt){
 // reduce threadcnt[] to cnt[], cnt is updated by self increase
 // this is used to count terminated neurtons
