@@ -1,5 +1,5 @@
 #include "manmemory.h"
-__constant__ float wdspp[5];
+__constant__ float wdspp[6];
 //Simulation memory allocate and deallocate
 void initialize_device(){
   cudaSetDevice(0);
@@ -17,8 +17,8 @@ void copymeans(int *h_cnt, int *batcnt, unsigned meshes, unsigned offset){
 }
 
 void copydata(MemStruct DeviceMem, MemStruct HostMem){
-  gpuErrchk(cudaMemcpy(DeviceMem.wdspp,  HostMem.wdspp,   sizeof(float)*5, cudaMemcpyHostToDevice));
-  gpuErrchk(cudaMemcpyToSymbol(wdspp, DeviceMem.wdspp, 5*sizeof(float), 0, cudaMemcpyDeviceToDevice));
+  gpuErrchk(cudaMemcpy(DeviceMem.wdspp,  HostMem.wdspp,   sizeof(float)*6, cudaMemcpyHostToDevice));
+  gpuErrchk(cudaMemcpyToSymbol(wdspp, DeviceMem.wdspp, 6*sizeof(float), 0, cudaMemcpyDeviceToDevice));
 }
 void initialize_memory(MemStruct *DeviceMem, MemStruct *HostMem, unsigned numbins, unsigned gridx, unsigned blockx,unsigned nbat,unsigned ubat){
   unsigned gridsize;
@@ -32,12 +32,12 @@ void initialize_memory(MemStruct *DeviceMem, MemStruct *HostMem, unsigned numbin
 #if defined(__TRAN)
   memset((*HostMem).batcnt, 0, sizeof(int)*nbat*numbins);
 #endif
-  (*HostMem).wdspp = (float*)malloc(sizeof(float)*5);
+  (*HostMem).wdspp = (float*)malloc(sizeof(float)*6);
 
 
   (*HostMem).nInfo.live  = (int*)malloc(sizeof(int)*gridsize);
 
-  gpuErrchk(cudaMalloc((void**)&((*DeviceMem).wdspp), 5*sizeof(float)));
+  gpuErrchk(cudaMalloc((void**)&((*DeviceMem).wdspp), 6*sizeof(float)));
   
   gpuErrchk(cudaMalloc((void**)&((*DeviceMem).block_spectrum), numbins*gridx*sizeof(unsigned int)));
   gpuErrchk(cudaMemset((*DeviceMem).block_spectrum, 0, numbins*gridx*sizeof(unsigned int)));

@@ -88,6 +88,7 @@ int main(int argc, char **argv){
   HostMem.wdspp[2] = 1.0/sigt;
   HostMem.wdspp[3] = pf;
   HostMem.wdspp[4] = pc;
+  HostMem.wdspp[5] = num_bin;
   double ref = 1.0/(HostMem.wdspp[3]+HostMem.wdspp[4])/width;
   // note this only works for flat
   copydata(DeviceMem,HostMem);

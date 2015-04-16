@@ -153,7 +153,8 @@ __global__ void history_3d_ref(MemStruct DeviceMem, unsigned num_src,unsigned ac
     //for(istep=0;istep<devstep;istep++){
 
     if(s==l){//collison
-      DeviceMem.tally.cnt[ (int(x/dx)   )*gridDim.x*blockDim.x+id]+=1;
+      DeviceMem.tally.cnt[ (int(int(x/dx) + int(y/dx)*wdspp[5] + int (z/dx)*wdspp[5]*wdspp[5]) )*gridDim.x*blockDim.x+id]+=1;
+      
     
       rnd = curand_uniform_double(&localState);
       if(rnd<Ps){
