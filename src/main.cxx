@@ -122,7 +122,7 @@ int main(int argc, char **argv){
     }
 #else
     int allOld=0;
-    banksize = 100;
+    banksize = gridsize/4;
     initialize_neutrons(gridx, blockx, DeviceMem,width,banksize); 
     int *pops = (int*)malloc(sizeof(int)*num_bat);
     for(int ibat=0;ibat<num_bat;ibat++){
