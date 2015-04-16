@@ -8,7 +8,11 @@ void initialize_device(){
 
 void copymeans(int *h_cnt, int *batcnt, unsigned meshes, unsigned offset){
   for(int im=0;im<meshes;im++)
+#if defined(__TRAN)
+    batcnt[offset+im] += h_cnt[im];
+#else
     batcnt[offset+im] = h_cnt[im];
+#endif
 
 }
 
@@ -24,6 +28,9 @@ void initialize_memory(MemStruct *DeviceMem, MemStruct *HostMem, unsigned numbin
   (*HostMem).batchmeans = (double*)malloc(sizeof(double)*nbat*numbins);
   (*HostMem).accmeans   = (double*)malloc(sizeof(double)*(nbat-ubat)*numbins);
   (*HostMem).batcnt     = (int*)malloc(sizeof(int)*nbat*numbins);
+#if defined(__TRAN)
+  memset((*HostMem).batcnt, 0, sizeof(int)*nbat*numbins);
+#endif
   (*HostMem).wdspp = (float*)malloc(sizeof(float)*5);
 
 
@@ -79,15 +86,8 @@ void initialize_memory(MemStruct *DeviceMem, MemStruct *HostMem, unsigned numbin
   gpuErrchk(cudaMallocHost((void**)&((*HostMem).num_terminated_neutrons), sizeof(unsigned int)));
   (*HostMem).num_terminated_neutrons[0] = 0u;
 
-#if defined(__1D)
   gpuErrchk(cudaMalloc((void**)&((*DeviceMem).tally.cnt), gridsize*numbins*sizeof(int)));
   gpuErrchk(cudaMemset((*DeviceMem).tally.cnt, 0, numbins*gridsize*sizeof(int)));  
-#endif
-
-#if defined(__3D)
-  gpuErrchk(cudaMalloc((void**)&((*DeviceMem).tally.cnt), gridsize*numbins*numbins*numbins*sizeof(int)));
-  gpuErrchk(cudaMemset((*DeviceMem).tally.cnt, 0, numbins*numbins*numbins*gridsize*sizeof(int)));  
-#endif
 
   return;
 }
