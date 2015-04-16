@@ -10,6 +10,7 @@
 #include <time.h>
 extern void createmptyh5(char *filename);
 extern void writeh5_nxm_(char *filename, char *groupname, char *dsetname, double *vec1, int *num_vec, int *length);
+extern void writeh5_nxm_(char *filename, char *groupname, char *dsetname, float  *vec1, int *num_vec, int *length);
 extern void writeh5_nxm_(char *filename, char *groupname, char *dsetname, int    *vec1, int *num_vec, int *length);
 extern void readh5_(char* filename, int* gridsize, int* nbat, 
 	     int* meshes, double* width, 
@@ -149,6 +150,13 @@ int main(int argc, char **argv){
 	banksize = flushbank(DeviceMem,HostMem,banksize,400.0,gridsize);
 	allOld = (0==banksize);
       }
+#if defined(__SCATTERPLOT)
+      sprintf(name1,"%05d",ibat+1);
+      strcpy(name2,"live"); strcat(name2,name1); writeh5_nxm_(name, "scatterplot",name2,HostMem.nInfo.live,   &intone, &gridsize);
+      strcpy(name2,"x");    strcat(name2,name1); writeh5_nxm_(name, "scatterplot",name2,HostMem.nInfo.pos_x,  &intone, &gridsize);
+      strcpy(name2,"y");    strcat(name2,name1); writeh5_nxm_(name, "scatterplot",name2,HostMem.nInfo.pos_y,  &intone, &gridsize);
+      strcpy(name2,"z");    strcat(name2,name1); writeh5_nxm_(name, "scatterplot",name2,HostMem.nInfo.pos_z,  &intone, &gridsize);
+#endif
       banksize = count_pop(HostMem.nInfo.live,gridsize);
       allOld=0;
       if(0==banksize){
