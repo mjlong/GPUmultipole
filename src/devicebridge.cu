@@ -168,7 +168,7 @@ unsigned count_lives(unsigned gridx, unsigned blockx, MemStruct DeviceMem, MemSt
   return active;
 }
 
-void save_results(unsigned ibat, unsigned gridx, unsigned blockx, unsigned num_src, unsigned num_bin, MemStruct DeviceMem, MemStruct HostMem){
+void save_results(unsigned ibat, unsigned gridx, unsigned blockx, unsigned num_bin, MemStruct DeviceMem, MemStruct HostMem){
   
   int *d_cnt, *h_cnt;
   gpuErrchk(cudaMalloc((void**)&d_cnt, num_bin*sizeof(int)));
@@ -196,18 +196,8 @@ void save_results(unsigned ibat, unsigned gridx, unsigned blockx, unsigned num_s
 */
   free(h_cnt);
   gpuErrchk(cudaFree(d_cnt));
-  /*
-  FILE *fp=NULL;
-  fp = fopen("timelog","a+");
-  gpuErrchk(cudaMemcpy(HostMem.num_terminated_neutrons, 
-		       DeviceMem.num_terminated_neutrons, 
-		       sizeof(unsigned int), 
-		       cudaMemcpyDeviceToHost));
-  fprintf(fp,"%-4d,%-4d,%-.6f,%-8d,%-4d,%-2d M\n", gridx, blockx,timems*1000/sum, *HostMem.num_terminated_neutrons, 1, num_src/1000000);
-  fclose(fp);
-  */
-}
 
+}
 
 void print_results(unsigned meshes, unsigned nbat, double *tally){
   int im,ib;

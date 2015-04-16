@@ -10,7 +10,7 @@ void transient_neutrons(unsigned gridx, unsigned blockx, MemStruct DeviceMem, un
 unsigned count_neutrons(unsigned gridx, unsigned blockx, MemStruct DeviceMem, MemStruct HostMem, unsigned num_src);
 unsigned count_lives(unsigned gridx, unsigned blockx, MemStruct DeviceMem, MemStruct HostMem);
 
-void save_results(unsigned ibat, unsigned gridx, unsigned blockx, unsigned num_src, unsigned num_bin, MemStruct DeviceMem, MemStruct HostMem);
+void save_results(unsigned ibat, unsigned gridx, unsigned blockx, unsigned num_bin, MemStruct DeviceMem, MemStruct HostMem);
 void print_results(unsigned meshes, unsigned nbat, double *tally);
 unsigned setbank(MemStruct DeviceMem, unsigned gridsize);
 int flushbank(MemStruct DeviceMem, MemStruct HostMem, unsigned lastpop,float a,unsigned gridsize);
