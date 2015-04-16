@@ -72,8 +72,13 @@ int main(int argc, char **argv){
 //============================================================
   initialize_device();
   MemStruct HostMem, DeviceMem;
-
+#if defined(__1D)
   initialize_memory(&DeviceMem, &HostMem, num_bin, gridx,blockx,num_bat,ubat);
+#endif
+#if defined(__3D)
+  int tnum_bin = num_bin*num_bin*num_bin;
+  initialize_memory(&DeviceMem, &HostMem, tnum_bin, gridx,blockx,num_bat,ubat);
+#endif
   if(1==mode)//process only, need to access the raw collision count
     readh5_(argv[1], HostMem.batcnt);
     
@@ -84,6 +89,7 @@ int main(int argc, char **argv){
   HostMem.wdspp[3] = pf;
   HostMem.wdspp[4] = pc;
   double ref = 1.0/(HostMem.wdspp[3]+HostMem.wdspp[4])/width;
+  // note this only works for flat
   copydata(DeviceMem,HostMem);
   printf("nhis=%-6d,ubat=%3d,nbat=%-6d,meshes=%-6d,box width=%.2f\n",gridsize,ubat,num_bat,num_bin,width);
   printf("mfp=%.5f, pf=%.5f, pc=%.5f, ps=%.5f\n",HostMem.wdspp[2], HostMem.wdspp[3], HostMem.wdspp[4],1-(HostMem.wdspp[3]+HostMem.wdspp[4]));
@@ -99,7 +105,7 @@ int main(int argc, char **argv){
     active = 1;
 
     clock_start = clock();
-    if(isSteady){
+#if !defined(__TRAN)
     banksize = gridx*blockx;
     initialize_neutrons(gridx, blockx, DeviceMem,width,banksize); 
     for(int ibat=0;ibat<num_bat;ibat++){
@@ -108,19 +114,20 @@ int main(int argc, char **argv){
 
       banksize = setbank(DeviceMem, gridsize);
       //printf("[%3d]%4d-->%4d: ", ibat,gridsize,banksize);
-      save_results(ibat,gridx, blockx, num_src, num_bin, DeviceMem, HostMem);
+      save_results(ibat,gridx, blockx, num_bin, DeviceMem, HostMem);
       //resetcount(DeviceMem);
       resettally(DeviceMem.tally.cnt, num_bin*gridsize);
     }
-    }
-    else{
+#else
     int allOld=0;
     banksize = 40;
     initialize_neutrons(gridx, blockx, DeviceMem,width,banksize); 
-
+    int *pops = (int*)malloc(sizeof(int)*num_bat);
     for(int ibat=0;ibat<num_bat;ibat++){
+      pops[ibat] = banksize;
       while(!allOld){
 	transient_neutrons(gridx, blockx, DeviceMem, num_src,1,banksize);
+	save_results(ibat,gridx,blockx, tnum_bin, DeviceMem, HostMem);
 	banksize = flushbank(DeviceMem,HostMem,banksize,400.0,gridsize);
 	allOld = (0==banksize);
       }
@@ -131,7 +138,7 @@ int main(int argc, char **argv){
 	break;
       }
     }
-    }
+#endif
 
     clock_end   = clock();
     time_elapsed = (float)(clock_end-clock_start)/CLOCKS_PER_SEC*1000.f;
@@ -145,10 +152,14 @@ int main(int argc, char **argv){
     printf("[Save] Writing batch cnt to hdf5 .... ");
     strcpy(name,"RRawcnt"); strcat(name,name1); strcat(name,name3); strcat(name,".h5");
     createmptyh5(name); //create empty file for future add dataset
-    writeh5_nxm_(name,"batch_cnt", HostMem.batcnt, &num_bat, &num_bin);
+    writeh5_nxm_(name,"batch_cnt", HostMem.batcnt, &num_bat, &tnum_bin);
     printdone();
-
+#if !defined(__TRAN)
     writeh5_nxm_(name,"num_history", &(gridsize),  &intone, &intone);
+#else
+    writeh5_nxm_(name,"neutron_pop", pops,  &intone, &num_bat);
+    free(pops);
+#endif
     writeh5_nxm_(name,"num_batch",   &(num_bat),  &intone, &intone);
     writeh5_nxm_(name,"num_cells",   &(num_bin),  &intone, &intone);
     writeh5_nxm_(name,"width",   &(width),  &intone, &intone);
