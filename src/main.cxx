@@ -68,6 +68,8 @@ int main(int argc, char **argv){
   sprintf(name1,"_%d",gridsize);
   sprintf(name2,"_%d",ubat);
   sprintf(name3,"_%d",num_bat);
+  strcpy(name,"RRawcnt"); strcat(name,name1); strcat(name,name3); strcat(name,".h5");
+  createmptyh5(name); //create empty file for future add dataset
 
 
 //============================================================ 
@@ -136,7 +138,9 @@ int main(int argc, char **argv){
       pops[ibat] = banksize;
       while(!allOld){
 	transient_neutrons(gridx, blockx, DeviceMem, num_src,1,banksize);
+#if defined(__TALLY)
 	save_results(ibat,gridx,blockx, tnum_bin, DeviceMem, HostMem);
+#endif
 	banksize = flushbank(DeviceMem,HostMem,banksize,400.0,gridsize);
 	allOld = (0==banksize);
       }
@@ -146,7 +150,9 @@ int main(int argc, char **argv){
 	printf("exiting: neutrons die out\n");
 	break;
       }
+#if defined(__TALLY)
       resettally(DeviceMem.tally.cnt, tnum_bin*gridsize);
+#endif
     }
 #endif
 
@@ -158,12 +164,11 @@ int main(int argc, char **argv){
     //============================================================================
     //==================== Write raw cnt to a hdf5 file ==========================
     //============================================================================
-
+#if defined(__TALLY)
     printf("[Save] Writing batch cnt to hdf5 .... ");
-    strcpy(name,"RRawcnt"); strcat(name,name1); strcat(name,name3); strcat(name,".h5");
-    createmptyh5(name); //create empty file for future add dataset
     writeh5_nxm_(name,"batch_cnt", HostMem.batcnt, &num_bat, &tnum_bin);
     printdone();
+#endif
 #if !defined(__TRAN)
     writeh5_nxm_(name,"num_history", &(gridsize),  &intone, &intone);
 #else
