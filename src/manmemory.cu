@@ -24,11 +24,20 @@ void initialize_memory(MemStruct *DeviceMem, MemStruct *HostMem, unsigned numbin
   unsigned gridsize;
   gridsize = gridx*blockx;
 
+#if defined(__TALLY)
   gpuErrchk(cudaMalloc((void**)&((*DeviceMem).spectrum), numbins*sizeof(int)));
   (*HostMem).spectrum = (int*)malloc(sizeof(int)*numbins);  
   (*HostMem).batchmeans = (double*)malloc(sizeof(double)*nbat*numbins);
   (*HostMem).accmeans   = (double*)malloc(sizeof(double)*(nbat-ubat)*numbins);
   (*HostMem).batcnt     = (int*)malloc(sizeof(int)*nbat*numbins);
+
+  gpuErrchk(cudaMalloc((void**)&((*DeviceMem).block_spectrum), numbins*gridx*sizeof(unsigned int)));
+  gpuErrchk(cudaMemset((*DeviceMem).block_spectrum, 0, numbins*gridx*sizeof(unsigned int)));
+
+  gpuErrchk(cudaMalloc((void**)&((*DeviceMem).tally.cnt), gridsize*numbins*sizeof(int)));
+  gpuErrchk(cudaMemset((*DeviceMem).tally.cnt, 0, numbins*gridsize*sizeof(int)));  
+#endif
+
 #if defined(__TRAN)
   memset((*HostMem).batcnt, 0, sizeof(int)*nbat*numbins);
 #endif
@@ -39,8 +48,6 @@ void initialize_memory(MemStruct *DeviceMem, MemStruct *HostMem, unsigned numbin
 
   gpuErrchk(cudaMalloc((void**)&((*DeviceMem).wdspp), 7*sizeof(float)));
   
-  gpuErrchk(cudaMalloc((void**)&((*DeviceMem).block_spectrum), numbins*gridx*sizeof(unsigned int)));
-  gpuErrchk(cudaMemset((*DeviceMem).block_spectrum, 0, numbins*gridx*sizeof(unsigned int)));
 
   gpuErrchk(cudaMalloc((void**)&((*DeviceMem).nInfo.id),       gridsize*sizeof(unsigned)));
   gpuErrchk(cudaMalloc((void**)&((*DeviceMem).nInfo.live),       gridsize*sizeof(unsigned)));
@@ -87,8 +94,6 @@ void initialize_memory(MemStruct *DeviceMem, MemStruct *HostMem, unsigned numbin
   gpuErrchk(cudaMallocHost((void**)&((*HostMem).num_terminated_neutrons), sizeof(unsigned int)));
   (*HostMem).num_terminated_neutrons[0] = 0u;
 
-  gpuErrchk(cudaMalloc((void**)&((*DeviceMem).tally.cnt), gridsize*numbins*sizeof(int)));
-  gpuErrchk(cudaMemset((*DeviceMem).tally.cnt, 0, numbins*gridsize*sizeof(int)));  
 
   return;
 }
@@ -97,16 +102,19 @@ void resettally(int *cnt, unsigned totbins){
   gpuErrchk(cudaMemset(cnt, 0, totbins*sizeof(int)));}
 
 void release_memory(MemStruct DeviceMem, MemStruct HostMem){
-  free(HostMem.nInfo.live);
+#if defined(__TALLY)
   free(HostMem.spectrum);
   free(HostMem.batchmeans);
   free(HostMem.accmeans);
   free(HostMem.batcnt);
+  gpuErrchk(cudaFree(DeviceMem.spectrum));
+  gpuErrchk(cudaFree(DeviceMem.block_spectrum));
+  gpuErrchk(cudaFree(DeviceMem.tally.cnt));
+#endif
+  free(HostMem.nInfo.live);
   free(HostMem.wdspp);
 
   gpuErrchk(cudaFree(DeviceMem.wdspp));
-  gpuErrchk(cudaFree(DeviceMem.spectrum));
-  gpuErrchk(cudaFree(DeviceMem.block_spectrum));
 
   gpuErrchk(cudaFree(DeviceMem.nInfo.id));
   gpuErrchk(cudaFree(DeviceMem.nInfo.live));
@@ -147,7 +155,6 @@ void release_memory(MemStruct DeviceMem, MemStruct HostMem){
   gpuErrchk(cudaFree(DeviceMem.block_terminated_neutrons));
   gpuErrchk(cudaFreeHost(HostMem.num_terminated_neutrons));
 
-  gpuErrchk(cudaFree(DeviceMem.tally.cnt));
 
   return;
 }
