@@ -9,8 +9,8 @@
 
 #include <time.h>
 extern void createmptyh5(char *filename);
-extern void writeh5_nxm_(char *filename, char *dsetname, double *vec1, int *num_vec, int *length);
-extern void writeh5_nxm_(char *filename, char *dsetname, int    *vec1, int *num_vec, int *length);
+extern void writeh5_nxm_(char *filename, char *groupname, char *dsetname, double *vec1, int *num_vec, int *length);
+extern void writeh5_nxm_(char *filename, char *groupname, char *dsetname, int    *vec1, int *num_vec, int *length);
 extern void readh5_(char* filename, int* gridsize, int* nbat, 
 	     int* meshes, double* width, 
 	     double* sigt, double* pf, double* pc);
@@ -70,7 +70,15 @@ int main(int argc, char **argv){
   sprintf(name3,"_%d",num_bat);
   strcpy(name,"RRawcnt"); strcat(name,name1); strcat(name,name3); strcat(name,".h5");
   createmptyh5(name); //create empty file for future add dataset
-
+  
+  int intone=1; 
+  int inttwo=1;
+  writeh5_nxm_(name,"/","num_batch",  &(num_bat),  &intone, &intone);
+  writeh5_nxm_(name,"/","num_cells",   &(num_bin),  &intone, &intone);
+  writeh5_nxm_(name,"/","width",   &(width),  &intone, &intone);
+  writeh5_nxm_(name,"/","sigma",   &(sigt),   &intone, &intone);
+  writeh5_nxm_(name,"/","pf",      &(pf),     &intone, &intone);
+  writeh5_nxm_(name,"/","pc",      &(pc),     &intone, &intone);
 
 //============================================================ 
 //=============simulation memory allocation===================
@@ -102,9 +110,6 @@ int main(int argc, char **argv){
   copydata(DeviceMem,HostMem);
   printf("nhis=%-6d,ubat=%3d,nbat=%-6d,meshes=%-6d,box width=%.2f\n",gridsize,ubat,num_bat,num_bin,width);
   printf("mfp=%.5f, pf=%.5f, pc=%.5f, ps=%.5f\n",HostMem.wdspp[2], HostMem.wdspp[3], HostMem.wdspp[4],1-(HostMem.wdspp[3]+HostMem.wdspp[4]));
-  
-  int intone=1; 
-  int inttwo=1;
 
 //============================================================ 
 //===============main simulation body=========================
@@ -166,32 +171,26 @@ int main(int argc, char **argv){
     //============================================================================
 #if defined(__TALLY)
     printf("[Save] Writing batch cnt to hdf5 .... ");
-    writeh5_nxm_(name,"batch_cnt", HostMem.batcnt, &num_bat, &tnum_bin);
+    writeh5_nxm_(name, "tally","batch_cnt", HostMem.batcnt, &num_bat, &tnum_bin);
     printdone();
 #endif
 #if !defined(__TRAN)
-    writeh5_nxm_(name,"num_history", &(gridsize),  &intone, &intone);
+    writeh5_nxm_(name, "/","num_history",&(gridsize),  &intone, &intone);
 #else
-    writeh5_nxm_(name,"neutron_pop", pops,  &intone, &num_bat);
+    writeh5_nxm_(name, "/","neutron_pop",pops,  &intone, &num_bat);
     free(pops);
 #endif
-    writeh5_nxm_(name,"num_batch",   &(num_bat),  &intone, &intone);
-    writeh5_nxm_(name,"num_cells",   &(num_bin),  &intone, &intone);
-    writeh5_nxm_(name,"width",   &(width),  &intone, &intone);
-    writeh5_nxm_(name,"sigma",   &(sigt),   &intone, &intone);
-    writeh5_nxm_(name,"pf",      &(pf),     &intone, &intone);
-    writeh5_nxm_(name,"pc",      &(pc),     &intone, &intone);
 
   }//end if (1!=mode) 
 
   //============================================================================
   //=========================process the results ===============================
   //============================================================================
+#if defined(__PROCESS)
   if(0!=mode){//do process except 'run only' mode
     printf("[Info] Processing ... \n");
     strcpy(name,"RResult"); strcat(name,name1); strcat(name,name2); strcat(name,name3); strcat(name,".h5");
     createmptyh5(name); //create empty file for future add dataset
-    writeh5_nxm_(name,"num_history", &(gridsize),  &intone, &intone);
     writeh5_nxm_(name,"num_batch",   &(num_bat),  &intone, &intone);
     writeh5_nxm_(name,"num_cells",   &(num_bin),  &intone, &intone);
     writeh5_nxm_(name,"width",   &(width),  &intone, &intone);
@@ -294,6 +293,7 @@ int main(int argc, char **argv){
     printf("[time]  statistics costs %f ms\n", time_elapsed);
 
   }//end if(0!=mode) //end process
+#endif
   /*
 
   FILE *fp=NULL;
