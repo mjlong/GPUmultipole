@@ -14,7 +14,7 @@ void createmptyh5(char *filename){
   hid_t file, group;
   herr_t status;
   file = H5Fcreate(filename, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
-  group =H5Gcreate(file, "/scatter", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+  group =H5Gcreate(file, "/scatterplot", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
   status = H5Gclose(group);
   group =H5Gcreate(file, "/tally", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
   status = H5Gclose(group);
