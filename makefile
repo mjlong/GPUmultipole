@@ -12,6 +12,10 @@ ifeq ($(tally),true)
 CIDEN += -D __TALLY
 endif
 
+ifeq ($(scatterplt),true)
+CIDEN += -D __SCATTERPLOT
+endif
+
 DIR_SRC = ./src
 DIR_OBJ = ./obj
 DIR_HDF5  = /opt/hdf5/1.8.14-gnu#/home/jlmiao/opt/hdf5
