@@ -28,9 +28,10 @@ int main(int argc, char **argv){
 //============================================================
   unsigned print;
   int gridx, blockx, gridsize,num_src;
-  int num_bin;
+  int num_bin, tnum_bin;
   int num_bat;
   int ubat,upto;
+  int ibat=0;
   double width, sigt, pf,pc,v1;
   char name[50];
   int mode; //0=run only; 1=process only; 2=run & process
@@ -69,7 +70,16 @@ int main(int argc, char **argv){
   sprintf(name1,"_%d",gridsize);
   sprintf(name2,"_%d",ubat);
   sprintf(name3,"_%d",num_bat);
-  strcpy(name,"RRawcnt"); strcat(name,name1); strcat(name,name3); strcat(name,".h5");
+#if defined(__1D)
+  strcpy(name,"R1dRawcnt"); 
+#else
+#if defined(__TRAN)//3D transient
+  strcpy(name,"R3tRawcnt"); 
+#else              //3D steady state
+  strcpy(name,"R3dRawcnt"); 
+#endif
+#endif
+  strcat(name,name1); strcat(name,name3); strcat(name,".h5");
   createmptyh5(name); //create empty file for future add dataset
   
   int intone=1; 
@@ -87,12 +97,12 @@ int main(int argc, char **argv){
   //initialize_device();
   MemStruct HostMem, DeviceMem;
 #if defined(__1D)
-  initialize_memory(&DeviceMem, &HostMem, num_bin, gridx,blockx,num_bat,ubat);
+  tnum_bin = num_bin;
 #endif
 #if defined(__3D)
-  int tnum_bin = num_bin*num_bin*num_bin;
-  initialize_memory(&DeviceMem, &HostMem, tnum_bin, gridx,blockx,num_bat,ubat);
+  tnum_bin = num_bin*num_bin*num_bin;
 #endif
+  initialize_memory(&DeviceMem, &HostMem, tnum_bin, gridx,blockx,num_bat,ubat);
   if(1==mode)//process only, need to access the raw collision count
     readh5_(argv[1], HostMem.batcnt);
     
@@ -122,21 +132,44 @@ int main(int argc, char **argv){
 
     clock_start = clock();
 #if !defined(__TRAN)
+    //==============================================================================
+    //======================Steady State ===========================================
+    //==============================================================================
     banksize = gridx*blockx;
     initialize_neutrons(gridx, blockx, DeviceMem,width,banksize); 
-    for(int ibat=0;ibat<num_bat;ibat++){
+    // plot initial distribution
+#if defined(__SCATTERPLOT)
+    copyinitial(DeviceMem, HostMem, gridsize);
+    sprintf(name1,"%d",ibat);
+    strcpy(name2,"x");    strcat(name2,name1); writeh5_nxm_(name, "scatterplot",name2,HostMem.nInfo.pos_x,  &intone, &gridsize);
+    strcpy(name2,"y");    strcat(name2,name1); writeh5_nxm_(name, "scatterplot",name2,HostMem.nInfo.pos_y,  &intone, &gridsize);
+    strcpy(name2,"z");    strcat(name2,name1); writeh5_nxm_(name, "scatterplot",name2,HostMem.nInfo.pos_z,  &intone, &gridsize);
+    strcpy(name2,"color");strcat(name2,name1); writeh5_nxm_(name, "scatterplot",name2,HostMem.nInfo.energy, &intone, &gridsize);
+#endif
+    for(ibat=0;ibat<num_bat;ibat++){
       start_neutrons(gridx, blockx, DeviceMem, num_src,1,banksize);
       //active = count_neutrons(gridx, blockx, DeviceMem, HostMem,num_src);
 
-      banksize = setbank(DeviceMem, gridsize);
-      //printf("[%3d]%4d-->%4d: ", ibat,gridsize,banksize);
-      save_results(ibat,gridx, blockx, num_bin, DeviceMem, HostMem);
+      banksize = setbank(DeviceMem, HostMem, gridsize);
+      printf("[%3d]%4d-->%4d: \n", ibat,gridsize,banksize);
+#if defined(__TALLY)
+      save_results(ibat,gridx, blockx, tnum_bin, DeviceMem, HostMem);
       //resetcount(DeviceMem);
-      resettally(DeviceMem.tally.cnt, num_bin*gridsize);
+      resettally(DeviceMem.tally.cnt, tnum_bin*gridsize);
+#endif
+#if defined(__SCATTERPLOT)
+      sprintf(name1,"%d",ibat+1);
+      strcpy(name2,"x");    strcat(name2,name1); writeh5_nxm_(name, "scatterplot",name2,HostMem.nInfo.pos_x,  &intone, &gridsize);
+      strcpy(name2,"y");    strcat(name2,name1); writeh5_nxm_(name, "scatterplot",name2,HostMem.nInfo.pos_y,  &intone, &gridsize);
+      strcpy(name2,"z");    strcat(name2,name1); writeh5_nxm_(name, "scatterplot",name2,HostMem.nInfo.pos_z,  &intone, &gridsize);
+      strcpy(name2,"color");strcat(name2,name1); writeh5_nxm_(name, "scatterplot",name2,HostMem.nInfo.energy, &intone, &gridsize);
+#endif
     }
-#else
+#else 
+    //==============================================================================
+    //==================== Transient ===============================================
+    //==============================================================================
     int allOld=0;
-    int ibat=0;
     banksize = gridsize/4;
     initialize_neutrons(gridx, blockx, DeviceMem,width,banksize); 
     // plot initial distribution
