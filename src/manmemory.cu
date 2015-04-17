@@ -76,28 +76,26 @@ void initialize_memory(MemStruct *DeviceMem, MemStruct *HostMem, unsigned numbin
 #endif 
 
 #if defined(__3D)
-#if defined(__TRAN)
   (*HostMem).nInfo.pos_x = (float*)malloc(sizeof(float)*gridsize);
   (*HostMem).nInfo.pos_y = (float*)malloc(sizeof(float)*gridsize);
   (*HostMem).nInfo.pos_z = (float*)malloc(sizeof(float)*gridsize);
-  (*HostMem).nInfo.dir_polar = (float*)malloc(sizeof(float)*gridsize);
-  (*HostMem).nInfo.dir_azimu = (float*)malloc(sizeof(float)*gridsize);
-  (*HostMem).nInfo.d_closest = (float*)malloc(sizeof(float)*gridsize);
-
+#if defined(__TRAN)
   gpuErrchk(cudaMalloc((void**)&((*DeviceMem).nInfo.pos_x),gridsize*sizeof(float)));
   gpuErrchk(cudaMalloc((void**)&((*DeviceMem).nInfo.pos_y),gridsize*sizeof(float)));
   gpuErrchk(cudaMalloc((void**)&((*DeviceMem).nInfo.pos_z),gridsize*sizeof(float)));
+
+  (*HostMem).nInfo.dir_polar = (float*)malloc(sizeof(float)*gridsize);
+  (*HostMem).nInfo.dir_azimu = (float*)malloc(sizeof(float)*gridsize);
+  (*HostMem).nInfo.d_closest = (float*)malloc(sizeof(float)*gridsize);
   gpuErrchk(cudaMalloc((void**)&((*DeviceMem).nInfo.dir_polar),gridsize*sizeof(float)));
   gpuErrchk(cudaMalloc((void**)&((*DeviceMem).nInfo.dir_azimu),gridsize*sizeof(float)));
   gpuErrchk(cudaMalloc((void**)&((*DeviceMem).nInfo.d_closest ),gridsize*sizeof(float)));
   gpuErrchk(cudaMemset((*DeviceMem).nInfo.d_closest, 0, gridsize*sizeof(float)));  //use as time
 #else
-  (*HostMem).nInfo.pos_x = (float*)malloc(3*sizeof(float)*gridsize);
-  (*HostMem).nInfo.pos_y = (float*)malloc(3*sizeof(float)*gridsize);
-  (*HostMem).nInfo.pos_z = (float*)malloc(3*sizeof(float)*gridsize);
   gpuErrchk(cudaMalloc((void**)&((*DeviceMem).nInfo.pos_x),3*gridsize*sizeof(float)));
   gpuErrchk(cudaMalloc((void**)&((*DeviceMem).nInfo.pos_y),3*gridsize*sizeof(float)));
   gpuErrchk(cudaMalloc((void**)&((*DeviceMem).nInfo.pos_z),3*gridsize*sizeof(float)));
+#endif
 #endif
 
   gpuErrchk(cudaMalloc((void**)&((*DeviceMem).num_terminated_neutrons), sizeof(unsigned int)));
