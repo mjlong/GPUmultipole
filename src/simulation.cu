@@ -286,9 +286,6 @@ __global__ void history_ref(MemStruct DeviceMem, unsigned num_src,unsigned activ
 	if(rnd>Pc){ //fission
 	  rnd = curand_uniform_double(&localState);
 	  DeviceMem.nInfo.live[id] = 2*(rnd<=0.55)+3*(rnd>0.55);
-	  DeviceMem.nInfo.pos_x[id] = x;
-	  DeviceMem.nInfo.pos_y[id] = y;
-	  DeviceMem.nInfo.pos_z[id] = z;
 	}
 	else{  //rnd<Pc, capture, nothing to do
 	  DeviceMem.nInfo.live[id] = 0;
@@ -298,7 +295,9 @@ __global__ void history_ref(MemStruct DeviceMem, unsigned num_src,unsigned activ
     }//end not leak
   }//end one history
   //}
-  
+  DeviceMem.nInfo.pos_x[id] = x;
+  DeviceMem.nInfo.pos_y[id] = y;
+  DeviceMem.nInfo.pos_z[id] = z;
   DeviceMem.nInfo.rndState[id] = localState; 
 }
 #endif
