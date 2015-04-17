@@ -21,9 +21,9 @@ __device__ void neutron_sample(NeutronInfoStruct nInfo, unsigned id,float width)
   nInfo.pos_x[id] = width/PI*acos(1-2*curand_uniform_double(&state));//width*curand_uniform_double(&state);
 #endif
 #if defined(__3D)
-  nInfo.pos_x[id] =width/PI*acos(1-2*curand_uniform_double(&state));//width*curand_uniform_double(&state);// 
-  nInfo.pos_y[id] =width/PI*acos(1-2*curand_uniform_double(&state));//width*curand_uniform_double(&state);// 
-  nInfo.pos_z[id] =width/PI*acos(1-2*curand_uniform_double(&state));//width*curand_uniform_double(&state);// 
+  nInfo.pos_x[id] =width*curand_uniform_double(&state);//width/PI*acos(1-2*curand_uniform_double(&state));// 
+  nInfo.pos_y[id] =width*curand_uniform_double(&state);//width/PI*acos(1-2*curand_uniform_double(&state));// 
+  nInfo.pos_z[id] =width*curand_uniform_double(&state);//width/PI*acos(1-2*curand_uniform_double(&state));// 
   nInfo.dir_polar[id] = curand_uniform(&state)*2-1;
   nInfo.dir_azimu[id] = curand_uniform(&state)*PI*2;
   nInfo.d_closest[id] = 0.0; //used as time
@@ -201,32 +201,7 @@ __global__ void history_3d_ref(MemStruct DeviceMem, unsigned num_src,unsigned ac
   //printf("id=%d, copying %d\n",id,live);
   DeviceMem.nInfo.live[id] = live;
   //printf("id=%d, %d copied \n",id,DeviceMem.nInfo.live[id]);
-
-  /*
-  else{
-    blockTerminated[idl] = active;//0;
-    //those old unlive neutrons must not be counted again
-    //so, 0 instead of !live is used 
-    //it was incorrect, above senario forgot to count leak neutron as terminated
-  }
-
-  //TODO: no need of such within block reduction for remaining()
-  __syncthreads();
-  live = blockDim.x>>1;
-  while(live){
-    if(idl<live)
-      blockTerminated[idl] += blockTerminated[idl+live];
-    __syncthreads();
-    live>>=1;
-  }
-  if(0==idl){
-    //reduction scheme depends on tally type
-    //following is to count moderation times
-    DeviceMem.block_terminated_neutrons[blockIdx.x] = blockTerminated[0];
-  }
-  */
 }
-
 #endif
 
 #if defined(__1D)
