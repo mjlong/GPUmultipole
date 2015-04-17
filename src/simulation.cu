@@ -24,9 +24,11 @@ __device__ void neutron_sample(NeutronInfoStruct nInfo, unsigned id,float width)
   nInfo.pos_x[id] =width*curand_uniform_double(&state);//width/PI*acos(1-2*curand_uniform_double(&state));// 
   nInfo.pos_y[id] =width*curand_uniform_double(&state);//width/PI*acos(1-2*curand_uniform_double(&state));// 
   nInfo.pos_z[id] =width*curand_uniform_double(&state);//width/PI*acos(1-2*curand_uniform_double(&state));// 
+#if defined(__TRAN)
   nInfo.dir_polar[id] = curand_uniform(&state)*2-1;
   nInfo.dir_azimu[id] = curand_uniform(&state)*PI*2;
   nInfo.d_closest[id] = 0.0; //used as time
+#endif
 #endif
   nInfo.rndState[id] = state;
 #if defined(__WASTE)
@@ -204,8 +206,101 @@ __global__ void history_3d_ref(MemStruct DeviceMem, unsigned num_src,unsigned ac
   //printf("id=%d, %d copied \n",id,DeviceMem.nInfo.live[id]);
 }
 #else //3D steady State
+__global__ void history_ref(MemStruct DeviceMem, unsigned num_src,unsigned active,unsigned banksize){
+  float a = wdspp[0];
+  float b=a;
+  float c=a;
 
+  float dx = wdspp[1];
+  float mfp = wdspp[2];
+  float Ps = 1-(wdspp[3]+wdspp[4]);
+  float Pc = Ps+wdspp[4];
 
+  float n[3] = {0.0, 0.0,0.0};
+  float v[3];
+
+  float l;//sampled path
+  float t;//length to boundary
+  float s;
+
+  int id = blockDim.x * blockIdx.x + threadIdx.x;
+  curandState localState = DeviceMem.nInfo.rndState[id];
+  int nid = int(curand_uniform_double(&localState)*banksize);
+  //extern __shared__ unsigned blockTerminated[];
+
+  CMPTYPE rnd;
+  float x = DeviceMem.nInfo.pos_x[nid];
+  float y = DeviceMem.nInfo.pos_y[nid];
+  float z = DeviceMem.nInfo.pos_z[nid];
+  float mu,phi; 
+  mu = curand_uniform(&localState)*2-1;
+  phi= curand_uniform(&localState)*2*PI;
+
+  v[0] = sqrt(1.0-mu*mu)*cos(phi);
+  v[1] = sqrt(1.0-mu*mu)*sin(phi);
+  v[2] = mu; 
+
+  unsigned live=1;
+  //printf("[%2d],x=%.5f,pf=%.5f\n",id,DeviceMem.nInfo.pos_x[nid],pf);
+  //for(istep=0;istep<devstep;istep++){
+  while(live){
+    l = -log(curand_uniform_double(&localState))*mfp;
+    t = intersectbox(x,y,z,a,b,c,v[0],v[1],v[2]);
+    s = (l<t)*l+(l>=t)*t;
+    x=x+s*v[0]; y=y+s*v[1]; z=z+s*v[2];
+    if(t==s){//reflect
+      //if slow, i can use the specific form for the box, which is changing sign of reflected component
+      if((x-0)<TEPSILON)
+	n[0]=-1.0;
+      if((y-0)<TEPSILON)
+	n[1]=-1.0;
+      if((z-0)<TEPSILON)
+	n[2]=-1.0;
+
+      if((a-x)<TEPSILON)
+	n[0]= 1.0;
+      if((b-y)<TEPSILON)
+	n[1]= 1.0;
+      if((c-z)<TEPSILON)
+	n[2]= 1.0;
+      add(v,n,-2*product(v,n));
+      //printf("\n id=%2d, to (%.10e,%.10e,%.10e) along (%.10e,%.10e,%.10e)\n", blockDim.x * blockIdx.x + threadIdx.x,x,y,z,v[0],v[1],v[2]);
+      //printf("id=%d, reflecting, time=%.3e\n",id,time);
+      //fresh n
+      n[0]=0; n[1]=0; n[2]=0;
+    }  
+    else{
+#if defined(__TALLY)
+      DeviceMem.tally.cnt[ (int(int(x/dx) + int(y/dx)*wdspp[5] + int (z/dx)*wdspp[5]*wdspp[5]) )*gridDim.x*blockDim.x+id  ]+=1;
+#endif
+      rnd = curand_uniform_double(&localState);
+      if(rnd<Ps){
+	mu = curand_uniform(&localState)*2-1;
+	phi= curand_uniform(&localState)*2*PI;
+	v[0] = sqrt(1.0-mu*mu)*cos(phi);
+	v[1] = sqrt(1.0-mu*mu)*sin(phi);
+	v[2] = mu; 
+      }
+      else{
+	live = 0;
+	if(rnd>Pc){ //fission
+	  rnd = curand_uniform_double(&localState);
+	  DeviceMem.nInfo.live[id] = 2*(rnd<=0.55)+3*(rnd>0.55);
+	  DeviceMem.nInfo.pos_x[id] = x;
+	  DeviceMem.nInfo.pos_y[id] = y;
+	  DeviceMem.nInfo.pos_z[id] = z;
+	}
+	else{  //rnd<Pc, capture, nothing to do
+	  DeviceMem.nInfo.live[id] = 0;
+	}
+      }//end collision type
+
+    }//end not leak
+  }//end one history
+  //}
+  
+  DeviceMem.nInfo.rndState[id] = localState; 
+}
 #endif
 #endif
 

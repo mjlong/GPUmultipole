@@ -19,7 +19,11 @@ __global__ void history(MemStruct, unsigned num_src,unsigned active,unsigned ban
 __global__ void history_ref(MemStruct DeviceMem, unsigned num_src,unsigned active,unsigned banksize);
 #endif
 #if defined(__3D)
+#if defined(__TRAN)
 __global__ void history_3d_ref(MemStruct DeviceMem, unsigned num_src,unsigned active,unsigned banksize);
+#else
+__global__ void history_ref(MemStruct DeviceMem, unsigned num_src,unsigned active,unsigned banksize);
+#endif
 #endif
 #define TEPSILON 1.0e-5
 #endif
