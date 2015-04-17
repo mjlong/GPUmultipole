@@ -64,6 +64,11 @@ void initialize_memory(MemStruct *DeviceMem, MemStruct *HostMem, unsigned numbin
   gpuErrchk(cudaMalloc((void**)&((*DeviceMem).nInfo.imat),  gridsize*sizeof(int)));
 #endif
 
+#if defined(__SCATTERPLOT)
+  (*HostMem).nInfo.energy  = (CMPTYPE*)malloc(sizeof(CMPTYPE)*gridsize);
+  gpuErrchk(cudaMalloc((void**)&((*DeviceMem).nInfo.energy),   gridsize*sizeof(CMPTYPE))); //use as initial z position for plot
+#endif
+
 #if defined(__1D)
   gpuErrchk(cudaMalloc((void**)&((*DeviceMem).nInfo.pos_x),3*gridsize*sizeof(float)));
   gpuErrchk(cudaMalloc((void**)&((*DeviceMem).nInfo.pos_y),gridsize*sizeof(float)));
@@ -134,6 +139,10 @@ void release_memory(MemStruct DeviceMem, MemStruct HostMem){
   gpuErrchk(cudaFree(DeviceMem.nInfo.pos_y));
 #endif
 
+#if defined(__SCATTERPLOT)
+  gpuErrchk(cudaFree(DeviceMem.nInfo.energy));
+  free(HostMem.nInfo.energy);
+#endif
 #if defined(__3D)
   free(HostMem.nInfo.pos_x);
   free(HostMem.nInfo.pos_y);

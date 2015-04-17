@@ -52,6 +52,9 @@ int flushbank(MemStruct DeviceMem, MemStruct HostMem,unsigned lastpop,float a,un
   gpuErrchk(cudaMemcpy(HostMem.nInfo.dir_azimu,DeviceMem.nInfo.dir_azimu,sizeof(float)*gridsize, cudaMemcpyDeviceToHost));  
   gpuErrchk(cudaMemcpy(HostMem.nInfo.d_closest,DeviceMem.nInfo.d_closest,sizeof(float)*gridsize, cudaMemcpyDeviceToHost));  
   gpuErrchk(cudaMemcpy(HostMem.nInfo.live,DeviceMem.nInfo.live,sizeof(int)*gridsize, cudaMemcpyDeviceToHost));  
+#if defined(__SCATTERPLOT)
+  gpuErrchk(cudaMemcpy(HostMem.nInfo.energy,DeviceMem.nInfo.energy,sizeof(CMPTYPE)*gridsize, cudaMemcpyDeviceToHost));  
+#endif
   //for(int i=0;i<gridsize;i++)
   //  printf("%2d ", HostMem.nInfo.live[i]);
   //printf("[l:%d]\n",lastpop);
@@ -90,7 +93,9 @@ int flushbank(MemStruct DeviceMem, MemStruct HostMem,unsigned lastpop,float a,un
       HostMem.nInfo.dir_polar[j] = HostMem.nInfo.dir_polar[i];
       HostMem.nInfo.dir_azimu[j] = HostMem.nInfo.dir_azimu[i];
       HostMem.nInfo.d_closest[j] = HostMem.nInfo.d_closest[i];
-
+#if defined(__SCATTERPLOT)
+      HostMem.nInfo.energy[j] = HostMem.nInfo.energy[i];
+#endif
       lastpop-=((j>i)&&(-1==HostMem.nInfo.live[j]));//if later j is reflushed, I don't want it to be counted in ilp
       HostMem.nInfo.live[j] = -2;
 

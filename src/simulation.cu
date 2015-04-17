@@ -32,6 +32,9 @@ __device__ void neutron_sample(NeutronInfoStruct nInfo, unsigned id,float width)
 #if defined(__WASTE)
   nInfo.energy[id] = STARTENE;
 #endif
+#if defined(__SCATTERPLOT)
+  nInfo.energy[id] = nInfo.pos_z[id];
+#endif
 }
 
 __device__ unsigned notleak(float x,float a){

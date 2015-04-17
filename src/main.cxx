@@ -156,6 +156,7 @@ int main(int argc, char **argv){
       strcpy(name2,"x");    strcat(name2,name1); writeh5_nxm_(name, "scatterplot",name2,HostMem.nInfo.pos_x,  &intone, &gridsize);
       strcpy(name2,"y");    strcat(name2,name1); writeh5_nxm_(name, "scatterplot",name2,HostMem.nInfo.pos_y,  &intone, &gridsize);
       strcpy(name2,"z");    strcat(name2,name1); writeh5_nxm_(name, "scatterplot",name2,HostMem.nInfo.pos_z,  &intone, &gridsize);
+      strcpy(name2,"color");strcat(name2,name1); writeh5_nxm_(name, "scatterplot",name2,HostMem.nInfo.energy, &intone, &gridsize);
 #endif
       banksize = count_pop(HostMem.nInfo.live,gridsize);
       allOld=0;
