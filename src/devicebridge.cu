@@ -54,6 +54,7 @@ unsigned setbank(MemStruct DeviceMem, unsigned gridsize){
   return j;
 }
 
+#if defined(__TRAN)
 int flushbank(MemStruct DeviceMem, MemStruct HostMem,unsigned lastpop,float a,unsigned gridsize){
   gpuErrchk(cudaMemcpy(HostMem.nInfo.pos_x,DeviceMem.nInfo.pos_x,sizeof(float)*gridsize, cudaMemcpyDeviceToHost));  
   gpuErrchk(cudaMemcpy(HostMem.nInfo.pos_y,DeviceMem.nInfo.pos_y,sizeof(float)*gridsize, cudaMemcpyDeviceToHost));  
@@ -143,6 +144,9 @@ int flushbank(MemStruct DeviceMem, MemStruct HostMem,unsigned lastpop,float a,un
   return inp;
 }
 
+#else
+
+#endif
 int count_pop(int *live, int gridsize){
   int sum = 0;
   for(int i=0;i<gridsize;i++)

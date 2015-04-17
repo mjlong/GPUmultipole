@@ -63,6 +63,7 @@ __device__ void add(float *v1, float* v2, float multi){
   v1[2]+=v2[2]*multi;
 }
 
+#if defined(__TRAN)
 __global__ void history_3d_ref(MemStruct DeviceMem, unsigned num_src,unsigned active,unsigned banksize){
   float a = wdspp[0];
   float b=a;
@@ -202,6 +203,10 @@ __global__ void history_3d_ref(MemStruct DeviceMem, unsigned num_src,unsigned ac
   DeviceMem.nInfo.live[id] = live;
   //printf("id=%d, %d copied \n",id,DeviceMem.nInfo.live[id]);
 }
+#else //3D steady State
+
+
+#endif
 #endif
 
 #if defined(__1D)
