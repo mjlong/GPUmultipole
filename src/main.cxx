@@ -151,7 +151,7 @@ int main(int argc, char **argv){
 	allOld = (0==banksize);
       }
 #if defined(__SCATTERPLOT)
-      sprintf(name1,"%05d",ibat+1);
+      sprintf(name1,"%d",ibat+1);
       strcpy(name2,"live"); strcat(name2,name1); writeh5_nxm_(name, "scatterplot",name2,HostMem.nInfo.live,   &intone, &gridsize);
       strcpy(name2,"x");    strcat(name2,name1); writeh5_nxm_(name, "scatterplot",name2,HostMem.nInfo.pos_x,  &intone, &gridsize);
       strcpy(name2,"y");    strcat(name2,name1); writeh5_nxm_(name, "scatterplot",name2,HostMem.nInfo.pos_y,  &intone, &gridsize);
