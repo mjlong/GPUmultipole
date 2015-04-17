@@ -3,6 +3,9 @@
 
 void printdevice();
 void initialize_neutrons(unsigned gridx, unsigned blockx,MemStruct DeviceMem,float, int banksize);
+#if defined(__SCATTERPLOT)
+void copyinitial(MemStruct DeviceMem, MemStruct HostMem, unsigned gridsize);
+#endif
 
 void start_neutrons(unsigned gridx, unsigned blockx, MemStruct DeviceMem, unsigned num_src,unsigned active,unsigned banksize);
 void transient_neutrons(unsigned gridx, unsigned blockx, MemStruct DeviceMem, unsigned num_src,unsigned active,unsigned banksize);

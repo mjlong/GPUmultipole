@@ -136,10 +136,22 @@ int main(int argc, char **argv){
     }
 #else
     int allOld=0;
+    int ibat=0;
     banksize = gridsize/4;
     initialize_neutrons(gridx, blockx, DeviceMem,width,banksize); 
+    // plot initial distribution
+#if defined(__SCATTERPLOT)
+    copyinitial(DeviceMem, HostMem, gridsize);
+    sprintf(name1,"%d",ibat);
+    strcpy(name2,"live"); strcat(name2,name1); writeh5_nxm_(name, "scatterplot",name2,HostMem.nInfo.live,   &intone, &gridsize);
+    strcpy(name2,"x");    strcat(name2,name1); writeh5_nxm_(name, "scatterplot",name2,HostMem.nInfo.pos_x,  &intone, &gridsize);
+    strcpy(name2,"y");    strcat(name2,name1); writeh5_nxm_(name, "scatterplot",name2,HostMem.nInfo.pos_y,  &intone, &gridsize);
+    strcpy(name2,"z");    strcat(name2,name1); writeh5_nxm_(name, "scatterplot",name2,HostMem.nInfo.pos_z,  &intone, &gridsize);
+    strcpy(name2,"color");strcat(name2,name1); writeh5_nxm_(name, "scatterplot",name2,HostMem.nInfo.energy, &intone, &gridsize);
+#endif
+
     int *pops = (int*)malloc(sizeof(int)*num_bat);
-    for(int ibat=0;ibat<num_bat;ibat++){
+    for(ibat=0;ibat<num_bat;ibat++){
       printf("ibat=%5d, banksize=%d\n",ibat,banksize);
       pops[ibat] = banksize;
       while(!allOld){
