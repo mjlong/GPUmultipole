@@ -27,7 +27,7 @@ void resetcount(MemStruct DeviceMem){
   gpuErrchk(cudaMemcpy(DeviceMem.num_terminated_neutrons,&x,sizeof(unsigned), cudaMemcpyHostToDevice));  
 }
 #if defined(__1D)
-unsigned setbank(MemStruct DeviceMem, unsigned gridsize){
+unsigned setbank(MemStruct DeviceMem, MemStruct HostMem, unsigned gridsize){
   float* y2 = (float*)malloc(sizeof(float)*gridsize);
   float* x2 = (float*)malloc(sizeof(float)*gridsize*3);
   gpuErrchk(cudaMemcpy(y2,DeviceMem.nInfo.pos_y,sizeof(float)*gridsize, cudaMemcpyDeviceToHost));  
