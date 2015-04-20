@@ -212,9 +212,6 @@ unsigned count_lives(unsigned gridx, unsigned blockx, MemStruct DeviceMem, MemSt
 }
 
 void save_results(unsigned ibat, unsigned gridx, unsigned blockx, unsigned num_bin, MemStruct DeviceMem, MemStruct HostMem){
-  int *d_cnt, *h_cnt;
-  gpuErrchk(cudaMalloc((void**)&d_cnt, num_bin*sizeof(int)));
-  h_cnt = (int*)malloc(num_bin*sizeof(int));
   for(int i=0;i<num_bin;i++){
     reduce_sum_equal<<<gridx, blockx, blockx*sizeof(int)>>>(
                    DeviceMem.tally.cnt+i*gridx*blockx, 
@@ -222,12 +219,11 @@ void save_results(unsigned ibat, unsigned gridx, unsigned blockx, unsigned num_b
   }
   for(int i=0;i<num_bin;i++){
     reduce_sum_equal<<<1, gridx, gridx*sizeof(int)>>>(
-                   DeviceMem.block_spectrum+i*gridx, d_cnt+i);
+                   DeviceMem.block_spectrum+i*gridx, DeviceMem.batcnt+i);
   }
   //printf("%s\n", cudaGetErrorString(cudaPeekAtLastError()));
   //printf("%s\n", cudaGetErrorString(cudaThreadSynchronize()));
-  gpuErrchk(cudaMemcpy(h_cnt,d_cnt,sizeof(int)*num_bin, cudaMemcpyDeviceToHost));
-  copymeans(h_cnt,HostMem.batcnt,num_bin,num_bin*ibat);
+  gpuErrchk(cudaMemcpy(HostMem.batcnt,DeviceMem.batcnt,sizeof(int)*num_bin, cudaMemcpyDeviceToHost));
 
 /*print collision cnt and time*/
 /*
@@ -238,9 +234,6 @@ void save_results(unsigned ibat, unsigned gridx, unsigned blockx, unsigned num_b
   }
   printf("|||%u +++ %u\n",HostMem.num_terminated_neutrons[0],sum);
 */
-  free(h_cnt);
-  gpuErrchk(cudaFree(d_cnt));
-
 }
 
 void print_results(unsigned meshes, unsigned nbat, double *tally){

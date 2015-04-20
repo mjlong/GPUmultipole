@@ -154,6 +154,8 @@ int main(int argc, char **argv){
       printf("[%3d]%4d-->%4d: \n", ibat,gridsize,banksize);
 #if defined(__TALLY)
       save_results(ibat,gridx, blockx, tnum_bin, DeviceMem, HostMem);
+      sprintf(name1,"%d",ibat);strcpy(name2,"batch_cnt");strcat(name2,name1);
+      writeh5_nxm_(name, "tally",name2, HostMem.batcnt, &intone, &tnum_bin);
       //resetcount(DeviceMem);
       resettally(DeviceMem.tally.cnt, tnum_bin*gridsize);
 #endif
@@ -191,6 +193,8 @@ int main(int argc, char **argv){
 	transient_neutrons(gridx, blockx, DeviceMem, num_src,1,banksize);
 #if defined(__TALLY)
 	save_results(ibat,gridx,blockx, tnum_bin, DeviceMem, HostMem);
+	sprintf(name1,"%d",ibat);strcpy(name2,"batch_cnt");strcat(name2,name1);
+	writeh5_nxm_(name, "tally",name2, HostMem.batcnt, &intone, &tnum_bin);
 #endif
 	banksize = flushbank(DeviceMem,HostMem,banksize,400.0,gridsize);
 	allOld = (0==banksize);
@@ -223,11 +227,6 @@ int main(int argc, char **argv){
     //============================================================================
     //==================== Write raw cnt to a hdf5 file ==========================
     //============================================================================
-#if defined(__TALLY)
-    printf("[Save] Writing batch cnt to hdf5 .... ");
-    writeh5_nxm_(name, "tally","batch_cnt", HostMem.batcnt, &num_bat, &tnum_bin);
-    printdone();
-#endif
 #if !defined(__TRAN)
     writeh5_nxm_(name, "/","num_history",&(gridsize),  &intone, &intone);
 #else
