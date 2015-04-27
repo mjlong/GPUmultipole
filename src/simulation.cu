@@ -539,3 +539,25 @@ __global__ void reduce_sum_equal(int* thread_active, int* active){
     active[blockIdx.x] = shared[0];
   }
 }
+
+__global__ void reduce_sum_equal(CMPTYPE* thread_active, CMPTYPE* active){
+// reduce thread_active to active, active is updated without history
+// this is used to count number of "live" threads
+  int id = blockDim.x * blockIdx.x + threadIdx.x;
+  unsigned idl = threadIdx.x;
+  extern __shared__ CMPTYPE shared[];
+  //size of shared[] is given as 3rd parameter while launching the kernel
+  int i;
+  shared[idl] = thread_active[id]; 
+  __syncthreads();
+  i = blockDim.x>>1;
+  while(i){
+    if(idl<i)
+      shared[idl] += shared[idl+i];
+    __syncthreads();
+    i=i>>1;
+  }
+  if(0==idl){
+    active[blockIdx.x] = shared[0];
+  }
+}
