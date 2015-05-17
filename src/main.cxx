@@ -63,8 +63,8 @@ int main(int argc, char **argv){
     upto = atoi(argv[3]);
     print = atoi(argv[4]);
     readh5_(argv[1],&gridsize,&num_bat,&num_bin,&width,&sigt,&pf,&pc);
-  }
 
+  }
   num_src=1;//num_src is not used but appears somewhere
   char name1[10];  char name2[10];  char name3[10]; 
   sprintf(name1,"_%d",gridsize);
@@ -90,7 +90,6 @@ int main(int argc, char **argv){
   writeh5_nxm_(name,"/","sigma",   &(sigt),   &intone, &intone);
   writeh5_nxm_(name,"/","pf",      &(pf),     &intone, &intone);
   writeh5_nxm_(name,"/","pc",      &(pc),     &intone, &intone);
-
 //============================================================ 
 //=============simulation memory allocation===================
 //============================================================
@@ -103,9 +102,10 @@ int main(int argc, char **argv){
   tnum_bin = num_bin*num_bin*num_bin;
 #endif
   initialize_memory(&DeviceMem, &HostMem, tnum_bin, gridx,blockx,num_bat,ubat);
+#if defined(__PROCESS)
   if(1==mode)//process only, need to access the raw collision count
     readh5_(argv[1], HostMem.batcnt);
-    
+#endif    
 
   HostMem.wdspp[0] = width;
   HostMem.wdspp[1] = width/num_bin;
@@ -190,7 +190,7 @@ int main(int argc, char **argv){
       printf("ibat=%5d, banksize=%d\n",ibat,banksize);
       pops[ibat] = banksize;
       while(!allOld){
-	transient_neutrons(gridx, blockx, DeviceMem, num_src,1,banksize);
+        start_neutrons(gridx, blockx, DeviceMem, num_src,1,banksize);
 #if defined(__TALLY)
 	save_results(ibat,gridx,blockx, tnum_bin, DeviceMem, HostMem);
 	sprintf(name1,"%d",ibat);strcpy(name2,"batch_cnt");strcat(name2,name1);
