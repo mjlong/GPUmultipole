@@ -19,7 +19,7 @@ typedef struct {
 }basicneutronInfo;
 
 typedef struct {
-  float *cnt;
+  CMPTYPE *cnt;
   //CMPTYPE   *unknown;
 }TallyStruct;
 
