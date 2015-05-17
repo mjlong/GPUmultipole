@@ -35,12 +35,11 @@ void initialize_memory(MemStruct *DeviceMem, MemStruct *HostMem, unsigned numbin
   gpuErrchk(cudaMalloc((void**)&((*DeviceMem).block_spectrum), numbins*gridx*sizeof(CMPTYPE)));
   gpuErrchk(cudaMemset((*DeviceMem).block_spectrum, 0, numbins*gridx*sizeof(CMPTYPE)));
 
-  gpuErrchk(cudaMalloc((void**)&((*DeviceMem).tally.cnt), gridsize*numbins*sizeof(int)));
-  gpuErrchk(cudaMemset((*DeviceMem).tally.cnt, 0, numbins*gridsize*sizeof(int)));  
+  gpuErrchk(cudaMalloc((void**)&((*DeviceMem).tally.cnt), gridsize*numbins*sizeof(CMPTYPE)));
+  gpuErrchk(cudaMemset((*DeviceMem).tally.cnt, 0, numbins*gridsize*sizeof(CMPTYPE)));  
 #endif
-
-#if defined(__TRAN)
-  memset((*HostMem).batcnt, 0, sizeof(int)*nbat*numbins);
+#if defined(__TRAN)&&defined(__TALLY)
+  memset((*HostMem).batcnt, 0, sizeof(CMPTYPE)*numbins);
 #endif
   (*HostMem).wdspp = (float*)malloc(sizeof(float)*7);
 
@@ -48,7 +47,7 @@ void initialize_memory(MemStruct *DeviceMem, MemStruct *HostMem, unsigned numbin
   (*HostMem).nInfo.live  = (int*)malloc(sizeof(int)*gridsize);
 
   gpuErrchk(cudaMalloc((void**)&((*DeviceMem).wdspp), 7*sizeof(float)));
-  
+
 
   gpuErrchk(cudaMalloc((void**)&((*DeviceMem).nInfo.id),       gridsize*sizeof(unsigned)));
   gpuErrchk(cudaMalloc((void**)&((*DeviceMem).nInfo.live),       gridsize*sizeof(unsigned)));
