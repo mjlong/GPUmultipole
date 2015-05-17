@@ -175,7 +175,8 @@ __global__ void history(MemStruct DeviceMem, unsigned num_src,unsigned active,un
       else{
 	if(rnd>Pc){ //fission
 	  rnd = curand_uniform_double(&localState);
-	  live = 2*(rnd<=0.55)+3*(rnd>0.55);
+	  //live = 2*(rnd<=0.55)+3*(rnd>0.55);
+	  live = 2*(rnd<=0.5)+3*(rnd>0.5);
 	  //printf("id=%d,fission to %d, time=%.3e\n",id,live,time);
 	}
 	else{  //rnd<Pc, capture, nothing to do
