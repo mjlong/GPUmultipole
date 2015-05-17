@@ -19,7 +19,7 @@ typedef struct {
 }basicneutronInfo;
 
 typedef struct {
-  int *cnt;
+  float *cnt;
   //CMPTYPE   *unknown;
 }TallyStruct;
 
@@ -47,12 +47,12 @@ typedef struct {
   int *block_terminated_neutrons;
   int *num_terminated_neutrons;
   int *num_live_neutrons;
-  int *block_spectrum;
-  int *spectrum;
+  CMPTYPE *block_spectrum;
+  CMPTYPE *spectrum;
   double *batchmeans;
   double *accmeans;
-  int *batcnt;
-  float *tallybins;
+  CMPTYPE *batcnt;
+  CMPTYPE *tallybins;
   TallyStruct tally;
 }MemStruct;
 

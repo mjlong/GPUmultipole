@@ -213,17 +213,17 @@ unsigned count_lives(unsigned gridx, unsigned blockx, MemStruct DeviceMem, MemSt
 
 void save_results(unsigned ibat, unsigned gridx, unsigned blockx, unsigned num_bin, MemStruct DeviceMem, MemStruct HostMem){
   for(int i=0;i<num_bin;i++){
-    reduce_sum_equal<<<gridx, blockx, blockx*sizeof(int)>>>(
+    reduce_sum_equal<<<gridx, blockx, blockx*sizeof(CMPTYPE)>>>(
                    DeviceMem.tally.cnt+i*gridx*blockx, 
                    DeviceMem.block_spectrum+i*gridx);
   }
   for(int i=0;i<num_bin;i++){
-    reduce_sum_equal<<<1, gridx, gridx*sizeof(int)>>>(
+    reduce_sum_equal<<<1, gridx, gridx*sizeof(CMPTYPE)>>>(
                    DeviceMem.block_spectrum+i*gridx, DeviceMem.batcnt+i);
   }
   //printf("%s\n", cudaGetErrorString(cudaPeekAtLastError()));
   //printf("%s\n", cudaGetErrorString(cudaThreadSynchronize()));
-  gpuErrchk(cudaMemcpy(HostMem.batcnt,DeviceMem.batcnt,sizeof(int)*num_bin, cudaMemcpyDeviceToHost));
+  gpuErrchk(cudaMemcpy(HostMem.batcnt,DeviceMem.batcnt,sizeof(CMPTYPE)*num_bin, cudaMemcpyDeviceToHost));
 
 /*print collision cnt and time*/
 /*
