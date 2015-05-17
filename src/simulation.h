@@ -15,16 +15,10 @@ __global__ void reduce_sum_plus(int *threadcnt, int* cnt);
 __global__ void reduce_sum_equal(int* thread_active, int* active);
 __global__ void reduce_sum_equal(CMPTYPE* thread_active, CMPTYPE* active);
 __device__ unsigned notleak(float x,float a);
-#if defined(__1D)
-__global__ void history(MemStruct, unsigned num_src,unsigned active,unsigned banksize);
-__global__ void history_ref(MemStruct DeviceMem, unsigned num_src,unsigned active,unsigned banksize);
-#endif
-#if defined(__3D)
-#if defined(__TRAN)
-__global__ void history_3d_ref(MemStruct DeviceMem, unsigned num_src,unsigned active,unsigned banksize);
-#else
-__global__ void history_ref(MemStruct DeviceMem, unsigned num_src,unsigned active,unsigned banksize);
-#endif
-#endif
+//__1D only has steady state solver
+//__3D only has reflective BC solver
+__global__ void history(MemStruct DeviceMem, unsigned num_src,unsigned active,unsigned banksize);
+
+
 #define TEPSILON 1.0e-5
 #endif
