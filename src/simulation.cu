@@ -9,7 +9,9 @@ __global__ void initialize(MemStruct pInfo,float width, int banksize){
 
   neutron_sample(pInfo.nInfo, id,width);
   pInfo.nInfo.id[id] = id;
+#if defined(__TALLY)
   pInfo.tally.cnt[id] = 0;
+#endif 
   pInfo.nInfo.live[id] = 1*(id<banksize);
 }
 
@@ -66,7 +68,7 @@ __device__ void add(float *v1, float* v2, float multi){
 }
 
 #if defined(__TRAN)
-__global__ void history_3d_ref(MemStruct DeviceMem, unsigned num_src,unsigned active,unsigned banksize){
+__global__ void history(MemStruct DeviceMem, unsigned num_src,unsigned active,unsigned banksize){
   float a = wdspp[0];
   float b=a;
   float c=a;
@@ -206,7 +208,7 @@ __global__ void history_3d_ref(MemStruct DeviceMem, unsigned num_src,unsigned ac
   //printf("id=%d, %d copied \n",id,DeviceMem.nInfo.live[id]);
 }
 #else //3D steady State
-__global__ void history_ref(MemStruct DeviceMem, unsigned num_src,unsigned active,unsigned banksize){
+__global__ void history(MemStruct DeviceMem, unsigned num_src,unsigned active,unsigned banksize){
   float a = wdspp[0];
   float b=a;
   float c=a;
@@ -300,10 +302,11 @@ __global__ void history_ref(MemStruct DeviceMem, unsigned num_src,unsigned activ
   DeviceMem.nInfo.pos_z[id] = z;
   DeviceMem.nInfo.rndState[id] = localState; 
 }
-#endif
-#endif
+#endif //end tran or steady
+#endif //end if 3D
 
 #if defined(__1D)
+#if defined(__1D_VAC)
 __global__ void history(MemStruct DeviceMem, unsigned num_src,unsigned active,unsigned banksize){
   float width = wdspp[0];
   float dx = wdspp[1];
@@ -395,9 +398,8 @@ __global__ void history(MemStruct DeviceMem, unsigned num_src,unsigned active,un
   }
   */
 }
-
-
-__global__ void history_ref(MemStruct DeviceMem, unsigned num_src,unsigned active,unsigned banksize){
+#else
+__global__ void history(MemStruct DeviceMem, unsigned num_src,unsigned active,unsigned banksize){
   float width = wdspp[0];
   float dx = wdspp[1];
   float mfp = wdspp[2];
@@ -486,8 +488,9 @@ __global__ void history_ref(MemStruct DeviceMem, unsigned num_src,unsigned activ
   }
   */
 }
+#endif //end vac or reflective 1D
+#endif //end if 1D
 
-#endif
 __global__ void reduce_sum_plus(int *threadcnt, int* cnt){
 // reduce threadcnt[] to cnt[], cnt is updated by self increase
 // this is used to count terminated neurtons
@@ -545,19 +548,19 @@ __global__ void reduce_sum_equal(CMPTYPE* thread_active, CMPTYPE* active){
 // this is used to count number of "live" threads
   int id = blockDim.x * blockIdx.x + threadIdx.x;
   unsigned idl = threadIdx.x;
-  extern __shared__ CMPTYPE shared[];
+  extern __shared__ CMPTYPE sharedd[];
   //size of shared[] is given as 3rd parameter while launching the kernel
   int i;
-  shared[idl] = thread_active[id]; 
+  sharedd[idl] = thread_active[id]; 
   __syncthreads();
   i = blockDim.x>>1;
   while(i){
     if(idl<i)
-      shared[idl] += shared[idl+i];
+      sharedd[idl] += sharedd[idl+i];
     __syncthreads();
     i=i>>1;
   }
   if(0==idl){
-    active[blockIdx.x] = shared[0];
+    active[blockIdx.x] = sharedd[0];
   }
 }
