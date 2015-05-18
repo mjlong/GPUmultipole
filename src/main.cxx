@@ -190,7 +190,7 @@ int main(int argc, char **argv){
       printf("ibat=%5d, banksize=%d\n",ibat,banksize);
       pops[ibat] = banksize;
       while(!allOld){
-        transient_neutrons(gridx, blockx, DeviceMem, num_src,1,banksize,3-2.5*(1.0*(ibat<200)  + 1.002*(ibat>=200)));
+        transient_neutrons(gridx, blockx, DeviceMem, num_src,1,banksize,3-2.5*(1.0*(ibat<100)  + 1.002*(ibat>=100)));
 #if defined(__TALLY)
 	save_results(ibat,gridx,blockx, tnum_bin, DeviceMem, HostMem);
 	sprintf(name1,"%d",ibat);strcpy(name2,"batch_cnt");strcat(name2,name1);
