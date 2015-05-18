@@ -22,7 +22,13 @@ void copydata(MemStruct DeviceMem, MemStruct HostMem){
 }
 void initialize_memory(MemStruct *DeviceMem, MemStruct *HostMem, unsigned numbins, unsigned gridx, unsigned blockx,unsigned nbat,unsigned ubat){
   unsigned gridsize;
+#if defined(__TRAN)
+  gridsize = gridx*blockx*ubat;
+  //for __TALLY, ubat is used as tranfac
+#else
   gridsize = gridx*blockx;
+#endif
+
 #if defined(__TALLY)
   gpuErrchk(cudaMalloc((void**)&((*DeviceMem).spectrum), numbins*sizeof(CMPTYPE)));
   (*HostMem).spectrum = (CMPTYPE*)malloc(sizeof(CMPTYPE)*numbins);  
