@@ -48,6 +48,7 @@ int main(int argc, char **argv){
     pc    = atof(argv[8]);
 #if defined(__TRAN)
     v1 = atof(argv[9]);
+    ubat = atoi(argv[10]);
 #endif
     mode = 0;   //run only
     if(argc>=11+1){
@@ -173,6 +174,7 @@ int main(int argc, char **argv){
     //==============================================================================
     int allOld=0;
     banksize = gridsize/4;
+    num_src = gridsize*ubat;
     initialize_neutrons(gridx, blockx, DeviceMem,width,banksize); 
     // plot initial distribution
 #if defined(__SCATTERPLOT)
@@ -196,7 +198,7 @@ int main(int argc, char **argv){
 	sprintf(name1,"%d",ibat);strcpy(name2,"batch_cnt");strcat(name2,name1);
 	writeh5_nxm_(name, "tally",name2, HostMem.batcnt, &intone, &tnum_bin);
 #endif
-	banksize = flushbank(DeviceMem,HostMem,banksize,400.0,gridsize);
+	banksize = flushbank(DeviceMem,HostMem,banksize,400.0,num_src);
 	allOld = (0==banksize);
       }
 #if defined(__SCATTERPLOT)
