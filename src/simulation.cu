@@ -68,7 +68,7 @@ __device__ void add(float *v1, float* v2, float multi){
 }
 
 #if defined(__TRAN)
-__global__ void history(MemStruct DeviceMem, unsigned num_src,unsigned active,unsigned banksize){
+__global__ void history(MemStruct DeviceMem, unsigned num_src,unsigned active,unsigned banksize,float p2){
   float a = wdspp[0];
   float b=a;
   float c=a;
@@ -175,8 +175,7 @@ __global__ void history(MemStruct DeviceMem, unsigned num_src,unsigned active,un
       else{
 	if(rnd>Pc){ //fission
 	  rnd = curand_uniform_double(&localState);
-	  //live = 2*(rnd<=0.55)+3*(rnd>0.55);
-	  live = 2*(rnd<=0.5)+3*(rnd>0.5);
+	  live = 2*(rnd<=p2)+3*(rnd>p2);
 	  //printf("id=%d,fission to %d, time=%.3e\n",id,live,time);
 	}
 	else{  //rnd<Pc, capture, nothing to do
