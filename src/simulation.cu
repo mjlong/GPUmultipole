@@ -68,7 +68,7 @@ __device__ void add(float *v1, float* v2, float multi){
 }
 
 #if defined(__TRAN)
-__global__ void history(MemStruct DeviceMem, unsigned num_src,unsigned active,unsigned banksize,float p2){
+__global__ void history(MemStruct DeviceMem, unsigned num_src,unsigned active,unsigned shift,float p2){
   float a = wdspp[0];
   float b=a;
   float c=a;
@@ -88,7 +88,7 @@ __global__ void history(MemStruct DeviceMem, unsigned num_src,unsigned active,un
   float s;//min s
   float time=0.0;//real time
 
-  int id = blockDim.x * blockIdx.x + threadIdx.x;
+  int id = blockDim.x * blockIdx.x + threadIdx.x + shift;
   curandState localState = DeviceMem.nInfo.rndState[id];
 
   //extern __shared__ unsigned blockTerminated[];
