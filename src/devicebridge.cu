@@ -83,6 +83,7 @@ unsigned setbank(MemStruct DeviceMem, MemStruct HostMem, unsigned gridsize){
 #endif
 
 int flushbank(MemStruct DeviceMem, MemStruct HostMem,unsigned lastpop,float a,unsigned gridsize){
+  //gridsize = num_src = factor*gridx*blockx
   gpuErrchk(cudaMemcpy(HostMem.nInfo.pos_x,DeviceMem.nInfo.pos_x,sizeof(float)*gridsize, cudaMemcpyDeviceToHost));  
   gpuErrchk(cudaMemcpy(HostMem.nInfo.pos_y,DeviceMem.nInfo.pos_y,sizeof(float)*gridsize, cudaMemcpyDeviceToHost));  
   gpuErrchk(cudaMemcpy(HostMem.nInfo.pos_z,DeviceMem.nInfo.pos_z,sizeof(float)*gridsize, cudaMemcpyDeviceToHost)); 
@@ -180,7 +181,11 @@ int count_pop(int *live, int gridsize){
 
 #if defined(__3D)&&defined(__TRAN)
 void transient_neutrons(unsigned gridx, unsigned blockx, MemStruct DeviceMem, unsigned num_src,unsigned active,unsigned banksize,float p2){
-  history<<<gridx, blockx/*, blockx*sizeof(unsigned)*/>>>(DeviceMem, num_src,active,banksize,p2);
+  int i;
+  for(i=0;(i*gridx*blockx)<num_src;i++){
+    //printf("i=%d/%d\n",i,num_src/(gridx*blockx));
+    history<<<gridx, blockx/*, blockx*sizeof(unsigned)*/>>>(DeviceMem, num_src,active,i*gridx*blockx,p2);
+  }
 } 
 #else
 void start_neutrons(unsigned gridx, unsigned blockx, MemStruct DeviceMem, unsigned num_src,unsigned active,unsigned banksize){
