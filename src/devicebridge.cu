@@ -121,7 +121,7 @@ int flushbank(MemStruct DeviceMem, MemStruct HostMem,unsigned lastpop,float a,un
       }
       //printf("      live[%d] is changed from %d to -2\n",j,HostMem.nInfo.live[j]);
       if(j>=gridsize){
-	printf("error bankover flow\n");
+	printf("error bank overflow\n");
 	exit(-1);
       }
       unlivestart = j+1; //update unlive start
