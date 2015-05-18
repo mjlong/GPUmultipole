@@ -9,7 +9,10 @@
 */
 
 void initialize_neutrons(unsigned gridx, unsigned blockx,MemStruct DeviceMem,float width,int banksize){
-  initialize<<<gridx, blockx>>>(DeviceMem,width,banksize);
+  int i=0;
+  for(i=0;(i*gridx*blockx)<banksize;i++){
+    initialize<<<gridx, blockx>>>(DeviceMem,width,banksize,i*gridx*blockx);
+  }
 }
 
 #if defined(__SCATTERPLOT)

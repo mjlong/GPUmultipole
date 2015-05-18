@@ -1,9 +1,9 @@
 #include "simulation.h" 
 
 extern __constant__ float wdspp[];
-__global__ void initialize(MemStruct pInfo,float width, int banksize){
+__global__ void initialize(MemStruct pInfo,float width, int banksize,int shift){
   //int id = ((blockDim.x*blockDim.y*blockDim.z)*(blockIdx.y*gridDim.x+blockIdx.x)+(blockDim.x*blockDim.y)*threadIdx.z+blockDim.x*threadIdx.y+threadIdx.x);//THREADID;
-  int id = blockDim.x * blockIdx.x + threadIdx.x;
+  int id = blockDim.x * blockIdx.x + threadIdx.x + shift;
   /* Each thread gets same seed, a different sequence number, no offset */
   curand_init(id*7546861334684321478, id, id+14412078966483154, &(pInfo.nInfo.rndState[id]));
 
