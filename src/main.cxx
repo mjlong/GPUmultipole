@@ -173,7 +173,7 @@ int main(int argc, char **argv){
     //==================== Transient ===============================================
     //==============================================================================
     int allOld=0;
-    banksize = gridsize/4;
+    banksize = gridsize;
     num_src = gridsize*ubat;
     initialize_neutrons(gridx, blockx, DeviceMem,width,banksize); 
     // plot initial distribution
@@ -209,17 +209,17 @@ int main(int argc, char **argv){
       strcpy(name2,"z");    strcat(name2,name1); writeh5_nxm_(name, "scatterplot",name2,HostMem.nInfo.pos_z,  &intone, &gridsize);
       strcpy(name2,"color");strcat(name2,name1); writeh5_nxm_(name, "scatterplot",name2,HostMem.nInfo.energy, &intone, &gridsize);
 #endif
-      banksize = count_pop(HostMem.nInfo.live,gridsize);
+      banksize = count_pop(HostMem.nInfo.live,num_src);
       allOld=0;
       if(0==banksize){
 	printf("exiting: neutrons die out\n");
 	break;
       }
 #if defined(__TALLY)
-      resettally(DeviceMem.tally.cnt, tnum_bin*gridsize);
+      resettally(DeviceMem.tally.cnt, tnum_bin*num_src);
 #endif
     }
-#endif
+#endif //end if transient
 
     clock_end   = clock();
     time_elapsed = (float)(clock_end-clock_start)/CLOCKS_PER_SEC*1000.f;
