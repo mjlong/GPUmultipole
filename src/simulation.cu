@@ -78,7 +78,7 @@ __global__ void history(MemStruct DeviceMem, unsigned num_src,unsigned active,un
   float Ps = 1-(wdspp[3]+wdspp[4]);
   float Pc = Ps+wdspp[4];
 
-  float deltat = 1.0/(wdspp[3]*2.45*wdspp[6]);
+  float deltat = wdspp[2]/(wdspp[3]*2.5*wdspp[6]);
   float n[3] = {0.0, 0.0,0.0};
   float v[3];
 
