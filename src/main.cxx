@@ -150,7 +150,6 @@ int main(int argc, char **argv){
     for(ibat=0;ibat<num_bat;ibat++){
       start_neutrons(gridx, blockx, DeviceMem, num_src,1,banksize);
       //active = count_neutrons(gridx, blockx, DeviceMem, HostMem,num_src);
-
       banksize = setbank(DeviceMem, HostMem, gridsize);
       printf("[%3d]%4d-->%4d: \n", ibat,gridsize,banksize);
 #if defined(__TALLY)
@@ -167,7 +166,7 @@ int main(int argc, char **argv){
       strcpy(name2,"z");    strcat(name2,name1); writeh5_nxm_(name, "scatterplot",name2,HostMem.nInfo.pos_z,  &intone, &gridsize);
       strcpy(name2,"color");strcat(name2,name1); writeh5_nxm_(name, "scatterplot",name2,HostMem.nInfo.energy, &intone, &gridsize);
 #endif
-    }
+      }
 #else 
     //==============================================================================
     //==================== Transient ===============================================

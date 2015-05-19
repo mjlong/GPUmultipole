@@ -47,6 +47,7 @@ typedef struct {
   int *block_terminated_neutrons;
   int *num_terminated_neutrons;
   int *num_live_neutrons;
+  int *initial_delayed;
   CMPTYPE *block_spectrum;
   CMPTYPE *spectrum;
   double *batchmeans;
