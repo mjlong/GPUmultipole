@@ -174,9 +174,9 @@ int flushbank(MemStruct DeviceMem, MemStruct HostMem,unsigned lastpop,float a,un
 
       inp2 += 1; //second next generation population counter
       livi-=1; HostMem.nInfo.live[i]-=1;
-    }
+    }//end assigning new neutrons
     i++;
-  }
+  }//end loop over neutron bank
   //for(int i=0;i<gridsize;i++)
   //  printf("%2d ", HostMem.nInfo.live[i]);
   //printf("[n:%d?=%d]\n",inp,inp2);
