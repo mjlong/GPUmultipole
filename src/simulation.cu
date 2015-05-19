@@ -27,9 +27,9 @@ __device__ void neutron_sample(NeutronInfoStruct nInfo, unsigned id,float width)
   nInfo.dir_polar[id] = curand_uniform(&state)*2-1;
   nInfo.dir_azimu[id] = curand_uniform(&state)*PI*2;
   nInfo.d_closest[id] = 0.0; //used as time
-  nInfo.pos_x[id] =width*curand_uniform_double(&state);
-  nInfo.pos_y[id] =width*curand_uniform_double(&state); 
-  nInfo.pos_z[id] =width*curand_uniform_double(&state); 
+  nInfo.pos_x[id] =width*curand_uniform_double(&state);//width/PI*acos(1-2*curand_uniform_double(&state))//;
+  nInfo.pos_y[id] =width*curand_uniform_double(&state);//width/PI*acos(1-2*curand_uniform_double(&state))//; 
+  nInfo.pos_z[id] =width*curand_uniform_double(&state);//width/PI*acos(1-2*curand_uniform_double(&state))//; 
 #else
   nInfo.pos_x[id] =width/PI*acos(1-2*curand_uniform_double(&state));//width*curand_uniform_double(&state);// 
   nInfo.pos_y[id] =width/PI*acos(1-2*curand_uniform_double(&state));//width*curand_uniform_double(&state);// 
