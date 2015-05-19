@@ -11,6 +11,7 @@
 void initialize_neutrons(unsigned gridx, unsigned blockx,MemStruct DeviceMem,float width,int banksize){
   int i=0;
   for(i=0;(i*gridx*blockx)<banksize;i++){
+  //  printf("init... %d:%d/%d\n",i*gridx*blockx,(i+1)*gridx*blockx,banksize);
     initialize<<<gridx, blockx>>>(DeviceMem,width,banksize,i*gridx*blockx);
   }
 }
@@ -125,7 +126,7 @@ int flushbank(MemStruct DeviceMem, MemStruct HostMem,unsigned lastpop,float a,un
       }
       //printf("      live[%d] is changed from %d to -2\n",j,HostMem.nInfo.live[j]);
       if(j>=gridsize){
-	printf("error bank overflow\n");
+        printf("error bank overflow\n");
 	exit(-1);
       }
       unlivestart = j+1; //update unlive start
@@ -184,7 +185,7 @@ int count_pop(int *live, int gridsize){
 
 #if defined(__3D)&&defined(__TRAN)
 void transient_neutrons(unsigned gridx, unsigned blockx, MemStruct DeviceMem, unsigned num_src,unsigned active,unsigned banksize,float p2){
-  int i;
+  int i=0;
   for(i=0;(i*gridx*blockx)<num_src;i++){
     //printf("i=%d/%d\n",i,num_src/(gridx*blockx));
     history<<<gridx, blockx/*, blockx*sizeof(unsigned)*/>>>(DeviceMem, num_src,active,i*gridx*blockx,p2);
