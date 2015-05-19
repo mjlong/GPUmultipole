@@ -136,11 +136,20 @@ int flushbank(MemStruct DeviceMem, MemStruct HostMem,unsigned lastpop,float a,un
     //printf("i=%d, ilp=%d, lastpop=%d, live=%d\n",i,ilp,lastpop,livi);
 
     while(1<livi){
-      //live=1 continue; 
-      //live=0 didn't run; 
-      //live=-1 terminated; 
-      //live=-2 refreshed by host
+      //====================Possibilities from device===========================
+      //live= 1 continue; 
       //live>1 fission to live neutrons
+      //live=-1 terminated; 
+      //live= 0 terminated last batch, didn't run; 
+      //live=-3 reach time boundary
+      //live=-4 reach time boundary last batch, didn't run
+      //====================Possibilities to device=============================
+      //live=-4,-3 live unchanged till all reach time boundary
+      //live=-1, 0 could have been refreshed but not yet
+      //live=-1,-3 is different from 0,-4 because the former should be counted as last batch population
+      //live=-2 refreshed by host
+
+
       j = unlivestart;
       while((1<=HostMem.nInfo.live[j])||(-1>HostMem.nInfo.live[j])){//live==-1 or 0 can be refreshed
 	j++;
