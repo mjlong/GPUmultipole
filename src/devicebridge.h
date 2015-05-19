@@ -1,5 +1,6 @@
 #ifndef __DEVICEBRIDGE_H__
 #define __DEVICEBRIDGE_H__
+#include <stdlib.h> //srand, rand
 
 void printdevice();
 void initialize_neutrons(unsigned gridx, unsigned blockx,MemStruct DeviceMem,float, int banksize,int num_src);
@@ -8,6 +9,7 @@ void copyinitial(MemStruct DeviceMem, MemStruct HostMem, unsigned gridsize);
 #endif
 
 #if defined(__TRAN)
+void initialize_precursors(int nbat, int banksize, CMPTYPE lambda, CMPTYPE bnsv, CMPTYPE deltat,MemStruct HostMem);
 void transient_neutrons(unsigned gridx, unsigned blockx, MemStruct DeviceMem, unsigned num_src,unsigned active,unsigned banksize,float p2);
 #else
 void     start_neutrons(unsigned gridx, unsigned blockx, MemStruct DeviceMem, unsigned num_src,unsigned active,unsigned banksize);

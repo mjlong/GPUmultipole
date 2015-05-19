@@ -16,6 +16,24 @@ void initialize_neutrons(unsigned gridx, unsigned blockx,MemStruct DeviceMem,flo
   }
 }
 
+#if defined(__TRAN)
+void initialize_precursors(int nbat, int banksize, CMPTYPE lambda, CMPTYPE bnsv, CMPTYPE deltat, MemStruct HostMem){
+  int c0 = int(bnsv/lambda*banksize);
+  int igen;
+  CMPTYPE rndt;
+  printf("banksize=%d,c0=%d\n",banksize,c0);
+  srand(100);
+  for(int ic=0;ic<c0;ic++){
+    rndt = -log(rand()*1.0/RAND_MAX)/lambda;
+    igen = int(rndt/deltat);
+    //printf("%5d\n",igen);
+    if(igen<nbat){
+      HostMem.initial_delayed[igen]++;
+    }
+  }
+}
+#endif
+
 #if defined(__SCATTERPLOT)
 void copyinitial(MemStruct DeviceMem, MemStruct HostMem, unsigned gridsize){
   gpuErrchk(cudaMemcpy(HostMem.nInfo.pos_x,DeviceMem.nInfo.pos_x,sizeof(float)*gridsize, cudaMemcpyDeviceToHost));  
