@@ -23,7 +23,6 @@ void copydata(MemStruct DeviceMem, MemStruct HostMem){
 void initialize_memory(MemStruct *DeviceMem, MemStruct *HostMem, unsigned numbins, unsigned gridx, unsigned blockx,unsigned nbat,unsigned ubat){
   unsigned gridsize;
 #if defined(__TRAN)
-  gpuErrchk(cudaMalloc((void**)&((*DeviceMem).initial_delayed), nbat*sizeof(int)));
   (*HostMem).initial_delayed = (int*)malloc(sizeof(int)*nbat);  
   gridsize = gridx*blockx*ubat;
   //for __TALLY, ubat is used as tranfac
@@ -173,7 +172,6 @@ void release_memory(MemStruct DeviceMem, MemStruct HostMem){
   free(HostMem.nInfo.dir_polar);
   free(HostMem.nInfo.dir_azimu);
   free(HostMem.nInfo.d_closest);
-  gpuErrchk(cudaFree(DeviceMem.initial_delayed));
   gpuErrchk(cudaFree(DeviceMem.nInfo.dir_polar));
   gpuErrchk(cudaFree(DeviceMem.nInfo.dir_azimu));
   gpuErrchk(cudaFree(DeviceMem.nInfo.d_closest));
