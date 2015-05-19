@@ -172,9 +172,12 @@ int main(int argc, char **argv){
     //==================== Transient ===============================================
     //==============================================================================
     int allOld=0;
+    CMPTYPE beta=0.01;
+    CMPTYPE lambda = log(2.0)/10.0;
     banksize = gridsize;
     num_src = gridsize*ubat;
     initialize_neutrons(gridx, blockx, DeviceMem,width,banksize,num_src); 
+    initialize_precursors(num_bat,banksize,lambda,beta*2.5*sigt*pf*v1,1.0/(sigt*pf*2.5*v1),HostMem);
     // plot initial distribution
 #if defined(__SCATTERPLOT)
     copyinitial(DeviceMem, HostMem, gridsize);
