@@ -8,9 +8,9 @@
   allocating device memory, transfering data and partitioning computation sources
 */
 
-void initialize_neutrons(unsigned gridx, unsigned blockx,MemStruct DeviceMem,float width,int banksize){
+void initialize_neutrons(unsigned gridx, unsigned blockx,MemStruct DeviceMem,float width,int banksize,int num_src){
   int i=0;
-  for(i=0;(i*gridx*blockx)<banksize;i++){
+  for(i=0;(i*gridx*blockx)<num_src;i++){
   //  printf("init... %d:%d/%d\n",i*gridx*blockx,(i+1)*gridx*blockx,banksize);
     initialize<<<gridx, blockx>>>(DeviceMem,width,banksize,i*gridx*blockx);
   }

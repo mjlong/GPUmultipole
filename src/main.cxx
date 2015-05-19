@@ -175,7 +175,7 @@ int main(int argc, char **argv){
     int allOld=0;
     banksize = gridsize;
     num_src = gridsize*ubat;
-    initialize_neutrons(gridx, blockx, DeviceMem,width,banksize); 
+    initialize_neutrons(gridx, blockx, DeviceMem,width,banksize,num_src); 
     // plot initial distribution
 #if defined(__SCATTERPLOT)
     copyinitial(DeviceMem, HostMem, gridsize);

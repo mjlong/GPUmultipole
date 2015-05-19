@@ -2,7 +2,7 @@
 #define __DEVICEBRIDGE_H__
 
 void printdevice();
-void initialize_neutrons(unsigned gridx, unsigned blockx,MemStruct DeviceMem,float, int banksize);
+void initialize_neutrons(unsigned gridx, unsigned blockx,MemStruct DeviceMem,float, int banksize,int num_src);
 #if defined(__SCATTERPLOT)
 void copyinitial(MemStruct DeviceMem, MemStruct HostMem, unsigned gridsize);
 #endif
