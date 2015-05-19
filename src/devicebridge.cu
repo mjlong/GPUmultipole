@@ -23,6 +23,9 @@ void initialize_precursors(int nbat, int banksize, CMPTYPE lambda, CMPTYPE bnsv,
   CMPTYPE rndt;
   printf("banksize=%d,c0=%d\n",banksize,c0);
   srand(100);
+  for(int ig=0;ig<nbat;ig++){
+    HostMem.initial_delayed[ig]=0;
+  }
   for(int ic=0;ic<c0;ic++){
     rndt = -log(rand()*1.0/RAND_MAX)/lambda;
     igen = int(rndt/deltat);
