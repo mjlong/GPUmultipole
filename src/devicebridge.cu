@@ -14,11 +14,38 @@ void initialize_neutrons(unsigned gridx, unsigned blockx,MemStruct DeviceMem,flo
   //  printf("init... %d:%d/%d\n",i*gridx*blockx,(i+1)*gridx*blockx,banksize);
     initialize<<<gridx, blockx>>>(DeviceMem,width,banksize,i*gridx*blockx);
   }
+  gpuErrchk(cudaDeviceSynchronize());  
 }
 
 #if defined(__TRAN)
-void add_delayed_neutrons(MemStruct DeviceMem, MemStruct HostMem, int ibat, CMPTYPE lambda, CMPTYPE deltat, int num_src){
-  add_delayed<<<1,1>>>(DeviceMem, HostMem.initial_delayed[ibat], lambda, deltat, num_src);
+void host_add_delayed(MemStruct DeviceMem, MemStruct HostMem, int num_init_delay, CMPTYPE lambda, CMPTYPE deltat, int num_src,float width){
+  int id=0; int idn=0;
+  gpuErrchk(cudaMemcpy(HostMem.nInfo.live,DeviceMem.nInfo.live,sizeof(int)*num_src, cudaMemcpyDeviceToHost));    
+  while( (idn<num_init_delay)&&(id<num_src) ){
+    if(1!=HostMem.nInfo.live[id]){
+      //live=-1,0,1, add delayed neutrons to live=-1 or 0
+      HostMem.nInfo.live[id] = 1; 
+      //sampling position, direction and time
+
+      HostMem.nInfo.dir_polar[id] = (rand()*1.0/RAND_MAX)*2-1;
+      HostMem.nInfo.dir_azimu[id] = (rand()*1.0/RAND_MAX)*PI*2;
+      HostMem.nInfo.d_closest[id] = -log(1-(1-exp(-lambda*deltat))*(rand()*1.0/RAND_MAX))/lambda  ; //used as time
+      HostMem.nInfo.pos_x[id] =width*(rand()*1.0/RAND_MAX);
+      HostMem.nInfo.pos_y[id] =width*(rand()*1.0/RAND_MAX); 
+      HostMem.nInfo.pos_z[id] =width*(rand()*1.0/RAND_MAX); 
+      idn++;
+    }//end adding a delayed neutron to source at id
+    id++;
+  }
+  gpuErrchk(cudaMemcpy(DeviceMem.nInfo.live,HostMem.nInfo.live,sizeof(int)*num_src, cudaMemcpyHostToDevice));    
+  //printf("[delayed] added %d neutrons\n",idn);
+  if( (num_src==id)&&(idn<num_init_delay))
+    printf("[Warning]:insufficient storage for %d delayed neutrons\n", num_init_delay-idn);
+}
+
+
+void add_delayed_neutrons(MemStruct DeviceMem, MemStruct HostMem, int ibat, CMPTYPE lambda, CMPTYPE deltat, int num_src,int shift){
+  add_delayed<<<1,1>>>(DeviceMem, HostMem.initial_delayed[ibat], lambda, deltat, num_src,shift);
   //gpuErrchk(cudaDeviceSynchronize());
   gpuErrchk(cudaMemcpy(HostMem.nInfo.live,DeviceMem.nInfo.live,sizeof(int)*num_src, cudaMemcpyDeviceToHost));    
   //for(int i=0;i<num_src;i++)
@@ -44,7 +71,7 @@ void initialize_precursors(int nbat, int banksize, CMPTYPE lambda, CMPTYPE bnsv,
   }
   //for(int ig=0;ig<nbat;ig++)
   //  printf("%d ",HostMem.initial_delayed[ig]);
-  //printf("\n");
+  printf("Initial delayed neutrons assigned\n");
 }
 #endif
 
