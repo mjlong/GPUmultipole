@@ -24,6 +24,7 @@ void initialize_memory(MemStruct *DeviceMem, MemStruct *HostMem, unsigned numbin
   unsigned gridsize;
 #if defined(__TRAN)
   (*HostMem).initial_delayed = (int*)malloc(sizeof(int)*nbat);  
+  (*HostMem).newly_delayed   = (int*)malloc(sizeof(int)*nbat);  
   gridsize = gridx*blockx*ubat;
   //for __TALLY, ubat is used as tranfac
 
@@ -178,6 +179,7 @@ void release_memory(MemStruct DeviceMem, MemStruct HostMem){
   free(HostMem.nInfo.d_igen );
 
   free(HostMem.initial_delayed);
+  free(HostMem.newly_delayed);
   free(HostMem.nInfo.dir_polar);
   free(HostMem.nInfo.dir_azimu);
   free(HostMem.nInfo.d_closest);
