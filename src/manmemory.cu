@@ -27,12 +27,7 @@ void initialize_memory(MemStruct *DeviceMem, MemStruct *HostMem, unsigned numbin
   gridsize = gridx*blockx*ubat;
   //for __TALLY, ubat is used as tranfac
 
-  (*HostMem).nInfo.d_pos_x = (float*)malloc(sizeof(float)*gridsize);
-  (*HostMem).nInfo.d_pos_y = (float*)malloc(sizeof(float)*gridsize);
-  (*HostMem).nInfo.d_pos_z = (float*)malloc(sizeof(float)*gridsize);
-  (*HostMem).nInfo.d_time  = (float*)malloc(sizeof(float)*gridsize);
-  (*HostMem).nInfo.d_igen  = (int*)malloc(sizeof(int)*gridsize);
-  (*HostMem).nInfo.d_nu    = (int*)malloc(sizeof(int)*gridsize);
+
 #else
   gridsize = gridx*blockx;
 #endif
