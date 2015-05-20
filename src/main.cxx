@@ -36,6 +36,7 @@ int main(int argc, char **argv){
   char name[50];
   int mode; //0=run only; 1=process only; 2=run & process
   int isSteady=0;
+
   if(argc>=8+1){//run or run+process
     gridx = atoi(argv[1]);
     blockx = atoi(argv[2]);
@@ -115,7 +116,13 @@ int main(int argc, char **argv){
   HostMem.wdspp[4] = pc;
   HostMem.wdspp[5] = num_bin;
 #if defined(__TRAN)
+  CMPTYPE beta=0.01;
+  CMPTYPE lambda = log(2.0)/10.0;
+  CMPTYPE deltat = 1.0/(sigt*pf*2.5*v1);
+
   HostMem.wdspp[6] = v1;
+  HostMem.wdspp[7] = beta;
+  HostMem.wdspp[8] = lambda;
 #endif
   double ref = 1.0/(HostMem.wdspp[3]+HostMem.wdspp[4])/width;
   // note this only works for flat
@@ -172,9 +179,6 @@ int main(int argc, char **argv){
     //==================== Transient ===============================================
     //==============================================================================
     int allOld=0;
-    CMPTYPE beta=0.01;
-    CMPTYPE lambda = log(2.0)/10.0;
-    CMPTYPE deltat = 1.0/(sigt*pf*2.5*v1);
     banksize = gridsize;
     num_src = gridsize*ubat;
 printf("init....\n");
