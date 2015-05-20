@@ -52,26 +52,38 @@ void add_delayed_neutrons(MemStruct DeviceMem, MemStruct HostMem, int ibat, CMPT
   //  printf("%2d ", HostMem.nInfo.live[i]);
   //printf("\n");
 }
-void initialize_precursors(int nbat, int banksize, CMPTYPE lambda, CMPTYPE bnsv, CMPTYPE deltat, MemStruct HostMem){
+int initialize_precursors(int nbat, int banksize, int num_src, CMPTYPE lambda, CMPTYPE bnsv, CMPTYPE deltat, MemStruct* HostMem){
   int c0 = int(bnsv/lambda*banksize);
   int igen;
   CMPTYPE rndt;
   printf("banksize=%d,c0=%d\n",banksize,c0);
   srand(100);
   for(int ig=0;ig<nbat;ig++){
-    HostMem.initial_delayed[ig]=0;
+    (*HostMem).initial_delayed[ig]=0;
   }
   for(int ic=0;ic<c0;ic++){
     rndt = -log(rand()*1.0/RAND_MAX)/lambda;
     igen = int(rndt/deltat);
     //printf("%5d\n",igen);
     if(igen<nbat){
-      HostMem.initial_delayed[igen]++;
+      ((*HostMem).initial_delayed[igen])++;
     }
   }
-  //for(int ig=0;ig<nbat;ig++)
-  //  printf("%d ",HostMem.initial_delayed[ig]);
+  for(int ig=0;ig<nbat;ig++)
+    printf("%d ",((*HostMem).initial_delayed)[ig]);
   printf("Initial delayed neutrons assigned\n");
+
+  int csize = (int(num_src*(*HostMem).wdspp[3]*(*HostMem).wdspp[7]*10)+1)*nbat;
+  printf("csize=%d*%.5f*%.5f*10=%d\n",num_src,(*HostMem).wdspp[3],(*HostMem).wdspp[7], csize);
+  (*HostMem).nInfo.d_pos_x = (float*)malloc(sizeof(float)*csize);
+  (*HostMem).nInfo.d_pos_y = (float*)malloc(sizeof(float)*csize);
+  (*HostMem).nInfo.d_pos_z = (float*)malloc(sizeof(float)*csize);
+  (*HostMem).nInfo.d_time  = (float*)malloc(sizeof(float)*csize);
+  (*HostMem).nInfo.d_igen  = (int*)malloc(sizeof(int)*csize);
+  (*HostMem).nInfo.d_nu    = (int*)malloc(sizeof(int)*csize);
+  for(int i=0;i<csize;i++)
+    ((*HostMem).nInfo.d_igen)[i] = -1;
+  return csize/nbat;
 }
 #endif
 
@@ -146,7 +158,7 @@ unsigned setbank(MemStruct DeviceMem, MemStruct HostMem, unsigned gridsize){
 #endif
 
 
-int flushbank(MemStruct DeviceMem, MemStruct HostMem,unsigned lastpop,float a,unsigned gridsize){
+int flushbank(MemStruct DeviceMem, MemStruct HostMem,unsigned lastpop,float a,unsigned gridsize, int ibat, int nbat){
   //gridsize = num_src = factor*gridx*blockx
   gpuErrchk(cudaMemcpy(HostMem.nInfo.pos_x,DeviceMem.nInfo.pos_x,sizeof(float)*gridsize, cudaMemcpyDeviceToHost));  
   gpuErrchk(cudaMemcpy(HostMem.nInfo.pos_y,DeviceMem.nInfo.pos_y,sizeof(float)*gridsize, cudaMemcpyDeviceToHost));  
@@ -163,13 +175,42 @@ int flushbank(MemStruct DeviceMem, MemStruct HostMem,unsigned lastpop,float a,un
   //printf("[l:%d]\n",lastpop);
 
   unsigned unlivestart=0;
-  int i,j,ilp,inp,inp2,livi;
-  ilp = 0; i=0; inp=0; inp2=0;
+  int i,j,ilp,inp,inp2,livi,igen,ic;
+  ilp = 0; i=0; inp=0; inp2=0;ic=0;
+  float time;
+  float deltat = HostMem.wdspp[2]/(HostMem.wdspp[3]*2.5*HostMem.wdspp[6]); 
+  int csize = (int(gridsize*(HostMem).wdspp[3]*(HostMem).wdspp[7]*10)+1)*nbat;  
   while((ilp<lastpop)&&(i<gridsize)){// I assert ilp reaches lastpop no later than i reaches gridsize
     livi = HostMem.nInfo.live[i];
+    time = HostMem.nInfo.d_closest[i];
     //*allOld = (*allOld)&&((livi<=-3));
 
     ilp += (0!=livi)&&(-2!=livi)&&(-4!=livi); 
+    // ============treat delayed neutrons generated last batch==================
+    if(livi>10){
+      igen = ibat+int(time/deltat);
+      //printf("time=%.4e,igen=%d\n",time,igen);
+      if(igen<nbat){
+	while( (ic<csize)&&( HostMem.nInfo.d_igen[ic]>ibat) ){
+	  ic++;
+	}//end while ic
+	if(csize>ic){
+	  HostMem.nInfo.d_igen[ic]  = igen; 
+	  HostMem.nInfo.d_pos_x[ic] = HostMem.nInfo.pos_x[i];
+	  HostMem.nInfo.d_pos_y[ic] = HostMem.nInfo.pos_y[i];
+	  HostMem.nInfo.d_pos_z[ic] = HostMem.nInfo.pos_z[i];
+	  HostMem.nInfo.d_nu[ic]    = livi/10;
+	  HostMem.nInfo.d_time[ic]  = time - (igen-ibat)*deltat;
+	  //printf("time=%.4e\n",time- (igen-ibat)*deltat);
+	}
+	else
+	  printf("[Warning]: insufficient memory for newly delayed neutrons\n");
+	
+      }// end if igen<nbat
+      livi = 0; 
+      HostMem.nInfo.live[i]=0;
+    }//end if livi>10, fission is delayed
+    //==========================================================================
     inp += (1<=livi)*livi;
     inp2+= (1<=livi);
     //printf("i=%d, ilp=%d, lastpop=%d, live=%d\n",i,ilp,lastpop,livi);
@@ -187,7 +228,6 @@ int flushbank(MemStruct DeviceMem, MemStruct HostMem,unsigned lastpop,float a,un
       //live=-1, 0 could have been refreshed but not yet
       //live=-1,-3 is different from 0,-4 because the former should be counted as last batch population
       //live=-2 refreshed by host
-
 
       j = unlivestart;
       while((1<=HostMem.nInfo.live[j])||(-1>HostMem.nInfo.live[j])){//live==-1 or 0 can be refreshed
@@ -219,6 +259,35 @@ int flushbank(MemStruct DeviceMem, MemStruct HostMem,unsigned lastpop,float a,un
   //for(int i=0;i<gridsize;i++)
   //  printf("%2d ", HostMem.nInfo.live[i]);
   //printf("[n:%d?=%d]\n",inp,inp2);
+  //============================================================================
+  //=============== Add new delayed neutrons ===================================
+  printf(".... add newly delayed\n");
+  for(ic=0;ic<csize;ic++){
+    printf(" ..... ic=%d\n",ic);
+    if(ibat==HostMem.nInfo.d_igen[ic]){
+      livi = HostMem.nInfo.d_nu[ic];
+      inp += livi; 
+      while(0<livi){
+	j = unlivestart;
+	while((1<=HostMem.nInfo.live[j])||(-1>HostMem.nInfo.live[j])){//live==-1 or 0 can be refreshed
+	  j++;
+	}//end search in grid
+	if(j>=gridsize){
+	  printf("error bank overflow\n");
+	  exit(-1);
+	}
+	unlivestart = j+1; //update unlive start
+	HostMem.nInfo.pos_x[j] = HostMem.nInfo.d_pos_x[ic];
+	HostMem.nInfo.pos_y[j] = HostMem.nInfo.d_pos_y[ic];
+	HostMem.nInfo.pos_z[j] = HostMem.nInfo.d_pos_z[ic];
+	HostMem.nInfo.d_closest[j] = HostMem.nInfo.d_time[ic];
+	HostMem.nInfo.live[j] = -2;
+	inp2 += 1; //second next generation population counter
+	livi-=1;
+      }//end assigning 
+    }  //end if there exist neutron delayed at this generation
+  }    //end search in delayed bank
+  //============================================================================
 
   if(0==inp){
     for(int i=0;i<gridsize;i++){
