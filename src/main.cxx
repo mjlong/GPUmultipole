@@ -181,10 +181,10 @@ int main(int argc, char **argv){
     int allOld=0;
     banksize = gridsize;
     num_src = gridsize*ubat;
-printf("init....\n");
+    printf("init....\n");
     initialize_neutrons(gridx, blockx, DeviceMem,width,banksize,num_src); 
     int csize = initialize_precursors(num_bat,banksize,num_src,lambda,beta*2.5*sigt*pf*v1,deltat,&HostMem);
-add_delayed_neutrons(DeviceMem, HostMem, 0, lambda, deltat, num_src,banksize);
+    add_delayed_neutrons(DeviceMem, HostMem, 0, lambda, deltat, num_src,banksize);
 //host_add_delayed(DeviceMem, HostMem, HostMem.initial_delayed[0], lambda, deltat, num_src,width);
 //printf("%d addded\n",HostMem.initial_delayed[0]);
 banksize += HostMem.initial_delayed[0];
@@ -211,6 +211,7 @@ banksize += HostMem.initial_delayed[0];
 	writeh5_nxm_(name, "tally",name2, HostMem.batcnt, &intone, &tnum_bin);
 #endif
 	banksize = flushbank(DeviceMem,HostMem,banksize,400.0,num_src,ibat,num_bat);
+	//printf("flushed, banksize-->%d\n",banksize);
 	allOld = (0==banksize);
       }
 #if defined(__SCATTERPLOT)
@@ -223,6 +224,7 @@ banksize += HostMem.initial_delayed[0];
 #endif
       if(ibat<(num_bat-1)){
 	add_delayed_neutrons(DeviceMem, HostMem, ibat+1, lambda, deltat, num_src,0);
+	add_new_delayed(DeviceMem, HostMem, num_src, ibat, num_bat);
       }
       banksize = count_pop(HostMem.nInfo.live,num_src);
 
