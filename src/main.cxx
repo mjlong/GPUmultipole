@@ -177,9 +177,12 @@ int main(int argc, char **argv){
     CMPTYPE deltat = 1.0/(sigt*pf*2.5*v1);
     banksize = gridsize;
     num_src = gridsize*ubat;
+printf("init....\n");
     initialize_neutrons(gridx, blockx, DeviceMem,width,banksize,num_src); 
     initialize_precursors(num_bat,banksize,lambda,beta*2.5*sigt*pf*v1,deltat,HostMem);
-add_delayed_neutrons(DeviceMem, HostMem, 0, lambda, deltat, num_src);
+add_delayed_neutrons(DeviceMem, HostMem, 0, lambda, deltat, num_src,banksize);
+//host_add_delayed(DeviceMem, HostMem, HostMem.initial_delayed[0], lambda, deltat, num_src,width);
+//printf("%d addded\n",HostMem.initial_delayed[0]);
 banksize += HostMem.initial_delayed[0];
     // plot initial distribution
 #if defined(__SCATTERPLOT)
@@ -215,7 +218,7 @@ banksize += HostMem.initial_delayed[0];
       strcpy(name2,"color");strcat(name2,name1); writeh5_nxm_(name, "scatterplot",name2,HostMem.nInfo.energy, &intone, &gridsize);
 #endif
       if(ibat<(num_bat-1)){
-         add_delayed_neutrons(DeviceMem, HostMem, ibat+1, lambda, deltat, num_src);
+	add_delayed_neutrons(DeviceMem, HostMem, ibat+1, lambda, deltat, num_src,0);
       }
       banksize = count_pop(HostMem.nInfo.live,num_src);
 
