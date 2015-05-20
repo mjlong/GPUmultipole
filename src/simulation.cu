@@ -146,7 +146,7 @@ __global__ void history(MemStruct DeviceMem, unsigned num_src,unsigned active,un
   float z = DeviceMem.nInfo.pos_z[id];//curand_uniform(&localState)*c;
 
   time    = DeviceMem.nInfo.d_closest[id]; 
-  
+
   
   v[0] = sqrt(1.0-mu*mu)*cos(phi);
   v[1] = sqrt(1.0-mu*mu)*sin(phi);
@@ -208,7 +208,10 @@ __global__ void history(MemStruct DeviceMem, unsigned num_src,unsigned active,un
 	if(rnd>Pc){ //fission
 	  rnd = curand_uniform_double(&localState);
 	  live = 2*(rnd<=p2)+3*(rnd>p2);
-	  //printf("id=%d,fission to %d, time=%.3e\n",id,live,time);
+	  //printf("id=%d,fission to %d, time=%.3e\n",id,live,time);	  
+	  rnd = curand_uniform_double(&localState);
+	  live = live*( (rnd<wdspp[7])*10+(rnd>=wdspp[7])*1  );
+	  time = time + (rnd<wdspp[7])*(-log(curand_uniform_double(&localState))/wdspp[8]) +(rnd>=wdspp[7])*0   ;
 	}
 	else{  //rnd<Pc, capture, nothing to do
 	  live = -1;
