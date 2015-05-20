@@ -174,10 +174,13 @@ int main(int argc, char **argv){
     int allOld=0;
     CMPTYPE beta=0.01;
     CMPTYPE lambda = log(2.0)/10.0;
+    CMPTYPE deltat = 1.0/(sigt*pf*2.5*v1);
     banksize = gridsize;
     num_src = gridsize*ubat;
     initialize_neutrons(gridx, blockx, DeviceMem,width,banksize,num_src); 
-    initialize_precursors(num_bat,banksize,lambda,beta*2.5*sigt*pf*v1,1.0/(sigt*pf*2.5*v1),HostMem);
+    initialize_precursors(num_bat,banksize,lambda,beta*2.5*sigt*pf*v1,deltat,HostMem);
+add_delayed_neutrons(DeviceMem, HostMem, 0, lambda, deltat, num_src);
+banksize += HostMem.initial_delayed[0];
     // plot initial distribution
 #if defined(__SCATTERPLOT)
     copyinitial(DeviceMem, HostMem, gridsize);
@@ -194,7 +197,7 @@ int main(int argc, char **argv){
       printf("ibat=%5d, banksize=%d\n",ibat,banksize);
       pops[ibat] = banksize;
       while(!allOld){
-        transient_neutrons(gridx, blockx, DeviceMem, num_src,1,banksize,3-2.5*(1.0*(ibat<100)  + 1.002*(ibat>=100)));
+        transient_neutrons(gridx, blockx, DeviceMem, num_src,1,banksize,3-2.5*(1.0*(ibat<100)  + 1.002*(ibat>=100)));//don't worry, banksize is not used
 #if defined(__TALLY)
 	save_results(ibat,gridx,blockx, tnum_bin, DeviceMem, HostMem);
 	sprintf(name1,"%d",ibat);strcpy(name2,"batch_cnt");strcat(name2,name1);
@@ -211,7 +214,11 @@ int main(int argc, char **argv){
       strcpy(name2,"z");    strcat(name2,name1); writeh5_nxm_(name, "scatterplot",name2,HostMem.nInfo.pos_z,  &intone, &gridsize);
       strcpy(name2,"color");strcat(name2,name1); writeh5_nxm_(name, "scatterplot",name2,HostMem.nInfo.energy, &intone, &gridsize);
 #endif
+      if(ibat<(num_bat-1)){
+         add_delayed_neutrons(DeviceMem, HostMem, ibat+1, lambda, deltat, num_src);
+      }
       banksize = count_pop(HostMem.nInfo.live,num_src);
+
       allOld=0;
       if(0==banksize){
 	printf("exiting: neutrons die out\n");
