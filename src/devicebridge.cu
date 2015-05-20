@@ -17,6 +17,14 @@ void initialize_neutrons(unsigned gridx, unsigned blockx,MemStruct DeviceMem,flo
 }
 
 #if defined(__TRAN)
+void add_delayed_neutrons(MemStruct DeviceMem, MemStruct HostMem, int ibat, CMPTYPE lambda, CMPTYPE deltat, int num_src){
+  add_delayed<<<1,1>>>(DeviceMem, HostMem.initial_delayed[ibat], lambda, deltat, num_src);
+  //gpuErrchk(cudaDeviceSynchronize());
+  gpuErrchk(cudaMemcpy(HostMem.nInfo.live,DeviceMem.nInfo.live,sizeof(int)*num_src, cudaMemcpyDeviceToHost));    
+  //for(int i=0;i<num_src;i++)
+  //  printf("%2d ", HostMem.nInfo.live[i]);
+  //printf("\n");
+}
 void initialize_precursors(int nbat, int banksize, CMPTYPE lambda, CMPTYPE bnsv, CMPTYPE deltat, MemStruct HostMem){
   int c0 = int(bnsv/lambda*banksize);
   int igen;
@@ -34,6 +42,9 @@ void initialize_precursors(int nbat, int banksize, CMPTYPE lambda, CMPTYPE bnsv,
       HostMem.initial_delayed[igen]++;
     }
   }
+  //for(int ig=0;ig<nbat;ig++)
+  //  printf("%d ",HostMem.initial_delayed[ig]);
+  //printf("\n");
 }
 #endif
 
@@ -106,6 +117,7 @@ unsigned setbank(MemStruct DeviceMem, MemStruct HostMem, unsigned gridsize){
   return j;
 }
 #endif
+
 
 int flushbank(MemStruct DeviceMem, MemStruct HostMem,unsigned lastpop,float a,unsigned gridsize){
   //gridsize = num_src = factor*gridx*blockx

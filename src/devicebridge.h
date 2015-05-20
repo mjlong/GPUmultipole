@@ -9,6 +9,7 @@ void copyinitial(MemStruct DeviceMem, MemStruct HostMem, unsigned gridsize);
 #endif
 
 #if defined(__TRAN)
+void add_delayed_neutrons(MemStruct DeviceMem, MemStruct HostMem, int ibat, CMPTYPE lambda, CMPTYPE delta, int num_src);
 void initialize_precursors(int nbat, int banksize, CMPTYPE lambda, CMPTYPE bnsv, CMPTYPE deltat,MemStruct HostMem);
 void transient_neutrons(unsigned gridx, unsigned blockx, MemStruct DeviceMem, unsigned num_src,unsigned active,unsigned banksize,float p2);
 #else
