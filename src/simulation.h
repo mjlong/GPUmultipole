@@ -18,7 +18,7 @@ __device__ unsigned notleak(float x,float a);
 //__1D only has steady state solver
 //__3D only has reflective BC solver
 #if defined(__TRAN)&&defined(__3D)
-__global__ void add_delayed(MemStruct DeviceMem, int num_init_delay, CMPTYPE lambda, CMPTYPE deltat, int num_src);
+__global__ void add_delayed(MemStruct DeviceMem, int num_init_delay, CMPTYPE lambda, CMPTYPE deltat, int num_src,int shift);
 __global__ void history(MemStruct DeviceMem, unsigned num_src,unsigned active,unsigned banksize,float p2);
 #else
 __global__ void history(MemStruct DeviceMem, unsigned num_src,unsigned active,unsigned banksize);

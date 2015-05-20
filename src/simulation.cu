@@ -2,8 +2,8 @@
 
 extern __constant__ float wdspp[];
 
-__global__ void add_delayed(MemStruct DeviceMem, int num_init_delay, CMPTYPE lambda, CMPTYPE deltat, int num_src){
-  int id=0; int idn=0;
+__global__ void add_delayed(MemStruct DeviceMem, int num_init_delay, CMPTYPE lambda, CMPTYPE deltat, int num_src,int shift){
+  int id=shift; int idn=0;
   curandState state;
   while( (idn<num_init_delay)&&(id<num_src) ){
     if(1!=DeviceMem.nInfo.live[id]){
