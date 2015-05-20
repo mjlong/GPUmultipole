@@ -119,6 +119,8 @@ int main(int argc, char **argv){
   CMPTYPE beta=0.01;
   CMPTYPE lambda = log(2.0)/10.0;
   CMPTYPE deltat = 1.0/(sigt*pf*2.5*v1);
+  writeh5_nxm_(name,"/","beta",    &(beta),    &intone, &intone);
+  writeh5_nxm_(name,"/","lambda",  &(lambda),  &intone, &intone);
 
   HostMem.wdspp[6] = v1;
   HostMem.wdspp[7] = beta;
@@ -250,7 +252,9 @@ banksize += HostMem.initial_delayed[0];
 #if !defined(__TRAN)
     writeh5_nxm_(name, "/","num_history",&(gridsize),  &intone, &intone);
 #else
-    writeh5_nxm_(name, "/","neutron_pop",pops,  &intone, &num_bat);
+    writeh5_nxm_(name, "/","neutron_pop",  pops,  &intone, &num_bat);
+    writeh5_nxm_(name, "/","initi_delayed",HostMem.initial_delayed, &intone, &(num_bat));
+    writeh5_nxm_(name, "/","newly_delayed",HostMem.newly_delayed,   &intone, &(num_bat));
     free(pops);
 #endif
 
