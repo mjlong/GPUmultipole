@@ -39,6 +39,13 @@ typedef struct {
   float* d_closest;
   CMPTYPE *isoenergy;
   curandState *rndState;
+
+  float* d_pos_x;
+  float* d_pos_y;
+  float* d_pos_z;
+  float* d_time;
+  int*   d_igen;
+  int*   d_nu;
 }NeutronInfoStruct;
 
 typedef struct {
