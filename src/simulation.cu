@@ -146,7 +146,7 @@ __global__ void history(MemStruct DeviceMem, unsigned num_src,unsigned active,un
   float z = DeviceMem.nInfo.pos_z[id];//curand_uniform(&localState)*c;
 
   time    = DeviceMem.nInfo.d_closest[id]; 
-
+  //if(time<0) printf("  id=%d,time=%.3e\n",id,time);	  
   
   v[0] = sqrt(1.0-mu*mu)*cos(phi);
   v[1] = sqrt(1.0-mu*mu)*sin(phi);
@@ -158,9 +158,11 @@ __global__ void history(MemStruct DeviceMem, unsigned num_src,unsigned active,un
   
     t = intersectbox(x,y,z,a,b,c,v[0],v[1],v[2]);
     //printf("\n id=%2d, from (%.10e,%.10e,%.10e) along (%.10e,%.10e,%.10e)\n", blockDim.x * blockIdx.x + threadIdx.x,x,y,z,v[0],v[1],v[2]);
+    //if(t<0) printf("  id=%2d, from (%.10e,%.10e,%.10e) along (%.10e,%.10e,%.10e)\n", id,x,y,z,v[0],v[1],v[2]);
+    if(t<0){      time=0; live=-1; } //geometry bug;
     s = min(l,min(t,(deltat-time)*wdspp[6]));
     x=x+s*v[0]; y=y+s*v[1]; z=z+s*v[2]; time = time+s/wdspp[6];
-
+    //if(time<0) printf("  after move id=%d,time becomes %.3e\n",id,time);	  
     if(t==s){//reflect
       //if slow, i can use the specific form for the box, which is changing sign of reflected component
       if((x-0)<TEPSILON)
@@ -212,6 +214,7 @@ __global__ void history(MemStruct DeviceMem, unsigned num_src,unsigned active,un
 	  rnd = curand_uniform_double(&localState);
 	  live = live*( (rnd<wdspp[7])*10+(rnd>=wdspp[7])*1  );
 	  time = time + (rnd<wdspp[7])*(-log(curand_uniform_double(&localState))/wdspp[8]) +(rnd>=wdspp[7])*0   ;
+	  //printf("  id=%d,fission to %d, time=%.3e\n",id,live,time);	  
 	}
 	else{  //rnd<Pc, capture, nothing to do
 	  live = -1;
@@ -230,6 +233,7 @@ __global__ void history(MemStruct DeviceMem, unsigned num_src,unsigned active,un
   //Info.thread_active[id] =  blockDim.x*gridDim.x + *Info.num_terminated_neutrons < num_src;
   /* Copy state back to global memory */ 
   DeviceMem.nInfo.d_closest[id]= time;
+  //if(time<0) printf("  id=%d, time=%.3e to be saved\n",id,time);	    
   DeviceMem.nInfo.rndState[id] = localState; 
   DeviceMem.nInfo.pos_x[id] = x;
   DeviceMem.nInfo.pos_y[id] = y;
