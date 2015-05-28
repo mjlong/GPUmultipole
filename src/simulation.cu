@@ -157,7 +157,6 @@ __global__ void history(MemStruct DeviceMem, unsigned num_src,int shift,unsigned
   DeviceMem.nInfo.pos_z[id] = z;
   DeviceMem.nInfo.rndState[id] = localState; 
 }
-#endif //end tran or steady
 #endif //end if 3D
 
 #if defined(__1D)
