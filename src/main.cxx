@@ -22,7 +22,7 @@ void printdone();
 int main(int argc, char **argv){
   clock_t clock_start, clock_end;
   float time_elapsed = 0.f;
-  printbless();
+  //printbless();
 //============================================================ 
 //====================calculation dimension===================
 //============================================================
@@ -127,7 +127,7 @@ int main(int argc, char **argv){
     //======================Steady State ===========================================
     //==============================================================================
     banksize = gridx*blockx*ubat;
-    initialize_neutrons(gridx, blockx, DeviceMem,width,banksize,banksize); 
+    initialize_neutrons(gridx, blockx, DeviceMem,width,banksize,ubat); 
     // plot initial distribution
 #if defined(__SCATTERPLOT)
     copyinitial(DeviceMem, HostMem, gridsize);
@@ -138,7 +138,7 @@ int main(int argc, char **argv){
     strcpy(name2,"color");strcat(name2,name1); writeh5_nxm_(name, "scatterplot",name2,HostMem.nInfo.energy, &intone, &gridsize);
 #endif
     for(ibat=0;ibat<num_bat;ibat++){
-      start_neutrons(gridx, blockx, DeviceMem, num_src,1,banksize);
+      start_neutrons(gridx, blockx, DeviceMem, ubat,1,banksize);
       //active = count_neutrons(gridx, blockx, DeviceMem, HostMem,num_src);
       banksize = setbank(DeviceMem, HostMem, num_src);
       printf("[%3d]%4d-->%4d: \n", ibat,num_src,banksize);
@@ -329,7 +329,7 @@ int main(int argc, char **argv){
 
 
 
-#define BLESS "[缪]"
+#define BLESS "[]"
 void printbless(){
   printf(BLESS"                     _oo0oo_                  \n");  
   printf(BLESS"                    o8888888o                 \n");
