@@ -47,10 +47,6 @@ int main(int argc, char **argv){
     sigt  = atof(argv[6]);
     pf    = atof(argv[7]);
     pc    = atof(argv[8]);
-#if defined(__TRAN)
-    v1 = atof(argv[9]);
-    ubat = atoi(argv[10]);
-#endif
     mode = 0;   //run only
     if(argc>=11+1){
       ubat = atoi(argv[9]);
@@ -75,11 +71,7 @@ int main(int argc, char **argv){
 #if defined(__1D)
   strcpy(name,"R1dRawcnt"); 
 #else
-#if defined(__TRAN)//3D transient
-  strcpy(name,"R3tRawcnt"); 
-#else              //3D steady state
   strcpy(name,"R3dRawcnt"); 
-#endif
 #endif
   strcat(name,name1); strcat(name,name3); strcat(name,".h5");
   createmptyh5(name); //create empty file for future add dataset
@@ -115,17 +107,6 @@ int main(int argc, char **argv){
   HostMem.wdspp[3] = pf;
   HostMem.wdspp[4] = pc;
   HostMem.wdspp[5] = num_bin;
-#if defined(__TRAN)
-  CMPTYPE beta=0.01;
-  CMPTYPE lambda = log(2.0)/10.0;
-  CMPTYPE deltat = 1.0/(sigt*pf*2.5*v1);
-  writeh5_nxm_(name,"/","beta",    &(beta),    &intone, &intone);
-  writeh5_nxm_(name,"/","lambda",  &(lambda),  &intone, &intone);
-
-  HostMem.wdspp[6] = v1;
-  HostMem.wdspp[7] = beta;
-  HostMem.wdspp[8] = lambda;
-#endif
   double ref = 1.0/(HostMem.wdspp[3]+HostMem.wdspp[4])/width;
   // note this only works for flat
   copydata(DeviceMem,HostMem);
@@ -141,7 +122,6 @@ int main(int argc, char **argv){
     active = 1;
 
     clock_start = clock();
-#if !defined(__TRAN)
     //==============================================================================
     //======================Steady State ===========================================
     //==============================================================================
@@ -176,70 +156,6 @@ int main(int argc, char **argv){
       strcpy(name2,"color");strcat(name2,name1); writeh5_nxm_(name, "scatterplot",name2,HostMem.nInfo.energy, &intone, &gridsize);
 #endif
       }
-#else 
-    //==============================================================================
-    //==================== Transient ===============================================
-    //==============================================================================
-    int allOld=0;
-    banksize = gridsize;
-    num_src = gridsize*ubat;
-    printf("init....\n");
-    initialize_neutrons(gridx, blockx, DeviceMem,width,banksize,num_src); 
-    int csize = initialize_precursors(num_bat,banksize,num_src,lambda,beta*2.5*sigt*pf*v1,deltat,&HostMem);
-    add_delayed_neutrons(DeviceMem, HostMem, 0, lambda, deltat, num_src,banksize);
-//host_add_delayed(DeviceMem, HostMem, HostMem.initial_delayed[0], lambda, deltat, num_src,width);
-//printf("%d addded\n",HostMem.initial_delayed[0]);
-banksize += HostMem.initial_delayed[0];
-    // plot initial distribution
-#if defined(__SCATTERPLOT)
-    copyinitial(DeviceMem, HostMem, gridsize);
-    sprintf(name1,"%d",ibat);
-    strcpy(name2,"live"); strcat(name2,name1); writeh5_nxm_(name, "scatterplot",name2,HostMem.nInfo.live,   &intone, &gridsize);
-    strcpy(name2,"x");    strcat(name2,name1); writeh5_nxm_(name, "scatterplot",name2,HostMem.nInfo.pos_x,  &intone, &gridsize);
-    strcpy(name2,"y");    strcat(name2,name1); writeh5_nxm_(name, "scatterplot",name2,HostMem.nInfo.pos_y,  &intone, &gridsize);
-    strcpy(name2,"z");    strcat(name2,name1); writeh5_nxm_(name, "scatterplot",name2,HostMem.nInfo.pos_z,  &intone, &gridsize);
-    strcpy(name2,"color");strcat(name2,name1); writeh5_nxm_(name, "scatterplot",name2,HostMem.nInfo.energy, &intone, &gridsize);
-#endif
-
-    int *pops = (int*)malloc(sizeof(int)*num_bat);
-    for(ibat=0;ibat<num_bat;ibat++){
-      printf("ibat=%5d, banksize=%d\n",ibat,banksize);
-      pops[ibat] = banksize;
-      while(!allOld){
-        transient_neutrons(gridx, blockx, DeviceMem, num_src,1,banksize,3-2.5*(1.0*(ibat<100)  + 1.002*(ibat>=100)));//don't worry, banksize is not used
-#if defined(__TALLY)
-	save_results(ibat,gridx,blockx, tnum_bin, DeviceMem, HostMem);
-	sprintf(name1,"%d",ibat);strcpy(name2,"batch_cnt");strcat(name2,name1);
-	writeh5_nxm_(name, "tally",name2, HostMem.batcnt, &intone, &tnum_bin);
-#endif
-	banksize = flushbank(DeviceMem,HostMem,banksize,400.0,num_src,ibat,num_bat);
-	//printf("flushed, banksize-->%d\n",banksize);
-	allOld = (0==banksize);
-      }
-#if defined(__SCATTERPLOT)
-      sprintf(name1,"%d",ibat+1);
-      strcpy(name2,"live"); strcat(name2,name1); writeh5_nxm_(name, "scatterplot",name2,HostMem.nInfo.live,   &intone, &gridsize);
-      strcpy(name2,"x");    strcat(name2,name1); writeh5_nxm_(name, "scatterplot",name2,HostMem.nInfo.pos_x,  &intone, &gridsize);
-      strcpy(name2,"y");    strcat(name2,name1); writeh5_nxm_(name, "scatterplot",name2,HostMem.nInfo.pos_y,  &intone, &gridsize);
-      strcpy(name2,"z");    strcat(name2,name1); writeh5_nxm_(name, "scatterplot",name2,HostMem.nInfo.pos_z,  &intone, &gridsize);
-      strcpy(name2,"color");strcat(name2,name1); writeh5_nxm_(name, "scatterplot",name2,HostMem.nInfo.energy, &intone, &gridsize);
-#endif
-      if(ibat<(num_bat-1)){
-	add_delayed_neutrons(DeviceMem, HostMem, ibat+1, lambda, deltat, num_src,0);
-	add_new_delayed(DeviceMem, HostMem, num_src, ibat, num_bat);
-      }
-      banksize = count_pop(HostMem.nInfo.live,num_src);
-
-      allOld=0;
-      if(0==banksize){
-	printf("exiting: neutrons die out\n");
-	break;
-      }
-#if defined(__TALLY)
-      resettally(DeviceMem.tally.cnt, tnum_bin*num_src);
-#endif
-    }
-#endif //end if transient
 
     clock_end   = clock();
     time_elapsed = (float)(clock_end-clock_start)/CLOCKS_PER_SEC*1000.f;
@@ -249,14 +165,7 @@ banksize += HostMem.initial_delayed[0];
     //============================================================================
     //==================== Write raw cnt to a hdf5 file ==========================
     //============================================================================
-#if !defined(__TRAN)
     writeh5_nxm_(name, "/","num_history",&(gridsize),  &intone, &intone);
-#else
-    writeh5_nxm_(name, "/","neutron_pop",  pops,  &intone, &num_bat);
-    writeh5_nxm_(name, "/","initi_delayed",HostMem.initial_delayed, &intone, &(num_bat));
-    writeh5_nxm_(name, "/","newly_delayed",HostMem.newly_delayed,   &intone, &(num_bat));
-    free(pops);
-#endif
 
   }//end if (1!=mode) 
 
