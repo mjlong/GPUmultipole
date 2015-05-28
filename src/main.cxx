@@ -166,7 +166,7 @@ int main(int argc, char **argv){
     //============================================================================
     //==================== Write raw cnt to a hdf5 file ==========================
     //============================================================================
-    writeh5_nxm_(name, "/","num_history",&(gridsize),  &intone, &intone);
+    writeh5_nxm_(name, "/","num_history",&(num_src),  &intone, &intone);
 
   }//end if (1!=mode) 
 
