@@ -18,7 +18,7 @@ __device__ unsigned notleak(float x,float a);
 //__1D only has steady state solver
 //__3D only has reflective BC solver
 #if defined(__3D)
-__global__ void history(MemStruct DeviceMem, unsigned num_src,unsigned active,unsigned banksize);
+__global__ void history(MemStruct DeviceMem, unsigned num_src,int shift,unsigned banksize);
 #endif
 
 #define TEPSILON 1.0e-5

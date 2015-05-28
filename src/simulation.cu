@@ -2,32 +2,6 @@
 
 extern __constant__ float wdspp[];
 
-__global__ void add_delayed(MemStruct DeviceMem, int num_init_delay, CMPTYPE lambda, CMPTYPE deltat, int num_src,int shift){
-  int id=shift; int idn=0;
-  curandState state;
-  while( (idn<num_init_delay)&&(id<num_src) ){
-    if(1!=DeviceMem.nInfo.live[id]){
-      //live=-1,0,1, add delayed neutrons to live=-1 or 0
-      DeviceMem.nInfo.live[id] = 1; 
-      //sampling position, direction and time
-      state = DeviceMem.nInfo.rndState[id];
-      DeviceMem.nInfo.dir_polar[id] = curand_uniform(&state)*2-1;
-      DeviceMem.nInfo.dir_azimu[id] = curand_uniform(&state)*PI*2;
-      DeviceMem.nInfo.d_closest[id] = -log(1-(1-exp(-lambda*deltat))*curand_uniform(&state))/lambda  ; //used as time
-      DeviceMem.nInfo.pos_x[id] =wdspp[0]*curand_uniform_double(&state);
-      DeviceMem.nInfo.pos_y[id] =wdspp[0]*curand_uniform_double(&state); 
-      DeviceMem.nInfo.pos_z[id] =wdspp[0]*curand_uniform_double(&state); 
-      DeviceMem.nInfo.rndState[id] = state;
-      idn++;
-    }//end adding a delayed neutron to source at id
-    id++;
-  }
-  //printf("[delayed] added %d neutrons\n",idn);
-  if( (num_src==id)&&(idn<num_init_delay))
-    printf("[Warning]:insufficient storage for %d delayed neutrons\n", num_init_delay-idn);
-}
-
-
 __global__ void initialize(MemStruct pInfo,float width, int banksize,int shift){
   //int id = ((blockDim.x*blockDim.y*blockDim.z)*(blockIdx.y*gridDim.x+blockIdx.x)+(blockDim.x*blockDim.y)*threadIdx.z+blockDim.x*threadIdx.y+threadIdx.x);//THREADID;
   int id = blockDim.x * blockIdx.x + threadIdx.x + shift;
@@ -89,7 +63,7 @@ __device__ void add(float *v1, float* v2, float multi){
   v1[2]+=v2[2]*multi;
 }
 
-__global__ void history(MemStruct DeviceMem, unsigned num_src,unsigned active,unsigned banksize){
+__global__ void history(MemStruct DeviceMem, unsigned num_src,int shift,unsigned banksize){
   float a = wdspp[0];
   float b=a;
   float c=a;
@@ -106,7 +80,7 @@ __global__ void history(MemStruct DeviceMem, unsigned num_src,unsigned active,un
   float t;//length to boundary
   float s;
 
-  int id = blockDim.x * blockIdx.x + threadIdx.x;
+  int id = blockDim.x * blockIdx.x + threadIdx.x + shift;
   curandState localState = DeviceMem.nInfo.rndState[id];
   int nid = int(curand_uniform_double(&localState)*banksize);
   //extern __shared__ unsigned blockTerminated[];
