@@ -17,8 +17,9 @@ void copydata(MemStruct DeviceMem, MemStruct HostMem){
   gpuErrchk(cudaMemcpyToSymbol(wdspp, DeviceMem.wdspp, 9*sizeof(float), 0, cudaMemcpyDeviceToDevice));
 }
 void initialize_memory(MemStruct *DeviceMem, MemStruct *HostMem, unsigned numbins, unsigned gridx, unsigned blockx,unsigned nbat,unsigned ubat){
-  unsigned gridsize;
-  gridsize = gridx*blockx*ubat;
+  unsigned gridsize,banksize;
+  gridsize = gridx*blockx;
+  banksize = gridx*blockx*ubat;
   //for __TALLY, ubat is used as tranfac
 
 #if defined(__TALLY)
@@ -42,43 +43,43 @@ void initialize_memory(MemStruct *DeviceMem, MemStruct *HostMem, unsigned numbin
   (*HostMem).wdspp = (float*)malloc(sizeof(float)*9);
 
 
-  (*HostMem).nInfo.live  = (int*)malloc(sizeof(int)*gridsize);
+  (*HostMem).nInfo.live  = (int*)malloc(sizeof(int)*banksize);
 
   gpuErrchk(cudaMalloc((void**)&((*DeviceMem).wdspp), 9*sizeof(float)));
 
 
-  gpuErrchk(cudaMalloc((void**)&((*DeviceMem).nInfo.id),       gridsize*sizeof(unsigned)));
-  gpuErrchk(cudaMalloc((void**)&((*DeviceMem).nInfo.live),       gridsize*sizeof(unsigned)));
-  gpuErrchk(cudaMemset((*DeviceMem).nInfo.live, 0, gridsize*sizeof(int)));  
+  gpuErrchk(cudaMalloc((void**)&((*DeviceMem).nInfo.id),       banksize*sizeof(unsigned)));
+  gpuErrchk(cudaMalloc((void**)&((*DeviceMem).nInfo.live),       banksize*sizeof(unsigned)));
+  gpuErrchk(cudaMemset((*DeviceMem).nInfo.live, 0, banksize*sizeof(int)));  
 
-  gpuErrchk(cudaMalloc((void**)&((*DeviceMem).nInfo.rndState), gridsize*sizeof(curandState)));
+  gpuErrchk(cudaMalloc((void**)&((*DeviceMem).nInfo.rndState), banksize*sizeof(curandState)));
 
 #if defined(__WASTE)
-  gpuErrchk(cudaMalloc((void**)&((*DeviceMem).nInfo.energy),   gridsize*sizeof(CMPTYPE)));
-  gpuErrchk(cudaMalloc((void**)&((*DeviceMem).nInfo.sigT),   gridsize*sizeof(CMPTYPE)));
-  gpuErrchk(cudaMalloc((void**)&((*DeviceMem).nInfo.sigA),   gridsize*sizeof(CMPTYPE)));
-  gpuErrchk(cudaMalloc((void**)&((*DeviceMem).nInfo.sigF),   gridsize*sizeof(CMPTYPE)));
-  gpuErrchk(cudaMalloc((void**)&((*DeviceMem).nInfo.isoenergy),gridsize*sizeof(CMPTYPE)));
-  gpuErrchk(cudaMalloc((void**)&((*DeviceMem).nInfo.imat),  gridsize*sizeof(int)));
+  gpuErrchk(cudaMalloc((void**)&((*DeviceMem).nInfo.energy),   banksize*sizeof(CMPTYPE)));
+  gpuErrchk(cudaMalloc((void**)&((*DeviceMem).nInfo.sigT),   banksize*sizeof(CMPTYPE)));
+  gpuErrchk(cudaMalloc((void**)&((*DeviceMem).nInfo.sigA),   banksize*sizeof(CMPTYPE)));
+  gpuErrchk(cudaMalloc((void**)&((*DeviceMem).nInfo.sigF),   banksize*sizeof(CMPTYPE)));
+  gpuErrchk(cudaMalloc((void**)&((*DeviceMem).nInfo.isoenergy),banksize*sizeof(CMPTYPE)));
+  gpuErrchk(cudaMalloc((void**)&((*DeviceMem).nInfo.imat),  banksize*sizeof(int)));
 #endif
 
 #if defined(__SCATTERPLOT)
-  (*HostMem).nInfo.energy  = (CMPTYPE*)malloc(sizeof(CMPTYPE)*gridsize);
-  gpuErrchk(cudaMalloc((void**)&((*DeviceMem).nInfo.energy),   gridsize*sizeof(CMPTYPE))); //use as initial z position for plot
+  (*HostMem).nInfo.energy  = (CMPTYPE*)malloc(sizeof(CMPTYPE)*banksize);
+  gpuErrchk(cudaMalloc((void**)&((*DeviceMem).nInfo.energy),   banksize*sizeof(CMPTYPE))); //use as initial z position for plot
 #endif
 
 #if defined(__1D)
-  gpuErrchk(cudaMalloc((void**)&((*DeviceMem).nInfo.pos_x),3*gridsize*sizeof(float)));
-  gpuErrchk(cudaMalloc((void**)&((*DeviceMem).nInfo.pos_y),gridsize*sizeof(float)));
+  gpuErrchk(cudaMalloc((void**)&((*DeviceMem).nInfo.pos_x),3*banksize*sizeof(float)));
+  gpuErrchk(cudaMalloc((void**)&((*DeviceMem).nInfo.pos_y),banksize*sizeof(float)));
 #endif 
 
 #if defined(__3D)
-  (*HostMem).nInfo.pos_x = (float*)malloc(sizeof(float)*gridsize);
-  (*HostMem).nInfo.pos_y = (float*)malloc(sizeof(float)*gridsize);
-  (*HostMem).nInfo.pos_z = (float*)malloc(sizeof(float)*gridsize);
-  gpuErrchk(cudaMalloc((void**)&((*DeviceMem).nInfo.pos_x),3*gridsize*sizeof(float)));
-  gpuErrchk(cudaMalloc((void**)&((*DeviceMem).nInfo.pos_y),3*gridsize*sizeof(float)));
-  gpuErrchk(cudaMalloc((void**)&((*DeviceMem).nInfo.pos_z),3*gridsize*sizeof(float)));
+  (*HostMem).nInfo.pos_x = (float*)malloc(sizeof(float)*banksize);
+  (*HostMem).nInfo.pos_y = (float*)malloc(sizeof(float)*banksize);
+  (*HostMem).nInfo.pos_z = (float*)malloc(sizeof(float)*banksize);
+  gpuErrchk(cudaMalloc((void**)&((*DeviceMem).nInfo.pos_x),3*banksize*sizeof(float)));
+  gpuErrchk(cudaMalloc((void**)&((*DeviceMem).nInfo.pos_y),3*banksize*sizeof(float)));
+  gpuErrchk(cudaMalloc((void**)&((*DeviceMem).nInfo.pos_z),3*banksize*sizeof(float)));
 #endif
 
   gpuErrchk(cudaMalloc((void**)&((*DeviceMem).num_terminated_neutrons), sizeof(unsigned int)));
