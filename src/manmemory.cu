@@ -93,8 +93,8 @@ void initialize_memory(MemStruct *DeviceMem, MemStruct *HostMem, unsigned numbin
   return;
 }
 
-void resettally(int *cnt, unsigned totbins){
-  gpuErrchk(cudaMemset(cnt, 0, totbins*sizeof(int)));}
+void resettally(CMPTYPE *cnt, unsigned totbins){
+  gpuErrchk(cudaMemset(cnt, 0, totbins*sizeof(CMPTYPE)));}
 
 void release_memory(MemStruct DeviceMem, MemStruct HostMem){
 #if defined(__TALLY)
