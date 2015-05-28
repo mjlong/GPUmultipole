@@ -140,8 +140,8 @@ int main(int argc, char **argv){
     for(ibat=0;ibat<num_bat;ibat++){
       start_neutrons(gridx, blockx, DeviceMem, num_src,1,banksize);
       //active = count_neutrons(gridx, blockx, DeviceMem, HostMem,num_src);
-      banksize = setbank(DeviceMem, HostMem, gridsize);
-      printf("[%3d]%4d-->%4d: \n", ibat,gridsize,banksize);
+      banksize = setbank(DeviceMem, HostMem, num_src);
+      printf("[%3d]%4d-->%4d: \n", ibat,num_src,banksize);
 #if defined(__TALLY)
       save_results(ibat,gridx, blockx, tnum_bin, DeviceMem, HostMem);
       sprintf(name1,"%d",ibat);strcpy(name2,"batch_cnt");strcat(name2,name1);
