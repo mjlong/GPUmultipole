@@ -47,6 +47,7 @@ int main(int argc, char **argv){
     sigt  = atof(argv[6]);
     pf    = atof(argv[7]);
     pc    = atof(argv[8]);
+    ubat = atoi(argv[9]);
 #if defined(__TRAN)
     v1 = atof(argv[9]);
     ubat = atoi(argv[10]);
@@ -146,7 +147,8 @@ int main(int argc, char **argv){
     //======================Steady State ===========================================
     //==============================================================================
     banksize = gridx*blockx;
-    initialize_neutrons(gridx, blockx, DeviceMem,width,banksize); 
+    num_src = gridsize*ubat;
+    initialize_neutrons(gridx, blockx, DeviceMem,width,banksize,num_src); 
     // plot initial distribution
 #if defined(__SCATTERPLOT)
     copyinitial(DeviceMem, HostMem, gridsize);
