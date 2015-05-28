@@ -11,7 +11,7 @@ __global__ void initialize(MemStruct pInfo,float width, int banksize,int shift){
   neutron_sample(pInfo.nInfo, id,width);
   pInfo.nInfo.id[id] = id;
 #if defined(__TALLY)
-  pInfo.tally.cnt[id] = 0;
+  pInfo.tally.cnt[id-shift] = 0;
 #endif 
   pInfo.nInfo.live[id] = 1*(id<banksize);
 }
@@ -128,7 +128,7 @@ __global__ void history(MemStruct DeviceMem, unsigned num_src,int shift,unsigned
     }  
     else{
 #if defined(__TALLY)
-      DeviceMem.tally.cnt[ (int(int(x/dx) + int(y/dx)*wdspp[5] + int (z/dx)*wdspp[5]*wdspp[5]) )*gridDim.x*blockDim.x+id  ]+=1;
+      DeviceMem.tally.cnt[ (int(int(x/dx) + int(y/dx)*wdspp[5] + int (z/dx)*wdspp[5]*wdspp[5]) )*gridDim.x*blockDim.x+id -shift ]+=1;
 #endif
       rnd = curand_uniform_double(&localState);
       if(rnd<Ps){
