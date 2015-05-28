@@ -8,9 +8,9 @@
   allocating device memory, transfering data and partitioning computation sources
 */
 
-void initialize_neutrons(unsigned gridx, unsigned blockx,MemStruct DeviceMem,float width,int banksize,int num_src){
+void initialize_neutrons(unsigned gridx, unsigned blockx,MemStruct DeviceMem,float width,int banksize,int ubat){
   int i=0;
-  for(i=0;(i*gridx*blockx)<num_src;i++){
+  for(i=0;i<ubat;i++){
   //  printf("init... %d:%d/%d\n",i*gridx*blockx,(i+1)*gridx*blockx,banksize);
     initialize<<<gridx, blockx>>>(DeviceMem,width,banksize,i*gridx*blockx);
   }
@@ -96,11 +96,11 @@ int count_pop(int *live, int gridsize){
 }
 
 #if defined(__3D)
-void start_neutrons(unsigned gridx, unsigned blockx, MemStruct DeviceMem, unsigned num_src,unsigned active,unsigned banksize){
+void start_neutrons(unsigned gridx, unsigned blockx, MemStruct DeviceMem, unsigned ubat,unsigned active,unsigned banksize){
   int i=0;
-  for(i=0;(i*gridx*blockx)<num_src;i++){//num_src is important as loop index, but useless in history<<<>>>
+  for(i=0;i<ubat;i++){//num_src is important as loop index, but useless in history<<<>>>
     //printf("i=%d/%d\n",i,num_src/(gridx*blockx));
-    history<<<gridx, blockx/*, blockx*sizeof(unsigned)*/>>>(DeviceMem, num_src,i*gridx*blockx,banksize);
+    history<<<gridx, blockx/*, blockx*sizeof(unsigned)*/>>>(DeviceMem, 1,i*gridx*blockx,banksize);
   }
 }
 #endif
