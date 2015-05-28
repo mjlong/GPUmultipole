@@ -47,6 +47,7 @@ int main(int argc, char **argv){
     sigt  = atof(argv[6]);
     pf    = atof(argv[7]);
     pc    = atof(argv[8]);
+    ubat  = atoi(argv[9]);
     mode = 0;   //run only
     if(argc>=11+1){
       ubat = atoi(argv[9]);
@@ -63,7 +64,7 @@ int main(int argc, char **argv){
     readh5_(argv[1],&gridsize,&num_bat,&num_bin,&width,&sigt,&pf,&pc);
 
   }
-  num_src=1;//num_src is not used but appears somewhere
+  num_src=gridx*blockx*ubat;
   char name1[10];  char name2[10];  char name3[10]; 
   sprintf(name1,"_%d",gridsize);
   sprintf(name2,"_%d",ubat);
@@ -125,8 +126,8 @@ int main(int argc, char **argv){
     //==============================================================================
     //======================Steady State ===========================================
     //==============================================================================
-    banksize = gridx*blockx;
-    initialize_neutrons(gridx, blockx, DeviceMem,width,banksize); 
+    banksize = gridx*blockx*ubat;
+    initialize_neutrons(gridx, blockx, DeviceMem,width,banksize,banksize); 
     // plot initial distribution
 #if defined(__SCATTERPLOT)
     copyinitial(DeviceMem, HostMem, gridsize);
