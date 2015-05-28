@@ -7,7 +7,6 @@ __global__ void initialize(MemStruct pInfo,float width, int banksize,int shift){
   int id = blockDim.x * blockIdx.x + threadIdx.x + shift;
   /* Each thread gets same seed, a different sequence number, no offset */
   curand_init(id*7546861334684321478, id, id+14412078966483154, &(pInfo.nInfo.rndState[id]));
-
   neutron_sample(pInfo.nInfo, id,width);
   pInfo.nInfo.id[id] = id;
 #if defined(__TALLY)
@@ -103,6 +102,8 @@ __global__ void history(MemStruct DeviceMem, unsigned num_src,int shift,unsigned
   while(live){
     l = -log(curand_uniform_double(&localState))*mfp;
     t = intersectbox(x,y,z,a,b,c,v[0],v[1],v[2]);
+    if(t<0) printf("warning:t<0\n");
+    if(t>1.0e6) printf("warning:t --> infinity \n");
     s = (l<t)*l+(l>=t)*t;
     x=x+s*v[0]; y=y+s*v[1]; z=z+s*v[2];
     if(t==s){//reflect
