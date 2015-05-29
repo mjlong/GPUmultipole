@@ -139,6 +139,7 @@ int main(int argc, char **argv){
 #endif
     for(ibat=0;ibat<num_bat;ibat++){
       start_neutrons(gridx, blockx, DeviceMem, ubat,1,banksize);
+      //check(gridx,blockx,DeviceMem,ubat);
       //active = count_neutrons(gridx, blockx, DeviceMem, HostMem,num_src);
       banksize = setbank(DeviceMem, HostMem, num_src);
       printf("[%3d]%4d-->%4d: \n", ibat,num_src,banksize);
