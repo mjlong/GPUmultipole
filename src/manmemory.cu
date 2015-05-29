@@ -1,5 +1,5 @@
 #include "manmemory.h"
-__constant__ float wdspp[7];
+__constant__ float wdspp[9];
 //Simulation memory allocate and deallocate
 void initialize_device(){
   cudaSetDevice(0);
@@ -17,16 +17,18 @@ void copymeans(int *h_cnt, int *batcnt, unsigned meshes, unsigned offset){
 }
 
 void copydata(MemStruct DeviceMem, MemStruct HostMem){
-  gpuErrchk(cudaMemcpy(DeviceMem.wdspp,  HostMem.wdspp,   sizeof(float)*7, cudaMemcpyHostToDevice));
-  gpuErrchk(cudaMemcpyToSymbol(wdspp, DeviceMem.wdspp, 7*sizeof(float), 0, cudaMemcpyDeviceToDevice));
+  gpuErrchk(cudaMemcpy(DeviceMem.wdspp,  HostMem.wdspp,   sizeof(float)*9, cudaMemcpyHostToDevice));
+  gpuErrchk(cudaMemcpyToSymbol(wdspp, DeviceMem.wdspp, 9*sizeof(float), 0, cudaMemcpyDeviceToDevice));
 }
 void initialize_memory(MemStruct *DeviceMem, MemStruct *HostMem, unsigned numbins, unsigned gridx, unsigned blockx,unsigned nbat,unsigned ubat){
   unsigned gridsize;
 #if defined(__TRAN)
-  gpuErrchk(cudaMalloc((void**)&((*DeviceMem).initial_delayed), nbat*sizeof(int)));
   (*HostMem).initial_delayed = (int*)malloc(sizeof(int)*nbat);  
+  (*HostMem).newly_delayed   = (int*)malloc(sizeof(int)*nbat);  
   gridsize = gridx*blockx*ubat;
   //for __TALLY, ubat is used as tranfac
+
+
 #else
   gridsize = gridx*blockx;
 #endif
@@ -49,12 +51,12 @@ void initialize_memory(MemStruct *DeviceMem, MemStruct *HostMem, unsigned numbin
 #if defined(__TRAN)&&defined(__TALLY)
   memset((*HostMem).batcnt, 0, sizeof(CMPTYPE)*numbins);
 #endif
-  (*HostMem).wdspp = (float*)malloc(sizeof(float)*7);
+  (*HostMem).wdspp = (float*)malloc(sizeof(float)*9);
 
 
   (*HostMem).nInfo.live  = (int*)malloc(sizeof(int)*gridsize);
 
-  gpuErrchk(cudaMalloc((void**)&((*DeviceMem).wdspp), 7*sizeof(float)));
+  gpuErrchk(cudaMalloc((void**)&((*DeviceMem).wdspp), 9*sizeof(float)));
 
 
   gpuErrchk(cudaMalloc((void**)&((*DeviceMem).nInfo.id),       gridsize*sizeof(unsigned)));
@@ -117,8 +119,8 @@ void initialize_memory(MemStruct *DeviceMem, MemStruct *HostMem, unsigned numbin
   return;
 }
 
-void resettally(int *cnt, unsigned totbins){
-  gpuErrchk(cudaMemset(cnt, 0, totbins*sizeof(int)));}
+void resettally(CMPTYPE *cnt, unsigned totbins){
+  gpuErrchk(cudaMemset(cnt, 0, totbins*sizeof(CMPTYPE)));}
 
 void release_memory(MemStruct DeviceMem, MemStruct HostMem){
 #if defined(__TALLY)
@@ -169,11 +171,18 @@ void release_memory(MemStruct DeviceMem, MemStruct HostMem){
   gpuErrchk(cudaFree(DeviceMem.nInfo.pos_z));
 
 #if defined(__TRAN)
+  free(HostMem.nInfo.d_pos_x);
+  free(HostMem.nInfo.d_pos_y);
+  free(HostMem.nInfo.d_pos_z);
+  free(HostMem.nInfo.d_time );
+  free(HostMem.nInfo.d_nu   );
+  free(HostMem.nInfo.d_igen );
+
   free(HostMem.initial_delayed);
+  free(HostMem.newly_delayed);
   free(HostMem.nInfo.dir_polar);
   free(HostMem.nInfo.dir_azimu);
   free(HostMem.nInfo.d_closest);
-  gpuErrchk(cudaFree(DeviceMem.initial_delayed));
   gpuErrchk(cudaFree(DeviceMem.nInfo.dir_polar));
   gpuErrchk(cudaFree(DeviceMem.nInfo.dir_azimu));
   gpuErrchk(cudaFree(DeviceMem.nInfo.d_closest));

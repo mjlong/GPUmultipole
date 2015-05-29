@@ -39,6 +39,13 @@ typedef struct {
   float* d_closest;
   CMPTYPE *isoenergy;
   curandState *rndState;
+
+  float* d_pos_x;
+  float* d_pos_y;
+  float* d_pos_z;
+  float* d_time;
+  int*   d_igen;
+  int*   d_nu;
 }NeutronInfoStruct;
 
 typedef struct {
@@ -48,6 +55,7 @@ typedef struct {
   int *num_terminated_neutrons;
   int *num_live_neutrons;
   int *initial_delayed;
+  int *newly_delayed;
   CMPTYPE *block_spectrum;
   CMPTYPE *spectrum;
   double *batchmeans;
