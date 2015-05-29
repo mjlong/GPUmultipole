@@ -6,7 +6,8 @@ __global__ void initialize(MemStruct pInfo,float width, int banksize,int shift){
   //int id = ((blockDim.x*blockDim.y*blockDim.z)*(blockIdx.y*gridDim.x+blockIdx.x)+(blockDim.x*blockDim.y)*threadIdx.z+blockDim.x*threadIdx.y+threadIdx.x);//THREADID;
   int id = blockDim.x * blockIdx.x + threadIdx.x + shift;
   /* Each thread gets same seed, a different sequence number, no offset */
-  curand_init(id*7546861334684321478, id, id+14412078966483154, &(pInfo.nInfo.rndState[id]));
+  //curand_init(id*7546861334684321478, id, id+14412078966483154, &(pInfo.nInfo.rndState[id]));
+  curand_init(9798, id, 0, &(pInfo.nInfo.rndState[id]));
   neutron_sample(pInfo.nInfo, id,width);
   pInfo.nInfo.id[id] = id;
 #if defined(__TALLY)
@@ -82,6 +83,7 @@ __global__ void history(MemStruct DeviceMem, unsigned num_src,int shift,unsigned
   int id = blockDim.x * blockIdx.x + threadIdx.x + shift;
   curandState localState = DeviceMem.nInfo.rndState[id];
   int nid = int(curand_uniform_double(&localState)*banksize);
+  //if(100>id) {printf("  id=%d,nid=%d,rnd=%.5f\n",id,nid,curand_uniform_double(&localState));}
   //extern __shared__ unsigned blockTerminated[];
 
   CMPTYPE rnd;
@@ -101,6 +103,7 @@ __global__ void history(MemStruct DeviceMem, unsigned num_src,int shift,unsigned
   //for(istep=0;istep<devstep;istep++){
   while(live){
     l = -log(curand_uniform_double(&localState))*mfp;
+    //if(100>id) printf("  id=%d,l=%.5f\n",id,l);
     t = intersectbox(x,y,z,a,b,c,v[0],v[1],v[2]);
     if(t<0) printf("warning:t<0\n");
     if(t>1.0e6) printf("warning:t --> infinity \n");
@@ -138,12 +141,14 @@ __global__ void history(MemStruct DeviceMem, unsigned num_src,int shift,unsigned
 	v[0] = sqrt(1.0-mu*mu)*cos(phi);
 	v[1] = sqrt(1.0-mu*mu)*sin(phi);
 	v[2] = mu; 
+	//if(100>id) printf("  id=%d, scatter to %.5f\n", id, mu);
       }
       else{
 	live = 0;
 	if(rnd>Pc){ //fission
 	  rnd = curand_uniform_double(&localState);
 	  DeviceMem.nInfo.live[id] = 2*(rnd<=0.55)+3*(rnd>0.55);
+	  //if(100>id) printf("  id=%d, fission to %d\n", id, DeviceMem.nInfo.live[id]);
 	}
 	else{  //rnd<Pc, capture, nothing to do
 	  DeviceMem.nInfo.live[id] = 0;
