@@ -70,6 +70,13 @@ unsigned setbank(MemStruct DeviceMem, MemStruct HostMem, unsigned gridsize){
   gpuErrchk(cudaMemcpy(HostMem.nInfo.pos_z,DeviceMem.nInfo.pos_z,sizeof(float)*gridsize, cudaMemcpyDeviceToHost));  
   gpuErrchk(cudaMemcpy(HostMem.nInfo.live, DeviceMem.nInfo.live ,sizeof(int)*gridsize,   cudaMemcpyDeviceToHost));  
   int live;  unsigned j=0;int k=0;
+  /*
+  for(int i=0;i<gridsize;i++){
+    printf("%d ",HostMem.nInfo.live[i]);
+    if(0==i%100) printf("\n");
+  }
+  */
+  printf("\n");
   for(int i=0;i<gridsize;i++){
     live = HostMem.nInfo.live[i];
     for(k=0;k<live;k++){//live=2 or 3
