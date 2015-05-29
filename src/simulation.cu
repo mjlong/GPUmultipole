@@ -63,6 +63,13 @@ __device__ void add(float *v1, float* v2, float multi){
   v1[2]+=v2[2]*multi;
 }
 
+__global__ void preview_live(MemStruct DeviceMem, int shift){
+  int id = blockDim.x * blockIdx.x + threadIdx.x + shift;
+  int live = DeviceMem.nInfo.live[id];
+  if(34217==id) printf("  checking... live[34217]=%d\n",live);
+  if(live>3) printf("  checking... id=%d,live=%d>3\n",id,live);
+}
+
 __global__ void history(MemStruct DeviceMem, unsigned num_src,int shift,unsigned banksize){
   float a = wdspp[0];
   float b=a;
@@ -98,7 +105,7 @@ __global__ void history(MemStruct DeviceMem, unsigned num_src,int shift,unsigned
   v[1] = sqrt(1.0-mu*mu)*sin(phi);
   v[2] = mu; 
 
-  unsigned live=1;
+  int live=1;
   //printf("[%2d],x=%.5f,pf=%.5f\n",id,DeviceMem.nInfo.pos_x[nid],pf);
   //for(istep=0;istep<devstep;istep++){
   while(live){
@@ -148,10 +155,13 @@ __global__ void history(MemStruct DeviceMem, unsigned num_src,int shift,unsigned
 	if(rnd>Pc){ //fission
 	  rnd = curand_uniform_double(&localState);
 	  DeviceMem.nInfo.live[id] = 2*(rnd<=0.55)+3*(rnd>0.55);
-	  //if(100>id) printf("  id=%d, fission to %d\n", id, DeviceMem.nInfo.live[id]);
+	  //if(34217==id) printf("  id=%d, live[%d]= %d\n", id, id,DeviceMem.nInfo.live[id]);
+	  //if(3<DeviceMem.nInfo.live[id]) printf("  id=%d, live[%d]= %d\n", id, id,DeviceMem.nInfo.live[id]);
 	}
 	else{  //rnd<Pc, capture, nothing to do
 	  DeviceMem.nInfo.live[id] = 0;
+	  //if(34217==id) printf("  id=%d, live[%d]= %d\n", id, id,DeviceMem.nInfo.live[id]);
+	  //if(3<DeviceMem.nInfo.live[id]) printf("  id=%d, live[%d]= %d\n", id, id,DeviceMem);
 	}
       }//end collision type
 
@@ -162,6 +172,8 @@ __global__ void history(MemStruct DeviceMem, unsigned num_src,int shift,unsigned
   DeviceMem.nInfo.pos_y[id] = y;
   DeviceMem.nInfo.pos_z[id] = z;
   DeviceMem.nInfo.rndState[id] = localState; 
+  //if(3<DeviceMem.nInfo.live[id]) printf("  id=%d, live[%d]= %d\n", id, id,DeviceMem);
+  //if(34217==id) printf("  id=%d, live[%d]= %d\n", id, id,DeviceMem.nInfo.live[id]);
 }
 #endif //end if 3D
 
