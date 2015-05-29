@@ -82,7 +82,7 @@ __global__ void history(MemStruct DeviceMem, unsigned num_src,int shift,unsigned
 
   int id = blockDim.x * blockIdx.x + threadIdx.x + shift;
   curandState localState = DeviceMem.nInfo.rndState[id];
-  int nid = int(curand_uniform_double(&localState)*banksize);
+  int nid = int(curand_uniform_double(&localState)*banksize)+num_src;
   //if(100>id) {printf("  id=%d,nid=%d,rnd=%.5f\n",id,nid,curand_uniform_double(&localState));}
   //extern __shared__ unsigned blockTerminated[];
 

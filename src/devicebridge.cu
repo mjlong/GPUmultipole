@@ -14,7 +14,12 @@ void initialize_neutrons(unsigned gridx, unsigned blockx,MemStruct DeviceMem,flo
   //  printf("init... %d:%d/%d\n",i*gridx*blockx,(i+1)*gridx*blockx,banksize);
     initialize<<<gridx, blockx>>>(DeviceMem,width,banksize,i*gridx*blockx);
   }
-  gpuErrchk(cudaDeviceSynchronize());  
+  //gpuErrchk(cudaDeviceSynchronize());  
+#if defined(__3D)
+  gpuErrchk(cudaMemcpy(DeviceMem.nInfo.pos_x+gridx*blockx*ubat,DeviceMem.nInfo.pos_x,sizeof(float)*gridx*blockx*ubat, cudaMemcpyDeviceToDevice));    
+  gpuErrchk(cudaMemcpy(DeviceMem.nInfo.pos_y+gridx*blockx*ubat,DeviceMem.nInfo.pos_y,sizeof(float)*gridx*blockx*ubat, cudaMemcpyDeviceToDevice));    
+  gpuErrchk(cudaMemcpy(DeviceMem.nInfo.pos_z+gridx*blockx*ubat,DeviceMem.nInfo.pos_z,sizeof(float)*gridx*blockx*ubat, cudaMemcpyDeviceToDevice));    
+#endif
 }
 
 #if defined(__SCATTERPLOT)
@@ -62,9 +67,9 @@ unsigned setbank(MemStruct DeviceMem, MemStruct HostMem, unsigned gridsize){
 #endif
 #if defined(__3D)
 unsigned setbank(MemStruct DeviceMem, MemStruct HostMem, unsigned gridsize){
-  float* x2 = (float*)malloc(sizeof(float)*gridsize*3);
-  float* y2 = (float*)malloc(sizeof(float)*gridsize*3);
-  float* z2 = (float*)malloc(sizeof(float)*gridsize*3);
+  float* x2 = (float*)malloc(sizeof(float)*gridsize*2);
+  float* y2 = (float*)malloc(sizeof(float)*gridsize*2);
+  float* z2 = (float*)malloc(sizeof(float)*gridsize*2);
   gpuErrchk(cudaMemcpy(HostMem.nInfo.pos_x,DeviceMem.nInfo.pos_x,sizeof(float)*gridsize, cudaMemcpyDeviceToHost));  
   gpuErrchk(cudaMemcpy(HostMem.nInfo.pos_y,DeviceMem.nInfo.pos_y,sizeof(float)*gridsize, cudaMemcpyDeviceToHost));  
   gpuErrchk(cudaMemcpy(HostMem.nInfo.pos_z,DeviceMem.nInfo.pos_z,sizeof(float)*gridsize, cudaMemcpyDeviceToHost));  
@@ -75,8 +80,8 @@ unsigned setbank(MemStruct DeviceMem, MemStruct HostMem, unsigned gridsize){
     printf("%d ",HostMem.nInfo.live[i]);
     if(0==i%100) printf("\n");
   }
-  */
   printf("\n");
+  */
   for(int i=0;i<gridsize;i++){
     live = HostMem.nInfo.live[i];
     for(k=0;k<live;k++){//live=2 or 3
@@ -86,9 +91,9 @@ unsigned setbank(MemStruct DeviceMem, MemStruct HostMem, unsigned gridsize){
       j++;
     }
   }
-  gpuErrchk(cudaMemcpy(DeviceMem.nInfo.pos_x,x2,sizeof(float)*gridsize*3, cudaMemcpyHostToDevice));  
-  gpuErrchk(cudaMemcpy(DeviceMem.nInfo.pos_y,y2,sizeof(float)*gridsize*3, cudaMemcpyHostToDevice));  
-  gpuErrchk(cudaMemcpy(DeviceMem.nInfo.pos_z,z2,sizeof(float)*gridsize*3, cudaMemcpyHostToDevice));  
+  gpuErrchk(cudaMemcpy(DeviceMem.nInfo.pos_x+gridsize,x2,sizeof(float)*gridsize*2, cudaMemcpyHostToDevice));  
+  gpuErrchk(cudaMemcpy(DeviceMem.nInfo.pos_y+gridsize,y2,sizeof(float)*gridsize*2, cudaMemcpyHostToDevice));  
+  gpuErrchk(cudaMemcpy(DeviceMem.nInfo.pos_z+gridsize,z2,sizeof(float)*gridsize*2, cudaMemcpyHostToDevice));  
   free(x2);  free(y2);  free(z2);
   return j;
 }
@@ -107,7 +112,7 @@ void start_neutrons(unsigned gridx, unsigned blockx, MemStruct DeviceMem, unsign
   int i=0;
   for(i=0;i<ubat;i++){//num_src is important as loop index, but useless in history<<<>>>
     //printf("i=%d/%d\n",i,num_src/(gridx*blockx));
-    history<<<gridx, blockx/*, blockx*sizeof(unsigned)*/>>>(DeviceMem, 1,i*gridx*blockx,banksize);
+    history<<<gridx, blockx/*, blockx*sizeof(unsigned)*/>>>(DeviceMem, gridx*blockx*ubat,i*gridx*blockx,banksize);
   }
 }
 #endif
