@@ -40,7 +40,7 @@ endif
 LINKLAG=   -dlink -arch=sm_20  
 LDFLAGS=-L${DIR_HDF5}/lib/ -L${DIR_CUDA6}/lib64  -lcudart -lhdf5 -lstdc++
 GSOURCES=$(wildcard ${DIR_SRC}/*.cu)
-EXENAME=$(DIR_BIN)/box
+EXENAME=$(DIR_BIN)/box-fix
 EXECUTABLE=$(EXENAME)
 
 CSOURCES=$(wildcard ${DIR_SRC}/*.cc)
