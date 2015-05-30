@@ -49,20 +49,6 @@ int main(int argc, char **argv){
     pc    = atof(argv[8]);
     ubat  = atoi(argv[9]);
     mode = 0;   //run only
-    if(argc>=11+1){
-      ubat = atoi(argv[9]);
-      upto = atoi(argv[10]);
-      print = atoi(argv[11]);
-      mode = 2; //run+process
-    }
-  }
-  else{
-    mode = 1; //process only
-    ubat = atoi(argv[2]);
-    upto = atoi(argv[3]);
-    print = atoi(argv[4]);
-    readh5_(argv[1],&gridsize,&num_bat,&num_bin,&width,&sigt,&pf,&pc);
-
   }
   num_src=gridx*blockx*ubat;
   char name1[10];  char name2[10];  char name3[10]; 
@@ -72,7 +58,7 @@ int main(int argc, char **argv){
 #if defined(__1D)
   strcpy(name,"R1dRawcnt"); 
 #else
-  strcpy(name,"R3dRawcnt"); 
+  strcpy(name,"R3dfixRawcnt"); 
 #endif
   strcat(name,name1); strcat(name,name2); strcat(name,name3); strcat(name,".h5");
   createmptyh5(name); //create empty file for future add dataset
