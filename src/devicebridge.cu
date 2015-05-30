@@ -118,7 +118,7 @@ void start_neutrons(unsigned gridx, unsigned blockx, MemStruct DeviceMem, unsign
   int i=0;
   for(i=0;i<ubat;i++){//num_src is important as loop index, but useless in history<<<>>>
     //printf("i=%d/%d\n",i,num_src/(gridx*blockx));
-    history<<<gridx, blockx/*, blockx*sizeof(unsigned)*/>>>(DeviceMem, gridx*blockx*ubat,i*gridx*blockx,banksize);
+    history_prep<<<gridx, blockx/*, blockx*sizeof(unsigned)*/>>>(DeviceMem, gridx*blockx*ubat,i*gridx*blockx,banksize);
   }
 }
 
