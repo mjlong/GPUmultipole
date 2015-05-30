@@ -85,9 +85,9 @@ unsigned setbank(MemStruct DeviceMem, MemStruct HostMem, int gridsize){
   */
   for(int i=0;i<gridsize;i++){
     live = HostMem.nInfo.live[i];
-    if(live<4){
+    //if(live<4){
     for(k=0;k<live;k++){//live=2 or 3
-      //if(j>(gridsize*2)) {printf("live=%d,j=%d,i=%d/%d,overflow\n",live,j,i,gridsize);exit(-1);}
+      if(j>(gridsize*2)) {printf("live=%d,j=%d,i=%d/%d,overflow\n",live,j,i,gridsize);exit(-1);}
       //else{
       x2[j]=HostMem.nInfo.pos_x[i];
       y2[j]=HostMem.nInfo.pos_y[i];
@@ -95,7 +95,7 @@ unsigned setbank(MemStruct DeviceMem, MemStruct HostMem, int gridsize){
       j++;
       //}
     }
-    }
+    //}
   }
   gpuErrchk(cudaMemcpy(DeviceMem.nInfo.pos_x+gridsize,x2,sizeof(float)*gridsize*2, cudaMemcpyHostToDevice));  
   gpuErrchk(cudaMemcpy(DeviceMem.nInfo.pos_y+gridsize,y2,sizeof(float)*gridsize*2, cudaMemcpyHostToDevice));  
