@@ -142,7 +142,7 @@ int main(int argc, char **argv){
       //check(gridx,blockx,DeviceMem,ubat);
       //active = count_neutrons(gridx, blockx, DeviceMem, HostMem,num_src);
       banksize = setbank(DeviceMem, HostMem, num_src);
-      printf("[%3d]%4d-->%4d: \n", ibat,num_src,banksize);
+      //printf("[%3d]%4d-->%4d: \n", ibat,num_src,banksize);
 #if defined(__TALLY)
       save_results(ibat,gridx, blockx, tnum_bin, DeviceMem, HostMem);
       sprintf(name1,"%d",ibat);strcpy(name2,"batch_cnt");strcat(name2,name1);
