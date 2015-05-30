@@ -183,6 +183,103 @@ __global__ void history(MemStruct DeviceMem, unsigned num_src,int shift,unsigned
   //if(3<DeviceMem.nInfo.live[id]) printf("  id=%d, live[%d]= %d\n", id, id,DeviceMem);
   //if(34217==id) printf("  id=%d, live[%d]= %d, x=%.2f,y=%.2f,z=%.2f\n", id, id,DeviceMem.nInfo.live[id],x,y,z);
 }
+
+__global__ void history_prep(MemStruct DeviceMem, unsigned num_src,int shift,unsigned banksize){
+  //float a = wdspp[0];
+  //float dx = wdspp[1];
+  //float mfp = wdspp[2];
+  //float Ps = 1-(wdspp[3]+wdspp[4]);
+  //float Pc = Ps+wdspp[4]; //=1-wdspp[3]
+
+  float n[3] = {0.0, 0.0,0.0};
+  float v[3];
+
+  float l;//sampled path
+  float t;//length to boundary
+  float s;
+
+  int id = blockDim.x * blockIdx.x + threadIdx.x + shift;
+  curandState localState = DeviceMem.nInfo.rndState[id];
+  int nid = int(curand_uniform_double(&localState)*banksize)+num_src;
+  //if(100>id) {printf("  id=%d,nid=%d,rnd=%.5f\n",id,nid,curand_uniform_double(&localState));}
+  //extern __shared__ unsigned blockTerminated[];
+
+  CMPTYPE rnd;
+  float x = DeviceMem.nInfo.pos_x[nid];
+  float y = DeviceMem.nInfo.pos_y[nid];
+  float z = DeviceMem.nInfo.pos_z[nid];
+  float mu,phi; 
+  mu = curand_uniform(&localState)*2-1;
+  phi= curand_uniform(&localState)*2*PI;
+
+  v[0] = sqrt(1.0-mu*mu)*cos(phi);
+  v[1] = sqrt(1.0-mu*mu)*sin(phi);
+  v[2] = mu; 
+
+  int live=1;
+  //printf("[%2d],x=%.5f,pf=%.5f\n",id,DeviceMem.nInfo.pos_x[nid],pf);
+  //for(istep=0;istep<devstep;istep++){
+  while(live){
+    l = -log(curand_uniform_double(&localState))*wdspp[2];
+    //if(100>id) printf("  id=%d,l=%.5f\n",id,l);
+    t = intersectbox(x,y,z,wdspp[0],wdspp[0],wdspp[0],v[0],v[1],v[2]);
+    s = ((l/t+TEPSILON)<1)*l+((l/t+TEPSILON)>=1)*t;
+    //s = ((l)<t)*l+((l)>=t)*t;
+    //if(t<0) {printf("warning:t<0\n");                }
+    //if(t>1.0e6) {printf("warning:t --> infinity \n");}
+    x=x+s*v[0]; y=y+s*v[1]; z=z+s*v[2];
+    live = (t>0)&&(t<1.0e6);//&&(x>0)&&(x<a)&&(y>0)&&(y<a)&&(z>0)&&(z<a);
+    DeviceMem.nInfo.live[id] = live;
+    s = live*s+(0==live)*t;
+    if(  (t==s)||(x<=0)||(y<=0)||(z<=0)||(x>=wdspp[0])||(y>=wdspp[0])||(z>=wdspp[0])   ){//reflect
+      //if slow, i can use the specific form for the box, which is changing sign of reflected component
+      if((x-0)<TEPSILON){n[0]=-1.0;x = 0+TEPSILON;}
+      if((y-0)<TEPSILON){n[1]=-1.0;y = 0+TEPSILON;}
+      if((z-0)<TEPSILON){n[2]=-1.0;z = 0+TEPSILON;}
+      if((wdspp[0]-x)<TEPSILON){n[0]= 1.0;x = wdspp[0]-TEPSILON;}
+      if((wdspp[0]-y)<TEPSILON){n[1]= 1.0;y = wdspp[0]-TEPSILON;}
+      if((wdspp[0]-z)<TEPSILON){n[2]= 1.0;z = wdspp[0]-TEPSILON;}
+      add(v,n,-2*product(v,n));
+      //printf("\n id=%2d, to (%.10e,%.10e,%.10e) along (%.10e,%.10e,%.10e)\n", blockDim.x * blockIdx.x + threadIdx.x,x,y,z,v[0],v[1],v[2]);
+      //printf("id=%d, reflecting, time=%.3e\n",id,time);
+      //fresh n
+      n[0]=0; n[1]=0; n[2]=0;
+    }  
+    else{
+      rnd = curand_uniform_double(&localState);
+      if(rnd<(1-(wdspp[3]+wdspp[4]))){
+	mu = curand_uniform(&localState)*2-1;
+	phi= curand_uniform(&localState)*2*PI;
+	v[0] = sqrt(1.0-mu*mu)*cos(phi);
+	v[1] = sqrt(1.0-mu*mu)*sin(phi);
+	v[2] = mu; 
+	//if(100>id) printf("  id=%d, scatter to %.5f\n", id, mu);
+      }
+      else{
+	live = 0;
+	if(rnd>(1-wdspp[3])){ //fission
+	  rnd = curand_uniform_double(&localState);
+	  DeviceMem.nInfo.live[id] = 2*(rnd<=0.55)+3*(rnd>0.55);
+	  //if(34217==id) printf("  id=%d, live[%d]= %d\n", id, id,DeviceMem.nInfo.live[id]);
+	  //if(3<DeviceMem.nInfo.live[id]) printf("  id=%d, live[%d]= %d\n", id, id,DeviceMem.nInfo.live[id]);
+	}
+	else{  //rnd<Pc, capture, nothing to do
+	  DeviceMem.nInfo.live[id] = 0;
+	  //if(34217==id) printf("  id=%d, live[%d]= %d\n", id, id,DeviceMem.nInfo.live[id]);
+	  //if(3<DeviceMem.nInfo.live[id]) printf("  id=%d, live[%d]= %d\n", id, id, DeviceMem.nInfo.live[id]);
+	}
+      }//end collision type
+
+    }//end not leak
+  }//end one history
+  //}
+  DeviceMem.nInfo.pos_x[id] = x;
+  DeviceMem.nInfo.pos_y[id] = y;
+  DeviceMem.nInfo.pos_z[id] = z;
+  DeviceMem.nInfo.rndState[id] = localState; 
+  //if(3<DeviceMem.nInfo.live[id]) printf("  id=%d, live[%d]= %d\n", id, id,DeviceMem);
+  //if(34217==id) printf("  id=%d, live[%d]= %d, x=%.2f,y=%.2f,z=%.2f\n", id, id,DeviceMem.nInfo.live[id],x,y,z);
+}
 #endif //end if 3D
 
 #if defined(__1D)

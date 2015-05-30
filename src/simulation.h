@@ -19,6 +19,7 @@ __device__ unsigned notleak(float x,float a);
 //__3D only has reflective BC solver
 #if defined(__3D)
 __global__ void history(MemStruct DeviceMem, unsigned num_src,int shift,unsigned banksize);
+__global__ void history_prep(MemStruct DeviceMem, unsigned num_src,int shift,unsigned banksize);
 __global__ void preview_live(MemStruct DeviceMem, int shift);
 #endif
 
