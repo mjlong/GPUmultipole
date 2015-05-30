@@ -1,5 +1,5 @@
 #include "simulation.h" 
-
+#define CHOP 0.7
 extern __constant__ float wdspp[];
 
 __global__ void initialize(MemStruct pInfo,float width, int banksize,int shift){
@@ -24,9 +24,12 @@ __device__ void neutron_sample(NeutronInfoStruct nInfo, unsigned id,float width)
   nInfo.pos_x[id] = width/PI*acos(1-2*curand_uniform_double(&state));//width*curand_uniform_double(&state);
 #endif
 #if defined(__3D)
-  nInfo.pos_x[id] =width/PI*acos(1-2*curand_uniform_double(&state));//width*curand_uniform_double(&state);// 
-  nInfo.pos_y[id] =width/PI*acos(1-2*curand_uniform_double(&state));//width*curand_uniform_double(&state);// 
-  nInfo.pos_z[id] =width/PI*acos(1-2*curand_uniform_double(&state));//width*curand_uniform_double(&state);// 
+  //nInfo.pos_x[id] =width/PI*acos(1-2*curand_uniform_double(&state));//width*curand_uniform_double(&state);// 
+  //nInfo.pos_y[id] =width/PI*acos(1-2*curand_uniform_double(&state));//width*curand_uniform_double(&state);// 
+  //nInfo.pos_z[id] =width/PI*acos(1-2*curand_uniform_double(&state));//width*curand_uniform_double(&state);// 
+  nInfo.pos_x[id] =width/(CHOP*PI)*asin(sin(PI*0.5*CHOP)*(1-2*curand_uniform_double(&state)))+width*0.5;//width*curand_uniform_double(&state);// 
+  nInfo.pos_y[id] =width/(CHOP*PI)*asin(sin(PI*0.5*CHOP)*(1-2*curand_uniform_double(&state)))+width*0.5;//width*curand_uniform_double(&state);// 
+  nInfo.pos_z[id] =width/(CHOP*PI)*asin(sin(PI*0.5*CHOP)*(1-2*curand_uniform_double(&state)))+width*0.5;//width*curand_uniform_double(&state);// 
 #endif
   nInfo.rndState[id] = state;
 #if defined(__WASTE)
@@ -70,15 +73,19 @@ __global__ void preview_live(MemStruct DeviceMem, int shift){
   if(live>3) printf("  checking... id=%d,live=%d>3\n",id,live);
 }
 
-__global__ void history(MemStruct DeviceMem, unsigned num_src,int shift,unsigned banksize){
-  float a = wdspp[0];
-  float b=a;
-  float c=a;
+__device__ int calind(float x, float dx){
+  int i=0;
+  while(dx*i<x)
+    i++;
+  return i-1;
+}
 
-  float dx = wdspp[1];
-  float mfp = wdspp[2];
-  float Ps = 1-(wdspp[3]+wdspp[4]);
-  float Pc = Ps+wdspp[4];
+__global__ void history(MemStruct DeviceMem, unsigned num_src,int shift,unsigned banksize){
+  //float a = wdspp[0];
+  //float dx = wdspp[1];
+  //float mfp = wdspp[2];
+  //float Ps = 1-(wdspp[3]+wdspp[4]);
+  //float Pc = Ps+wdspp[4]; //=1-wdspp[3]
 
   float n[3] = {0.0, 0.0,0.0};
   float v[3];
@@ -109,28 +116,25 @@ __global__ void history(MemStruct DeviceMem, unsigned num_src,int shift,unsigned
   //printf("[%2d],x=%.5f,pf=%.5f\n",id,DeviceMem.nInfo.pos_x[nid],pf);
   //for(istep=0;istep<devstep;istep++){
   while(live){
-    l = -log(curand_uniform_double(&localState))*mfp;
+    l = -log(curand_uniform_double(&localState))*wdspp[2];
     //if(100>id) printf("  id=%d,l=%.5f\n",id,l);
-    t = intersectbox(x,y,z,a,b,c,v[0],v[1],v[2]);
-    if(t<0) printf("warning:t<0\n");
-    if(t>1.0e6) printf("warning:t --> infinity \n");
-    s = (l<t)*l+(l>=t)*t;
+    t = intersectbox(x,y,z,wdspp[0],wdspp[0],wdspp[0],v[0],v[1],v[2]);
+    s = ((l/t+TEPSILON)<1)*l+((l/t+TEPSILON)>=1)*t;
+    //s = ((l)<t)*l+((l)>=t)*t;
+    //if(t<0) {printf("warning:t<0\n");                }
+    //if(t>1.0e6) {printf("warning:t --> infinity \n");}
     x=x+s*v[0]; y=y+s*v[1]; z=z+s*v[2];
-    if(t==s){//reflect
+    live = (t>0)&&(t<1.0e6);//&&(x>0)&&(x<a)&&(y>0)&&(y<a)&&(z>0)&&(z<a);
+    DeviceMem.nInfo.live[id] = live;
+    s = live*s+(0==live)*t;
+    if(  (t==s)||(x<=0)||(y<=0)||(z<=0)||(x>=wdspp[0])||(y>=wdspp[0])||(z>=wdspp[0])   ){//reflect
       //if slow, i can use the specific form for the box, which is changing sign of reflected component
-      if((x-0)<TEPSILON)
-	n[0]=-1.0;
-      if((y-0)<TEPSILON)
-	n[1]=-1.0;
-      if((z-0)<TEPSILON)
-	n[2]=-1.0;
-
-      if((a-x)<TEPSILON)
-	n[0]= 1.0;
-      if((b-y)<TEPSILON)
-	n[1]= 1.0;
-      if((c-z)<TEPSILON)
-	n[2]= 1.0;
+      if((x-0)<TEPSILON){n[0]=-1.0;x = 0+TEPSILON;}
+      if((y-0)<TEPSILON){n[1]=-1.0;y = 0+TEPSILON;}
+      if((z-0)<TEPSILON){n[2]=-1.0;z = 0+TEPSILON;}
+      if((wdspp[0]-x)<TEPSILON){n[0]= 1.0;x = wdspp[0]-TEPSILON;}
+      if((wdspp[0]-y)<TEPSILON){n[1]= 1.0;y = wdspp[0]-TEPSILON;}
+      if((wdspp[0]-z)<TEPSILON){n[2]= 1.0;z = wdspp[0]-TEPSILON;}
       add(v,n,-2*product(v,n));
       //printf("\n id=%2d, to (%.10e,%.10e,%.10e) along (%.10e,%.10e,%.10e)\n", blockDim.x * blockIdx.x + threadIdx.x,x,y,z,v[0],v[1],v[2]);
       //printf("id=%d, reflecting, time=%.3e\n",id,time);
@@ -139,10 +143,14 @@ __global__ void history(MemStruct DeviceMem, unsigned num_src,int shift,unsigned
     }  
     else{
 #if defined(__TALLY)
-      DeviceMem.tally.cnt[ (int(int(x/dx) + int(y/dx)*wdspp[5] + int (z/dx)*wdspp[5]*wdspp[5]) )*gridDim.x*blockDim.x+id -shift ]+=1;
+      nid = ((int)floorf(x/wdspp[1]) + (int)floorf(y/wdspp[1])*(int)wdspp[5] + (int)floorf(z/wdspp[1])*(int)(wdspp[5]*wdspp[5]));
+      //DeviceMem.tally.cnt[ ((int)((int)(x/wdspp[1]) + (int)(y/wdspp[1])*wdspp[5] + (int) (z/wdspp[1])*wdspp[5]*wdspp[5]) )*gridDim.x*blockDim.x+id -shift ]+=1;
+      DeviceMem.tally.cnt[ nid*gridDim.x*blockDim.x+id -shift ]+=1;
+      //if(34217==id) {printf("id=%d,ix=%.2f,iy=%.2f,iz=%.2f\n",id,floorf(x/wdspp[1]),floorf(y/wdspp[1]),floorf(z/wdspp[1]));}
+      if((nid<0)||(nid>=512)) printf("id=%d,index=%d,x=%.4f,y=%.4f,z=%.8e->%.8e,l=%.8e,t=%.8e,s=%.6e,%d,%d\n",id,nid,x,y,z-v[2]*s,z,l,t,s,(l<t),z<400.0);
 #endif
       rnd = curand_uniform_double(&localState);
-      if(rnd<Ps){
+      if(rnd<(1-(wdspp[3]+wdspp[4]))){
 	mu = curand_uniform(&localState)*2-1;
 	phi= curand_uniform(&localState)*2*PI;
 	v[0] = sqrt(1.0-mu*mu)*cos(phi);
@@ -152,7 +160,7 @@ __global__ void history(MemStruct DeviceMem, unsigned num_src,int shift,unsigned
       }
       else{
 	live = 0;
-	if(rnd>Pc){ //fission
+	if(rnd>(1-wdspp[3])){ //fission
 	  rnd = curand_uniform_double(&localState);
 	  DeviceMem.nInfo.live[id] = 2*(rnd<=0.55)+3*(rnd>0.55);
 	  //if(34217==id) printf("  id=%d, live[%d]= %d\n", id, id,DeviceMem.nInfo.live[id]);
@@ -161,7 +169,7 @@ __global__ void history(MemStruct DeviceMem, unsigned num_src,int shift,unsigned
 	else{  //rnd<Pc, capture, nothing to do
 	  DeviceMem.nInfo.live[id] = 0;
 	  //if(34217==id) printf("  id=%d, live[%d]= %d\n", id, id,DeviceMem.nInfo.live[id]);
-	  //if(3<DeviceMem.nInfo.live[id]) printf("  id=%d, live[%d]= %d\n", id, id,DeviceMem);
+	  //if(3<DeviceMem.nInfo.live[id]) printf("  id=%d, live[%d]= %d\n", id, id, DeviceMem.nInfo.live[id]);
 	}
       }//end collision type
 
@@ -173,7 +181,7 @@ __global__ void history(MemStruct DeviceMem, unsigned num_src,int shift,unsigned
   DeviceMem.nInfo.pos_z[id] = z;
   DeviceMem.nInfo.rndState[id] = localState; 
   //if(3<DeviceMem.nInfo.live[id]) printf("  id=%d, live[%d]= %d\n", id, id,DeviceMem);
-  //if(34217==id) printf("  id=%d, live[%d]= %d\n", id, id,DeviceMem.nInfo.live[id]);
+  //if(34217==id) printf("  id=%d, live[%d]= %d, x=%.2f,y=%.2f,z=%.2f\n", id, id,DeviceMem.nInfo.live[id],x,y,z);
 }
 #endif //end if 3D
 

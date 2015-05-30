@@ -22,5 +22,5 @@ __global__ void history(MemStruct DeviceMem, unsigned num_src,int shift,unsigned
 __global__ void preview_live(MemStruct DeviceMem, int shift);
 #endif
 
-#define TEPSILON 1.0e-5
+#define TEPSILON 1.0e-4
 #endif
