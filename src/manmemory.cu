@@ -22,6 +22,7 @@ void initialize_memory(MemStruct *DeviceMem, MemStruct *HostMem, unsigned numbin
   banksize = gridx*blockx*ubat;
   //for __TALLY, ubat is used as tranfac
 
+  (*HostMem).newly_delayed = (int*)malloc(sizeof(int)*nbat);
 #if defined(__TALLY)
   gpuErrchk(cudaMalloc((void**)&((*DeviceMem).spectrum), numbins*sizeof(CMPTYPE)));
   (*HostMem).spectrum = (CMPTYPE*)malloc(sizeof(CMPTYPE)*numbins);  
@@ -98,6 +99,8 @@ void resettally(CMPTYPE *cnt, unsigned totbins){
   gpuErrchk(cudaMemset(cnt, 0, totbins*sizeof(CMPTYPE)));}
 
 void release_memory(MemStruct DeviceMem, MemStruct HostMem){
+  free(HostMem.newly_delayed);
+
 #if defined(__TALLY)
   free(HostMem.spectrum);
 #if defined(__PROCESS)
