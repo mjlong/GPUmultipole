@@ -72,7 +72,7 @@ int main(int argc, char **argv){
 #if defined(__1D)
   strcpy(name,"R1dRawcnt"); 
 #else
-  strcpy(name,"R3dRawcnt"); 
+  strcpy(name,"R3ddelayRawcnt"); 
 #endif
   strcat(name,name1); strcat(name,name2); strcat(name,name3); strcat(name,".h5");
   createmptyh5(name); //create empty file for future add dataset
