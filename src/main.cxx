@@ -37,6 +37,8 @@ int main(int argc, char **argv){
   int mode; //0=run only; 1=process only; 2=run & process
   int isSteady=0;
 
+  unsigned gridr,blockr,gridsizr, ubatr;
+  int num_batr,num_srcr;
   if(argc>=8+1){//run or run+process
     gridx = atoi(argv[1]);
     blockx = atoi(argv[2]);
@@ -48,24 +50,37 @@ int main(int argc, char **argv){
     pf    = atof(argv[7]);
     pc    = atof(argv[8]);
     ubat  = atoi(argv[9]);
+    gridr = atoi(argv[10]);
+    blockr = atoi(argv[11]);
+    ubatr  = atoi(argv[12]);
+    num_batr = atoi(argv[13]);
+
     mode = 0;   //run only
   }
   num_src=gridx*blockx*ubat;
+  //gridr  = gridx/4;
+  //blockr = blockx/4;
+  gridsizr = blockr*gridr;
+  //ubatr = ubat;
+  num_srcr=gridr*blockr*ubatr;
+  
   char name1[10];  char name2[10];  char name3[10]; 
-  sprintf(name1,"_%d",gridsize);
-  sprintf(name2,"_%d",ubat);
-  sprintf(name3,"_%d",num_bat);
+  sprintf(name1,"_%d",gridsize);  sprintf(name2,"_%d",ubat);  sprintf(name3,"_%d",num_bat);
 #if defined(__1D)
   strcpy(name,"R1dRawcnt"); 
 #else
   strcpy(name,"R3dfixRawcnt"); 
 #endif
-  strcat(name,name1); strcat(name,name2); strcat(name,name3); strcat(name,".h5");
+  strcat(name,name1); strcat(name,name2); strcat(name,name3); 
+  sprintf(name1,"_%d",gridsizr);  sprintf(name2,"_%d",ubatr);  sprintf(name3,"_%d",num_batr);
+  strcat(name,name1); strcat(name,name2); strcat(name,name3); 
+  strcat(name,".h5");
   createmptyh5(name); //create empty file for future add dataset
   
   int intone=1; 
   int inttwo=1;
-  writeh5_nxm_(name,"/","num_batch",  &(num_bat),  &intone, &intone);
+  writeh5_nxm_(name,"/","num_batch_prep",  &(num_bat),  &intone, &intone);
+  writeh5_nxm_(name,"/","num_batch",       &(num_batr),  &intone, &intone);
   writeh5_nxm_(name,"/","num_cells",   &(num_bin),  &intone, &intone);
   writeh5_nxm_(name,"/","width",   &(width),  &intone, &intone);
   writeh5_nxm_(name,"/","sigma",   &(sigt),   &intone, &intone);
@@ -82,7 +97,7 @@ int main(int argc, char **argv){
 #if defined(__3D)
   tnum_bin = num_bin*num_bin*num_bin;
 #endif
-  initialize_memory(&DeviceMem, &HostMem, tnum_bin, gridx,blockx,num_bat,ubat);
+  initialize_memory(&DeviceMem, &HostMem, tnum_bin, gridx, blockx, ubat, gridr, blockr, ubatr);
 #if defined(__PROCESS)
   if(1==mode)//process only, need to access the raw collision count
     readh5_(argv[1], HostMem.batcnt);
@@ -103,7 +118,7 @@ int main(int argc, char **argv){
 //============================================================ 
 //===============main simulation body=========================
 //============================================================
-  printf("[Info] Running main simulation body ... \n");
+  printf("[Info] Preparing fixed bank ... \n");
   unsigned active,banksize;
   if(1!=mode){//run simulation except 'process only' mode
     active = 1;
@@ -112,49 +127,50 @@ int main(int argc, char **argv){
     //==============================================================================
     //======================Steady State ===========================================
     //==============================================================================
+    //======================Fixed source preparation ===============================
     banksize = gridx*blockx*ubat;
     initialize_neutrons(gridx, blockx, DeviceMem,width,banksize,ubat); 
-    // plot initial distribution
-#if defined(__SCATTERPLOT)
-    copyinitial(DeviceMem, HostMem, gridsize);
-    sprintf(name1,"%d",ibat);
-    strcpy(name2,"x");    strcat(name2,name1); writeh5_nxm_(name, "scatterplot",name2,HostMem.nInfo.pos_x,  &intone, &gridsize);
-    strcpy(name2,"y");    strcat(name2,name1); writeh5_nxm_(name, "scatterplot",name2,HostMem.nInfo.pos_y,  &intone, &gridsize);
-    strcpy(name2,"z");    strcat(name2,name1); writeh5_nxm_(name, "scatterplot",name2,HostMem.nInfo.pos_z,  &intone, &gridsize);
-    strcpy(name2,"color");strcat(name2,name1); writeh5_nxm_(name, "scatterplot",name2,HostMem.nInfo.energy, &intone, &gridsize);
-#endif
     for(ibat=0;ibat<num_bat;ibat++){
-      start_neutrons(gridx, blockx, DeviceMem, ubat,1,banksize);
+      prep_neutrons(gridx, blockx, DeviceMem, ubat,1,banksize);
       //check(gridx,blockx,DeviceMem,ubat);
       //active = count_neutrons(gridx, blockx, DeviceMem, HostMem,num_src);
       banksize = setbank(DeviceMem, HostMem, num_src);
       //printf("[%3d]%4d-->%4d: \n", ibat,num_src,banksize);
+      }
+    clock_end   = clock();
+    time_elapsed = (float)(clock_end-clock_start)/CLOCKS_PER_SEC*1000.f;
+    printdone();
+    printf("[time]  %d batches (*%d*%d neutrons/batch) costs %f ms\n", num_bat,gridsize,ubat, time_elapsed);
+
+    
+    //====================== simulation with fixed source ======================
+    clock_start = clock();
+    printf("[Info] Running main simulation body ... \n");
+    // plot initial distribution
+    for(ibat=0;ibat<num_batr;ibat++){
+      start_neutrons(gridr, blockr, DeviceMem, ubatr,num_src, banksize);
+      //check(gridx,blockx,DeviceMem,ubat);
+      //printf("[%3d]%4d-->%4d: \n", ibat,num_src,banksize);
 #if defined(__TALLY)
-      save_results(ibat,gridx, blockx, tnum_bin, DeviceMem, HostMem);
+      save_results(ibat,gridr, blockr, tnum_bin, DeviceMem, HostMem);
       sprintf(name1,"%d",ibat);strcpy(name2,"batch_cnt");strcat(name2,name1);
       writeh5_nxm_(name, "tally",name2, HostMem.batcnt, &intone, &tnum_bin);
       //resetcount(DeviceMem);
-      resettally(DeviceMem.tally.cnt, tnum_bin*gridsize);
-#endif
-#if defined(__SCATTERPLOT)
-      sprintf(name1,"%d",ibat+1);
-      strcpy(name2,"x");    strcat(name2,name1); writeh5_nxm_(name, "scatterplot",name2,HostMem.nInfo.pos_x,  &intone, &gridsize);
-      strcpy(name2,"y");    strcat(name2,name1); writeh5_nxm_(name, "scatterplot",name2,HostMem.nInfo.pos_y,  &intone, &gridsize);
-      strcpy(name2,"z");    strcat(name2,name1); writeh5_nxm_(name, "scatterplot",name2,HostMem.nInfo.pos_z,  &intone, &gridsize);
-      strcpy(name2,"color");strcat(name2,name1); writeh5_nxm_(name, "scatterplot",name2,HostMem.nInfo.energy, &intone, &gridsize);
+      resettally(DeviceMem.tally.cnt, tnum_bin*gridsizr);
 #endif
       }
 
     clock_end   = clock();
     time_elapsed = (float)(clock_end-clock_start)/CLOCKS_PER_SEC*1000.f;
     printdone();
-    printf("[time]  %d batches (*%d neutrons/batch) costs %f ms\n", num_bat,gridsize, time_elapsed);
+    printf("[time]  %d batches (*%d*%d neutrons/batch) costs %f ms\n", num_batr,gridsizr, ubatr,time_elapsed);
 
     //============================================================================
     //==================== Write raw cnt to a hdf5 file ==========================
     //============================================================================
-    writeh5_nxm_(name, "/","num_history",&(num_src),  &intone, &intone);
-
+    writeh5_nxm_(name, "/","num_history_prep",&(num_src) ,  &intone, &intone);
+    writeh5_nxm_(name, "/","num_history",     &(num_srcr),  &intone, &intone);
+    
   }//end if (1!=mode) 
 
   //============================================================================
