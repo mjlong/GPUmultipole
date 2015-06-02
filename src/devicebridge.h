@@ -8,6 +8,7 @@ void initialize_neutrons(unsigned gridx, unsigned blockx,MemStruct DeviceMem,flo
 void copyinitial(MemStruct DeviceMem, MemStruct HostMem, unsigned gridsize);
 #endif
 
+void prep_neutrons(unsigned gridx, unsigned blockx, MemStruct DeviceMem, unsigned ubat,unsigned active,unsigned banksize);
 void     start_neutrons(unsigned gridx, unsigned blockx, MemStruct DeviceMem, unsigned num_src,unsigned active,unsigned banksize);
 unsigned count_neutrons(unsigned gridx, unsigned blockx, MemStruct DeviceMem, MemStruct HostMem, unsigned num_src);
 unsigned count_lives(unsigned gridx, unsigned blockx, MemStruct DeviceMem, MemStruct HostMem);

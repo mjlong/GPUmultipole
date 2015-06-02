@@ -114,7 +114,15 @@ int count_pop(int *live, int gridsize){
 }
 
 #if defined(__3D)
-void start_neutrons(unsigned gridx, unsigned blockx, MemStruct DeviceMem, unsigned ubat,unsigned active,unsigned banksize){
+void start_neutrons(unsigned gridr, unsigned blockr, MemStruct DeviceMem, unsigned ubatr,unsigned num_src,unsigned banksize){
+  int i=0;
+  for(i=0;i<ubatr;i++){
+    //printf("i=%d/%d\n",i,num_src/(gridx*blockx));
+    history<<<gridr, blockr/*, blockx*sizeof(unsigned)*/>>>(DeviceMem, num_src, i*gridr*blockr,banksize);
+  }
+}
+
+void prep_neutrons(unsigned gridx, unsigned blockx, MemStruct DeviceMem, unsigned ubat,unsigned active,unsigned banksize){
   int i=0;
   for(i=0;i<ubat;i++){//num_src is important as loop index, but useless in history<<<>>>
     //printf("i=%d/%d\n",i,num_src/(gridx*blockx));
