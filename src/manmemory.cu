@@ -16,10 +16,12 @@ void copydata(MemStruct DeviceMem, MemStruct HostMem){
   gpuErrchk(cudaMemcpy(DeviceMem.wdspp,  HostMem.wdspp,   sizeof(float)*9, cudaMemcpyHostToDevice));
   gpuErrchk(cudaMemcpyToSymbol(wdspp, DeviceMem.wdspp, 9*sizeof(float), 0, cudaMemcpyDeviceToDevice));
 }
-void initialize_memory(MemStruct *DeviceMem, MemStruct *HostMem, unsigned numbins, unsigned gridx, unsigned blockx,unsigned nbat,unsigned ubat){
-  unsigned gridsize,banksize;
+void initialize_memory(MemStruct *DeviceMem, MemStruct *HostMem, unsigned numbins, unsigned gridx, unsigned blockx,unsigned ubat,unsigned gridr,unsigned blockr,unsigned ubatr){
+  unsigned gridsize,banksize,gridsizr,banksizr;
   gridsize = gridx*blockx;
   banksize = gridx*blockx*ubat;
+  gridsizr = gridr*blockr;
+  banksizr = gridr*blockr*ubatr;
   //for __TALLY, ubat is used as tranfac
 
 #if defined(__TALLY)
@@ -27,18 +29,12 @@ void initialize_memory(MemStruct *DeviceMem, MemStruct *HostMem, unsigned numbin
   (*HostMem).spectrum = (CMPTYPE*)malloc(sizeof(CMPTYPE)*numbins);  
   (*HostMem).batcnt     = (CMPTYPE*)malloc(sizeof(CMPTYPE)*numbins);
   gpuErrchk(cudaMalloc((void**)&((*DeviceMem).batcnt), numbins*sizeof(CMPTYPE)));
-#if defined(__PROCESS)
-  (*HostMem).batchmeans = (double*)malloc(sizeof(double)*nbat*numbins);
-  (*HostMem).accmeans   = (double*)malloc(sizeof(double)*(nbat-ubat)*numbins);
-#endif
-  gpuErrchk(cudaMalloc((void**)&((*DeviceMem).block_spectrum), numbins*gridx*sizeof(CMPTYPE)));
-  gpuErrchk(cudaMemset((*DeviceMem).block_spectrum, 0, numbins*gridx*sizeof(CMPTYPE)));
 
-  gpuErrchk(cudaMalloc((void**)&((*DeviceMem).tally.cnt), gridsize*numbins*sizeof(CMPTYPE)));
-  gpuErrchk(cudaMemset((*DeviceMem).tally.cnt, 0, numbins*gridsize*sizeof(CMPTYPE)));  
-#endif
-#if defined(__TRAN)&&defined(__TALLY)
-  memset((*HostMem).batcnt, 0, sizeof(CMPTYPE)*numbins);
+  gpuErrchk(cudaMalloc((void**)&((*DeviceMem).block_spectrum), numbins*gridr*sizeof(CMPTYPE)));
+  gpuErrchk(cudaMemset((*DeviceMem).block_spectrum, 0, numbins*gridr*sizeof(CMPTYPE)));
+
+  gpuErrchk(cudaMalloc((void**)&((*DeviceMem).tally.cnt), gridsizr*numbins*sizeof(CMPTYPE)));
+  gpuErrchk(cudaMemset((*DeviceMem).tally.cnt, 0, numbins*gridsizr*sizeof(CMPTYPE)));  
 #endif
   (*HostMem).wdspp = (float*)malloc(sizeof(float)*9);
 
@@ -54,24 +50,6 @@ void initialize_memory(MemStruct *DeviceMem, MemStruct *HostMem, unsigned numbin
 
   gpuErrchk(cudaMalloc((void**)&((*DeviceMem).nInfo.rndState), banksize*sizeof(curandState)));
 
-#if defined(__WASTE)
-  gpuErrchk(cudaMalloc((void**)&((*DeviceMem).nInfo.energy),   banksize*sizeof(CMPTYPE)));
-  gpuErrchk(cudaMalloc((void**)&((*DeviceMem).nInfo.sigT),   banksize*sizeof(CMPTYPE)));
-  gpuErrchk(cudaMalloc((void**)&((*DeviceMem).nInfo.sigA),   banksize*sizeof(CMPTYPE)));
-  gpuErrchk(cudaMalloc((void**)&((*DeviceMem).nInfo.sigF),   banksize*sizeof(CMPTYPE)));
-  gpuErrchk(cudaMalloc((void**)&((*DeviceMem).nInfo.isoenergy),banksize*sizeof(CMPTYPE)));
-  gpuErrchk(cudaMalloc((void**)&((*DeviceMem).nInfo.imat),  banksize*sizeof(int)));
-#endif
-
-#if defined(__SCATTERPLOT)
-  (*HostMem).nInfo.energy  = (CMPTYPE*)malloc(sizeof(CMPTYPE)*banksize);
-  gpuErrchk(cudaMalloc((void**)&((*DeviceMem).nInfo.energy),   banksize*sizeof(CMPTYPE))); //use as initial z position for plot
-#endif
-
-#if defined(__1D)
-  gpuErrchk(cudaMalloc((void**)&((*DeviceMem).nInfo.pos_x),3*banksize*sizeof(float)));
-  gpuErrchk(cudaMalloc((void**)&((*DeviceMem).nInfo.pos_y),banksize*sizeof(float)));
-#endif 
 
 #if defined(__3D)
   (*HostMem).nInfo.pos_x = (float*)malloc(sizeof(float)*banksize);
@@ -86,7 +64,7 @@ void initialize_memory(MemStruct *DeviceMem, MemStruct *HostMem, unsigned numbin
   gpuErrchk(cudaMemset((*DeviceMem).num_terminated_neutrons, 0, sizeof(unsigned)));
   gpuErrchk(cudaMalloc((void**)&((*DeviceMem).num_live_neutrons), sizeof(unsigned int)));
 
-  gpuErrchk(cudaMalloc((void**)&((*DeviceMem).block_terminated_neutrons), sizeof(unsigned int)*gridx));
+  gpuErrchk(cudaMalloc((void**)&((*DeviceMem).block_terminated_neutrons), sizeof(unsigned int)*gridr));
   gpuErrchk(cudaMallocHost((void**)&((*HostMem).num_terminated_neutrons), sizeof(unsigned int)));
   (*HostMem).num_terminated_neutrons[0] = 0u;
 
