@@ -17,11 +17,9 @@ void copydata(MemStruct DeviceMem, MemStruct HostMem){
   gpuErrchk(cudaMemcpyToSymbol(wdspp, DeviceMem.wdspp, 9*sizeof(float), 0, cudaMemcpyDeviceToDevice));
 }
 void initialize_memory(MemStruct *DeviceMem, MemStruct *HostMem, unsigned numbins, unsigned gridx, unsigned blockx,unsigned ubat,unsigned gridr,unsigned blockr,unsigned ubatr){
-  unsigned gridsize,banksize,gridsizr,banksizr;
-  gridsize = gridx*blockx;
+  unsigned banksize,gridsizr;
   banksize = gridx*blockx*ubat;
   gridsizr = gridr*blockr;
-  banksizr = gridr*blockr*ubatr;
   //for __TALLY, ubat is used as tranfac
 
 #if defined(__TALLY)
