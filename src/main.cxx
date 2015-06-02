@@ -33,6 +33,7 @@ int main(int argc, char **argv){
   int ubat,upto;
   int ibat=0;
   double width, sigt, pf,pc,v1;
+  float beta, nmax;
   char name[50];
   int mode; //0=run only; 1=process only; 2=run & process
   int isSteady=0;
@@ -48,6 +49,8 @@ int main(int argc, char **argv){
     pf    = atof(argv[7]);
     pc    = atof(argv[8]);
     ubat  = atoi(argv[9]);
+    beta =  atof(argv[10]);
+    nmax =  atof(argv[11]);
     mode = 0;   //run only
     if(argc>=11+1){
       ubat = atoi(argv[9]);
@@ -108,6 +111,8 @@ int main(int argc, char **argv){
   HostMem.wdspp[3] = pf;
   HostMem.wdspp[4] = pc;
   HostMem.wdspp[5] = num_bin;
+  HostMem.wdspp[6] = beta;
+  HostMem.wdspp[7] = nmax;
   double ref = 1.0/(HostMem.wdspp[3]+HostMem.wdspp[4])/width;
   // note this only works for flat
   copydata(DeviceMem,HostMem);
