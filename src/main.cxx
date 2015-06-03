@@ -88,6 +88,8 @@ int main(int argc, char **argv){
   writeh5_nxm_(name,"/","sigma",   &(sigt),   &intone, &intone);
   writeh5_nxm_(name,"/","pf",      &(pf),     &intone, &intone);
   writeh5_nxm_(name,"/","pc",      &(pc),     &intone, &intone);
+  writeh5_nxm_(name,"/","beta",    &(beta),   &intone, &intone);
+  writeh5_nxm_(name,"/","nmax",    &(nmax),   &intone, &intone);
 //============================================================ 
 //=============simulation memory allocation===================
 //============================================================
