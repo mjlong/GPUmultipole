@@ -17,9 +17,8 @@ void copydata(MemStruct DeviceMem, MemStruct HostMem){
   gpuErrchk(cudaMemcpyToSymbol(wdspp, DeviceMem.wdspp, 9*sizeof(float), 0, cudaMemcpyDeviceToDevice));
 }
 
-void delayed_memory(int nbat, int num_src, MemStruct* HostMem){
+void delayed_memory(int nbat, int num_src, int csize,MemStruct* HostMem){
   memset((*HostMem).newly_delayed,   0, sizeof(int)*nbat);
-  int csize = (int(num_src*(*HostMem).wdspp[3]*(*HostMem).wdspp[6])+1)*nbat;
   (*HostMem).nInfo.d_pos_x = (float*)malloc(sizeof(float)*csize);
   (*HostMem).nInfo.d_pos_y = (float*)malloc(sizeof(float)*csize);
   (*HostMem).nInfo.d_pos_z = (float*)malloc(sizeof(float)*csize);
@@ -118,7 +117,6 @@ void release_memory(MemStruct DeviceMem, MemStruct HostMem){
   free(HostMem.nInfo.d_nu   );
   free(HostMem.nInfo.d_igen );
   free(HostMem.newly_delayed);
-
 #if defined(__TALLY)
   free(HostMem.spectrum);
 #if defined(__PROCESS)
