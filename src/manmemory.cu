@@ -16,6 +16,19 @@ void copydata(MemStruct DeviceMem, MemStruct HostMem){
   gpuErrchk(cudaMemcpy(DeviceMem.wdspp,  HostMem.wdspp,   sizeof(float)*9, cudaMemcpyHostToDevice));
   gpuErrchk(cudaMemcpyToSymbol(wdspp, DeviceMem.wdspp, 9*sizeof(float), 0, cudaMemcpyDeviceToDevice));
 }
+
+void delayed_memory(int nbat, int num_src, MemStruct* HostMem){
+  memset((*HostMem).newly_delayed,   0, sizeof(int)*nbat);
+  int csize = (int(num_src*(*HostMem).wdspp[3]*(*HostMem).wdspp[6])+1)*nbat;
+  (*HostMem).nInfo.d_pos_x = (float*)malloc(sizeof(float)*csize);
+  (*HostMem).nInfo.d_pos_y = (float*)malloc(sizeof(float)*csize);
+  (*HostMem).nInfo.d_pos_z = (float*)malloc(sizeof(float)*csize);
+  (*HostMem).nInfo.d_igen  = (int*)malloc(sizeof(int)*csize);
+  (*HostMem).nInfo.d_nu    = (int*)malloc(sizeof(int)*csize);
+  for(int i=0;i<csize;i++)
+    ((*HostMem).nInfo.d_igen)[i] = -1;
+}
+
 void initialize_memory(MemStruct *DeviceMem, MemStruct *HostMem, unsigned numbins, unsigned gridx, unsigned blockx,unsigned nbat,unsigned ubat){
   unsigned gridsize,banksize;
   gridsize = gridx*blockx;
@@ -99,6 +112,11 @@ void resettally(CMPTYPE *cnt, unsigned totbins){
   gpuErrchk(cudaMemset(cnt, 0, totbins*sizeof(CMPTYPE)));}
 
 void release_memory(MemStruct DeviceMem, MemStruct HostMem){
+  free(HostMem.nInfo.d_pos_x);
+  free(HostMem.nInfo.d_pos_y);
+  free(HostMem.nInfo.d_pos_z);
+  free(HostMem.nInfo.d_nu   );
+  free(HostMem.nInfo.d_igen );
   free(HostMem.newly_delayed);
 
 #if defined(__TALLY)
