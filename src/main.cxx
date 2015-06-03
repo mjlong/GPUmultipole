@@ -77,7 +77,9 @@ int main(int argc, char **argv){
 #else
   strcpy(name,"R3ddelayRawcnt"); 
 #endif
-  strcat(name,name1); strcat(name,name2); strcat(name,name3); strcat(name,".h5");
+  strcat(name,name1); strcat(name,name2); strcat(name,name3);   
+  sprintf(name1,"_%.3f",beta);  sprintf(name2,"_%.f",nmax);
+  strcat(name,name1); strcat(name,name2); strcat(name,".h5");
   createmptyh5(name); //create empty file for future add dataset
   
   int intone=1; 
