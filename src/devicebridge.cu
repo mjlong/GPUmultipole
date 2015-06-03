@@ -88,7 +88,7 @@ unsigned setbank(MemStruct DeviceMem, MemStruct HostMem, int gridsize, int csize
     ic = avastart;
     live = HostMem.nInfo.live[i];
     if(live>10){
-      igen = ceil(rand()/RAND_MAX*HostMem.wdspp[7])+1+ibat; //delayed generations>=2
+      igen = ceil(rand()*1.0/RAND_MAX*HostMem.wdspp[7])+1+ibat; //delayed generations>=2
       if(igen<nbat){
         HostMem.newly_delayed[igen]+=1;
         while( (ic<csize)&&( HostMem.nInfo.d_igen[ic]>ibat) ){
@@ -103,7 +103,7 @@ unsigned setbank(MemStruct DeviceMem, MemStruct HostMem, int gridsize, int csize
           HostMem.nInfo.d_nu[ic]    = live/10;
         }
         else
-          printf("[Warning]: insufficient memory for newly delayed neutrons\n");
+          printf("[Warning]: live=%d,ic=%d(>csize=%d),insufficient memory for newly delayed neutrons\n",live,ic,csize);
       }//end if fissioned generation number is within range
     }//end if live = 20 or 30
     else{
