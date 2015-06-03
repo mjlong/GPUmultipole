@@ -113,7 +113,7 @@ int main(int argc, char **argv){
   HostMem.wdspp[5] = num_bin;
   HostMem.wdspp[6] = beta;
   HostMem.wdspp[7] = nmax;
-  int csize =  (int(num_src*pf*beta+1)*num_bat;
+  int csize =  (int)(num_src*pf*2*beta*2+1)*num_bat;
   delayed_memory(num_bat,num_src,csize,&HostMem);
 
   double ref = 1.0/(HostMem.wdspp[3]+HostMem.wdspp[4])/width;
@@ -149,10 +149,11 @@ int main(int argc, char **argv){
       start_neutrons(gridx, blockx, DeviceMem, ubat,1,banksize);
       //check(gridx,blockx,DeviceMem,ubat);
       //active = count_neutrons(gridx, blockx, DeviceMem, HostMem,num_src);
+      /*
       for(int iic=0;iic<csize;iic++)
-	printf("%d ",HostMem.nInfo.d_igen[iic]);
+        printf("%d ",HostMem.nInfo.d_igen[iic]);
       printf("\n");
-
+      */
       banksize = setbank(DeviceMem, HostMem, num_src,csize, ibat,num_bat);
       add_delayed(DeviceMem,HostMem,num_src,csize,ibat,num_bat,banksize);
       printf("[%3d]%4d-->%4d+%3d: \n", ibat,num_src,banksize,HostMem.newly_delayed[ibat]);
