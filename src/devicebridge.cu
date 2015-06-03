@@ -67,7 +67,7 @@ unsigned setbank(MemStruct DeviceMem, MemStruct HostMem, int gridsize){
 }
 #endif
 #if defined(__3D)
-unsigned setbank(MemStruct DeviceMem, MemStruct HostMem, int gridsize, int ibat, int nbat){
+unsigned setbank(MemStruct DeviceMem, MemStruct HostMem, int gridsize, int csize, int ibat, int nbat){
   float* x2 = (float*)malloc(sizeof(float)*gridsize*2);
   float* y2 = (float*)malloc(sizeof(float)*gridsize*2);
   float* z2 = (float*)malloc(sizeof(float)*gridsize*2);
@@ -77,7 +77,6 @@ unsigned setbank(MemStruct DeviceMem, MemStruct HostMem, int gridsize, int ibat,
   memset(HostMem.nInfo.live,0,sizeof(int)*gridsize);
   gpuErrchk(cudaMemcpy(HostMem.nInfo.live, DeviceMem.nInfo.live ,sizeof(int)*gridsize,   cudaMemcpyDeviceToHost));  
   int live;  unsigned j=0;int k=0; int igen; int ic=0; int avastart = 0;
-  int csize = ((int)(gridsize*(HostMem.wdspp[3])*(HostMem.wdspp[6]))+1)*nbat;
   /*
   for(int i=0;i<gridsize;i++){
     printf("%d ",HostMem.nInfo.live[i]);
