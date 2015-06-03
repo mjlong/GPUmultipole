@@ -163,6 +163,9 @@ __global__ void history(MemStruct DeviceMem, unsigned num_src,int shift,unsigned
 	if(rnd>(1-wdspp[3])){ //fission
 	  rnd = curand_uniform_double(&localState);
 	  DeviceMem.nInfo.live[id] = 2*(rnd<=0.55)+3*(rnd>0.55);
+	  //last rnd to determine collision type has ended
+	  rnd = curand_uniform_double(&localState);
+	  DeviceMem.nInfo.live[id] *= ( (rnd<wdspp[6])*10+(rnd>=wdspp[6])*1  );
 	  //if(34217==id) printf("  id=%d, live[%d]= %d\n", id, id,DeviceMem.nInfo.live[id]);
 	  //if(3<DeviceMem.nInfo.live[id]) printf("  id=%d, live[%d]= %d\n", id, id,DeviceMem.nInfo.live[id]);
 	}
