@@ -39,24 +39,22 @@ int main(int argc, char **argv){
 
   unsigned gridr,blockr,gridsizr, ubatr;
   int num_batr,num_srcr;
-  if(argc>=8+1){//run or run+process
-    gridx = atoi(argv[1]);
-    blockx = atoi(argv[2]);
-    gridsize = gridx*blockx;
-    num_bat = atoi(argv[3]);    
-    num_bin = atoi(argv[4]);
-    width = atof(argv[5]);
-    sigt  = atof(argv[6]);
-    pf    = atof(argv[7]);
-    pc    = atof(argv[8]);
-    ubat  = atoi(argv[9]);
-    gridr = atoi(argv[10]);
-    blockr = atoi(argv[11]);
-    ubatr  = atoi(argv[12]);
-    num_batr = atoi(argv[13]);
+  gridx = atoi(argv[1]);
+  blockx = atoi(argv[2]);
+  gridsize = gridx*blockx;
+  num_bat = atoi(argv[3]);    
+  num_bin = atoi(argv[4]);
+  width = atof(argv[5]);
+  sigt  = atof(argv[6]);
+  pf    = atof(argv[7]);
+  pc    = atof(argv[8]);
+  ubat  = atoi(argv[9]);
+  gridr = atoi(argv[10]);
+  blockr = atoi(argv[11]);
+  ubatr  = atoi(argv[12]);
+  num_batr = atoi(argv[13]);
 
-    mode = 0;   //run only
-  }
+  mode = 0;   //run only
   num_src=gridx*blockx*ubat;
   //gridr  = gridx/4;
   //blockr = blockx/4;
@@ -120,7 +118,7 @@ int main(int argc, char **argv){
 //============================================================
   printf("[Info] Preparing fixed bank ... \n");
   unsigned active,banksize;
-  if(1!=mode){//run simulation except 'process only' mode
+  if(1==mode){//run fixed source preparation if fixed_source_file not specified
     active = 1;
 
     clock_start = clock();
@@ -142,7 +140,11 @@ int main(int argc, char **argv){
     printdone();
     printf("[time]  %d batches (*%d*%d neutrons/batch) costs %f ms\n", num_bat,gridsize,ubat, time_elapsed);
 
+  }
+  else{//Reading from fixed_source_file
     
+
+  }//end if (1==mode)     
     //====================== simulation with fixed source ======================
     clock_start = clock();
     printf("[Info] Running main simulation body ... \n");
@@ -171,7 +173,7 @@ int main(int argc, char **argv){
     writeh5_nxm_(name, "/","num_history_prep",&(num_src) ,  &intone, &intone);
     writeh5_nxm_(name, "/","num_history",     &(num_srcr),  &intone, &intone);
     
-  }//end if (1!=mode) 
+
 
   //============================================================================
   //=========================process the results ===============================
