@@ -21,6 +21,13 @@ void createmptyh5(char *filename){
   status = H5Fclose(file);
 }
 
+void createfixsrch5(char *filename){
+  hid_t file;
+  herr_t status;
+  file = H5Fcreate(filename, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
+  status = H5Fclose(file);
+}
+
 void writeh5_nxm_(char *filename, char* groupname, char *dsetname, int *vec1, int *num_vec, int *length){
 
   hid_t       file,group, dataset;         /* file and dataset handles */
