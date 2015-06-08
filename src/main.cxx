@@ -16,7 +16,7 @@ extern void readh5_(char* filename, int* gridsize, int* nbat,
 	     int* meshes, double* width, 
 	     double* sigt, double* pf, double* pc);
 extern void readh5_(char* filename, int* cnt);
-
+extern void readh5_(char* filename, float* x, float* y, float* z);
 void printbless();
 void printdone();
 int main(int argc, char **argv){
