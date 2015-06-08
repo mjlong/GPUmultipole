@@ -55,6 +55,10 @@ int main(int argc, char **argv){
   num_batr = atoi(argv[13]);
 
   mode = 0;   //run only
+
+  if(argc>14){
+    mode=1;
+  }
   num_src=gridx*blockx*ubat;
   //gridr  = gridx/4;
   //blockr = blockx/4;
@@ -178,114 +182,7 @@ int main(int argc, char **argv){
   //============================================================================
   //=========================process the results ===============================
   //============================================================================
-#if defined(__PROCESS)
-  if(0!=mode){//do process except 'run only' mode
-    printf("[Info] Processing ... \n");
-    strcpy(name,"RResult"); strcat(name,name1); strcat(name,name2); strcat(name,name3); strcat(name,".h5");
-    createmptyh5(name); //create empty file for future add dataset
-    writeh5_nxm_(name,"num_batch",   &(num_bat),  &intone, &intone);
-    writeh5_nxm_(name,"num_cells",   &(num_bin),  &intone, &intone);
-    writeh5_nxm_(name,"width",   &(width),  &intone, &intone);
-    writeh5_nxm_(name,"sigma",   &(sigt),   &intone, &intone);
-    writeh5_nxm_(name,"pf",      &(pf),     &intone, &intone);
-    writeh5_nxm_(name,"pc",      &(pc),     &intone, &intone);
-    writeh5_nxm_(name,"num_ubat",&(ubat),   &intone, &intone);
-    writeh5_nxm_(name,"num_acc", &(upto),   &intone, &intone);
 
-    clock_start = clock();
-    //========================collison count to density ==========================
-    printf("[Stat] Batch means and batch accmeans .... ");
-    cnt2flux(HostMem,gridsize,width/num_bin,num_bin,num_bat,ubat);
-    printdone();
-    if(0==print)
-      print_results(num_bin,num_bat,HostMem.batchmeans);
-    //----------------------------------------------------------------------------
-    printf("[Save] Writing means to hdf5... ");
-    writeh5_nxm_(name,"batchmeans", HostMem.batchmeans, &num_bat, &num_bin);
-    printf("... writing acc means to hdf5... ");
-    intone=num_bat-ubat; writeh5_nxm_(name,"batchaccumu", HostMem.accmeans, &intone, &num_bin);
-    printdone();
-    //========================Average Square Error================================
-    printf("[Stat] Average Square Error ... ");
-    double *ASE = (double*)malloc(sizeof(double)*(num_bat-ubat));
-    getASE(HostMem.accmeans, num_bin, num_bat,ubat, ref, ASE);
-    printdone();
-    if(0==print)
-      print_results(num_bat-ubat,1,ASE);
-    //----------------------------------------------------------------------------
-    printf("[Save] Writing ASE to hdf5... ");
-    inttwo=num_bat-ubat; intone=1; writeh5_nxm_(name,"ASE", ASE, &intone, &inttwo);
-    printdone();
-    //=====================Auto-Correlation Coefficients==========================
-    printf("[Stat] Auto-correlation coefficients ... ");
-    double *COR = (double*)malloc(sizeof(double)*upto*num_bin);
-    getCOR(HostMem.batchmeans,num_bin,num_bat,ubat,upto,COR);
-    printdone();
-    if(0==print)
-      print_results(upto,num_bin, COR);
-    //----------------------------------------------------------------------------
-    printf("[Save] Writing ACC to hdf5... ");
-    writeh5_nxm_(name,"ACC", COR, &num_bin, &upto);
-    printdone();
-
-    //==================== ACC fit ===============================================
-    printf("[Stat] ACC fit...");
-    double *rho0s = (double*)malloc(sizeof(double)*num_bin);
-    double *qs    = (double*)malloc(sizeof(double)*num_bin);
-    fitall(COR,upto,num_bin,rho0s,qs);
-    printdone();
-    //fitall1(COR,upto,num_bin,rho0s,qs);
-    //printf("ACC fit done:\n");
-    //print_results(num_bin,1,rho0s);
-    //print_results(num_bin,1,qs);
-    if(0==print){
-      print_results(num_bin,1,rho0s);
-      print_results(num_bin,1,qs);
-    }
-    //----------------------------------------------------------------------------
-    printf("[Save] Writing ACC fit result to hdf5... ");
-    intone=1;
-    writeh5_nxm_(name,"rho0s", rho0s, &intone, &num_bin);
-    writeh5_nxm_(name,"qs",    rho0s, &intone, &num_bin);
-    printdone();
-  
-    //=========================cell variance =====================================
-    printf("[Stat] Variance ....");
-    double *vars = (double*)malloc(sizeof(double)*num_bin);
-    for(int im=0;im<num_bin;im++)
-      vars[im] = variance(HostMem.batchmeans,num_bat,ubat,num_bin,im);
-    printdone();
-    if(0==print)
-      print_results(num_bin,1,vars);
-    //----------------------------------------------------------------------------
-    printf("[Save] Writing mesh variances to hdf5... ");
-    intone=1; writeh5_nxm_(name,"var", vars, &intone, &num_bin);
-    printdone();
-
-    //================= MASE (Mean average square error) =========================  
-    printf("[Stat] Expected Average Square Error ....");
-    double *EASE = (double*)malloc(sizeof(double)*(num_bat-ubat));
-    getEASE(vars,num_bin,ubat,num_bat-ubat,rho0s,qs,EASE);
-    printdone();
-    if(0==print)
-      print_results(num_bat-ubat,1,EASE);
-    printf("[Save] Writing EASE to hdf5 ... ");
-    intone=1; inttwo=num_bat-ubat; writeh5_nxm_(name,"EASE", EASE, &intone, &inttwo);
-    printdone();
-
-    free(EASE);
-    free(vars);
-    free(rho0s);
-    free(qs);
-    free(COR);
-    free(ASE);
-
-    clock_end   = clock();
-    time_elapsed = (float)(clock_end-clock_start)/CLOCKS_PER_SEC*1000.f;
-    printf("[time]  statistics costs %f ms\n", time_elapsed);
-
-  }//end if(0!=mode) //end process
-#endif
   /*
 
   FILE *fp=NULL;
