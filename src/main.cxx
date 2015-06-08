@@ -9,6 +9,7 @@
 
 #include <time.h>
 extern void createmptyh5(char *filename);
+extern void createfixsrch5(char *filename);
 extern void writeh5_nxm_(char *filename, char *groupname, char *dsetname, double *vec1, int *num_vec, int *length);
 extern void writeh5_nxm_(char *filename, char *groupname, char *dsetname, float  *vec1, int *num_vec, int *length);
 extern void writeh5_nxm_(char *filename, char *groupname, char *dsetname, int    *vec1, int *num_vec, int *length);
@@ -54,10 +55,13 @@ int main(int argc, char **argv){
   ubatr  = atoi(argv[12]);
   num_batr = atoi(argv[13]);
 
-  mode = 0;   //run only
 
-  if(argc>14){
-    mode=1;
+  if(0==gridsize){ 
+    mode=0;     //read and run
+  }
+  else{
+    mode=1;     //prepare and run
+    createfixsrch5(argv[14]);
   }
   num_src=gridx*blockx*ubat;
   //gridr  = gridx/4;
@@ -100,10 +104,6 @@ int main(int argc, char **argv){
   tnum_bin = num_bin*num_bin*num_bin;
 #endif
   initialize_memory(&DeviceMem, &HostMem, tnum_bin, gridx, blockx, ubat, gridr, blockr, ubatr);
-#if defined(__PROCESS)
-  if(1==mode)//process only, need to access the raw collision count
-    readh5_(argv[1], HostMem.batcnt);
-#endif    
 
   HostMem.wdspp[0] = width;
   HostMem.wdspp[1] = width/num_bin;
@@ -121,7 +121,8 @@ int main(int argc, char **argv){
 //===============main simulation body=========================
 //============================================================
   printf("[Info] Preparing fixed bank ... \n");
-  unsigned active,banksize;
+  unsigned active;
+  int banksize;
   if(1==mode){//run fixed source preparation if fixed_source_file not specified
     active = 1;
 
@@ -137,13 +138,18 @@ int main(int argc, char **argv){
       //check(gridx,blockx,DeviceMem,ubat);
       //active = count_neutrons(gridx, blockx, DeviceMem, HostMem,num_src);
       banksize = setbank(DeviceMem, HostMem, num_src);
-      //printf("[%3d]%4d-->%4d: \n", ibat,num_src,banksize);
-      }
+      printf("[%3d]%4d-->%4d: \n", ibat,num_src,banksize);
+    }
     clock_end   = clock();
     time_elapsed = (float)(clock_end-clock_start)/CLOCKS_PER_SEC*1000.f;
     printdone();
     printf("[time]  %d batches (*%d*%d neutrons/batch) costs %f ms\n", num_bat,gridsize,ubat, time_elapsed);
-
+    writeh5_nxm_(argv[14],"/","gridsize",&gridsize,&intone,&intone);
+    writeh5_nxm_(argv[14],"/","bunches", &ubat,    &intone,&intone);
+    writeh5_nxm_(argv[14],"/","batches", &num_bat, &intone,&intone);
+    writeh5_nxm_(argv[14],"/","x",       HostMem.nInfo.pos_x, &intone,&banksize);
+    writeh5_nxm_(argv[14],"/","y",       HostMem.nInfo.pos_y, &intone,&banksize);
+    writeh5_nxm_(argv[14],"/","z",       HostMem.nInfo.pos_z, &intone,&banksize);
   }
   else{//Reading from fixed_source_file
     
@@ -156,7 +162,7 @@ int main(int argc, char **argv){
     for(ibat=0;ibat<num_batr;ibat++){
       start_neutrons(gridr, blockr, DeviceMem, ubatr,num_src, banksize);
       //check(gridx,blockx,DeviceMem,ubat);
-      //printf("[%3d]%4d-->%4d: \n", ibat,banksize,num_srcr);
+      printf("[%3d]%4d-->%4d: \n", ibat,banksize,num_srcr);
 #if defined(__TALLY)
       save_results(ibat,gridr, blockr, tnum_bin, DeviceMem, HostMem);
       sprintf(name1,"%d",ibat);strcpy(name2,"batch_cnt");strcat(name2,name1);
