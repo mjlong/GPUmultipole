@@ -18,6 +18,7 @@ extern void readh5_(char* filename, int* gridsize, int* nbat,
 	     double* sigt, double* pf, double* pc);
 extern void readh5_(char* filename, int* cnt);
 extern void readh5_(char* filename, float* x, float* y, float* z);
+extern void readh5_(char* filename, int* gridsize, int* bunches, int* batches, int* banksize);
 void printbless();
 void printdone();
 int main(int argc, char **argv){
@@ -39,7 +40,8 @@ int main(int argc, char **argv){
   int isSteady=0;
 
   unsigned gridr,blockr,gridsizr, ubatr;
-  int num_batr,num_srcr;
+  int num_batr,num_srcr,banksize;
+
   gridx = atoi(argv[1]);
   blockx = atoi(argv[2]);
   gridsize = gridx*blockx;
@@ -55,19 +57,17 @@ int main(int argc, char **argv){
   ubatr  = atoi(argv[12]);
   num_batr = atoi(argv[13]);
 
-
-  if(0==gridsize){ 
+  if(0==ubat){ 
     mode=0;     //read and run
+    readh5_(argv[14], &gridsize,&ubat,&num_bat,&banksize);
   }
   else{
     mode=1;     //prepare and run
     createfixsrch5(argv[14]);
   }
+
   num_src=gridx*blockx*ubat;
-  //gridr  = gridx/4;
-  //blockr = blockx/4;
   gridsizr = blockr*gridr;
-  //ubatr = ubat;
   num_srcr=gridr*blockr*ubatr;
   
   char name1[10];  char name2[10];  char name3[10]; 
@@ -120,10 +120,9 @@ int main(int argc, char **argv){
 //============================================================ 
 //===============main simulation body=========================
 //============================================================
-  printf("[Info] Preparing fixed bank ... \n");
   unsigned active;
-  int banksize;
   if(1==mode){//run fixed source preparation if fixed_source_file not specified
+    printf("[Info] Preparing fixed bank ... \n");
     active = 1;
 
     clock_start = clock();
@@ -147,13 +146,21 @@ int main(int argc, char **argv){
     writeh5_nxm_(argv[14],"/","gridsize",&gridsize,&intone,&intone);
     writeh5_nxm_(argv[14],"/","bunches", &ubat,    &intone,&intone);
     writeh5_nxm_(argv[14],"/","batches", &num_bat, &intone,&intone);
+    writeh5_nxm_(argv[14],"/","banksize",&banksize,&intone,&intone);
     writeh5_nxm_(argv[14],"/","x",       HostMem.nInfo.pos_x, &intone,&banksize);
     writeh5_nxm_(argv[14],"/","y",       HostMem.nInfo.pos_y, &intone,&banksize);
     writeh5_nxm_(argv[14],"/","z",       HostMem.nInfo.pos_z, &intone,&banksize);
   }
   else{//Reading from fixed_source_file
-    
-
+    printf("[Info] Reading fixed bank ... \n");    
+    float* x2 = (float*)malloc(sizeof(float)*num_src*2);
+    float* y2 = (float*)malloc(sizeof(float)*num_src*2);
+    float* z2 = (float*)malloc(sizeof(float)*num_src*2);
+    readh5_(argv[14], x2,y2,z2);
+    gpuErrchk(cudaMemcpy(DeviceMem.nInfo.pos_x+num_src,x2,sizeof(float)*num_src*2, cudaMemcpyHostToDevice));  
+    gpuErrchk(cudaMemcpy(DeviceMem.nInfo.pos_y+num_src,y2,sizeof(float)*num_src*2, cudaMemcpyHostToDevice));  
+    gpuErrchk(cudaMemcpy(DeviceMem.nInfo.pos_z+num_src,z2,sizeof(float)*num_src*2, cudaMemcpyHostToDevice));  
+    free(x2);  free(y2);  free(z2);
   }//end if (1==mode)     
     //====================== simulation with fixed source ======================
     clock_start = clock();
