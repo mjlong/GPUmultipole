@@ -169,7 +169,7 @@ int main(int argc, char **argv){
     for(ibat=0;ibat<num_batr;ibat++){
       start_neutrons(gridr, blockr, DeviceMem, ubatr,num_src, banksize);
       //check(gridx,blockx,DeviceMem,ubat);
-      printf("[%3d]%4d-->%4d: \n", ibat,banksize,num_srcr);
+      //printf("[%3d]%4d-->%4d: \n", ibat,banksize,num_srcr);
 #if defined(__TALLY)
       save_results(ibat,gridr, blockr, tnum_bin, DeviceMem, HostMem);
       sprintf(name1,"%d",ibat);strcpy(name2,"batch_cnt");strcat(name2,name1);
