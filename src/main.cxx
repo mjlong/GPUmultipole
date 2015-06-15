@@ -130,7 +130,7 @@ int main(int argc, char **argv){
 //===============main simulation body=========================
 //============================================================
   printf("[Info] Running main simulation body ... \n");
-  unsigned active,banksize,delaysize;
+  unsigned active,banksize,delaysize; int addsize;
   if(1!=mode){//run simulation except 'process only' mode
     active = 1;
 
@@ -159,9 +159,9 @@ int main(int argc, char **argv){
       printf("\n");
       */
       banksize = setbank(DeviceMem, HostMem, num_src,csize, ibat,num_bat);
-      add_delayed(DeviceMem,HostMem,num_src,csize,ibat,num_bat,banksize);
-      printf("[%3d]%4d-->%4d+%3d: \n", ibat,num_src,banksize,HostMem.newly_delayed[ibat]);
-      banksize = banksize+HostMem.newly_delayed[ibat];
+      addsize = add_delayed(DeviceMem,HostMem,num_src,csize,ibat,num_bat,banksize);
+      printf("[%3d]%4d-->%4d+%3d(%3d): \n", ibat,num_src,banksize,HostMem.newly_delayed[ibat],addsize);
+      banksize = banksize+addsize;
 #if defined(__TALLY)
       save_results(ibat,gridx, blockx, tnum_bin, DeviceMem, HostMem);
       sprintf(name1,"%d",ibat);strcpy(name2,"batch_cnt");strcat(name2,name1);
