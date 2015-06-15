@@ -91,7 +91,7 @@ unsigned setbank(MemStruct DeviceMem, MemStruct HostMem, int gridsize, int csize
       igen = ceil(rand()*1.0/RAND_MAX*HostMem.wdspp[7])+1+ibat; //delayed generations>=2
       if(igen<nbat){
         HostMem.newly_delayed[igen]+=1;
-        while( (ic<csize)&&( HostMem.nInfo.d_igen[ic]>ibat) ){
+        while( (ic<csize)&&( HostMem.nInfo.d_igen[ic]>=ibat) ){
 	  ic++;
 	}//end while ic
         avastart = ic;
@@ -123,14 +123,15 @@ unsigned setbank(MemStruct DeviceMem, MemStruct HostMem, int gridsize, int csize
   return j;
 }
 
-void add_delayed(MemStruct DeviceMem, MemStruct HostMem, unsigned gridsize, int csize, int ibat, int nbat, int banksize){
+int add_delayed(MemStruct DeviceMem, MemStruct HostMem, unsigned gridsize, int csize, int ibat, int nbat, int banksize){
   //============================================================================
   //=============== Add new delayed neutrons ===================================
   int ic,igen,livi,j,unlivestart;
   ic=0; igen=0; //igen now used as counter for newly delayed neutrons already added
-  unlivestart = 0;
+  unlivestart = 0; j=0;
+  //printf("[%3d]:adding %d...:",ibat,HostMem.newly_delayed[ibat]);
   while( (igen<(HostMem.newly_delayed[ibat]))&&(ic<csize) ){
-    //printf(" ..... ic=%d\n",ic);
+    //printf("(ic=%d,desgen=%d,live=%d)\n",ic,HostMem.nInfo.d_igen[ic],HostMem.nInfo.d_nu[ic]);
     if(ibat==HostMem.nInfo.d_igen[ic]){
       igen++;
       livi = HostMem.nInfo.d_nu[ic];
@@ -153,6 +154,7 @@ void add_delayed(MemStruct DeviceMem, MemStruct HostMem, unsigned gridsize, int 
   gpuErrchk(cudaMemcpy(DeviceMem.nInfo.pos_x+gridsize+banksize, HostMem.nInfo.pos_x, sizeof(float)*HostMem.newly_delayed[ibat], cudaMemcpyHostToDevice));
   gpuErrchk(cudaMemcpy(DeviceMem.nInfo.pos_y+gridsize+banksize, HostMem.nInfo.pos_y, sizeof(float)*HostMem.newly_delayed[ibat], cudaMemcpyHostToDevice));
   gpuErrchk(cudaMemcpy(DeviceMem.nInfo.pos_z+gridsize+banksize, HostMem.nInfo.pos_z, sizeof(float)*HostMem.newly_delayed[ibat], cudaMemcpyHostToDevice));
+  return j;
 }
 
 

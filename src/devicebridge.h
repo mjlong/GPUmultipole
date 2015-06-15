@@ -17,7 +17,7 @@ void print_results(unsigned meshes, unsigned nbat, double *tally);
 
 unsigned setbank(MemStruct DeviceMem, MemStruct HostMem, int gridsize, int csize, int ibat, int nbat);
 void check(unsigned gridx, unsigned blockx, MemStruct DeviceMem, unsigned ubat);
-void add_delayed(MemStruct DeviceMem, MemStruct HostMem, unsigned gridsize, int csize, int ibat, int nbat, int banksize);
+int add_delayed(MemStruct DeviceMem, MemStruct HostMem, unsigned gridsize, int csize, int ibat, int nbat, int banksize);
 int flushbank(MemStruct DeviceMem, MemStruct HostMem, unsigned lastpop,float a,unsigned gridsize,int ibat,int nbat);
 int count_pop(int *live, int gridsize);
 void resetcount(MemStruct DeviceMem);
