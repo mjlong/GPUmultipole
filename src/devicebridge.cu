@@ -151,9 +151,9 @@ int add_delayed(MemStruct DeviceMem, MemStruct HostMem, unsigned gridsize, int c
     ic++;
   }    //end search in delayed bank
   //============================================================================
-  gpuErrchk(cudaMemcpy(DeviceMem.nInfo.pos_x+gridsize+banksize, HostMem.nInfo.pos_x, sizeof(float)*HostMem.newly_delayed[ibat], cudaMemcpyHostToDevice));
-  gpuErrchk(cudaMemcpy(DeviceMem.nInfo.pos_y+gridsize+banksize, HostMem.nInfo.pos_y, sizeof(float)*HostMem.newly_delayed[ibat], cudaMemcpyHostToDevice));
-  gpuErrchk(cudaMemcpy(DeviceMem.nInfo.pos_z+gridsize+banksize, HostMem.nInfo.pos_z, sizeof(float)*HostMem.newly_delayed[ibat], cudaMemcpyHostToDevice));
+  gpuErrchk(cudaMemcpy(DeviceMem.nInfo.pos_x+gridsize+banksize, HostMem.nInfo.pos_x, sizeof(float)*j, cudaMemcpyHostToDevice));
+  gpuErrchk(cudaMemcpy(DeviceMem.nInfo.pos_y+gridsize+banksize, HostMem.nInfo.pos_y, sizeof(float)*j, cudaMemcpyHostToDevice));
+  gpuErrchk(cudaMemcpy(DeviceMem.nInfo.pos_z+gridsize+banksize, HostMem.nInfo.pos_z, sizeof(float)*j, cudaMemcpyHostToDevice));
   return j;
 }
 
