@@ -160,7 +160,7 @@ int main(int argc, char **argv){
       */
       banksize = setbank(DeviceMem, HostMem, num_src,csize, ibat,num_bat);
       addsize = add_delayed(DeviceMem,HostMem,num_src,csize,ibat,num_bat,banksize);
-      printf("[%3d]%4d-->%4d+%3d(%3d): \n", ibat,num_src,banksize,HostMem.newly_delayed[ibat],addsize);
+      printf("[%3d]%4d-->%4d+%3d(%3d*nu)=%d\n", ibat,num_src,banksize,addsize,HostMem.newly_delayed[ibat],addsize+banksize);
       banksize = banksize+addsize;
 #if defined(__TALLY)
       save_results(ibat,gridx, blockx, tnum_bin, DeviceMem, HostMem);
