@@ -67,7 +67,7 @@ unsigned setbank(MemStruct DeviceMem, MemStruct HostMem, int gridsize){
 }
 #endif
 #if defined(__3D)
-unsigned setbank(MemStruct DeviceMem, MemStruct HostMem, int num_src, int csize, int ibat, int nbat){
+unsigned setbank(MemStruct DeviceMem, MemStruct HostMem, int num_srcp, int num_src, int csize, int ibat, int nbat){
   float* x2 = (float*)malloc(sizeof(float)*num_src*2);
   float* y2 = (float*)malloc(sizeof(float)*num_src*2);
   float* z2 = (float*)malloc(sizeof(float)*num_src*2);
@@ -116,9 +116,9 @@ unsigned setbank(MemStruct DeviceMem, MemStruct HostMem, int num_src, int csize,
       }
     }//end if live=2 or 3
   }
-  gpuErrchk(cudaMemcpy(DeviceMem.nInfo.pos_x+num_src,x2,sizeof(float)*num_src*2, cudaMemcpyHostToDevice));  
-  gpuErrchk(cudaMemcpy(DeviceMem.nInfo.pos_y+num_src,y2,sizeof(float)*num_src*2, cudaMemcpyHostToDevice));  
-  gpuErrchk(cudaMemcpy(DeviceMem.nInfo.pos_z+num_src,z2,sizeof(float)*num_src*2, cudaMemcpyHostToDevice));  
+  gpuErrchk(cudaMemcpy(DeviceMem.nInfo.pos_x+num_srcp,x2,sizeof(float)*num_src*2, cudaMemcpyHostToDevice));  
+  gpuErrchk(cudaMemcpy(DeviceMem.nInfo.pos_y+num_srcp,y2,sizeof(float)*num_src*2, cudaMemcpyHostToDevice));  
+  gpuErrchk(cudaMemcpy(DeviceMem.nInfo.pos_z+num_srcp,z2,sizeof(float)*num_src*2, cudaMemcpyHostToDevice));  
   free(x2);  free(y2);  free(z2);
   return j;
 }
