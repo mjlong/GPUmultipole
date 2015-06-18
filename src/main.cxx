@@ -69,7 +69,7 @@ int main(int argc, char **argv){
 
   }
   num_src=gridx*blockx*ubat;
-  factor = ceil(1/beta);
+  factor = ceil(beta*0.5*(nmax+1))+1;
   num_srcp = num_src*factor;
   char name1[10];  char name2[10];  char name3[10]; 
   sprintf(name1,"_%d",gridsize);
@@ -149,21 +149,17 @@ int main(int argc, char **argv){
     HostMem.wdspp[6] = 0;    
     copydata(DeviceMem,HostMem);
     for(ibat=0;ibat<uubat;ibat++){
-      start_neutrons(gridx, blockx, DeviceMem, ubat,1,banksize,0);
-      //check(gridx,blockx,DeviceMem,ubat);
-      //active = count_neutrons(gridx, blockx, DeviceMem, HostMem,num_src);
-      /*
-      for(int iic=0;iic<csize;iic++)
-        printf("%d ",HostMem.nInfo.d_igen[iic]);
-      printf("\n");
-      */
+      start_neutrons(gridx, blockx, DeviceMem, ubat*factor,1,banksize,0);
       banksize = setbank_prompt(DeviceMem, HostMem, num_srcp);
       printf("[%3d]%4d-->%4d\n", ibat,num_srcp,banksize);
     }
-
-    //=============Phase 2=== Prepare delayed neutron source for first few batches==
+    //=============Phase 2=== First few batches living on delayed neutron bank======
+    printf("[Info] Living on delayed neutron bank ...\n");
     HostMem.wdspp[6] = beta;    
     copydata(DeviceMem,HostMem);
+    for(ibat=0;ibat<=nmax;ibat++){
+
+    }
 
     //=============Phase 3==========Simulation with Delayed Neutron ================
     // plot initial distribution
