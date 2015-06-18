@@ -27,10 +27,10 @@ int main(int argc, char **argv){
 //====================calculation dimension===================
 //============================================================
   unsigned print;
-  int gridx, blockx, gridsize,num_src;
+  int gridx, blockx, gridsize,num_src, num_srcp, factor;
   int num_bin, tnum_bin;
   int num_bat;
-  int ubat,upto;
+  int ubat,upto, uubat;
   int ibat=0;
   double width, sigt, pf,pc,v1;
   float beta, nmax;
@@ -51,6 +51,7 @@ int main(int argc, char **argv){
     ubat  = atoi(argv[9]);
     beta =  atof(argv[10]);
     nmax =  atof(argv[11]);
+    uubat = nmax*3;
     mode = 0;   //run only
     if(argc>=11+1){
       ubat = atoi(argv[9]);
@@ -68,6 +69,8 @@ int main(int argc, char **argv){
 
   }
   num_src=gridx*blockx*ubat;
+  factor = ceil(1/beta);
+  num_srcp = num_src*factor;
   char name1[10];  char name2[10];  char name3[10]; 
   sprintf(name1,"_%d",gridsize);
   sprintf(name2,"_%d",ubat);
@@ -103,7 +106,7 @@ int main(int argc, char **argv){
 #if defined(__3D)
   tnum_bin = num_bin*num_bin*num_bin;
 #endif
-  initialize_memory(&DeviceMem, &HostMem, tnum_bin, gridx,blockx,num_bat,ubat);
+  initialize_memory(&DeviceMem, &HostMem, tnum_bin, gridx,blockx,num_bat,ubat*factor);
 #if defined(__PROCESS)
   if(1==mode)//process only, need to access the raw collision count
     readh5_(argv[1], HostMem.batcnt);
@@ -118,7 +121,7 @@ int main(int argc, char **argv){
   HostMem.wdspp[6] = beta;
   HostMem.wdspp[7] = nmax;
   int csize =  (int)(num_src*pf*2*beta*2+1)*num_bat;
-  delayed_memory(num_bat,num_src,csize,&HostMem);
+  delayed_memory(num_bat,num_src,csize,&HostMem);//num_src is not used in fact
 
   double ref = 1.0/(HostMem.wdspp[3]+HostMem.wdspp[4])/width;
   // note this only works for flat
@@ -138,8 +141,31 @@ int main(int argc, char **argv){
     //==============================================================================
     //======================Steady State ===========================================
     //==============================================================================
-    banksize = gridx*blockx*ubat;
-    initialize_neutrons(gridx, blockx, DeviceMem,width,banksize,ubat); 
+    banksize = gridx*blockx*ubat*factor;
+    initialize_neutrons(gridx, blockx, DeviceMem,width,banksize,ubat*factor); 
+    //==============================================================================
+    //=============Phase 1========= Drive to Steady State ==========================
+    printf("[Info] Driving to steady state ...\n");
+    HostMem.wdspp[6] = 0;    
+    copydata(DeviceMem,HostMem);
+    for(ibat=0;ibat<uubat;ibat++){
+      start_neutrons(gridx, blockx, DeviceMem, ubat,1,banksize,0);
+      //check(gridx,blockx,DeviceMem,ubat);
+      //active = count_neutrons(gridx, blockx, DeviceMem, HostMem,num_src);
+      /*
+      for(int iic=0;iic<csize;iic++)
+        printf("%d ",HostMem.nInfo.d_igen[iic]);
+      printf("\n");
+      */
+      banksize = setbank_prompt(DeviceMem, HostMem, num_srcp);
+      printf("[%3d]%4d-->%4d\n", ibat,num_srcp,banksize);
+    }
+
+    //=============Phase 2=== Prepare delayed neutron source for first few batches==
+    HostMem.wdspp[6] = beta;    
+    copydata(DeviceMem,HostMem);
+
+    //=============Phase 3==========Simulation with Delayed Neutron ================
     // plot initial distribution
 #if defined(__SCATTERPLOT)
     copyinitial(DeviceMem, HostMem, gridsize);
@@ -150,7 +176,7 @@ int main(int argc, char **argv){
     strcpy(name2,"color");strcat(name2,name1); writeh5_nxm_(name, "scatterplot",name2,HostMem.nInfo.energy, &intone, &gridsize);
 #endif
     for(ibat=0;ibat<num_bat;ibat++){
-      start_neutrons(gridx, blockx, DeviceMem, ubat,1,banksize);
+      start_neutrons(gridx, blockx, DeviceMem, ubat,1,banksize,1);
       //check(gridx,blockx,DeviceMem,ubat);
       //active = count_neutrons(gridx, blockx, DeviceMem, HostMem,num_src);
       /*
