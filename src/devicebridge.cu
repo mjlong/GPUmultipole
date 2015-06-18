@@ -152,7 +152,7 @@ unsigned setbank_prompt(MemStruct DeviceMem, MemStruct HostMem, int num_src){
 }
 
 
-int add_delayed(MemStruct DeviceMem, MemStruct HostMem, unsigned gridsize, int csize, int ibat, int nbat, int banksize){
+int add_delayed(MemStruct DeviceMem, MemStruct HostMem, unsigned num_srcp, int csize, int ibat, int nbat, int banksize){
   //============================================================================
   //=============== Add new delayed neutrons ===================================
   int ic,igen,livi,j,unlivestart;
@@ -166,7 +166,7 @@ int add_delayed(MemStruct DeviceMem, MemStruct HostMem, unsigned gridsize, int c
       livi = HostMem.nInfo.d_nu[ic];
       while(0<livi){
         j = unlivestart;
-        if(j>=gridsize){
+        if(j>=num_srcp){
           printf("error bank overflow\n");
           exit(-1);
         }
@@ -180,9 +180,9 @@ int add_delayed(MemStruct DeviceMem, MemStruct HostMem, unsigned gridsize, int c
     ic++;
   }    //end search in delayed bank
   //============================================================================
-  gpuErrchk(cudaMemcpy(DeviceMem.nInfo.pos_x+gridsize+banksize, HostMem.nInfo.pos_x, sizeof(float)*j, cudaMemcpyHostToDevice));
-  gpuErrchk(cudaMemcpy(DeviceMem.nInfo.pos_y+gridsize+banksize, HostMem.nInfo.pos_y, sizeof(float)*j, cudaMemcpyHostToDevice));
-  gpuErrchk(cudaMemcpy(DeviceMem.nInfo.pos_z+gridsize+banksize, HostMem.nInfo.pos_z, sizeof(float)*j, cudaMemcpyHostToDevice));
+  gpuErrchk(cudaMemcpy(DeviceMem.nInfo.pos_x+num_srcp+banksize, HostMem.nInfo.pos_x, sizeof(float)*j, cudaMemcpyHostToDevice));
+  gpuErrchk(cudaMemcpy(DeviceMem.nInfo.pos_y+num_srcp+banksize, HostMem.nInfo.pos_y, sizeof(float)*j, cudaMemcpyHostToDevice));
+  gpuErrchk(cudaMemcpy(DeviceMem.nInfo.pos_z+num_srcp+banksize, HostMem.nInfo.pos_z, sizeof(float)*j, cudaMemcpyHostToDevice));
   return j;
 }
 
