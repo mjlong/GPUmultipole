@@ -151,6 +151,12 @@ unsigned setbank_prompt(MemStruct DeviceMem, MemStruct HostMem, int num_src){
   return j;
 }
 
+void get_delay_bank(MemStruct DeviceMem, MemStruct HostMem, int num_srcp, int num_src){
+  gpuErrchk(cudaMemcpy(HostMem.nInfo.dbank_x,DeviceMem.nInfo.pos_x+num_srcp+num_src,sizeof(float)*(num_srcp*2-num_src), cudaMemcpyDeviceToHost));  
+  gpuErrchk(cudaMemcpy(HostMem.nInfo.dbank_y,DeviceMem.nInfo.pos_y+num_srcp+num_src,sizeof(float)*(num_srcp*2-num_src), cudaMemcpyDeviceToHost));  
+  gpuErrchk(cudaMemcpy(HostMem.nInfo.dbank_z,DeviceMem.nInfo.pos_z+num_srcp+num_src,sizeof(float)*(num_srcp*2-num_src), cudaMemcpyDeviceToHost));  
+}
+
 
 int add_delayed(MemStruct DeviceMem, MemStruct HostMem, unsigned num_srcp, int csize, int ibat, int nbat, int banksize){
   //============================================================================
