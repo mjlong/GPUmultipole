@@ -15,7 +15,7 @@ unsigned count_lives(unsigned gridx, unsigned blockx, MemStruct DeviceMem, MemSt
 void save_results(unsigned ibat, unsigned gridx, unsigned blockx, unsigned num_bin, MemStruct DeviceMem, MemStruct HostMem);
 void print_results(unsigned meshes, unsigned nbat, double *tally);
 
-unsigned setbank(MemStruct DeviceMem, MemStruct HostMem, int gridsize, int csize, int ibat, int nbat);
+unsigned setbank(MemStruct DeviceMem, MemStruct HostMem, int num_srcp, int num_src, int csize, int ibat, int nbat);
 unsigned setbank_prompt(MemStruct DeviceMem, MemStruct HostMem, int gridsize);
 void check(unsigned gridx, unsigned blockx, MemStruct DeviceMem, unsigned ubat);
 int add_delayed(MemStruct DeviceMem, MemStruct HostMem, unsigned gridsize, int csize, int ibat, int nbat, int banksize);
