@@ -122,6 +122,35 @@ unsigned setbank(MemStruct DeviceMem, MemStruct HostMem, int gridsize, int csize
   free(x2);  free(y2);  free(z2);
   return j;
 }
+//In all setbank flavors, "gridsize" actually denotes gridsize*ubat(*factor)
+unsigned setbank_prompt(MemStruct DeviceMem, MemStruct HostMem, int gridsize){
+  float* x2 = (float*)malloc(sizeof(float)*gridsize*2);
+  float* y2 = (float*)malloc(sizeof(float)*gridsize*2);
+  float* z2 = (float*)malloc(sizeof(float)*gridsize*2);
+  gpuErrchk(cudaMemcpy(HostMem.nInfo.pos_x,DeviceMem.nInfo.pos_x,sizeof(float)*gridsize, cudaMemcpyDeviceToHost));  
+  gpuErrchk(cudaMemcpy(HostMem.nInfo.pos_y,DeviceMem.nInfo.pos_y,sizeof(float)*gridsize, cudaMemcpyDeviceToHost));  
+  gpuErrchk(cudaMemcpy(HostMem.nInfo.pos_z,DeviceMem.nInfo.pos_z,sizeof(float)*gridsize, cudaMemcpyDeviceToHost));  
+  memset(HostMem.nInfo.live,0,sizeof(int)*gridsize);
+  gpuErrchk(cudaMemcpy(HostMem.nInfo.live, DeviceMem.nInfo.live ,sizeof(int)*gridsize,   cudaMemcpyDeviceToHost));  
+  int live;  unsigned j=0;int k=0; 
+
+  for(int i=0;i<gridsize;i++){
+    live = HostMem.nInfo.live[i];
+    for(k=0;k<live;k++){//live=2 or 3
+      if(j>(gridsize*2)) {printf("live=%d,j=%d,i=%d/%d,overflow\n",live,j,i,gridsize);exit(-1);}
+      x2[j]=HostMem.nInfo.pos_x[i];
+      y2[j]=HostMem.nInfo.pos_y[i];
+      z2[j]=HostMem.nInfo.pos_z[i];
+      j++;
+    }
+  }
+  gpuErrchk(cudaMemcpy(DeviceMem.nInfo.pos_x+gridsize,x2,sizeof(float)*gridsize*2, cudaMemcpyHostToDevice));  
+  gpuErrchk(cudaMemcpy(DeviceMem.nInfo.pos_y+gridsize,y2,sizeof(float)*gridsize*2, cudaMemcpyHostToDevice));  
+  gpuErrchk(cudaMemcpy(DeviceMem.nInfo.pos_z+gridsize,z2,sizeof(float)*gridsize*2, cudaMemcpyHostToDevice));  
+  free(x2);  free(y2);  free(z2);
+  return j;
+}
+
 
 int add_delayed(MemStruct DeviceMem, MemStruct HostMem, unsigned gridsize, int csize, int ibat, int nbat, int banksize){
   //============================================================================
@@ -169,11 +198,11 @@ int count_pop(int *live, int gridsize){
 }
 
 #if defined(__3D)
-void start_neutrons(unsigned gridx, unsigned blockx, MemStruct DeviceMem, unsigned ubat,unsigned active,unsigned banksize){
+void start_neutrons(unsigned gridx, unsigned blockx, MemStruct DeviceMem, unsigned ubat,unsigned active,unsigned banksize, unsigned isTally){
   int i=0;
   for(i=0;i<ubat;i++){//num_src is important as loop index, but useless in history<<<>>>
     //printf("i=%d/%d\n",i,num_src/(gridx*blockx));
-    history<<<gridx, blockx/*, blockx*sizeof(unsigned)*/>>>(DeviceMem, gridx*blockx*ubat,i*gridx*blockx,banksize);
+    history<<<gridx, blockx/*, blockx*sizeof(unsigned)*/>>>(DeviceMem, gridx*blockx*ubat,i*gridx*blockx,banksize,isTally);
   }
 }
 
