@@ -46,6 +46,10 @@ typedef struct {
   float* d_time;
   int*   d_igen;
   int*   d_nu;
+
+  float* dbank_x;
+  float* dbank_y;
+  float* dbank_z;
 }NeutronInfoStruct;
 
 typedef struct {
