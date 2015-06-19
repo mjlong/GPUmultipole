@@ -158,7 +158,7 @@ void get_delay_bank(MemStruct DeviceMem, MemStruct HostMem, int num_srcp, int nu
 }
 
 
-int add_delayed(MemStruct DeviceMem, MemStruct HostMem, unsigned num_srcp, int csize, int ibat, int nbat, int banksize){
+int add_delayed(MemStruct DeviceMem, MemStruct HostMem, int num_srcp, int csize, int ibat, int nbat, int banksize){
   //============================================================================
   //=============== Add new delayed neutrons ===================================
   int ic,igen,livi,j,unlivestart;
@@ -192,6 +192,11 @@ int add_delayed(MemStruct DeviceMem, MemStruct HostMem, unsigned num_srcp, int c
   return j;
 }
 
+void delay_from_bank(MemStruct DeviceMem, MemStruct HostMem, int num_srcp, int banksize, int i_delaybank, int n_delaysrc){
+  gpuErrchk(cudaMemcpy(DeviceMem.nInfo.pos_x+num_srcp+banksize, HostMem.nInfo.dbank_x+i_delaybank, sizeof(float)*n_delaysrc, cudaMemcpyHostToDevice));  
+  gpuErrchk(cudaMemcpy(DeviceMem.nInfo.pos_y+num_srcp+banksize, HostMem.nInfo.dbank_y+i_delaybank, sizeof(float)*n_delaysrc, cudaMemcpyHostToDevice));  
+  gpuErrchk(cudaMemcpy(DeviceMem.nInfo.pos_z+num_srcp+banksize, HostMem.nInfo.dbank_z+i_delaybank, sizeof(float)*n_delaysrc, cudaMemcpyHostToDevice));  
+}
 
 #endif
 
@@ -207,7 +212,7 @@ int count_pop(int *live, int gridsize){
 void start_neutrons(unsigned gridx, unsigned blockx, MemStruct DeviceMem, unsigned ubat,unsigned separator,unsigned banksize, unsigned isTally){
   int i=0;
   for(i=0;i<ubat;i++){//num_src is important as loop index, but useless in history<<<>>>
-    //printf("i=%d/%d\n",i,num_src/(gridx*blockx));
+    //printf("i=%d/%d\n",i,ubat);
     history<<<gridx, blockx/*, blockx*sizeof(unsigned)*/>>>(DeviceMem, separator,i*gridx*blockx,banksize,isTally);
   }
 }

@@ -19,7 +19,8 @@ unsigned setbank(MemStruct DeviceMem, MemStruct HostMem, int num_srcp, int num_s
 unsigned setbank_prompt(MemStruct DeviceMem, MemStruct HostMem, int gridsize);
 void check(unsigned gridx, unsigned blockx, MemStruct DeviceMem, unsigned ubat);
 void get_delay_bank(MemStruct DeviceMem, MemStruct HostMem, int num_srcp, int num_src);
-int add_delayed(MemStruct DeviceMem, MemStruct HostMem, unsigned gridsize, int csize, int ibat, int nbat, int banksize);
+int add_delayed(MemStruct DeviceMem, MemStruct HostMem, int num_srcp, int csize, int ibat, int nbat, int banksize);
+void delay_from_bank(MemStruct DeviceMem, MemStruct HostMem, int num_srcp, int banksize, int i_delaybank, int n_delaysrc);
 int flushbank(MemStruct DeviceMem, MemStruct HostMem, unsigned lastpop,float a,unsigned gridsize,int ibat,int nbat);
 int count_pop(int *live, int gridsize);
 void resetcount(MemStruct DeviceMem);
