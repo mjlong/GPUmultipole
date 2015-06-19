@@ -179,11 +179,17 @@ int main(int argc, char **argv){
       delay_from_bank(DeviceMem, HostMem, num_srcp, banksize+addsize, i_delaybank, extrasize);
       printf("[%3d]%4d-->%4d+%3d(%3d*nu)+%3d=%d (bank usage[%d/%d])\n", ibat,num_src,banksize,addsize,HostMem.newly_delayed[ibat],extrasize, addsize+banksize+extrasize, i_delaybank,delaysize);
       banksize = banksize + addsize + extrasize; 
+#if defined(__TALLY)
+      save_results(ibat,gridx, blockx, tnum_bin, DeviceMem, HostMem);
+      sprintf(name1,"%d",ibat);strcpy(name2,"batch_cnt");strcat(name2,name1);
+      writeh5_nxm_(name, "tally",name2, HostMem.batcnt, &intone, &tnum_bin);
+      //resetcount(DeviceMem);
+      resettally(DeviceMem.tally.cnt, tnum_bin*gridsize);
+#endif
     }
     clock_end   = clock();
     time_elapsed = (float)(clock_end-clock_start)/CLOCKS_PER_SEC*1000.f;
     printf("[time]  %d batches (*%d neutrons/batch) costs %f ms\n", int(nmax), num_src, time_elapsed);
-    return 0;
     //=============Phase 3==========Simulation with Delayed Neutron ================
     // plot initial distribution
 #if defined(__SCATTERPLOT)
@@ -194,15 +200,10 @@ int main(int argc, char **argv){
     strcpy(name2,"z");    strcat(name2,name1); writeh5_nxm_(name, "scatterplot",name2,HostMem.nInfo.pos_z,  &intone, &gridsize);
     strcpy(name2,"color");strcat(name2,name1); writeh5_nxm_(name, "scatterplot",name2,HostMem.nInfo.energy, &intone, &gridsize);
 #endif
-    for(ibat=0;ibat<num_bat;ibat++){
-      start_neutrons(gridx, blockx, DeviceMem, ubat,1,banksize,1);
+    for(ibat=nmax+1;ibat<num_bat;ibat++){
+      start_neutrons(gridx, blockx, DeviceMem, ubat,num_srcp,banksize,1);
       //check(gridx,blockx,DeviceMem,ubat);
       //active = count_neutrons(gridx, blockx, DeviceMem, HostMem,num_src);
-      /*
-      for(int iic=0;iic<csize;iic++)
-        printf("%d ",HostMem.nInfo.d_igen[iic]);
-      printf("\n");
-      */
       banksize = setbank(DeviceMem, HostMem, num_srcp, num_src,csize, ibat,num_bat);
       addsize = add_delayed(DeviceMem,HostMem,num_src,csize,ibat,num_bat,banksize);
       printf("[%3d]%4d-->%4d+%3d(%3d*nu)=%d\n", ibat,num_src,banksize,addsize,HostMem.newly_delayed[ibat],addsize+banksize);
