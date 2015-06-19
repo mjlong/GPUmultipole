@@ -37,6 +37,7 @@ int main(int argc, char **argv){
   char name[50];
   int mode; //0=run only; 1=process only; 2=run & process
   int isSteady=0;
+  int i_delaybank;
 
   if(argc>=8+1){//run or run+process
     gridx = atoi(argv[1]);
@@ -69,8 +70,9 @@ int main(int argc, char **argv){
 
   }
   num_src=gridx*blockx*ubat;
-  factor = ceil(beta*0.5*(nmax+1))+1;
+  factor = (ceil(beta*0.5*(nmax+1))+1)*2;
   num_srcp = num_src*factor;
+  printf("factor=%d,num_srcp=%d\n",factor,num_srcp);
   char name1[10];  char name2[10];  char name3[10]; 
   sprintf(name1,"_%d",gridsize);
   sprintf(name2,"_%d",ubat);
@@ -120,8 +122,8 @@ int main(int argc, char **argv){
   HostMem.wdspp[5] = num_bin;
   HostMem.wdspp[6] = beta;
   HostMem.wdspp[7] = nmax;
-  int csize =  (int)(num_src*pf*2*beta*2+1)*num_bat;
-  delayed_memory(num_bat,num_src,csize,&HostMem);//num_src is not used in fact
+  int csize =  (int)(num_src*pf*2*beta*2+1)*(num_bat+nmax);
+  delayed_memory(num_bat,2*num_srcp-num_src,csize,&HostMem);//num_src is not used in fact
 
   double ref = 1.0/(HostMem.wdspp[3]+HostMem.wdspp[4])/width;
   // note this only works for flat
@@ -133,11 +135,10 @@ int main(int argc, char **argv){
 //===============main simulation body=========================
 //============================================================
   printf("[Info] Running main simulation body ... \n");
-  unsigned active,banksize,delaysize; int addsize;
+  unsigned active,banksize,delaysize; int addsize; int extrasize;
   if(1!=mode){//run simulation except 'process only' mode
     active = 1;
 
-    clock_start = clock();
     //==============================================================================
     //======================Steady State ===========================================
     //==============================================================================
@@ -145,22 +146,44 @@ int main(int argc, char **argv){
     initialize_neutrons(gridx, blockx, DeviceMem,width,banksize,ubat*factor); 
     //==============================================================================
     //=============Phase 1========= Drive to Steady State ==========================
+    //==============================================================================
     printf("[Info] Driving to steady state ...\n");
+    clock_start = clock();
     HostMem.wdspp[6] = 0;    
     copydata(DeviceMem,HostMem);
     for(ibat=0;ibat<uubat;ibat++){
-      start_neutrons(gridx, blockx, DeviceMem, ubat*factor,1,banksize,0);
+      start_neutrons(gridx, blockx, DeviceMem, ubat*factor,num_srcp,banksize,0);
       banksize = setbank_prompt(DeviceMem, HostMem, num_srcp);
       printf("[%3d]%4d-->%4d\n", ibat,num_srcp,banksize);
     }
+    get_delay_bank(DeviceMem,HostMem,num_srcp,num_src);
+    delaysize = banksize - num_src;
+    clock_end   = clock();
+    time_elapsed = (float)(clock_end-clock_start)/CLOCKS_PER_SEC*1000.f;
+    printf("[time]  %d batches (*%d neutrons/batch) costs %f ms\n", uubat, num_srcp, time_elapsed);
+    //==============================================================================
     //=============Phase 2=== First few batches living on delayed neutron bank======
+    //==============================================================================
     printf("[Info] Living on delayed neutron bank ...\n");
+    clock_start = clock();
     HostMem.wdspp[6] = beta;    
     copydata(DeviceMem,HostMem);
+    banksize = num_src;
+    i_delaybank=0;
     for(ibat=0;ibat<=nmax;ibat++){
-
+      start_neutrons(gridx, blockx, DeviceMem, ubat,num_srcp,banksize,1);
+      banksize = setbank(DeviceMem, HostMem,num_srcp, num_src,csize, ibat,num_bat);
+      addsize = add_delayed(DeviceMem,HostMem,num_srcp,csize,ibat,num_bat,banksize);
+      extrasize = ((banksize+addsize)<num_src)*(num_src-banksize-addsize);
+      i_delaybank += extrasize; 
+      delay_from_bank(DeviceMem, HostMem, num_srcp, banksize+addsize, i_delaybank, extrasize);
+      printf("[%3d]%4d-->%4d+%3d(%3d*nu)+%3d=%d (bank usage[%d/%d])\n", ibat,num_src,banksize,addsize,HostMem.newly_delayed[ibat],extrasize, addsize+banksize+extrasize, i_delaybank,delaysize);
+      banksize = banksize + addsize + extrasize; 
     }
-
+    clock_end   = clock();
+    time_elapsed = (float)(clock_end-clock_start)/CLOCKS_PER_SEC*1000.f;
+    printf("[time]  %d batches (*%d neutrons/batch) costs %f ms\n", int(nmax), num_src, time_elapsed);
+    return 0;
     //=============Phase 3==========Simulation with Delayed Neutron ================
     // plot initial distribution
 #if defined(__SCATTERPLOT)
@@ -180,7 +203,7 @@ int main(int argc, char **argv){
         printf("%d ",HostMem.nInfo.d_igen[iic]);
       printf("\n");
       */
-      banksize = setbank(DeviceMem, HostMem, num_src,csize, ibat,num_bat);
+      banksize = setbank(DeviceMem, HostMem, num_srcp, num_src,csize, ibat,num_bat);
       addsize = add_delayed(DeviceMem,HostMem,num_src,csize,ibat,num_bat,banksize);
       printf("[%3d]%4d-->%4d+%3d(%3d*nu)=%d\n", ibat,num_src,banksize,addsize,HostMem.newly_delayed[ibat],addsize+banksize);
       banksize = banksize+addsize;
