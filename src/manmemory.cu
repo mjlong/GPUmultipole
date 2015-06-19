@@ -17,7 +17,7 @@ void copydata(MemStruct DeviceMem, MemStruct HostMem){
   gpuErrchk(cudaMemcpyToSymbol(wdspp, DeviceMem.wdspp, 9*sizeof(float), 0, cudaMemcpyDeviceToDevice));
 }
 
-void delayed_memory(int nbat, int num_srcp, int csize,MemStruct* HostMem){
+void delayed_memory(int nbat, int delaysize, int csize,MemStruct* HostMem){
   memset((*HostMem).newly_delayed,   0, sizeof(int)*nbat);
   (*HostMem).nInfo.d_pos_x = (float*)malloc(sizeof(float)*csize);
   (*HostMem).nInfo.d_pos_y = (float*)malloc(sizeof(float)*csize);
@@ -26,9 +26,9 @@ void delayed_memory(int nbat, int num_srcp, int csize,MemStruct* HostMem){
   (*HostMem).nInfo.d_nu    = (int*)malloc(sizeof(int)*csize);
   for(int i=0;i<csize;i++)
     ((*HostMem).nInfo.d_igen)[i] = -1;
-  (*HostMem).nInfo.dbank_x = (float*)malloc(sizeof(float)*num_srcp);
-  (*HostMem).nInfo.dbank_y = (float*)malloc(sizeof(float)*num_srcp);
-  (*HostMem).nInfo.dbank_z = (float*)malloc(sizeof(float)*num_srcp);
+  (*HostMem).nInfo.dbank_x = (float*)malloc(sizeof(float)*delaysize);
+  (*HostMem).nInfo.dbank_y = (float*)malloc(sizeof(float)*delaysize);
+  (*HostMem).nInfo.dbank_z = (float*)malloc(sizeof(float)*delaysize);
 }
 
 void initialize_memory(MemStruct *DeviceMem, MemStruct *HostMem, unsigned numbins, unsigned gridx, unsigned blockx,unsigned nbat,unsigned ubat){
