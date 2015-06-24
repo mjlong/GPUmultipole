@@ -138,11 +138,11 @@ int main(int argc, char **argv){
     strcpy(name2,"color");strcat(name2,name1); writeh5_nxm_(name, "scatterplot",name2,HostMem.nInfo.energy, &intone, &gridsize);
 #endif
     for(ibat=0;ibat<num_bat;ibat++){
-      start_neutrons(gridx, blockx, DeviceMem, ubat,1,banksize);
+      start_neutrons(gridx, blockx, DeviceMem, ubat,num_src,banksize);
       //check(gridx,blockx,DeviceMem,ubat);
       //active = count_neutrons(gridx, blockx, DeviceMem, HostMem,num_src);
       banksize = setbank(DeviceMem, HostMem, num_src);
-      //printf("[%3d]%4d-->%4d: \n", ibat,num_src,banksize);
+      printf("[%3d]%4d-->%4d: \n", ibat,num_src,banksize);
 #if defined(__TALLY)
       save_results(ibat,gridx, blockx, tnum_bin, DeviceMem, HostMem);
       sprintf(name1,"%d",ibat);strcpy(name2,"batch_cnt");strcat(name2,name1);

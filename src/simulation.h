@@ -17,8 +17,8 @@ __global__ void reduce_sum_equal(CMPTYPE* thread_active, CMPTYPE* active);
 __device__ unsigned notleak(float x,float a);
 //__1D only has steady state solver
 //__3D only has reflective BC solver
-#if defined(__3D)
 __global__ void history(MemStruct DeviceMem, unsigned num_src,int shift,unsigned banksize);
+#if defined(__3D)
 __global__ void preview_live(MemStruct DeviceMem, int shift);
 #endif
 

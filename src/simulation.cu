@@ -21,7 +21,7 @@ __device__ void neutron_sample(NeutronInfoStruct nInfo, unsigned id,float width)
   curandState state = nInfo.rndState[id];
   //TODO: source sampling should take settings dependent on geometry
 #if defined(__1D)
-  nInfo.pos_x[id] = width/PI*acos(1-2*curand_uniform_double(&state));//width*curand_uniform_double(&state);
+  nInfo.pos_x[id] =width/(CHOP*PI)*asin(sin(PI*0.5*CHOP)*(1-2*curand_uniform_double(&state)))+width*0.5;//width*curand_uniform_double(&state);
 #endif
 #if defined(__3D)
   //nInfo.pos_x[id] =width/PI*acos(1-2*curand_uniform_double(&state));//width*curand_uniform_double(&state);// 
@@ -38,10 +38,6 @@ __device__ void neutron_sample(NeutronInfoStruct nInfo, unsigned id,float width)
 #if defined(__SCATTERPLOT)
   nInfo.energy[id] = nInfo.pos_z[id];
 #endif
-}
-
-__device__ unsigned notleak(float x,float a){
-  return (x>=0)&&(x<=a);
 }
 
 #if defined(__3D)
@@ -186,6 +182,9 @@ __global__ void history(MemStruct DeviceMem, unsigned num_src,int shift,unsigned
 #endif //end if 3D
 
 #if defined(__1D)
+__device__ unsigned notleak(float x,float a){
+  return (x>=0)&&(x<=a);
+}
 #if defined(__1D_VAC)
 __global__ void history(MemStruct DeviceMem, unsigned num_src,unsigned active,unsigned banksize){
   float width = wdspp[0];
@@ -279,7 +278,8 @@ __global__ void history(MemStruct DeviceMem, unsigned num_src,unsigned active,un
   */
 }
 #else
-__global__ void history(MemStruct DeviceMem, unsigned num_src,unsigned active,unsigned banksize){
+//_1D_Reflective
+__global__ void history(MemStruct DeviceMem, unsigned num_src,int shift,unsigned banksize){
   float width = wdspp[0];
   float dx = wdspp[1];
   float mfp = wdspp[2];
@@ -292,9 +292,9 @@ __global__ void history(MemStruct DeviceMem, unsigned num_src,unsigned active,un
   //nid is the sampled index to get neutron position
   //in this scheme, normalization is realized by forcefully 
   //select gridsize neutrons from banksize neutrons
-  int id = blockDim.x * blockIdx.x + threadIdx.x;
+  int id = blockDim.x * blockIdx.x + threadIdx.x + shift;
   curandState localState = DeviceMem.nInfo.rndState[id];
-  int nid = int(curand_uniform_double(&localState)*banksize);
+  int nid = int(curand_uniform_double(&localState)*banksize)+num_src;
   //extern __shared__ unsigned blockTerminated[];
 
   CMPTYPE rnd;
@@ -316,8 +316,9 @@ __global__ void history(MemStruct DeviceMem, unsigned num_src,unsigned active,un
       x=((1==dir)*2*width+(-1==dir)*0-x);
       dir = 0-dir;
     }
-    DeviceMem.tally.cnt[int(x/dx)*gridDim.x*blockDim.x+id]+=1;
-    
+#if defined(__TALLY)
+    DeviceMem.tally.cnt[int(floorf(x/dx))*gridDim.x*blockDim.x+id-shift]+=1;
+#endif    
     rnd = curand_uniform_double(&localState);
     if(rnd<Ps)
       dir = 1-2*int((curand_uniform_double(&localState))<=0.5);

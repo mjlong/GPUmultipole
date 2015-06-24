@@ -39,7 +39,7 @@ void resetcount(MemStruct DeviceMem){
 #if defined(__1D)
 unsigned setbank(MemStruct DeviceMem, MemStruct HostMem, int gridsize){
   float* y2 = (float*)malloc(sizeof(float)*gridsize);
-  float* x2 = (float*)malloc(sizeof(float)*gridsize*3);
+  float* x2 = (float*)malloc(sizeof(float)*gridsize*2);
   gpuErrchk(cudaMemcpy(y2,DeviceMem.nInfo.pos_y,sizeof(float)*gridsize, cudaMemcpyDeviceToHost));  
   float y;
   unsigned j=0;
@@ -59,7 +59,7 @@ unsigned setbank(MemStruct DeviceMem, MemStruct HostMem, int gridsize){
       }
     }
   }
-  gpuErrchk(cudaMemcpy(DeviceMem.nInfo.pos_x,x2,sizeof(float)*gridsize*3, cudaMemcpyHostToDevice));  
+  gpuErrchk(cudaMemcpy(DeviceMem.nInfo.pos_x+gridsize,x2,sizeof(float)*gridsize*2, cudaMemcpyHostToDevice));  
   free(x2);
   free(y2);
   return j;
@@ -112,13 +112,22 @@ int count_pop(int *live, int gridsize){
     sum += (0!=live[i]);
   return sum;
 }
-
-#if defined(__3D)
-void start_neutrons(unsigned gridx, unsigned blockx, MemStruct DeviceMem, unsigned ubat,unsigned active,unsigned banksize){
+#if defined(__1D)
+void start_neutrons(unsigned gridx, unsigned blockx, MemStruct DeviceMem, unsigned ubat,unsigned num_src,unsigned banksize){
   int i=0;
   for(i=0;i<ubat;i++){//num_src is important as loop index, but useless in history<<<>>>
     //printf("i=%d/%d\n",i,num_src/(gridx*blockx));
-    history<<<gridx, blockx/*, blockx*sizeof(unsigned)*/>>>(DeviceMem, gridx*blockx*ubat,i*gridx*blockx,banksize);
+    history<<<gridx, blockx/*, blockx*sizeof(unsigned)*/>>>(DeviceMem, num_src,i*gridx*blockx,banksize);
+  }
+}
+#endif
+
+#if defined(__3D)
+void start_neutrons(unsigned gridx, unsigned blockx, MemStruct DeviceMem, unsigned ubat,unsigned num_src,unsigned banksize){
+  int i=0;
+  for(i=0;i<ubat;i++){//num_src is important as loop index, but useless in history<<<>>>
+    //printf("i=%d/%d\n",i,num_src/(gridx*blockx));
+    history<<<gridx, blockx/*, blockx*sizeof(unsigned)*/>>>(DeviceMem, num_src,i*gridx*blockx,banksize);
   }
 }
 
