@@ -285,7 +285,7 @@ __global__ void history(MemStruct DeviceMem, unsigned num_src,int shift,unsigned
   float mfp = wdspp[2];
   float Ps = 1-(wdspp[3]+wdspp[4]);
   float Pc = Ps+wdspp[4];
-  float s;
+  float s, t, l;
   //try others when real simulation structure becomes clear
   //int idl = threadIdx.x;
   //id is the thread index
@@ -309,13 +309,21 @@ __global__ void history(MemStruct DeviceMem, unsigned num_src,int shift,unsigned
   //printf("[%2d],x=%.5f,pf=%.5f\n",id,DeviceMem.nInfo.pos_x[nid],pf);
   //for(istep=0;istep<devstep;istep++){
   while(live){
-    s = -log(curand_uniform_double(&localState))*mfp;
+    l = -log(curand_uniform_double(&localState))*mfp;
+    t = (width-x)*(1==dir)+(x)*((-1)==dir);
+    s = ((l/t+TEPSILON)<1)*l+((l/t+TEPSILON)>=1)*t;
     x = x+s*dir;
-
-    while(!notleak(x,width)){
-      x=((1==dir)*2*width+(-1==dir)*0-x);
-      dir = 0-dir;
+    live = (t>0)&&(t<1.0e6);
+    s = live*s+(0==live)*t;
+    //while(!notleak(x,width)){
+    //  x=((1==dir)*2*width+(-1==dir)*0-x);
+    //  dir = 0-dir;
+    //}
+    if(  (t==s)||(x<=0)||(x>=wdspp[0]) ){//reflect
+      if((x-0)<TEPSILON)       {dir= 1;x = 0       +TEPSILON;}
+      if((wdspp[0]-x)<TEPSILON){dir=-1;x = wdspp[0]-TEPSILON;}
     }
+    else{
 #if defined(__TALLY)
     DeviceMem.tally.cnt[int(floorf(x/dx))*gridDim.x*blockDim.x+id-shift]+=1;
 #endif    
@@ -334,6 +342,7 @@ __global__ void history(MemStruct DeviceMem, unsigned num_src,int shift,unsigned
 	DeviceMem.nInfo.pos_y[id] = 0;
       }
     }//end collision type
+    }//end else reflect
   }//end one history
   //}
   //blockTerminated[idl] =1;// !live;
