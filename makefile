@@ -12,6 +12,11 @@ ifeq ($(tally),true)
 CIDEN += -D __TALLY
 endif
 
+ifeq ($(mtally),true)
+CIDEN += -D __MTALLY
+endif
+
+
 ifeq ($(scatterplt),true)
 CIDEN += -D __SCATTERPLOT
 endif
