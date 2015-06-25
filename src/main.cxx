@@ -70,7 +70,11 @@ int main(int argc, char **argv){
   sprintf(name2,"_%d",ubat);
   sprintf(name3,"_%d",num_bat);
 #if defined(__1D)
+#if defined(__MTALLY)
+  strcpy(name,"R1dTmacnt"); 
+#else
   strcpy(name,"R1dRawcnt"); 
+#endif
 #else
   strcpy(name,"R3dRawcnt"); 
 #endif
