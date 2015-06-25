@@ -342,7 +342,7 @@ __global__ void history(MemStruct DeviceMem, unsigned num_src,int shift,unsigned
       if(rnd>Pc){ //fission
 	rnd = curand_uniform_double(&localState);
 	//newneu = 2*(rnd<=0.55)+3*(rand>0.55);
-	newneu = 1-2*(rnd<=0.55); //-1 --> 2 fission; +1 --> 3 fission
+	newneu = 1-2*(rnd<=wdspp[6]); //-1 --> 2 fission; +1 --> 3 fission
 	DeviceMem.nInfo.pos_y[id] = x*newneu;
 #if defined(__MTALLY)
 	nid = int(floorf(x/dx));
