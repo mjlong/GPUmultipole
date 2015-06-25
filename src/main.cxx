@@ -148,11 +148,19 @@ int main(int argc, char **argv){
       banksize = setbank(DeviceMem, HostMem, num_src);
       printf("[%3d]%4d-->%4d: \n", ibat,num_src,banksize);
 #if defined(__TALLY)
+#if defined(__MTALLY)
+      save_results(ibat,gridx, blockx, tnum_bin*tnum_bin, DeviceMem, HostMem);
+#else
       save_results(ibat,gridx, blockx, tnum_bin, DeviceMem, HostMem);
+#endif
       sprintf(name1,"%d",ibat);strcpy(name2,"batch_cnt");strcat(name2,name1);
       writeh5_nxm_(name, "tally",name2, HostMem.batcnt, &intone, &tnum_bin);
       //resetcount(DeviceMem);
+#if defined(__MTALLY)
+      resettally(DeviceMem.tally.cnt, tnum_bin*tnum_bin*gridsize);
+#else
       resettally(DeviceMem.tally.cnt, tnum_bin*gridsize);
+#endif
 #endif
 #if defined(__SCATTERPLOT)
       sprintf(name1,"%d",ibat+1);
