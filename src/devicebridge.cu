@@ -116,7 +116,9 @@ int count_pop(int *live, int gridsize){
 void start_neutrons(unsigned gridx, unsigned blockx, MemStruct DeviceMem, unsigned ubat,unsigned num_src,unsigned banksize){
   int i=0;
   for(i=0;i<ubat;i++){//num_src is important as loop index, but useless in history<<<>>>
-    //printf("i=%d/%d\n",i,num_src/(gridx*blockx));
+#if defined(__MTALLY)
+    printf("i=%d/%d\n",i,ubat);
+#endif
     history<<<gridx, blockx/*, blockx*sizeof(unsigned)*/>>>(DeviceMem, num_src,i*gridx*blockx,banksize);
   }
 }
