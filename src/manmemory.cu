@@ -23,10 +23,17 @@ void initialize_memory(MemStruct *DeviceMem, MemStruct *HostMem, unsigned numbin
   //for __TALLY, ubat is used as tranfac
 
 #if defined(__TALLY)
+#if defined(__MTALLY)
+  gpuErrchk(cudaMalloc((void**)&((*DeviceMem).spectrum), numbins*numbins*sizeof(CMPTYPE)));
+  (*HostMem).spectrum = (CMPTYPE*)malloc(sizeof(CMPTYPE)*numbins*numbins);  
+  (*HostMem).batcnt     = (CMPTYPE*)malloc(sizeof(CMPTYPE)*numbins*numbins);
+  gpuErrchk(cudaMalloc((void**)&((*DeviceMem).batcnt), numbins*numbins*sizeof(CMPTYPE)));
+#else
   gpuErrchk(cudaMalloc((void**)&((*DeviceMem).spectrum), numbins*sizeof(CMPTYPE)));
   (*HostMem).spectrum = (CMPTYPE*)malloc(sizeof(CMPTYPE)*numbins);  
   (*HostMem).batcnt     = (CMPTYPE*)malloc(sizeof(CMPTYPE)*numbins);
   gpuErrchk(cudaMalloc((void**)&((*DeviceMem).batcnt), numbins*sizeof(CMPTYPE)));
+#endif
 #if defined(__PROCESS)
   (*HostMem).batchmeans = (double*)malloc(sizeof(double)*nbat*numbins);
   (*HostMem).accmeans   = (double*)malloc(sizeof(double)*(nbat-ubat)*numbins);
