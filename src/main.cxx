@@ -33,7 +33,7 @@ int main(int argc, char **argv){
   int ubat,upto;
   int ibat=0;
   double width, sigt, pf,pc,v1;
-  char name[50];
+  char name[60];
   int mode; //0=run only; 1=process only; 2=run & process
   int isSteady=0;
 
@@ -65,10 +65,11 @@ int main(int argc, char **argv){
 
   }
   num_src=gridx*blockx*ubat;
-  char name1[10];  char name2[10];  char name3[10]; 
+  char name1[10];  char name2[10];  char name3[10]; char name4[10];
   sprintf(name1,"_%d",gridsize);
   sprintf(name2,"_%d",ubat);
   sprintf(name3,"_%d",num_bat);
+  sprintf(name4,"_%d",num_bin);
 #if defined(__1D)
 #if defined(__MTALLY)
   strcpy(name,"R1dTmacnt"); 
@@ -78,7 +79,7 @@ int main(int argc, char **argv){
 #else
   strcpy(name,"R3dRawcnt"); 
 #endif
-  strcat(name,name1); strcat(name,name2); strcat(name,name3); strcat(name,".h5");
+  strcat(name,name1); strcat(name,name2); strcat(name,name3); strcat(name,name4); strcat(name,".h5");
   createmptyh5(name); //create empty file for future add dataset
   
   int intone=1; 
