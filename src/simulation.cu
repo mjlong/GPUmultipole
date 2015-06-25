@@ -304,7 +304,7 @@ __global__ void history(MemStruct DeviceMem, unsigned num_src,int shift,unsigned
   CMPTYPE rnd;
   float x = DeviceMem.nInfo.pos_x[nid];
   int startid = int(floorf(x/dx));
-
+  if(  (startid<0)||(startid>=wdspp[5]) ) printf("warning:id=%d, sid outbound\n",id);
   int dir = 1-2*int((curand_uniform_double(&localState))<=0.5);
   /* Copy state to local memory for efficiency */ 
 
@@ -345,7 +345,9 @@ __global__ void history(MemStruct DeviceMem, unsigned num_src,int shift,unsigned
 	newneu = 1-2*(rnd<=0.55); //-1 --> 2 fission; +1 --> 3 fission
 	DeviceMem.nInfo.pos_y[id] = x*newneu;
 #if defined(__MTALLY)
-	DeviceMem.tally.cnt[(int(floorf(x/dx))*(int)(wdspp[5])+startid)*gridDim.x*blockDim.x+id-shift]+= ( (1==newneu)*3 + ((-1)==newneu)*2 )  ;
+	nid = int(floorf(x/dx));
+	DeviceMem.tally.cnt[(nid*(int)(wdspp[5])+startid)*gridDim.x*blockDim.x+id-shift]+= ( (1==newneu)*3 + ((-1)==newneu)*2 )  ;
+	if(  (nid<0)||(nid>=wdspp[5]) ) printf("warning:id=%d, did outbound\n",id);
 #endif
       }
       else{  //rnd<Pc, capture, nothing to do
