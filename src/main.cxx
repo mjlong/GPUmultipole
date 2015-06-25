@@ -100,6 +100,9 @@ int main(int argc, char **argv){
 #if defined(__3D)
   tnum_bin = num_bin*num_bin*num_bin;
 #endif
+#if defined(__MTALLY)
+  inttwo = tnum_bin*tnum_bin;
+#endif
   initialize_memory(&DeviceMem, &HostMem, tnum_bin, gridx,blockx,num_bat,ubat);
 #if defined(__PROCESS)
   if(1==mode)//process only, need to access the raw collision count
@@ -150,15 +153,13 @@ int main(int argc, char **argv){
 #if defined(__TALLY)
 #if defined(__MTALLY)
       save_results(ibat,gridx, blockx, tnum_bin*tnum_bin, DeviceMem, HostMem);
-#else
-      save_results(ibat,gridx, blockx, tnum_bin, DeviceMem, HostMem);
-#endif
-      sprintf(name1,"%d",ibat);strcpy(name2,"batch_cnt");strcat(name2,name1);
-      writeh5_nxm_(name, "tally",name2, HostMem.batcnt, &intone, &tnum_bin);
-      //resetcount(DeviceMem);
-#if defined(__MTALLY)
+      sprintf(name1,"%d",ibat);strcpy(name2,"Tmatrix");strcat(name2,name1);
+      writeh5_nxm_(name, "tally",name2, HostMem.batcnt, &intone, &inttwo);
       resettally(DeviceMem.tally.cnt, tnum_bin*tnum_bin*gridsize);
 #else
+      save_results(ibat,gridx, blockx, tnum_bin, DeviceMem, HostMem);
+      sprintf(name1,"%d",ibat);strcpy(name2,"batch_cnt");strcat(name2,name1);
+      writeh5_nxm_(name, "tally",name2, HostMem.batcnt, &intone, &tnum_bin);
       resettally(DeviceMem.tally.cnt, tnum_bin*gridsize);
 #endif
 #endif
