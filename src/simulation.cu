@@ -21,7 +21,11 @@ __device__ void neutron_sample(NeutronInfoStruct nInfo, unsigned id,float width)
   curandState state = nInfo.rndState[id];
   //TODO: source sampling should take settings dependent on geometry
 #if defined(__1D)
+#if defined(__MTALLY)
+  nInfo.pos_x[id] =width*curand_uniform_double(&state);
+#else
   nInfo.pos_x[id] =width/(CHOP*PI)*asin(sin(PI*0.5*CHOP)*(1-2*curand_uniform_double(&state)))+width*0.5;//width*curand_uniform_double(&state);
+#endif
 #endif
 #if defined(__3D)
   //nInfo.pos_x[id] =width/PI*acos(1-2*curand_uniform_double(&state));//width*curand_uniform_double(&state);// 
@@ -299,7 +303,7 @@ __global__ void history(MemStruct DeviceMem, unsigned num_src,int shift,unsigned
 
   CMPTYPE rnd;
   float x = DeviceMem.nInfo.pos_x[nid];
-
+  int startid = int(floorf(x/dx));
 
   int dir = 1-2*int((curand_uniform_double(&localState))<=0.5);
   /* Copy state to local memory for efficiency */ 
@@ -325,7 +329,10 @@ __global__ void history(MemStruct DeviceMem, unsigned num_src,int shift,unsigned
     }
     else{
 #if defined(__TALLY)
+#if defined(__MTALLY)
+#else
     DeviceMem.tally.cnt[int(floorf(x/dx))*gridDim.x*blockDim.x+id-shift]+=1;
+#endif
 #endif    
     rnd = curand_uniform_double(&localState);
     if(rnd<Ps)
@@ -337,6 +344,9 @@ __global__ void history(MemStruct DeviceMem, unsigned num_src,int shift,unsigned
 	//newneu = 2*(rnd<=0.55)+3*(rand>0.55);
 	newneu = 1-2*(rnd<=0.55); //-1 --> 2 fission; +1 --> 3 fission
 	DeviceMem.nInfo.pos_y[id] = x*newneu;
+#if defined(__MTALLY)
+	DeviceMem.tally.cnt[(int(floorf(x/dx))*(int)(wdspp[5])+startid)*gridDim.x*blockDim.x+id-shift]+= ( (1==newneu)*3 + ((-1)==newneu)*2 )  ;
+#endif
       }
       else{  //rnd<Pc, capture, nothing to do
 	DeviceMem.nInfo.pos_y[id] = 0;
