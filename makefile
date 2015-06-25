@@ -46,6 +46,9 @@ LINKLAG=   -dlink -arch=sm_20
 LDFLAGS=-L${DIR_HDF5}/lib/ -L${DIR_CUDA6}/lib64  -lcudart -lhdf5 -lstdc++
 GSOURCES=$(wildcard ${DIR_SRC}/*.cu)
 EXENAME=$(DIR_BIN)/box
+ifeq ($(mtally),true)
+EXENAME=$(DIR_BIN)/box_Tmat
+endif
 EXECUTABLE=$(EXENAME)
 
 CSOURCES=$(wildcard ${DIR_SRC}/*.cc)
