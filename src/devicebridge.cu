@@ -120,7 +120,7 @@ void start_neutrons(unsigned gridx, unsigned blockx, MemStruct DeviceMem, unsign
   int i=0;
   for(i=0;i<ubat;i++){//num_src is important as loop index, but useless in history<<<>>>
 #if defined(__MTALLY)
-    printf("i=(%d/%d)",i,ubat);
+    //printf("i=(%d/%d)",i,ubat);
 #endif
     history<<<gridx, blockx/*, blockx*sizeof(unsigned)*/>>>(DeviceMem, num_src,i*gridx*blockx,banksize);
   }
