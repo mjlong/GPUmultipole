@@ -74,7 +74,7 @@ int main(int argc, char **argv){
 #if defined(__MTALLY)
   strcpy(name,"R1dTmacnt"); 
 #else
-  strcpy(name,"R1dRawcnt"); 
+  strcpy(name,"R1dRawsrc"); 
 #endif
 #else
   strcpy(name,"R3dRawcnt"); 
