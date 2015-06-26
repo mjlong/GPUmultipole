@@ -308,12 +308,15 @@ __global__ void history(MemStruct DeviceMem, unsigned num_src,int shift,unsigned
 
   CMPTYPE rnd;
   float x = DeviceMem.nInfo.pos_x[nid];
-
+#if defined(__TALLY)
 #if defined(__MTALLY)
   DeviceMem.tally.cnt[( int(floorf(x/dx))  *(int)(wdspp[5])+DeviceMem.nInfo.imat[nid])*gridDim.x*blockDim.x+id-shift]+=1;
   DeviceMem.nInfo.imat[id] = int(floorf(x/dx));  
   //if(  (startid<0)||(startid>=wdspp[5]) ) printf("warning:id=%d, sid outbound\n",id);
+#else
+  DeviceMem.tally.cnt[int(floorf(x/dx))*gridDim.x*blockDim.x+id-shift]+=1;
 #endif  
+#endif    
   int dir = 1-2*int((curand_uniform_double(&localState))<=0.5);
   /* Copy state to local memory for efficiency */ 
 
@@ -337,12 +340,6 @@ __global__ void history(MemStruct DeviceMem, unsigned num_src,int shift,unsigned
       if((wdspp[0]-x)<TEPSILON){dir=-1;x = wdspp[0]-TEPSILON;}
     }
     else{
-#if defined(__TALLY)
-#if defined(__MTALLY)
-#else
-    DeviceMem.tally.cnt[int(floorf(x/dx))*gridDim.x*blockDim.x+id-shift]+=1;
-#endif
-#endif    
     rnd = curand_uniform_double(&localState);
     if(rnd<Ps)
       dir = 1-2*int((curand_uniform_double(&localState))<=0.5);
