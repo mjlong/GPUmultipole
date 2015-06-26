@@ -13,6 +13,11 @@ __global__ void initialize(MemStruct pInfo,float width, int banksize,int shift){
 #if defined(__TALLY)
   pInfo.tally.cnt[id-shift] = 0;
 #endif 
+#if defined(__MTALLY)
+#if defined(__1D)
+  pInfo.nInfo.imat[id] = int(floorf(pInfo.nInfo.pos_x[id]/wdspp[1]));
+#endif
+#endif
   pInfo.nInfo.live[id] = 1*(id<banksize);
 }
 
@@ -303,8 +308,11 @@ __global__ void history(MemStruct DeviceMem, unsigned num_src,int shift,unsigned
 
   CMPTYPE rnd;
   float x = DeviceMem.nInfo.pos_x[nid];
-  int startid = int(floorf(x/dx));
-  if(  (startid<0)||(startid>=wdspp[5]) ) printf("warning:id=%d, sid outbound\n",id);
+
+#if defined(__MTALLY)
+  DeviceMem.tally.cnt[( int(floorf(x/dx))  *(int)(wdspp[5])+DeviceMem.nInfo.imat[nid])*gridDim.x*blockDim.x+id-shift]+=1;
+  //if(  (startid<0)||(startid>=wdspp[5]) ) printf("warning:id=%d, sid outbound\n",id);
+#endif  
   int dir = 1-2*int((curand_uniform_double(&localState))<=0.5);
   /* Copy state to local memory for efficiency */ 
 
@@ -346,8 +354,8 @@ __global__ void history(MemStruct DeviceMem, unsigned num_src,int shift,unsigned
 	DeviceMem.nInfo.pos_y[id] = x*newneu;
 #if defined(__MTALLY)
 	nid = int(floorf(x/dx));
-	DeviceMem.tally.cnt[(nid*(int)(wdspp[5])+startid)*gridDim.x*blockDim.x+id-shift]+= ( (1==newneu)*3 + ((-1)==newneu)*2 )  ;
-	if(  (nid<0)||(nid>=wdspp[5]) ) printf("warning:id=%d, did outbound\n",id);
+	DeviceMem.nInfo.imat[id] = nid;
+	//if(  (nid<0)||(nid>=wdspp[5]) ) printf("warning:id=%d, did outbound\n",id);
 #endif
       }
       else{  //rnd<Pc, capture, nothing to do
