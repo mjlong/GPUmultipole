@@ -32,6 +32,8 @@ void initialize_memory(MemStruct *DeviceMem, MemStruct *HostMem, unsigned numbin
   gpuErrchk(cudaMemset((*DeviceMem).block_spectrum, 0, numbins*numbins*gridx*sizeof(CMPTYPE)));
   gpuErrchk(cudaMalloc((void**)&((*DeviceMem).tally.cnt), gridsize*numbins*numbins*sizeof(CMPTYPE)));
   gpuErrchk(cudaMemset((*DeviceMem).tally.cnt, 0, numbins*numbins*gridsize*sizeof(CMPTYPE)));  
+  gpuErrchk(cudaMalloc((void**)&((*DeviceMem).nInfo.imat),  banksize*3*sizeof(int)));
+  (*HostMem).nInfo.imat = (int*)malloc(sizeof(int)*banksize*3);
 #else
   gpuErrchk(cudaMalloc((void**)&((*DeviceMem).spectrum), numbins*sizeof(CMPTYPE)));
   (*HostMem).spectrum = (CMPTYPE*)malloc(sizeof(CMPTYPE)*numbins);  
@@ -70,7 +72,6 @@ void initialize_memory(MemStruct *DeviceMem, MemStruct *HostMem, unsigned numbin
   gpuErrchk(cudaMalloc((void**)&((*DeviceMem).nInfo.sigA),   banksize*sizeof(CMPTYPE)));
   gpuErrchk(cudaMalloc((void**)&((*DeviceMem).nInfo.sigF),   banksize*sizeof(CMPTYPE)));
   gpuErrchk(cudaMalloc((void**)&((*DeviceMem).nInfo.isoenergy),banksize*sizeof(CMPTYPE)));
-  gpuErrchk(cudaMalloc((void**)&((*DeviceMem).nInfo.imat),  banksize*sizeof(int)));
 #endif
 
 #if defined(__SCATTERPLOT)
@@ -110,6 +111,10 @@ void resettally(CMPTYPE *cnt, unsigned totbins){
 
 void release_memory(MemStruct DeviceMem, MemStruct HostMem){
 #if defined(__TALLY)
+#if defined(__MTALLY)
+  gpuErrchk(cudaFree(DeviceMem.nInfo.imat));
+  free(HostMem.nInfo.imat);
+#endif
   free(HostMem.spectrum);
 #if defined(__PROCESS)
   free(HostMem.batchmeans);
@@ -136,7 +141,6 @@ void release_memory(MemStruct DeviceMem, MemStruct HostMem){
   gpuErrchk(cudaFree(DeviceMem.nInfo.sigA));
   gpuErrchk(cudaFree(DeviceMem.nInfo.sigF));
   gpuErrchk(cudaFree(DeviceMem.nInfo.isoenergy));
-  gpuErrchk(cudaFree(DeviceMem.nInfo.imat));
 #endif
 
 #if defined(__1D)
