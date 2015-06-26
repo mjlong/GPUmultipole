@@ -22,6 +22,7 @@ void initialize_neutrons(unsigned gridx, unsigned blockx,MemStruct DeviceMem,flo
 #endif
 #if defined(__1D)
   gpuErrchk(cudaMemcpy(DeviceMem.nInfo.pos_x+gridx*blockx*ubat,DeviceMem.nInfo.pos_x,sizeof(float)*gridx*blockx*ubat, cudaMemcpyDeviceToDevice));    
+  gpuErrchk(cudaMemcpy(DeviceMem.nInfo.imat +gridx*blockx*ubat,DeviceMem.nInfo.imat ,sizeof(int  )*gridx*blockx*ubat, cudaMemcpyDeviceToDevice));    
 #endif
 }
 
@@ -43,28 +44,34 @@ void resetcount(MemStruct DeviceMem){
 unsigned setbank(MemStruct DeviceMem, MemStruct HostMem, int gridsize){
   float* y2 = (float*)malloc(sizeof(float)*gridsize);
   float* x2 = (float*)malloc(sizeof(float)*gridsize*2);
+  int* sid1 = (int*)malloc(sizeof(int)*gridsize);
+  int* sid2 = (int*)malloc(sizeof(int)*gridsize*2);
   gpuErrchk(cudaMemcpy(y2,DeviceMem.nInfo.pos_y,sizeof(float)*gridsize, cudaMemcpyDeviceToHost));  
-  float y;
+  gpuErrchk(cudaMemcpy(sid1,DeviceMem.nInfo.imat,sizeof(int )*gridsize, cudaMemcpyDeviceToHost));  
+  float y; int sid;
   unsigned j=0;
   for(int i=0;i<gridsize;i++){
-    y = y2[i];
+    y = y2[i]; sid = sid1[i];
     if(0!=y){
       if(y>0){
 	//number=3;
-	x2[j++]=y;
-	x2[j++]=y;
-	x2[j++]=y;
+	sid2[j]=sid; x2[j++]=y;
+	sid2[j]=sid; x2[j++]=y;
+	sid2[j]=sid; x2[j++]=y;
       }
       else{
 	//number=2;
-	x2[j++]=0-y;
-	x2[j++]=0-y;
+	sid2[j]=sid; x2[j++]=0-y;
+	sid2[j]=sid; x2[j++]=0-y;
       }
     }
   }
   gpuErrchk(cudaMemcpy(DeviceMem.nInfo.pos_x+gridsize,x2,sizeof(float)*gridsize*2, cudaMemcpyHostToDevice));  
+  gpuErrchk(cudaMemcpy(DeviceMem.nInfo.imat+gridsize,sid2,sizeof(float)*gridsize*2, cudaMemcpyHostToDevice));  
   free(x2);
   free(y2);
+  free(sid1);
+  free(sid2);
   return j;
 }
 #endif
