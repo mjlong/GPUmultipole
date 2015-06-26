@@ -49,12 +49,12 @@ int main(int argc, char **argv){
     pc    = atof(argv[8]);
     ubat  = atoi(argv[9]);
     mode = 0;   //run only
-    if(argc>=11+1){
+    /*if(argc>=11+1){
       ubat = atoi(argv[9]);
       upto = atoi(argv[10]);
       print = atoi(argv[11]);
       mode = 2; //run+process
-    }
+      }*/
   }
   else{
     mode = 1; //process only
@@ -79,7 +79,8 @@ int main(int argc, char **argv){
 #else
   strcpy(name,"R3dRawcnt"); 
 #endif
-  strcat(name,name1); strcat(name,name2); strcat(name,name3); strcat(name,name4); strcat(name,".h5");
+  strcat(name,name1); strcat(name,name2); strcat(name,name3); strcat(name,name4); 
+  sprintf(name4,"_s%d",atoi(argv[10]));   strcat(name,name4); strcat(name,".h5");
   createmptyh5(name); //create empty file for future add dataset
   
   int intone=1; 
@@ -136,7 +137,7 @@ int main(int argc, char **argv){
     //======================Steady State ===========================================
     //==============================================================================
     banksize = gridx*blockx*ubat;
-    initialize_neutrons(gridx, blockx, DeviceMem,width,banksize,ubat); 
+    initialize_neutrons(gridx, blockx, DeviceMem,width,banksize,ubat,atoi(argv[10])); 
     // plot initial distribution
 #if defined(__SCATTERPLOT)
     copyinitial(DeviceMem, HostMem, gridsize);

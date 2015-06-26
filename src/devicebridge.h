@@ -3,7 +3,7 @@
 #include <stdlib.h> //srand, rand
 
 void printdevice();
-void initialize_neutrons(unsigned gridx, unsigned blockx,MemStruct DeviceMem,float, int banksize,int num_src);
+void initialize_neutrons(unsigned gridx, unsigned blockx,MemStruct DeviceMem,float, int banksize,int num_src, int seed);
 #if defined(__SCATTERPLOT)
 void copyinitial(MemStruct DeviceMem, MemStruct HostMem, unsigned gridsize);
 #endif

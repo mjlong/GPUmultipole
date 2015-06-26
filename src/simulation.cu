@@ -2,12 +2,12 @@
 #define CHOP 0.7
 extern __constant__ float wdspp[];
 
-__global__ void initialize(MemStruct pInfo,float width, int banksize,int shift){
+__global__ void initialize(MemStruct pInfo,float width, int banksize,int shift, int seed){
   //int id = ((blockDim.x*blockDim.y*blockDim.z)*(blockIdx.y*gridDim.x+blockIdx.x)+(blockDim.x*blockDim.y)*threadIdx.z+blockDim.x*threadIdx.y+threadIdx.x);//THREADID;
   int id = blockDim.x * blockIdx.x + threadIdx.x + shift;
   /* Each thread gets same seed, a different sequence number, no offset */
   //curand_init(id*7546861334684321478, id, id+14412078966483154, &(pInfo.nInfo.rndState[id]));
-  curand_init(9798, id, 0, &(pInfo.nInfo.rndState[id]));
+  curand_init(9798+seed, id, 0, &(pInfo.nInfo.rndState[id]));
   neutron_sample(pInfo.nInfo, id,width);
   pInfo.nInfo.id[id] = id;
 #if defined(__TALLY)
