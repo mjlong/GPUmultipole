@@ -23,17 +23,17 @@ void initialize_memory(MemStruct *DeviceMem, MemStruct *HostMem, unsigned numbin
   //for __TALLY, ubat is used as tranfac
 
 #if defined(__TALLY)
-#if defined(__MTALLY)
-  gpuErrchk(cudaMalloc((void**)&((*DeviceMem).spectrum), numbins*numbins*sizeof(CMPTYPE)));
-  (*HostMem).spectrum = (CMPTYPE*)malloc(sizeof(CMPTYPE)*numbins*numbins);  
-  (*HostMem).batcnt     = (CMPTYPE*)malloc(sizeof(CMPTYPE)*numbins*numbins);
-  gpuErrchk(cudaMalloc((void**)&((*DeviceMem).batcnt), numbins*numbins*sizeof(CMPTYPE)));
-  gpuErrchk(cudaMalloc((void**)&((*DeviceMem).block_spectrum), numbins*numbins*gridx*sizeof(CMPTYPE)));
-  gpuErrchk(cudaMemset((*DeviceMem).block_spectrum, 0, numbins*numbins*gridx*sizeof(CMPTYPE)));
-  gpuErrchk(cudaMalloc((void**)&((*DeviceMem).tally.cnt), gridsize*numbins*numbins*sizeof(CMPTYPE)));
-  gpuErrchk(cudaMemset((*DeviceMem).tally.cnt, 0, numbins*numbins*gridsize*sizeof(CMPTYPE)));  
+#if defined(__MTALLY) //Fission Matrix Tally
   gpuErrchk(cudaMalloc((void**)&((*DeviceMem).nInfo.imat),  banksize*3*sizeof(int)));
-#else
+  (*HostMem).batcnt     = (CMPTYPE*)malloc(sizeof(CMPTYPE)*numbins*numbins);
+  memset((*HostMem).batcnt, 0, sizeof(CMPTYPE)*numbins*numbins);
+#endif
+#if defined(__FTALLY) //Fission source tally
+  gpuErrchk(cudaMalloc((void**)&((*DeviceMem).nInfo.imat),  banksize*3*sizeof(int)));
+  (*HostMem).batcnt     = (CMPTYPE*)malloc(sizeof(CMPTYPE)*numbins);
+  memset((*HostMem).batcnt, 0, sizeof(CMPTYPE)*numbins);
+#endif
+#if defined(__CTALLY) //Collision density (flux) tally
   gpuErrchk(cudaMalloc((void**)&((*DeviceMem).spectrum), numbins*sizeof(CMPTYPE)));
   (*HostMem).spectrum = (CMPTYPE*)malloc(sizeof(CMPTYPE)*numbins);  
   (*HostMem).batcnt     = (CMPTYPE*)malloc(sizeof(CMPTYPE)*numbins);
@@ -110,19 +110,20 @@ void resettally(CMPTYPE *cnt, unsigned totbins){
 
 void release_memory(MemStruct DeviceMem, MemStruct HostMem){
 #if defined(__TALLY)
-#if defined(__MTALLY)
+#if defined(__MTALLY)||(__FTALLY)
   gpuErrchk(cudaFree(DeviceMem.nInfo.imat));
-#endif
+#else
   free(HostMem.spectrum);
-#if defined(__PROCESS)
-  free(HostMem.batchmeans);
-  free(HostMem.accmeans);
-#endif
-  free(HostMem.batcnt);
   gpuErrchk(cudaFree(DeviceMem.batcnt));
   gpuErrchk(cudaFree(DeviceMem.spectrum));
   gpuErrchk(cudaFree(DeviceMem.block_spectrum));
   gpuErrchk(cudaFree(DeviceMem.tally.cnt));
+#endif
+  free(HostMem.batcnt);
+#if defined(__PROCESS)
+  free(HostMem.batchmeans);
+  free(HostMem.accmeans);
+#endif
 #endif
   free(HostMem.nInfo.live);
   free(HostMem.wdspp);
