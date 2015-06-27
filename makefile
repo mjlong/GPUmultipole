@@ -8,14 +8,20 @@ ifeq ($(tran),true)
 CIDEN += -D __TRAN
 endif
 
-ifeq ($(tally),true)
+ifeq ($(ctally),true)
 CIDEN += -D __TALLY
+CIDEN += -D __CTALLY
 endif
 
 ifeq ($(mtally),true)
+CIDEN += -D __TALLY
 CIDEN += -D __MTALLY
 endif
 
+ifeq ($(ftally),true)
+CIDEN += -D __TALLY
+CIDEN += -D __FTALLY
+endif
 
 ifeq ($(scatterplt),true)
 CIDEN += -D __SCATTERPLOT
