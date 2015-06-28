@@ -43,12 +43,14 @@ void resetcount(MemStruct DeviceMem){
   gpuErrchk(cudaMemcpy(DeviceMem.num_terminated_neutrons,&x,sizeof(unsigned), cudaMemcpyHostToDevice));  
 }
 #if defined(__1D)
-#if defined(__MTALLY)
-unsigned setbank(MemStruct DeviceMem, MemStruct HostMem, int gridsize){
+#if defined(__MTALLY)||(__FTALLY)
+unsigned setbank(MemStruct DeviceMem, MemStruct HostMem, int gridsize, int tnum_bins){
   float* y2 = (float*)malloc(sizeof(float)*gridsize);
   float* x2 = (float*)malloc(sizeof(float)*gridsize*2);
   int* sid1 = (int*)malloc(sizeof(int)*gridsize);
+#if defined(__MTALLY)
   int* sid2 = (int*)malloc(sizeof(int)*gridsize*2);
+#endif
   gpuErrchk(cudaMemcpy(y2,DeviceMem.nInfo.pos_y,sizeof(float)*gridsize, cudaMemcpyDeviceToHost));  
   gpuErrchk(cudaMemcpy(sid1,DeviceMem.nInfo.imat,sizeof(int )*gridsize, cudaMemcpyDeviceToHost));  
   int sid;
@@ -56,26 +58,26 @@ unsigned setbank(MemStruct DeviceMem, MemStruct HostMem, int gridsize){
   unsigned j=0;
   for(int i=0;i<gridsize;i++){
     y = y2[i]; sid = sid1[i];
+    HostMem.batcnt[sid]++;
     if(0!=y){
-      if(y>0){
-	//number=3;
-	sid2[j]=sid; x2[j++]=y;
-	sid2[j]=sid; x2[j++]=y;
-	sid2[j]=sid; x2[j++]=y;
-      }
-      else{
-	//number=2;
-	sid2[j]=sid; x2[j++]=0-y;
-	sid2[j]=sid; x2[j++]=0-y;
-      }
+#if defined(__MTALLY)
+      sid = sid/tnum_bins;
+      if(y>0){sid2[j]=sid; x2[j++]=y;sid2[j]=sid;x2[j++]=y;sid2[j]=sid;x2[j++]=y;}
+      else{sid2[j]=sid; x2[j++]=0-y;sid2[j]=sid; x2[j++]=0-y;}
+#else
+      if(y>0){x2[j++]=y;x2[j++]=y;x2[j++]=y;}
+      else{x2[j++]=0-y;x2[j++]=0-y;}
+#endif
     }
   }
   gpuErrchk(cudaMemcpy(DeviceMem.nInfo.pos_x+gridsize,x2,sizeof(float)*gridsize*2, cudaMemcpyHostToDevice));  
   free(x2);
   free(y2);
+#if defined(__MTALLY)
   gpuErrchk(cudaMemcpy(DeviceMem.nInfo.imat+gridsize,sid2,sizeof(float)*gridsize*2, cudaMemcpyHostToDevice));  
-  free(sid1);
   free(sid2);
+#endif
+  free(sid1);
   return j;
 }
 #else
@@ -164,8 +166,10 @@ void start_neutrons(unsigned gridx, unsigned blockx, MemStruct DeviceMem, unsign
 #endif
     history<<<gridx, blockx/*, blockx*sizeof(unsigned)*/>>>(DeviceMem, num_src,i*gridx*blockx,banksize);
   }
+  gpuErrchk(cudaDeviceSynchronize());  
+
 #if defined(__MTALLY)
-    printf("\n");
+  //printf("\n");
 #endif
 }
 #endif

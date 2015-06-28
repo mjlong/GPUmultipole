@@ -15,7 +15,11 @@ unsigned count_lives(unsigned gridx, unsigned blockx, MemStruct DeviceMem, MemSt
 void save_results(unsigned ibat, unsigned gridx, unsigned blockx, unsigned num_bin, MemStruct DeviceMem, MemStruct HostMem);
 void print_results(unsigned meshes, unsigned nbat, double *tally);
 
+#if defined(__MTALLY)||(__FTALLY)
+unsigned setbank(MemStruct DeviceMem, MemStruct HostMem, int gridsize, int tnum_bins);
+#else
 unsigned setbank(MemStruct DeviceMem, MemStruct HostMem, int gridsize);
+#endif
 void check(unsigned gridx, unsigned blockx, MemStruct DeviceMem, unsigned ubat);
 
 int flushbank(MemStruct DeviceMem, MemStruct HostMem, unsigned lastpop,float a,unsigned gridsize,int ibat,int nbat);
