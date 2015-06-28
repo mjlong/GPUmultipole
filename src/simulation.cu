@@ -310,6 +310,7 @@ __global__ void history(MemStruct DeviceMem, unsigned num_src,int shift,unsigned
   float x = DeviceMem.nInfo.pos_x[nid];
 #if defined(__MTALLY)
   DeviceMem.nInfo.imat[id]= ( int(floorf(x/dx))  *(int)(wdspp[5])+DeviceMem.nInfo.imat[nid]);
+  //Note: wdspp[5] is num_bin in each dimension 
 #endif
 #if defined(__FTALLY)
   DeviceMem.nInfo.imat[id] = int(floorf(x/dx));  
