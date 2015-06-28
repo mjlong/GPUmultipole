@@ -105,6 +105,9 @@ int main(int argc, char **argv){
 #if defined(__MTALLY)
   inttwo = tnum_bin*tnum_bin;
 #endif
+#if defined(__FTALLY)
+  inttwo = tnum_bin;
+#endif
   initialize_memory(&DeviceMem, &HostMem, tnum_bin, gridx,blockx,num_bat,ubat);
 #if defined(__PROCESS)
   if(1==mode)//process only, need to access the raw collision count
