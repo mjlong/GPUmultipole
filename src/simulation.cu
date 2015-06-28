@@ -8,7 +8,7 @@ __global__ void initialize(MemStruct pInfo,float width, int banksize,int shift, 
   /* Each thread gets same seed, a different sequence number, no offset */
   //curand_init(id*7546861334684321478, id, id+14412078966483154, &(pInfo.nInfo.rndState[id]));
   curand_init(9798+seed, id, 0, &(pInfo.nInfo.rndState[id-shift]));
-  neutron_sample(pInfo.nInfo, id,width);
+  neutron_sample(pInfo.nInfo, id, id-shift, width);
 #if defined(__CTALLY)
   pInfo.tally.cnt[id-shift] = 0;
 #endif 
@@ -20,9 +20,9 @@ __global__ void initialize(MemStruct pInfo,float width, int banksize,int shift, 
   pInfo.nInfo.live[id] = 1*(id<banksize);
 }
 
-__device__ void neutron_sample(NeutronInfoStruct nInfo, unsigned id,float width){
+__device__ void neutron_sample(NeutronInfoStruct nInfo, unsigned id,unsigned idr, float width){
   nInfo.live[id] = 1u;
-  curandState state = nInfo.rndState[id];
+  curandState state = nInfo.rndState[idr];
   //TODO: source sampling should take settings dependent on geometry
 #if defined(__1D)
 #if defined(__MTALLY)
@@ -39,7 +39,7 @@ __device__ void neutron_sample(NeutronInfoStruct nInfo, unsigned id,float width)
   nInfo.pos_y[id] =width/(CHOP*PI)*asin(sin(PI*0.5*CHOP)*(1-2*curand_uniform_double(&state)))+width*0.5;//width*curand_uniform_double(&state);// 
   nInfo.pos_z[id] =width/(CHOP*PI)*asin(sin(PI*0.5*CHOP)*(1-2*curand_uniform_double(&state)))+width*0.5;//width*curand_uniform_double(&state);// 
 #endif
-  nInfo.rndState[id] = state;
+  nInfo.rndState[idr] = state;
 #if defined(__WASTE)
   nInfo.energy[id] = STARTENE;
 #endif

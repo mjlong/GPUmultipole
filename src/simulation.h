@@ -9,7 +9,7 @@
 #define STARTENE 20000000.0
 #define ENDENERG 0.00001
 #define MAXENERGY 30000.0
-__device__ void neutron_sample(NeutronInfoStruct nInfo, unsigned id,float width);
+__device__ void neutron_sample(NeutronInfoStruct nInfo, unsigned id,unsigned idr,float width);
 __global__ void initialize(MemStruct,float,int,int, int);
 __global__ void reduce_sum_plus(int *threadcnt, int* cnt);
 __global__ void reduce_sum_equal(int* thread_active, int* active);
