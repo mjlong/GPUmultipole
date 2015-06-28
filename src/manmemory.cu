@@ -59,13 +59,13 @@ void initialize_memory(MemStruct *DeviceMem, MemStruct *HostMem, unsigned numbin
   gpuErrchk(cudaMalloc((void**)&((*DeviceMem).wdspp), 9*sizeof(float)));
 
 
-  gpuErrchk(cudaMalloc((void**)&((*DeviceMem).nInfo.id),       banksize*sizeof(unsigned)));
   gpuErrchk(cudaMalloc((void**)&((*DeviceMem).nInfo.live),       banksize*sizeof(int)));
   gpuErrchk(cudaMemset((*DeviceMem).nInfo.live, 0, banksize*sizeof(int)));  
 
-  gpuErrchk(cudaMalloc((void**)&((*DeviceMem).nInfo.rndState), banksize*sizeof(curandState)));
+  gpuErrchk(cudaMalloc((void**)&((*DeviceMem).nInfo.rndState), gridsize*sizeof(curandState)));
 
 #if defined(__WASTE)
+  gpuErrchk(cudaMalloc((void**)&((*DeviceMem).nInfo.id),       banksize*sizeof(unsigned)));
   gpuErrchk(cudaMalloc((void**)&((*DeviceMem).nInfo.energy),   banksize*sizeof(CMPTYPE)));
   gpuErrchk(cudaMalloc((void**)&((*DeviceMem).nInfo.sigT),   banksize*sizeof(CMPTYPE)));
   gpuErrchk(cudaMalloc((void**)&((*DeviceMem).nInfo.sigA),   banksize*sizeof(CMPTYPE)));
@@ -130,11 +130,11 @@ void release_memory(MemStruct DeviceMem, MemStruct HostMem){
 
   gpuErrchk(cudaFree(DeviceMem.wdspp));
 
-  gpuErrchk(cudaFree(DeviceMem.nInfo.id));
   gpuErrchk(cudaFree(DeviceMem.nInfo.live));
   gpuErrchk(cudaFree(DeviceMem.nInfo.rndState));
 
 #if defined(__WASTE)
+  gpuErrchk(cudaFree(DeviceMem.nInfo.id));
   gpuErrchk(cudaFree(DeviceMem.nInfo.energy));
   gpuErrchk(cudaFree(DeviceMem.nInfo.sigT));
   gpuErrchk(cudaFree(DeviceMem.nInfo.sigA));

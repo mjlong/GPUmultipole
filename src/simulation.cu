@@ -7,9 +7,8 @@ __global__ void initialize(MemStruct pInfo,float width, int banksize,int shift, 
   int id = blockDim.x * blockIdx.x + threadIdx.x + shift;
   /* Each thread gets same seed, a different sequence number, no offset */
   //curand_init(id*7546861334684321478, id, id+14412078966483154, &(pInfo.nInfo.rndState[id]));
-  curand_init(9798+seed, id, 0, &(pInfo.nInfo.rndState[id]));
+  curand_init(9798+seed, id, 0, &(pInfo.nInfo.rndState[id-shift]));
   neutron_sample(pInfo.nInfo, id,width);
-  pInfo.nInfo.id[id] = id;
 #if defined(__CTALLY)
   pInfo.tally.cnt[id-shift] = 0;
 #endif 
@@ -302,7 +301,7 @@ __global__ void history(MemStruct DeviceMem, unsigned num_src,int shift,unsigned
   //in this scheme, normalization is realized by forcefully 
   //select gridsize neutrons from banksize neutrons
   int id = blockDim.x * blockIdx.x + threadIdx.x + shift;
-  curandState localState = DeviceMem.nInfo.rndState[id];
+  curandState localState = DeviceMem.nInfo.rndState[id-shift];
   int nid = int(curand_uniform_double(&localState)*banksize)+num_src;
   //extern __shared__ unsigned blockTerminated[];
 
@@ -360,7 +359,7 @@ __global__ void history(MemStruct DeviceMem, unsigned num_src,int shift,unsigned
   }//end one history
   //}
   //blockTerminated[idl] =1;// !live;
-  DeviceMem.nInfo.rndState[id] = localState; 
+  DeviceMem.nInfo.rndState[id-shift] = localState; 
 }
 #endif //end vac or reflective 1D
 #endif //end if 1D
