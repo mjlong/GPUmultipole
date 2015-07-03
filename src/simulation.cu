@@ -16,6 +16,11 @@ __global__ void initialize(MemStruct pInfo,float width, int banksize,int shift, 
 #if defined(__1D)
   pInfo.nInfo.imat[id] = int(floorf(pInfo.nInfo.pos_x[id]/wdspp[1]));
 #endif
+#if defined(__3D)
+  pInfo.nInfo.imat[id] = ((int)floorf(pInfo.nInfo.pos_x[id]/wdspp[1]) + 
+			  (int)floorf(pInfo.nInfo.pos_y[id]/wdspp[1])*(int)wdspp[5] + 
+			  (int)floorf(pInfo.nInfo.pos_z[id]/wdspp[1])*(int)(wdspp[5]*wdspp[5]));
+#endif
 #endif
   pInfo.nInfo.live[id] = 1*(id<banksize);
 }
@@ -109,6 +114,20 @@ __global__ void history(MemStruct DeviceMem, unsigned num_src,int shift,unsigned
   float y = DeviceMem.nInfo.pos_y[nid];
   float z = DeviceMem.nInfo.pos_z[nid];
   float mu,phi; 
+
+#if defined(__MTALLY)
+  DeviceMem.nInfo.imat[id] =  ((int)floorf(x/wdspp[1]) + 
+			       (int)floorf(y/wdspp[1])*(int)wdspp[5] + 
+			       (int)floorf(z/wdspp[1])*(int)(wdspp[5]*wdspp[5]) + 
+			       DeviceMem.nInfo.imat[nid]);
+  //Note: wdspp[5] is num_bin in each dimension 
+#endif
+#if defined(__FTALLY)
+  DeviceMem.nInfo.imat[id] = ((int)floorf(x/wdspp[1]) + 
+			      (int)floorf(y/wdspp[1])*(int)wdspp[5] + 
+			      (int)floorf(z/wdspp[1])*(int)(wdspp[5]*wdspp[5]));
+#endif  
+
   mu = curand_uniform(&localState)*2-1;
   phi= curand_uniform(&localState)*2*PI;
 
@@ -146,7 +165,7 @@ __global__ void history(MemStruct DeviceMem, unsigned num_src,int shift,unsigned
       n[0]=0; n[1]=0; n[2]=0;
     }  
     else{
-#if defined(__TALLY)
+#if defined(__CTALLY)
       nid = ((int)floorf(x/wdspp[1]) + (int)floorf(y/wdspp[1])*(int)wdspp[5] + (int)floorf(z/wdspp[1])*(int)(wdspp[5]*wdspp[5]));
       //DeviceMem.tally.cnt[ ((int)((int)(x/wdspp[1]) + (int)(y/wdspp[1])*wdspp[5] + (int) (z/wdspp[1])*wdspp[5]*wdspp[5]) )*gridDim.x*blockDim.x+id -shift ]+=1;
       DeviceMem.tally.cnt[ nid*gridDim.x*blockDim.x+id -shift ]+=1;
