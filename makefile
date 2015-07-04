@@ -51,10 +51,30 @@ endif
 LINKLAG=   -dlink -arch=sm_20  
 LDFLAGS=-L${DIR_HDF5}/lib/ -L${DIR_CUDA6}/lib64  -lcudart -lhdf5 -lstdc++
 GSOURCES=$(wildcard ${DIR_SRC}/*.cu)
-EXENAME=$(DIR_BIN)/box
 ifeq ($(mtally),true)
-EXENAME=$(DIR_BIN)/box_Tmat
+ifeq ($(dim),1d)
+EXENAME=$(DIR_BIN)/box1d_Tmat
+else
+EXENAME=$(DIR_BIN)/box3d_Tmat
 endif
+endif
+
+ifeq ($(ctally),true)
+ifeq ($(dim),1d)
+EXENAME=$(DIR_BIN)/box1d
+else
+EXENAME=$(DIR_BIN)/box3d
+endif
+endif
+
+ifeq ($(ftally),true)
+ifeq ($(dim),1d)
+EXENAME=$(DIR_BIN)/boxf1d
+else
+EXENAME=$(DIR_BIN)/boxf3d
+endif
+endif
+
 EXECUTABLE=$(EXENAME)
 
 CSOURCES=$(wildcard ${DIR_SRC}/*.cc)
