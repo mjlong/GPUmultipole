@@ -70,18 +70,23 @@ int main(int argc, char **argv){
   sprintf(name2,"_%d",ubat);
   sprintf(name3,"_%d",num_bat);
   sprintf(name4,"_%d",num_bin);
-#if defined(__1D)
-#if defined(__MTALLY)
-  strcpy(name,"R1dTmacnt"); 
-#else
+#if defined(__1D)&&defined(__MTALLY)
+  strcepy(name,"R1dTmacnt"); 
+#endif
+#if defined(__1d)&&defined(__FTALLY)
   strcpy(name,"R1dRawsrc"); 
 #endif
-#else
-#if defined(__MTALLY)
-  strcpy(name,"R3dTmacnt");
-#else
-  strcpy(name,"R3dRawcnt");
+#if defined(__1d)&&defined(__CTALLY)
+  strcpy(name,"R1dRawcnt"); 
 #endif
+#if defined(__3D)&&defined(__MTALLY)
+  strcepy(name,"R3dTmacnt"); 
+#endif
+#if defined(__3d)&&defined(__FTALLY)
+  strcpy(name,"R3dRawsrc"); 
+#endif
+#if defined(__3d)&&defined(__CTALLY)
+  strcpy(name,"R3dRawcnt"); 
 #endif
   strcat(name,name1); strcat(name,name2); strcat(name,name3); strcat(name,name4); 
   sprintf(name4,"_s%d",atoi(argv[10]));   strcat(name,name4); strcat(name,".h5");
