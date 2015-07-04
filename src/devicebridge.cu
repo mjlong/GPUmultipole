@@ -74,7 +74,7 @@ unsigned setbank(MemStruct DeviceMem, MemStruct HostMem, int gridsize, int tnum_
   free(x2);
   free(y2);
 #if defined(__MTALLY)
-  gpuErrchk(cudaMemcpy(DeviceMem.nInfo.imat+gridsize,sid2,sizeof(float)*gridsize*2, cudaMemcpyHostToDevice));  
+  gpuErrchk(cudaMemcpy(DeviceMem.nInfo.imat+gridsize,sid2,sizeof(int)*gridsize*2, cudaMemcpyHostToDevice));  
   free(sid2);
 #endif
   free(sid1);
@@ -111,6 +111,60 @@ unsigned setbank(MemStruct DeviceMem, MemStruct HostMem, int gridsize){
 #endif//__MTALLY
 #endif//__1D
 #if defined(__3D)
+#if defined(__MTALLY)||(__FTALLY)
+unsigned setbank(MemStruct DeviceMem, MemStruct HostMem, int gridsize, int tnum_bins){
+  float* x2 = (float*)malloc(sizeof(float)*gridsize*2);
+  float* y2 = (float*)malloc(sizeof(float)*gridsize*2);
+  float* z2 = (float*)malloc(sizeof(float)*gridsize*2);
+  int* sid1 = (int*)malloc(sizeof(int)*gridsize);
+#if defined(__MTALLY)
+  int* sid2 = (int*)malloc(sizeof(int)*gridsize*2);
+#endif
+  gpuErrchk(cudaMemcpy(sid1,DeviceMem.nInfo.imat,sizeof(int )*gridsize, cudaMemcpyDeviceToHost));  
+  gpuErrchk(cudaMemcpy(HostMem.nInfo.pos_x,DeviceMem.nInfo.pos_x,sizeof(float)*gridsize, cudaMemcpyDeviceToHost));  
+  gpuErrchk(cudaMemcpy(HostMem.nInfo.pos_y,DeviceMem.nInfo.pos_y,sizeof(float)*gridsize, cudaMemcpyDeviceToHost));  
+  gpuErrchk(cudaMemcpy(HostMem.nInfo.pos_z,DeviceMem.nInfo.pos_z,sizeof(float)*gridsize, cudaMemcpyDeviceToHost));  
+  memset(HostMem.nInfo.live,0,sizeof(int)*gridsize);
+  gpuErrchk(cudaMemcpy(HostMem.nInfo.live, DeviceMem.nInfo.live ,sizeof(int)*gridsize,   cudaMemcpyDeviceToHost));  
+  int live;  unsigned j=0;int k=0; int sid;
+  /*
+  for(int i=0;i<gridsize;i++){
+    printf("%d ",HostMem.nInfo.live[i]);
+    if(0==i%100) printf("\n");
+  }
+  printf("\n");
+  */
+  for(int i=0;i<gridsize;i++){
+    live = HostMem.nInfo.live[i];
+    sid = sid1[i];
+    HostMem.batcnt[sid]++;
+    //if(live<4){
+    for(k=0;k<live;k++){//live=2 or 3
+      if(j>(gridsize*2)) {printf("live=%d,j=%d,i=%d/%d,overflow\n",live,j,i,gridsize);exit(-1);}
+      //else{
+      x2[j]=HostMem.nInfo.pos_x[i];
+      y2[j]=HostMem.nInfo.pos_y[i];
+      z2[j]=HostMem.nInfo.pos_z[i];
+#if defined(__MTALLY)
+      sid2[j]=sid/tnum_bins;
+#endif
+      j++;
+      //}
+    }
+    //}
+  }
+  gpuErrchk(cudaMemcpy(DeviceMem.nInfo.pos_x+gridsize,x2,sizeof(float)*gridsize*2, cudaMemcpyHostToDevice));  
+  gpuErrchk(cudaMemcpy(DeviceMem.nInfo.pos_y+gridsize,y2,sizeof(float)*gridsize*2, cudaMemcpyHostToDevice));  
+  gpuErrchk(cudaMemcpy(DeviceMem.nInfo.pos_z+gridsize,z2,sizeof(float)*gridsize*2, cudaMemcpyHostToDevice));  
+#if defined(__MTALLY)
+  gpuErrchk(cudaMemcpy(DeviceMem.nInfo.imat+gridsize,sid2,sizeof(int)*gridsize*2, cudaMemcpyHostToDevice));  
+  free(sid2);
+#endif
+  free(sid1);
+  free(x2);  free(y2);  free(z2);
+  return j;
+}
+#else
 unsigned setbank(MemStruct DeviceMem, MemStruct HostMem, int gridsize){
   float* x2 = (float*)malloc(sizeof(float)*gridsize*2);
   float* y2 = (float*)malloc(sizeof(float)*gridsize*2);
@@ -148,6 +202,7 @@ unsigned setbank(MemStruct DeviceMem, MemStruct HostMem, int gridsize){
   free(x2);  free(y2);  free(z2);
   return j;
 }
+#endif
 #endif
 
 
