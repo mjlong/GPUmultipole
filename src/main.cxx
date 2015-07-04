@@ -73,19 +73,19 @@ int main(int argc, char **argv){
 #if defined(__1D)&&defined(__MTALLY)
   strcepy(name,"R1dTmacnt"); 
 #endif
-#if defined(__1d)&&defined(__FTALLY)
+#if defined(__1D)&&defined(__FTALLY)
   strcpy(name,"R1dRawsrc"); 
 #endif
-#if defined(__1d)&&defined(__CTALLY)
+#if defined(__1D)&&defined(__CTALLY)
   strcpy(name,"R1dRawcnt"); 
 #endif
 #if defined(__3D)&&defined(__MTALLY)
   strcepy(name,"R3dTmacnt"); 
 #endif
-#if defined(__3d)&&defined(__FTALLY)
+#if defined(__3D)&&defined(__FTALLY)
   strcpy(name,"R3dRawsrc"); 
 #endif
-#if defined(__3d)&&defined(__CTALLY)
+#if defined(__3D)&&defined(__CTALLY)
   strcpy(name,"R3dRawcnt"); 
 #endif
   strcat(name,name1); strcat(name,name2); strcat(name,name3); strcat(name,name4); 
