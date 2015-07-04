@@ -22,9 +22,9 @@ void initialize_neutrons(unsigned gridx, unsigned blockx,MemStruct DeviceMem,flo
 #endif
 #if defined(__1D)
   gpuErrchk(cudaMemcpy(DeviceMem.nInfo.pos_x+gridx*blockx*ubat,DeviceMem.nInfo.pos_x,sizeof(float)*gridx*blockx*ubat, cudaMemcpyDeviceToDevice));    
+#endif
 #if defined(__MTALLY)
   gpuErrchk(cudaMemcpy(DeviceMem.nInfo.imat +gridx*blockx*ubat,DeviceMem.nInfo.imat ,sizeof(int  )*gridx*blockx*ubat, cudaMemcpyDeviceToDevice));    
-#endif
 #endif
 }
 
