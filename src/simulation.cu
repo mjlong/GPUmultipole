@@ -170,7 +170,7 @@ __global__ void history(MemStruct DeviceMem, unsigned num_src,int shift,unsigned
       //DeviceMem.tally.cnt[ ((int)((int)(x/wdspp[1]) + (int)(y/wdspp[1])*wdspp[5] + (int) (z/wdspp[1])*wdspp[5]*wdspp[5]) )*gridDim.x*blockDim.x+id -shift ]+=1;
       DeviceMem.tally.cnt[ nid*gridDim.x*blockDim.x+id -shift ]+=1;
       //if(34217==id) {printf("id=%d,ix=%.2f,iy=%.2f,iz=%.2f\n",id,floorf(x/wdspp[1]),floorf(y/wdspp[1]),floorf(z/wdspp[1]));}
-      if((nid<0)||(nid>=512)) printf("id=%d,index=%d,x=%.4f,y=%.4f,z=%.8e->%.8e,l=%.8e,t=%.8e,s=%.6e,%d,%d\n",id,nid,x,y,z-v[2]*s,z,l,t,s,(l<t),z<400.0);
+      //if((nid<0)||(nid>=512)) printf("id=%d,index=%d,x=%.4f,y=%.4f,z=%.8e->%.8e,l=%.8e,t=%.8e,s=%.6e,%d,%d\n",id,nid,x,y,z-v[2]*s,z,l,t,s,(l<t),z<400.0);
 #endif
       rnd = curand_uniform_double(&localState);
       if(rnd<(1-(wdspp[3]+wdspp[4]))){
