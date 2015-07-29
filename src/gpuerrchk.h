@@ -4,7 +4,7 @@
 #include <cuda.h>
 
 #define gpuErrchk(ans){gpuAssert((ans),__FILE__, __LINE__);}
-static void gpuAssert(cudaError_t code, char *file, int line, bool abort = true){
+static void gpuAssert(cudaError_t code, const char *file, int line, bool abort = true){
   if(cudaSuccess!=code){
     fprintf(stderr,"GPUassert:%s %s %d\n", cudaGetErrorString(code), file,line);
     if(abort) exit(code);
