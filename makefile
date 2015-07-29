@@ -29,8 +29,8 @@ endif
 
 DIR_SRC = ./src
 DIR_OBJ = ./obj
-DIR_HDF5  = /opt/hdf5/1.8.14-gnu#/home/jlmiao/opt/hdf5
-DIR_CUDA6 = /home/jmiao/cuda-6.0
+DIR_HDF5  = /data/usr/local/hdf5/
+DIR_CUDA6 = /usr/local/cuda-7.0
 #Include flags
 INC_SRC   = -I${DIR_SRC} 
 INC_HDF5  = -I${DIR_HDF5}/include
