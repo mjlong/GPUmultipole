@@ -9,9 +9,9 @@
 
 #include <time.h>
 extern void createmptyh5(char *filename);
-extern void writeh5_nxm_(char *filename, char *groupname, char *dsetname, double *vec1, int *num_vec, int *length);
-extern void writeh5_nxm_(char *filename, char *groupname, char *dsetname, float  *vec1, int *num_vec, int *length);
-extern void writeh5_nxm_(char *filename, char *groupname, char *dsetname, int    *vec1, int *num_vec, int *length);
+extern void writeh5_nxm_(const char *filename, const char *groupname, const char *dsetname, double *vec1, int *num_vec, int *length);
+extern void writeh5_nxm_(const char *filename, const char *groupname, const char *dsetname, float  *vec1, int *num_vec, int *length);
+extern void writeh5_nxm_(const char *filename, const char *groupname, const char *dsetname, int    *vec1, int *num_vec, int *length);
 extern void readh5_(char* filename, int* gridsize, int* nbat, 
 	     int* meshes, double* width, 
 	     double* sigt, double* pf, double* pc);

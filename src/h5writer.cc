@@ -21,7 +21,7 @@ void createmptyh5(char *filename){
   status = H5Fclose(file);
 }
 
-void writeh5_nxm_(char *filename, char* groupname, char *dsetname, int *vec1, int *num_vec, int *length){
+void writeh5_nxm_(const char *filename, const char* groupname, const char *dsetname, int *vec1, int *num_vec, int *length){
 
   hid_t       file,group, dataset;         /* file and dataset handles */
   hid_t       datatype, dataspace;   /* handles */
@@ -79,7 +79,7 @@ void writeh5_nxm_(char *filename, char* groupname, char *dsetname, int *vec1, in
 }
 
 
-void writeh5_nxm_(char *filename, char* groupname, char *dsetname, float *vec1, int *num_vec, int *length){
+void writeh5_nxm_(const char *filename, const char* groupname, const char *dsetname, float *vec1, int *num_vec, int *length){
 
   hid_t       file,group, dataset;         /* file and dataset handles */
   hid_t       datatype, dataspace;   /* handles */
@@ -136,7 +136,7 @@ void writeh5_nxm_(char *filename, char* groupname, char *dsetname, float *vec1, 
   return;
 }
 
-void writeh5_nxm_(char *filename, char *groupname, char *dsetname, double *vec1, int *num_vec, int *length){
+void writeh5_nxm_(const char *filename, const char *groupname, const char *dsetname, double *vec1, int *num_vec, int *length){
 
   hid_t       file,group, dataset;         /* file and dataset handles */
   hid_t       datatype, dataspace;   /* handles */
