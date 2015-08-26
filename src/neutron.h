@@ -20,6 +20,7 @@ typedef struct {
 
 typedef struct {
   CMPTYPE *cnt;
+  CMPTYPE *cnt2;
   //CMPTYPE   *unknown;
 }TallyStruct;
 
