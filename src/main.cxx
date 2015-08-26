@@ -178,7 +178,10 @@ int main(int argc, char **argv){
       save_results(ibat,gridx, blockx, tnum_bin, DeviceMem, HostMem);
       sprintf(name1,"%d",ibat);strcpy(name2,"batch_cnt");strcat(name2,name1);
       writeh5_nxm_(name, "tally",name2, HostMem.batcnt, &intone, &tnum_bin);
+      sprintf(name1,"%d",ibat);strcpy(name2,"batch_cnt2");strcat(name2,name1);
+      writeh5_nxm_(name, "tally",name2, HostMem.batcnt2, &intone, &tnum_bin);
       resettally(DeviceMem.tally.cnt, tnum_bin*gridsize);
+      resettally(DeviceMem.tally.cnt2, tnum_bin*gridsize);
 #endif
       printf("[%3d]%4d-->%4d: \n", ibat,num_src,banksize);
 #endif
