@@ -36,8 +36,12 @@ void initialize_memory(MemStruct *DeviceMem, MemStruct *HostMem, unsigned numbin
 #if defined(__CTALLY) //Collision density (flux) tally
   gpuErrchk(cudaMalloc((void**)&((*DeviceMem).spectrum), numbins*sizeof(CMPTYPE)));
   (*HostMem).spectrum = (CMPTYPE*)malloc(sizeof(CMPTYPE)*numbins);  
+
   (*HostMem).batcnt     = (CMPTYPE*)malloc(sizeof(CMPTYPE)*numbins);
   gpuErrchk(cudaMalloc((void**)&((*DeviceMem).batcnt), numbins*sizeof(CMPTYPE)));
+  (*HostMem).batcnt2    = (CMPTYPE*)malloc(sizeof(CMPTYPE)*numbins);
+  gpuErrchk(cudaMalloc((void**)&((*DeviceMem).batcnt2),numbins*sizeof(CMPTYPE)));
+
   gpuErrchk(cudaMalloc((void**)&((*DeviceMem).block_spectrum), numbins*gridx*sizeof(CMPTYPE)));
   gpuErrchk(cudaMemset((*DeviceMem).block_spectrum, 0, numbins*gridx*sizeof(CMPTYPE)));
   gpuErrchk(cudaMalloc((void**)&((*DeviceMem).tally.cnt), gridsize*numbins*sizeof(CMPTYPE)));
@@ -116,12 +120,14 @@ void release_memory(MemStruct DeviceMem, MemStruct HostMem){
 #else
   free(HostMem.spectrum);
   gpuErrchk(cudaFree(DeviceMem.batcnt));
+  gpuErrchk(cudaFree(DeviceMem.batcnt2));
   gpuErrchk(cudaFree(DeviceMem.spectrum));
   gpuErrchk(cudaFree(DeviceMem.block_spectrum));
   gpuErrchk(cudaFree(DeviceMem.tally.cnt));
   gpuErrchk(cudaFree(DeviceMem.tally.cnt2));
 #endif
   free(HostMem.batcnt);
+  free(HostMem.batcnt2);
 #if defined(__PROCESS)
   free(HostMem.batchmeans);
   free(HostMem.accmeans);
