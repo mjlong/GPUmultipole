@@ -292,6 +292,19 @@ void save_results(unsigned ibat, unsigned gridx, unsigned blockx, unsigned num_b
   //printf("%s\n", cudaGetErrorString(cudaThreadSynchronize()));
   gpuErrchk(cudaMemcpy(HostMem.batcnt,DeviceMem.batcnt,sizeof(CMPTYPE)*num_bin, cudaMemcpyDeviceToHost));
 
+  for(int i=0;i<num_bin;i++){
+    reduce_sum_equal<<<gridx, blockx, blockx*sizeof(CMPTYPE)>>>(
+                   DeviceMem.tally.cnt2+i*gridx*blockx, 
+                   DeviceMem.block_spectrum+i*gridx);
+  }
+  for(int i=0;i<num_bin;i++){
+    reduce_sum_equal<<<1, gridx, gridx*sizeof(CMPTYPE)>>>(
+                   DeviceMem.block_spectrum+i*gridx, DeviceMem.batcnt2+i);
+  }
+  //printf("%s\n", cudaGetErrorString(cudaPeekAtLastError()));
+  //printf("%s\n", cudaGetErrorString(cudaThreadSynchronize()));
+  gpuErrchk(cudaMemcpy(HostMem.batcnt2,DeviceMem.batcnt2,sizeof(CMPTYPE)*num_bin, cudaMemcpyDeviceToHost));
+
 /*print collision cnt and time*/
 /*
   unsigned sum=0;
