@@ -86,7 +86,7 @@ int main(int argc, char **argv){
   strcpy(name,"R3dRawsrc"); 
 #endif
 #if defined(__3D)&&defined(__CTALLY)
-  strcpy(name,"R3dRawcnt"); 
+  strcpy(name,"R3d2Rawcnt"); 
 #endif
   strcat(name,name1); strcat(name,name2); strcat(name,name3); strcat(name,name4); 
   sprintf(name4,"_s%d",atoi(argv[10]));   strcat(name,name4); strcat(name,".h5");
