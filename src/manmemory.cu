@@ -47,6 +47,7 @@ void initialize_memory(MemStruct *DeviceMem, MemStruct *HostMem, unsigned numbin
   gpuErrchk(cudaMalloc((void**)&((*DeviceMem).tally.cnt), gridsize*numbins*sizeof(CMPTYPE)));
   gpuErrchk(cudaMalloc((void**)&((*DeviceMem).tally.cnt2), gridsize*numbins*sizeof(CMPTYPE)));
   gpuErrchk(cudaMemset((*DeviceMem).tally.cnt, 0, numbins*gridsize*sizeof(CMPTYPE)));  
+  gpuErrchk(cudaMemset((*DeviceMem).tally.cnt2,0, numbins*gridsize*sizeof(CMPTYPE)));  
 #endif
 #if defined(__PROCESS)
   (*HostMem).batchmeans = (double*)malloc(sizeof(double)*nbat*numbins);

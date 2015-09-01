@@ -62,6 +62,7 @@ typedef struct {
   double *batchmeans;
   double *accmeans;
   CMPTYPE *batcnt;
+  CMPTYPE *batcnt2;
   CMPTYPE *tallybins;
   TallyStruct tally;
 }MemStruct;
