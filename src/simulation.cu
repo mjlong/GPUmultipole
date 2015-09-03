@@ -138,6 +138,7 @@ __global__ void history(MemStruct DeviceMem, unsigned num_src,int shift,unsigned
 
   int live=1;
 #if defined(__CTALLY)
+  int cnt1_t=0;
   int cnt2_t=0;
 #endif
   //printf("[%2d],x=%.5f,pf=%.5f\n",id,DeviceMem.nInfo.pos_x[nid],pf);
@@ -173,7 +174,8 @@ __global__ void history(MemStruct DeviceMem, unsigned num_src,int shift,unsigned
       nid = ((int)floorf(x/wdspp[1]) + (int)floorf(y/wdspp[1])*(int)wdspp[5] + (int)floorf(z/wdspp[1])*(int)(wdspp[5]*wdspp[5]));
       //DeviceMem.tally.cnt[ ((int)((int)(x/wdspp[1]) + (int)(y/wdspp[1])*wdspp[5] + (int) (z/wdspp[1])*wdspp[5]*wdspp[5]) )*gridDim.x*blockDim.x+id -shift ]+=1;
       DeviceMem.tally.cnt[ nid*gridDim.x*blockDim.x+id -shift ]+=1;
-      cnt2_t += (2*DeviceMem.tally.cnt[ nid*gridDim.x*blockDim.x+id -shift ]-1);
+      cnt1_t += 1;
+      cnt2_t += (2*cnt1_t-1);
       //if(34217==id) {printf("id=%d,ix=%.2f,iy=%.2f,iz=%.2f\n",id,floorf(x/wdspp[1]),floorf(y/wdspp[1]),floorf(z/wdspp[1]));}
       //if((nid<0)||(nid>=512)) printf("id=%d,index=%d,x=%.4f,y=%.4f,z=%.8e->%.8e,l=%.8e,t=%.8e,s=%.6e,%d,%d\n",id,nid,x,y,z-v[2]*s,z,l,t,s,(l<t),z<400.0);
 #endif
