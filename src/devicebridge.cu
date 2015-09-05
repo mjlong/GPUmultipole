@@ -213,7 +213,7 @@ int count_pop(int *live, int gridsize){
   return sum;
 }
 #if defined(__1D)
-void start_neutrons(unsigned gridx, unsigned blockx, MemStruct DeviceMem, unsigned ubat,unsigned num_src,unsigned banksize){
+void start_neutrons(unsigned gridx, unsigned blockx, MemStruct DeviceMem, unsigned ubat,unsigned num_src,unsigned banksize, unsigned tnum_bin){
   int i=0;
   for(i=0;i<ubat;i++){//num_src is important as loop index, but useless in history<<<>>>
 #if defined(__MTALLY)
@@ -230,10 +230,13 @@ void start_neutrons(unsigned gridx, unsigned blockx, MemStruct DeviceMem, unsign
 #endif
 
 #if defined(__3D)
-void start_neutrons(unsigned gridx, unsigned blockx, MemStruct DeviceMem, unsigned ubat,unsigned num_src,unsigned banksize){
+void start_neutrons(unsigned gridx, unsigned blockx, MemStruct DeviceMem, unsigned ubat,unsigned num_src,unsigned banksize, unsigned tnum_bin){
   int i=0;
   for(i=0;i<ubat;i++){//num_src is important as loop index, but useless in history<<<>>>
     //printf("i=%d/%d\n",i,num_src/(gridx*blockx));
+#if defined(__CTALLY2)
+    gpuErrchk(cudaMemset(DeviceMem.cnt2_t, 0, tnum_bin*gridx*blockx*sizeof(int)));
+#endif
     history<<<gridx, blockx/*, blockx*sizeof(unsigned)*/>>>(DeviceMem, num_src,i*gridx*blockx,banksize);
   }
 }
@@ -292,6 +295,7 @@ void save_results(unsigned ibat, unsigned gridx, unsigned blockx, unsigned num_b
   //printf("%s\n", cudaGetErrorString(cudaThreadSynchronize()));
   gpuErrchk(cudaMemcpy(HostMem.batcnt,DeviceMem.batcnt,sizeof(CMPTYPE)*num_bin, cudaMemcpyDeviceToHost));
 
+#if defined(__CTALLY2)
   for(int i=0;i<num_bin;i++){
     reduce_sum_equal<<<gridx, blockx, blockx*sizeof(CMPTYPE)>>>(
                    DeviceMem.tally.cnt2+i*gridx*blockx, 
@@ -305,6 +309,7 @@ void save_results(unsigned ibat, unsigned gridx, unsigned blockx, unsigned num_b
   //printf("%s\n", cudaGetErrorString(cudaThreadSynchronize()));
   gpuErrchk(cudaMemcpy(HostMem.batcnt2,DeviceMem.batcnt2,sizeof(CMPTYPE)*num_bin, cudaMemcpyDeviceToHost));
 
+#endif
 /*print collision cnt and time*/
 /*
   unsigned sum=0;
