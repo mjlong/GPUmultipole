@@ -160,7 +160,7 @@ int main(int argc, char **argv){
     strcpy(name2,"color");strcat(name2,name1); writeh5_nxm_(name, "scatterplot",name2,HostMem.nInfo.energy, &intone, &gridsize);
 #endif
     for(ibat=0;ibat<num_bat;ibat++){
-      start_neutrons(gridx, blockx, DeviceMem, ubat,num_src,banksize);
+      start_neutrons(gridx, blockx, DeviceMem, ubat,num_src,banksize,tnum_bin);
       //check(gridx,blockx,DeviceMem,ubat);
       //active = count_neutrons(gridx, blockx, DeviceMem, HostMem,num_src);
 #if defined(__TALLY)
