@@ -13,4 +13,5 @@ void release_memory(MemStruct DeviceMem, MemStruct HostMem);
 void copymeans(int *h_cnt, int *batcnt, unsigned meshes, unsigned offset);
 void copydata(MemStruct DeviceMem, MemStruct HostMem);
 void resettally(CMPTYPE *cnt, unsigned totbins);
+void resettally(int *cnt, unsigned totbins);
 #endif
