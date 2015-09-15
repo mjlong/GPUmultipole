@@ -43,13 +43,13 @@ void initialize_memory(MemStruct *DeviceMem, MemStruct *HostMem, unsigned numbin
   (*HostMem).batcnt2    = (CMPTYPE*)malloc(sizeof(CMPTYPE)*numbins);
   gpuErrchk(cudaMalloc((void**)&((*DeviceMem).batcnt2),numbins*sizeof(CMPTYPE)));
   gpuErrchk(cudaMalloc((void**)&((*DeviceMem).cnt2_t),numbins*gridsize*sizeof(int)));
+  gpuErrchk(cudaMalloc((void**)&((*DeviceMem).tally.cnt2), gridsize*numbins*sizeof(CMPTYPE)));
+  gpuErrchk(cudaMemset((*DeviceMem).tally.cnt2,0, numbins*gridsize*sizeof(CMPTYPE)));  
 #endif
   gpuErrchk(cudaMalloc((void**)&((*DeviceMem).block_spectrum), numbins*gridx*sizeof(CMPTYPE)));
   gpuErrchk(cudaMemset((*DeviceMem).block_spectrum, 0, numbins*gridx*sizeof(CMPTYPE)));
   gpuErrchk(cudaMalloc((void**)&((*DeviceMem).tally.cnt), gridsize*numbins*sizeof(CMPTYPE)));
-  gpuErrchk(cudaMalloc((void**)&((*DeviceMem).tally.cnt2), gridsize*numbins*sizeof(CMPTYPE)));
   gpuErrchk(cudaMemset((*DeviceMem).tally.cnt, 0, numbins*gridsize*sizeof(CMPTYPE)));  
-  gpuErrchk(cudaMemset((*DeviceMem).tally.cnt2,0, numbins*gridsize*sizeof(CMPTYPE)));  
 #endif
 #if defined(__PROCESS)
   (*HostMem).batchmeans = (double*)malloc(sizeof(double)*nbat*numbins);

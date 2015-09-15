@@ -11,7 +11,9 @@ __global__ void initialize(MemStruct pInfo,float width, int banksize,int shift, 
   neutron_sample(pInfo.nInfo, id, id-shift, width);
 #if defined(__CTALLY)
   pInfo.tally.cnt[id-shift] = 0;
+#if defined(__CTALLY2)
   pInfo.tally.cnt2[id-shift] = 0;
+#endif
 #endif 
 #if defined(__MTALLY)
 #if defined(__1D)
