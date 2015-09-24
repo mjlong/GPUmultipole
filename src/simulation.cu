@@ -2,6 +2,16 @@
 #define CHOP 0.7
 extern __constant__ float wdspp[];
 
+__global__ void fixsrc_sample(MemStruct pInfo, float width, int shift){
+  int idr = blockDim.x * blockIdx.x + threadIdx.x;
+  int id  = idr + shift;
+  curandState state = pInfo.nInfo.rndState[idr];
+  pInfo.nInfo.pos_x[id] =width*curand_uniform_double(&state);// 
+  pInfo.nInfo.pos_y[id] =width*curand_uniform_double(&state);// 
+  pInfo.nInfo.pos_z[id] =width*curand_uniform_double(&state);// 
+  pInfo.nInfo.rndState[idr] = state;
+}
+
 __global__ void initialize(MemStruct pInfo,float width, int banksize,int shift, int seed){
   //int id = ((blockDim.x*blockDim.y*blockDim.z)*(blockIdx.y*gridDim.x+blockIdx.x)+(blockDim.x*blockDim.y)*threadIdx.z+blockDim.x*threadIdx.y+threadIdx.x);//THREADID;
   int id = blockDim.x * blockIdx.x + threadIdx.x + shift;
@@ -174,6 +184,9 @@ __global__ void history(MemStruct DeviceMem, unsigned num_src,int shift,unsigned
       nid = ((int)floorf(x/wdspp[1]) + (int)floorf(y/wdspp[1])*(int)wdspp[5] + (int)floorf(z/wdspp[1])*(int)(wdspp[5]*wdspp[5]));
       //DeviceMem.tally.cnt[ ((int)((int)(x/wdspp[1]) + (int)(y/wdspp[1])*wdspp[5] + (int) (z/wdspp[1])*wdspp[5]*wdspp[5]) )*gridDim.x*blockDim.x+id -shift ]+=1;
       DeviceMem.tally.cnt[ nid*gridDim.x*blockDim.x+id -shift ]+=1;
+      //if(2==nid)
+      //  printf("[id=%d]hitting 2 for %g times\n",id, DeviceMem.tally.cnt[ nid*gridDim.x*blockDim.x+id -shift ]);
+
 #if defined(__CTALLY2)
       DeviceMem.cnt2_t[ nid*gridDim.x*blockDim.x+id -shift ]+=1;
 #endif
@@ -211,6 +224,10 @@ __global__ void history(MemStruct DeviceMem, unsigned num_src,int shift,unsigned
   for(nid=0;nid<(wdspp[0]/wdspp[1]*wdspp[0]/wdspp[1]*wdspp[0]/wdspp[1]);nid++){
     DeviceMem.tally.cnt2[ nid*gridDim.x*blockDim.x+id -shift ] += (DeviceMem.cnt2_t[ nid*gridDim.x*blockDim.x+id -shift ]*DeviceMem.cnt2_t[ nid*gridDim.x*blockDim.x+id -shift ]);
   }
+  //print contribution from each neutron at cell 2
+  //if(DeviceMem.cnt2_t[ 2*gridDim.x*blockDim.x+id -shift ]){
+  //  printf("%d\n", DeviceMem.cnt2_t[ 2*gridDim.x*blockDim.x+id -shift ]);
+  //} 
 #endif
 
   DeviceMem.nInfo.pos_x[id] = x;
