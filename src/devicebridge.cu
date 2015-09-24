@@ -8,6 +8,7 @@
   allocating device memory, transfering data and partitioning computation sources
 */
 void initialize_neutrons_fix(unsigned gridx, unsigned blockx,MemStruct DeviceMem,float width,int ubat){
+  srand (time(NULL));
   int i=0;
   for(i=0;i<ubat;i++){
     fixsrc_sample<<<gridx, blockx>>>(DeviceMem,width,i*gridx*blockx);
@@ -196,6 +197,26 @@ unsigned setbank(MemStruct DeviceMem, MemStruct HostMem, int gridsize){
   for(int i=0;i<gridsize;i++){
     live = HostMem.nInfo.live[i];
     //if(live<4){
+#if defined(__CTALLY2)
+    x2[j]=HostMem.nInfo.pos_x[i];
+    y2[j]=HostMem.nInfo.pos_y[i];
+    z2[j]=HostMem.nInfo.pos_z[i];
+    j++;
+    for(k=0;k<live-1;k++){//live=2 or 3
+      if(j>(gridsize*2)) {printf("live=%d,j=%d,i=%d/%d,overflow\n",live,j,i,gridsize);exit(-1);}
+      //else{
+      x2[j]=rand()*1.0/RAND_MAX*HostMem.wdspp[0];
+      y2[j]=rand()*1.0/RAND_MAX*HostMem.wdspp[0];
+      z2[j]=rand()*1.0/RAND_MAX*HostMem.wdspp[0];
+      j++;
+      //}
+    }
+    for(k=j;k<gridsize;k++){
+      x2[k]=rand()*1.0/RAND_MAX*HostMem.wdspp[0];
+      y2[k]=rand()*1.0/RAND_MAX*HostMem.wdspp[0];
+      z2[k]=rand()*1.0/RAND_MAX*HostMem.wdspp[0];
+    }
+#else
     for(k=0;k<live;k++){//live=2 or 3
       if(j>(gridsize*2)) {printf("live=%d,j=%d,i=%d/%d,overflow\n",live,j,i,gridsize);exit(-1);}
       //else{
@@ -205,6 +226,7 @@ unsigned setbank(MemStruct DeviceMem, MemStruct HostMem, int gridsize){
       j++;
       //}
     }
+#endif
     //}
   }
   gpuErrchk(cudaMemcpy(DeviceMem.nInfo.pos_x+gridsize,x2,sizeof(float)*gridsize*2, cudaMemcpyHostToDevice));  
