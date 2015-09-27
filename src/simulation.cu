@@ -53,9 +53,9 @@ __device__ void neutron_sample(NeutronInfoStruct nInfo, unsigned id,unsigned idr
   //nInfo.pos_x[id] =width/PI*acos(1-2*curand_uniform_double(&state));//width*curand_uniform_double(&state);// 
   //nInfo.pos_y[id] =width/PI*acos(1-2*curand_uniform_double(&state));//width*curand_uniform_double(&state);// 
   //nInfo.pos_z[id] =width/PI*acos(1-2*curand_uniform_double(&state));//width*curand_uniform_double(&state);// 
-  nInfo.pos_x[id] =width/(CHOP*PI)*asin(sin(PI*0.5*CHOP)*(1-2*curand_uniform_double(&state)))+width*0.5;//width*curand_uniform_double(&state);// 
-  nInfo.pos_y[id] =width/(CHOP*PI)*asin(sin(PI*0.5*CHOP)*(1-2*curand_uniform_double(&state)))+width*0.5;//width*curand_uniform_double(&state);// 
-  nInfo.pos_z[id] =width/(CHOP*PI)*asin(sin(PI*0.5*CHOP)*(1-2*curand_uniform_double(&state)))+width*0.5;//width*curand_uniform_double(&state);// 
+  nInfo.pos_x[id] =width*curand_uniform_double(&state);//width/(CHOP*PI)*asin(sin(PI*0.5*CHOP)*(1-2*curand_uniform_double(&state)))+width*0.5;// 
+  nInfo.pos_y[id] =width*curand_uniform_double(&state);//width/(CHOP*PI)*asin(sin(PI*0.5*CHOP)*(1-2*curand_uniform_double(&state)))+width*0.5;// 
+  nInfo.pos_z[id] =width*curand_uniform_double(&state);//width/(CHOP*PI)*asin(sin(PI*0.5*CHOP)*(1-2*curand_uniform_double(&state)))+width*0.5;// 
 #endif
   nInfo.rndState[idr] = state;
 #if defined(__WASTE)
@@ -118,7 +118,11 @@ __global__ void history(MemStruct DeviceMem, unsigned num_src,int shift,unsigned
 
   int id = blockDim.x * blockIdx.x + threadIdx.x + shift;
   curandState localState = DeviceMem.nInfo.rndState[id-shift];
+#if defined(__CTALLY2)
+  int nid = id+num_src;
+#else
   int nid = int(curand_uniform_double(&localState)*banksize)+num_src;
+#endif
   //if(100>id) {printf("  id=%d,nid=%d,rnd=%.5f\n",id,nid,curand_uniform_double(&localState));}
   //extern __shared__ unsigned blockTerminated[];
 
