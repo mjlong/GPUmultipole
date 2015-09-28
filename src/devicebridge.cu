@@ -123,7 +123,7 @@ unsigned setbank(MemStruct DeviceMem, MemStruct HostMem, int gridsize){
 #endif//__MTALLY
 #endif//__1D
 #if defined(__3D)
-#if defined(__MTALLY)||(__FTALLY)
+#if defined(__MTALLY)||(__FTALLY)||(__FTALLY2)
 unsigned setbank(MemStruct DeviceMem, MemStruct HostMem, int gridsize, int tnum_bins){
   float* x2 = (float*)malloc(sizeof(float)*gridsize*2);
   float* y2 = (float*)malloc(sizeof(float)*gridsize*2);
@@ -149,8 +149,30 @@ unsigned setbank(MemStruct DeviceMem, MemStruct HostMem, int gridsize, int tnum_
   for(int i=0;i<gridsize;i++){
     live = HostMem.nInfo.live[i];
     sid = sid1[i];
-    HostMem.batcnt[sid]++;
+    HostMem.batcnt[sid]+= (1*(0!=live));
     //if(live<4){
+#if defined(__FTALLY2)
+    if(live>0){
+    x2[j]=HostMem.nInfo.pos_x[i];
+    y2[j]=HostMem.nInfo.pos_y[i];
+    z2[j]=HostMem.nInfo.pos_z[i];
+    j++;
+    }
+    for(k=0;k<live-1;k++){//live=2 or 3
+      if(j>(gridsize*2)) {printf("live=%d,j=%d,i=%d/%d,overflow\n",live,j,i,gridsize);exit(-1);}
+      //else{
+      x2[j]=rand()*1.0/RAND_MAX*HostMem.wdspp[0];
+      y2[j]=rand()*1.0/RAND_MAX*HostMem.wdspp[0];
+      z2[j]=rand()*1.0/RAND_MAX*HostMem.wdspp[0];
+      j++;
+      //}
+    }
+    for(k=j;k<gridsize;k++){
+      x2[k]=rand()*1.0/RAND_MAX*HostMem.wdspp[0];
+      y2[k]=rand()*1.0/RAND_MAX*HostMem.wdspp[0];
+      z2[k]=rand()*1.0/RAND_MAX*HostMem.wdspp[0];
+    }
+#else
     for(k=0;k<live;k++){//live=2 or 3
       if(j>(gridsize*2)) {printf("live=%d,j=%d,i=%d/%d,overflow\n",live,j,i,gridsize);exit(-1);}
       //else{
@@ -163,6 +185,7 @@ unsigned setbank(MemStruct DeviceMem, MemStruct HostMem, int gridsize, int tnum_
       j++;
       //}
     }
+#endif
     //}
   }
   gpuErrchk(cudaMemcpy(DeviceMem.nInfo.pos_x+gridsize,x2,sizeof(float)*gridsize*2, cudaMemcpyHostToDevice));  
@@ -198,10 +221,12 @@ unsigned setbank(MemStruct DeviceMem, MemStruct HostMem, int gridsize){
     live = HostMem.nInfo.live[i];
     //if(live<4){
 #if defined(__CTALLY2)
+    if(live>0){
     x2[j]=HostMem.nInfo.pos_x[i];
     y2[j]=HostMem.nInfo.pos_y[i];
     z2[j]=HostMem.nInfo.pos_z[i];
     j++;
+    }
     for(k=0;k<live-1;k++){//live=2 or 3
       if(j>(gridsize*2)) {printf("live=%d,j=%d,i=%d/%d,overflow\n",live,j,i,gridsize);exit(-1);}
       //else{
@@ -264,6 +289,9 @@ void start_neutrons(unsigned gridx, unsigned blockx, MemStruct DeviceMem, unsign
 
 #if defined(__3D)
 void start_neutrons(unsigned gridx, unsigned blockx, MemStruct DeviceMem, unsigned ubat,unsigned num_src,unsigned banksize, unsigned tnum_bin){
+#if defined(__FTALLY2)
+    gpuErrchk(cudaMemset(DeviceMem.nInfo.imat, 0, ubat*gridx*blockx*sizeof(int)));
+#endif
   int i=0;
   for(i=0;i<ubat;i++){//num_src is important as loop index, but useless in history<<<>>>
     //printf("i=%d/%d\n",i,num_src/(gridx*blockx));
