@@ -82,11 +82,11 @@ int main(int argc, char **argv){
 #if defined(__3D)&&defined(__MTALLY)
   strcepy(name,"R3dTmacnt"); 
 #endif
-#if defined(__3D)&&defined(__FTALLY)
+#if defined(__3D)&&(defined(__FTALLY)||defined(__FTALLY2))
   strcpy(name,"R3dRawsrc"); 
 #endif
 #if defined(__3D)&&defined(__CTALLY)
-  strcpy(name,"R3d2Rawcnt"); 
+  strcpy(name,"R3d2Rawcnt_debug"); 
 #endif
   strcat(name,name1); strcat(name,name2); strcat(name,name3); strcat(name,name4); 
   sprintf(name4,"_s%d",atoi(argv[10]));   strcat(name,name4); strcat(name,".h5");
@@ -114,7 +114,7 @@ int main(int argc, char **argv){
 #if defined(__MTALLY)
   inttwo = tnum_bin*tnum_bin;
 #endif
-#if defined(__FTALLY)
+#if defined(__FTALLY)||defined(__FTALLY2)
   inttwo = tnum_bin;
 #endif
   initialize_memory(&DeviceMem, &HostMem, tnum_bin, gridx,blockx,num_bat,ubat);
@@ -133,8 +133,8 @@ int main(int argc, char **argv){
   double ref = 1.0/(HostMem.wdspp[3]+HostMem.wdspp[4])/width;
   // note this only works for flat
   copydata(DeviceMem,HostMem);
-  printf("nhis=%-6d,ubat=%3d,nbat=%-6d,meshes=%-6d,box width=%.2f\n",gridsize,ubat,num_bat,num_bin,width);
-  printf("mfp=%.5f, pf=%.5f, pc=%.5f, ps=%.5f\n",HostMem.wdspp[2], HostMem.wdspp[3], HostMem.wdspp[4],1-(HostMem.wdspp[3]+HostMem.wdspp[4]));
+  printf("[]nhis=%-6d,ubat=%3d,nbat=%-6d,meshes=%-6d,box width=%.2f\n",gridsize,ubat,num_bat,num_bin,width);
+  printf("[]mfp=%.5f, pf=%.5f, pc=%.5f, ps=%.5f\n",HostMem.wdspp[2], HostMem.wdspp[3], HostMem.wdspp[4],1-(HostMem.wdspp[3]+HostMem.wdspp[4]));
 
 //============================================================ 
 //===============main simulation body=========================
@@ -164,7 +164,7 @@ int main(int argc, char **argv){
       //check(gridx,blockx,DeviceMem,ubat);
       //active = count_neutrons(gridx, blockx, DeviceMem, HostMem,num_src);
 #if defined(__TALLY)
-#if defined(__MTALLY)||(__FTALLY)
+#if defined(__MTALLY)||(__FTALLY)||(__FTALLY2)
       banksize = setbank(DeviceMem, HostMem, num_src,tnum_bin);
       sprintf(name1,"%d",ibat);strcpy(name2,"Tmatrix");strcat(name2,name1);
       writeh5_nxm_(name, "tally",name2, HostMem.batcnt, &intone, &inttwo);
@@ -175,6 +175,7 @@ int main(int argc, char **argv){
 #endif
 #else
       banksize = setbank(DeviceMem, HostMem, num_src);
+      //initialize_neutrons_fix(gridx,blockx,DeviceMem,width,ubat); 
       save_results(ibat,gridx, blockx, tnum_bin, DeviceMem, HostMem);
       sprintf(name1,"%d",ibat);strcpy(name2,"batch_cnt");strcat(name2,name1);
       writeh5_nxm_(name, "tally",name2, HostMem.batcnt, &intone, &tnum_bin);
@@ -185,7 +186,7 @@ int main(int argc, char **argv){
       resettally(DeviceMem.tally.cnt2, tnum_bin*gridsize);
 #endif
 #endif
-      printf("[%3d]%4d-->%4d: \n", ibat,num_src,banksize);
+      printf("%d[%3d]%4d-->%4d: \n", -1,ibat,num_src,banksize);
 #endif
 #if defined(__SCATTERPLOT)
       sprintf(name1,"%d",ibat+1);
@@ -394,5 +395,5 @@ void printbless(){
 
 
 void printdone(){
-  printf(" ..... done!\n");
+  printf("[..... done!]\n");
 }
