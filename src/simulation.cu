@@ -118,7 +118,7 @@ __global__ void history(MemStruct DeviceMem, unsigned num_src,int shift,unsigned
 
   int id = blockDim.x * blockIdx.x + threadIdx.x + shift;
   curandState localState = DeviceMem.nInfo.rndState[id-shift];
-#if defined(__CTALLY2)
+#if defined(__CTALLY2)||(__FTALLY2)
   int nid = id+num_src;
 #else
   int nid = int(curand_uniform_double(&localState)*banksize)+num_src;
@@ -213,6 +213,12 @@ __global__ void history(MemStruct DeviceMem, unsigned num_src,int shift,unsigned
 	  DeviceMem.nInfo.live[id] = 2*(rnd<=0.55)+3*(rnd>0.55);
 	  //if(34217==id) printf("  id=%d, live[%d]= %d\n", id, id,DeviceMem.nInfo.live[id]);
 	  //if(3<DeviceMem.nInfo.live[id]) printf("  id=%d, live[%d]= %d\n", id, id,DeviceMem.nInfo.live[id]);
+          #if defined(__FTALLY2)
+          DeviceMem.nInfo.imat[id] = ((int)floorf(x/wdspp[1]) + 
+                                      (int)floorf(y/wdspp[1])*(int)wdspp[5] + 
+                                      (int)floorf(z/wdspp[1])*(int)(wdspp[5]*wdspp[5]));
+          #endif  
+
 	}
 	else{  //rnd<Pc, capture, nothing to do
 	  DeviceMem.nInfo.live[id] = 0;
