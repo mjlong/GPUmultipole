@@ -29,7 +29,13 @@ void initialize_memory(MemStruct *DeviceMem, MemStruct *HostMem, unsigned numbin
   memset((*HostMem).batcnt, 0, sizeof(CMPTYPE)*numbins*numbins);
 #endif
 #if defined(__FTALLY)||(__FTALLY2) //Fission source tally
+#if defined(__FTALLY)
   gpuErrchk(cudaMalloc((void**)&((*DeviceMem).nInfo.imat),  banksize*3*sizeof(int)));
+  (*HostMem).nInfo.live  = (int*)malloc(sizeof(int)*banksize);
+#else //(__FTALLY2)
+  gpuErrchk(cudaMalloc((void**)&((*DeviceMem).nInfo.imat),  gridsize*3*sizeof(int)));
+  (*HostMem).nInfo.live  = (int*)malloc(sizeof(int)*gridsize);
+#endif
   (*HostMem).batcnt     = (CMPTYPE*)malloc(sizeof(CMPTYPE)*numbins);
   memset((*HostMem).batcnt, 0, sizeof(CMPTYPE)*numbins);
 #endif
@@ -62,7 +68,6 @@ void initialize_memory(MemStruct *DeviceMem, MemStruct *HostMem, unsigned numbin
   (*HostMem).wdspp = (float*)malloc(sizeof(float)*9);
 
 
-  (*HostMem).nInfo.live  = (int*)malloc(sizeof(int)*banksize);
 
   gpuErrchk(cudaMalloc((void**)&((*DeviceMem).wdspp), 9*sizeof(float)));
 
@@ -92,9 +97,15 @@ void initialize_memory(MemStruct *DeviceMem, MemStruct *HostMem, unsigned numbin
 #endif 
 
 #if defined(__3D)
+#if defined(__FTALLY2)
+  (*HostMem).nInfo.pos_x = (float*)malloc(sizeof(float)*gridsize);
+  (*HostMem).nInfo.pos_y = (float*)malloc(sizeof(float)*gridsize);
+  (*HostMem).nInfo.pos_z = (float*)malloc(sizeof(float)*gridsize);
+#else
   (*HostMem).nInfo.pos_x = (float*)malloc(sizeof(float)*banksize);
   (*HostMem).nInfo.pos_y = (float*)malloc(sizeof(float)*banksize);
   (*HostMem).nInfo.pos_z = (float*)malloc(sizeof(float)*banksize);
+#endif
   gpuErrchk(cudaMalloc((void**)&((*DeviceMem).nInfo.pos_x),3*banksize*sizeof(float)));
   gpuErrchk(cudaMalloc((void**)&((*DeviceMem).nInfo.pos_y),3*banksize*sizeof(float)));
   gpuErrchk(cudaMalloc((void**)&((*DeviceMem).nInfo.pos_z),3*banksize*sizeof(float)));
