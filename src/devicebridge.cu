@@ -123,7 +123,86 @@ unsigned setbank(MemStruct DeviceMem, MemStruct HostMem, int gridsize){
 #endif//__MTALLY
 #endif//__1D
 #if defined(__3D)
-#if defined(__MTALLY)||(__FTALLY)||(__FTALLY2)
+
+#if defined(__FTALLY2)
+//==============================================================================
+//=============setbank() of __FTALLY2 samples to meet the \mu===================
+unsigned setbank(MemStruct DeviceMem, MemStruct HostMem, int gridsize, int banksize, unsigned jstart, int shift){
+  float* x2 = (float*)malloc(sizeof(float)*gridsize*2);
+  float* y2 = (float*)malloc(sizeof(float)*gridsize*2);
+  float* z2 = (float*)malloc(sizeof(float)*gridsize*2);
+  int* sid1 = (int*)malloc(sizeof(int)*gridsize);
+  gpuErrchk(cudaMemcpy(sid1,DeviceMem.nInfo.imat,sizeof(int )*gridsize, cudaMemcpyDeviceToHost));  
+  gpuErrchk(cudaMemcpy(HostMem.nInfo.pos_x,DeviceMem.nInfo.pos_x+shift,sizeof(float)*gridsize, cudaMemcpyDeviceToHost));  
+  gpuErrchk(cudaMemcpy(HostMem.nInfo.pos_y,DeviceMem.nInfo.pos_y+shift,sizeof(float)*gridsize, cudaMemcpyDeviceToHost));  
+  gpuErrchk(cudaMemcpy(HostMem.nInfo.pos_z,DeviceMem.nInfo.pos_z+shift,sizeof(float)*gridsize, cudaMemcpyDeviceToHost));  
+  memset(HostMem.nInfo.live,0,sizeof(int)*gridsize);
+  gpuErrchk(cudaMemcpy(HostMem.nInfo.live, DeviceMem.nInfo.live +shift,sizeof(int)*gridsize,   cudaMemcpyDeviceToHost));  
+  //jfor(int i=0;i<gridsize;i++){
+  //j  printf("i=%d,live=%d,imat[i]=%d\n",i,HostMem.nInfo.live[i],sid1[i]);
+  //j}
+  int live;  unsigned j=jstart;int k=0; int sid;
+  for(int i=0;i<gridsize;i++){
+    live = HostMem.nInfo.live[i];
+    sid = sid1[i];
+    HostMem.batcnt[sid]+= (1*(0!=live));
+    if(live>1){
+    x2[j-jstart]=HostMem.nInfo.pos_x[i];
+    y2[j-jstart]=HostMem.nInfo.pos_y[i];
+    z2[j-jstart]=HostMem.nInfo.pos_z[i];
+    j++;
+    }
+    for(k=0;k<live-1;k++){//live=2 or 3
+      if((j-jstart)>(gridsize*2)) {printf("live=%d,j=%d,i=%d/%d,overflow\n",live,j,i,gridsize);exit(-1);}
+      //else{
+      x2[j-jstart]=rand()*1.0/RAND_MAX*HostMem.wdspp[0];
+      y2[j-jstart]=rand()*1.0/RAND_MAX*HostMem.wdspp[0];
+      z2[j-jstart]=rand()*1.0/RAND_MAX*HostMem.wdspp[0];
+      j++;
+      //}
+    }
+  }
+  
+  k = (j>banksize)*banksize + (j<=banksize)*j;
+  gpuErrchk(cudaMemcpy(DeviceMem.nInfo.pos_x+2*banksize+jstart,x2,sizeof(float)*(k-jstart), cudaMemcpyHostToDevice));  
+  gpuErrchk(cudaMemcpy(DeviceMem.nInfo.pos_y+2*banksize+jstart,y2,sizeof(float)*(k-jstart), cudaMemcpyHostToDevice));  
+  gpuErrchk(cudaMemcpy(DeviceMem.nInfo.pos_z+2*banksize+jstart,z2,sizeof(float)*(k-jstart), cudaMemcpyHostToDevice));  
+  gpuErrchk(cudaDeviceSynchronize());  
+  free(sid1);
+  free(x2);  free(y2);  free(z2);
+
+  return j;
+}
+//==============================================================================
+//=============== setbank() of __FTALLY2 samples to satisfy num_src ============
+void setbank2(MemStruct DeviceMem, MemStruct HostMem, int banksize, unsigned jstart){
+  jstart = (jstart>=banksize)*banksize + (jstart<banksize)*jstart;
+  gpuErrchk(cudaMemcpy(DeviceMem.nInfo.pos_x+banksize,DeviceMem.nInfo.pos_x+2*banksize,sizeof(float)*(jstart), cudaMemcpyDeviceToDevice));  
+  gpuErrchk(cudaMemcpy(DeviceMem.nInfo.pos_y+banksize,DeviceMem.nInfo.pos_y+2*banksize,sizeof(float)*(jstart), cudaMemcpyDeviceToDevice));  
+  gpuErrchk(cudaMemcpy(DeviceMem.nInfo.pos_z+banksize,DeviceMem.nInfo.pos_z+2*banksize,sizeof(float)*(jstart), cudaMemcpyDeviceToDevice));  
+  
+  if(jstart>=banksize) return;
+  float* x2 = (float*)malloc(sizeof(float)*(banksize-jstart));
+  float* y2 = (float*)malloc(sizeof(float)*(banksize-jstart));
+  float* z2 = (float*)malloc(sizeof(float)*(banksize-jstart));
+
+  int k; 
+  for(k=jstart;k<banksize;k++){
+    x2[k-jstart]=rand()*1.0/RAND_MAX*HostMem.wdspp[0];
+    y2[k-jstart]=rand()*1.0/RAND_MAX*HostMem.wdspp[0];
+    z2[k-jstart]=rand()*1.0/RAND_MAX*HostMem.wdspp[0];
+  }
+
+  gpuErrchk(cudaMemcpy(DeviceMem.nInfo.pos_x+banksize+jstart,x2,sizeof(float)*(banksize-jstart), cudaMemcpyHostToDevice));  
+  gpuErrchk(cudaMemcpy(DeviceMem.nInfo.pos_y+banksize+jstart,y2,sizeof(float)*(banksize-jstart), cudaMemcpyHostToDevice));  
+  gpuErrchk(cudaMemcpy(DeviceMem.nInfo.pos_z+banksize+jstart,z2,sizeof(float)*(banksize-jstart), cudaMemcpyHostToDevice));  
+  free(x2);  free(y2);  free(z2);
+}
+
+#endif
+
+
+#if defined(__MTALLY)||(__FTALLY)
 unsigned setbank(MemStruct DeviceMem, MemStruct HostMem, int gridsize, int tnum_bins){
   float* x2 = (float*)malloc(sizeof(float)*gridsize*2);
   float* y2 = (float*)malloc(sizeof(float)*gridsize*2);
@@ -138,7 +217,7 @@ unsigned setbank(MemStruct DeviceMem, MemStruct HostMem, int gridsize, int tnum_
   gpuErrchk(cudaMemcpy(HostMem.nInfo.pos_z,DeviceMem.nInfo.pos_z,sizeof(float)*gridsize, cudaMemcpyDeviceToHost));  
   memset(HostMem.nInfo.live,0,sizeof(int)*gridsize);
   gpuErrchk(cudaMemcpy(HostMem.nInfo.live, DeviceMem.nInfo.live ,sizeof(int)*gridsize,   cudaMemcpyDeviceToHost));  
-  int live;  unsigned j=0;int k=0; int sid;
+  int live;  unsigned j=jstart;int k=0; int sid;
   /*
   for(int i=0;i<gridsize;i++){
     printf("%d ",HostMem.nInfo.live[i]);
@@ -151,28 +230,6 @@ unsigned setbank(MemStruct DeviceMem, MemStruct HostMem, int gridsize, int tnum_
     sid = sid1[i];
     HostMem.batcnt[sid]+= (1*(0!=live));
     //if(live<4){
-#if defined(__FTALLY2)
-    if(live>0){
-    x2[j]=HostMem.nInfo.pos_x[i];
-    y2[j]=HostMem.nInfo.pos_y[i];
-    z2[j]=HostMem.nInfo.pos_z[i];
-    j++;
-    }
-    for(k=0;k<live-1;k++){//live=2 or 3
-      if(j>(gridsize*2)) {printf("live=%d,j=%d,i=%d/%d,overflow\n",live,j,i,gridsize);exit(-1);}
-      //else{
-      x2[j]=rand()*1.0/RAND_MAX*HostMem.wdspp[0];
-      y2[j]=rand()*1.0/RAND_MAX*HostMem.wdspp[0];
-      z2[j]=rand()*1.0/RAND_MAX*HostMem.wdspp[0];
-      j++;
-      //}
-    }
-    for(k=j;k<gridsize;k++){
-      x2[k]=rand()*1.0/RAND_MAX*HostMem.wdspp[0];
-      y2[k]=rand()*1.0/RAND_MAX*HostMem.wdspp[0];
-      z2[k]=rand()*1.0/RAND_MAX*HostMem.wdspp[0];
-    }
-#else
     for(k=0;k<live;k++){//live=2 or 3
       if(j>(gridsize*2)) {printf("live=%d,j=%d,i=%d/%d,overflow\n",live,j,i,gridsize);exit(-1);}
       //else{
@@ -185,7 +242,6 @@ unsigned setbank(MemStruct DeviceMem, MemStruct HostMem, int gridsize, int tnum_
       j++;
       //}
     }
-#endif
     //}
   }
   gpuErrchk(cudaMemcpy(DeviceMem.nInfo.pos_x+gridsize,x2,sizeof(float)*gridsize*2, cudaMemcpyHostToDevice));  
@@ -199,7 +255,8 @@ unsigned setbank(MemStruct DeviceMem, MemStruct HostMem, int gridsize, int tnum_
   free(x2);  free(y2);  free(z2);
   return j;
 }
-#else
+#endif
+#if defined(__CTALLY)
 unsigned setbank(MemStruct DeviceMem, MemStruct HostMem, int gridsize){
   float* x2 = (float*)malloc(sizeof(float)*gridsize*2);
   float* y2 = (float*)malloc(sizeof(float)*gridsize*2);
@@ -288,18 +345,30 @@ void start_neutrons(unsigned gridx, unsigned blockx, MemStruct DeviceMem, unsign
 #endif
 
 #if defined(__3D)
-void start_neutrons(unsigned gridx, unsigned blockx, MemStruct DeviceMem, unsigned ubat,unsigned num_src,unsigned banksize, unsigned tnum_bin){
 #if defined(__FTALLY2)
-    gpuErrchk(cudaMemset(DeviceMem.nInfo.imat, 0, ubat*gridx*blockx*sizeof(int)));
+unsigned start_neutrons(unsigned gridx, unsigned blockx, MemStruct DeviceMem, unsigned ubat,unsigned num_src,unsigned banksize, unsigned tnum_bin, MemStruct HostMem){
+#else
+void     start_neutrons(unsigned gridx, unsigned blockx, MemStruct DeviceMem, unsigned ubat,unsigned num_src,unsigned banksize, unsigned tnum_bin){
 #endif
-  int i=0;
+  int i=0; int j=0;
   for(i=0;i<ubat;i++){//num_src is important as loop index, but useless in history<<<>>>
-    //printf("i=%d/%d\n",i,num_src/(gridx*blockx));
 #if defined(__CTALLY2)
     gpuErrchk(cudaMemset(DeviceMem.cnt2_t, 0, tnum_bin*gridx*blockx*sizeof(int)));
 #endif
+#if defined(__FTALLY2)
+    gpuErrchk(cudaMemset(DeviceMem.nInfo.imat, 0, gridx*blockx*sizeof(int)));
+#endif
     history<<<gridx, blockx/*, blockx*sizeof(unsigned)*/>>>(DeviceMem, num_src,i*gridx*blockx,banksize);
+    gpuErrchk(cudaDeviceSynchronize()); 
+    //printf("%d/%d done\n",i,ubat);
+#if defined(__FTALLY2)
+    j = setbank(DeviceMem, HostMem, gridx*blockx,gridx*blockx*ubat,j,i*gridx*blockx);
+#endif
   }
+#if defined(__FTALLY2) 
+  setbank2(DeviceMem, HostMem, num_src, j);
+  return j;
+#endif
 }
 
 void check(unsigned gridx, unsigned blockx, MemStruct DeviceMem, unsigned ubat){
