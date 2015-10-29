@@ -160,20 +160,26 @@ int main(int argc, char **argv){
     strcpy(name2,"color");strcat(name2,name1); writeh5_nxm_(name, "scatterplot",name2,HostMem.nInfo.energy, &intone, &gridsize);
 #endif
     for(ibat=0;ibat<num_bat;ibat++){
+#if !defined(__FTALLY2)
       start_neutrons(gridx, blockx, DeviceMem, ubat,num_src,banksize,tnum_bin);
+#endif
       //check(gridx,blockx,DeviceMem,ubat);
       //active = count_neutrons(gridx, blockx, DeviceMem, HostMem,num_src);
 #if defined(__TALLY)
 #if defined(__MTALLY)||(__FTALLY)||(__FTALLY2)
+#if !defined(__FTALLY2)
       banksize = setbank(DeviceMem, HostMem, num_src,tnum_bin);
+#else
+      banksize = start_neutrons(gridx, blockx, DeviceMem, ubat,num_src,banksize,tnum_bin,HostMem);
+#endif
       sprintf(name1,"%d",ibat);strcpy(name2,"Tmatrix");strcat(name2,name1);
       writeh5_nxm_(name, "tally",name2, HostMem.batcnt, &intone, &inttwo);
 #if defined(__MTALLY)
       memset((HostMem).batcnt, 0, sizeof(CMPTYPE)*tnum_bin*tnum_bin);
 #else
       memset((HostMem).batcnt, 0, sizeof(CMPTYPE)*tnum_bin);
-#endif
-#else
+#endif //end M or F
+#else  //else C
       banksize = setbank(DeviceMem, HostMem, num_src);
       //initialize_neutrons_fix(gridx,blockx,DeviceMem,width,ubat); 
       save_results(ibat,gridx, blockx, tnum_bin, DeviceMem, HostMem);
@@ -185,9 +191,9 @@ int main(int argc, char **argv){
       writeh5_nxm_(name, "tally",name2, HostMem.batcnt2, &intone, &tnum_bin);
       resettally(DeviceMem.tally.cnt2, tnum_bin*gridsize);
 #endif
-#endif
+#endif //end  TALLY types
       printf("%d[%3d]%4d-->%4d: \n", -1,ibat,num_src,banksize);
-#endif
+#endif //end TALLY
 #if defined(__SCATTERPLOT)
       sprintf(name1,"%d",ibat+1);
       strcpy(name2,"x");    strcat(name2,name1); writeh5_nxm_(name, "scatterplot",name2,HostMem.nInfo.pos_x,  &intone, &gridsize);
