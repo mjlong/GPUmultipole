@@ -9,7 +9,14 @@ void initialize_neutrons_fix(unsigned gridx, unsigned blockx,MemStruct DeviceMem
 void copyinitial(MemStruct DeviceMem, MemStruct HostMem, unsigned gridsize);
 #endif
 
-void     start_neutrons(unsigned gridx, unsigned blockx, MemStruct DeviceMem, unsigned num_src,unsigned active,unsigned banksize, unsigned tnum_bin);
+
+#if defined(__FTALLY2)
+unsigned start_neutrons(unsigned gridx, unsigned blockx, MemStruct DeviceMem, unsigned ubat,unsigned num_src,unsigned banksize, unsigned tnum_bin, MemStruct HostMem);
+#else
+void start_neutrons(unsigned gridx, unsigned blockx, MemStruct DeviceMem, unsigned ubat,unsigned num_src,unsigned banksize, unsigned tnum_bin);
+#endif
+
+
 unsigned count_neutrons(unsigned gridx, unsigned blockx, MemStruct DeviceMem, MemStruct HostMem, unsigned num_src);
 unsigned count_lives(unsigned gridx, unsigned blockx, MemStruct DeviceMem, MemStruct HostMem);
 
@@ -17,7 +24,12 @@ void save_results(unsigned ibat, unsigned gridx, unsigned blockx, unsigned num_b
 void print_results(unsigned meshes, unsigned nbat, double *tally);
 
 #if defined(__MTALLY)||(__FTALLY)||(__FTALLY2)
+#if defined(FTALLY2)
+unsigned setbank(MemStruct DeviceMem, MemStruct HostMem, int gridsize, int banksize, unsigned jstart, int shift);
+void setbank2(MemStruct DeviceMem, MemStruct HostMem, int banksize, unsigned jstart);
+#else
 unsigned setbank(MemStruct DeviceMem, MemStruct HostMem, int gridsize, int tnum_bins);
+#endif
 #else
 unsigned setbank(MemStruct DeviceMem, MemStruct HostMem, int gridsize);
 #endif
