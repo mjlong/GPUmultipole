@@ -214,7 +214,7 @@ __global__ void history(MemStruct DeviceMem, unsigned num_src,int shift,unsigned
 	  //if(34217==id) printf("  id=%d, live[%d]= %d\n", id, id,DeviceMem.nInfo.live[id]);
 	  //if(3<DeviceMem.nInfo.live[id]) printf("  id=%d, live[%d]= %d\n", id, id,DeviceMem.nInfo.live[id]);
           #if defined(__FTALLY2)
-          DeviceMem.nInfo.imat[id] = ((int)floorf(x/wdspp[1]) + 
+          DeviceMem.nInfo.imat[id-shift] = ((int)floorf(x/wdspp[1]) + 
                                       (int)floorf(y/wdspp[1])*(int)wdspp[5] + 
                                       (int)floorf(z/wdspp[1])*(int)(wdspp[5]*wdspp[5]));
           #endif  
