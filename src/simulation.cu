@@ -25,16 +25,6 @@ __global__ void initialize(MemStruct pInfo,float width, int banksize,int shift, 
   pInfo.tally.cnt2[id-shift] = 0;
 #endif
 #endif 
-#if defined(__MTALLY)
-#if defined(__1D)
-  pInfo.nInfo.imat[id] = int(floorf(pInfo.nInfo.pos_x[id]/wdspp[1]));
-#endif
-#if defined(__3D)
-  pInfo.nInfo.imat[id] = ((int)floorf(pInfo.nInfo.pos_x[id]/wdspp[1]) + 
-			  (int)floorf(pInfo.nInfo.pos_y[id]/wdspp[1])*(int)wdspp[5] + 
-			  (int)floorf(pInfo.nInfo.pos_z[id]/wdspp[1])*(int)(wdspp[5]*wdspp[5]));
-#endif
-#endif
   pInfo.nInfo.live[id] = 1*(id<banksize);
 }
 
@@ -43,11 +33,7 @@ __device__ void neutron_sample(NeutronInfoStruct nInfo, unsigned id,unsigned idr
   curandState state = nInfo.rndState[idr];
   //TODO: source sampling should take settings dependent on geometry
 #if defined(__1D)
-#if defined(__MTALLY)
-  nInfo.pos_x[id] =width*curand_uniform_double(&state);
-#else
   nInfo.pos_x[id] =width/(CHOP*PI)*asin(sin(PI*0.5*CHOP)*(1-2*curand_uniform_double(&state)))+width*0.5;//width*curand_uniform_double(&state);
-#endif
 #endif
 #if defined(__3D)
   //nInfo.pos_x[id] =width/PI*acos(1-2*curand_uniform_double(&state));//width*curand_uniform_double(&state);// 
@@ -102,7 +88,7 @@ __device__ int calind(float x, float dx){
   return i-1;
 }
 
-__global__ void history(MemStruct DeviceMem, unsigned num_src,int shift,unsigned banksize){
+__global__ void history(MemStruct DeviceMem, unsigned num_src,int shift,unsigned banksize, unsigned unique){
   //float a = wdspp[0];
   //float dx = wdspp[1];
   //float mfp = wdspp[2];
@@ -118,11 +104,8 @@ __global__ void history(MemStruct DeviceMem, unsigned num_src,int shift,unsigned
 
   int id = blockDim.x * blockIdx.x + threadIdx.x + shift;
   curandState localState = DeviceMem.nInfo.rndState[id-shift];
-#if defined(__CTALLY2)||(__FTALLY2)
-  int nid = id+num_src;
-#else
-  int nid = int(curand_uniform_double(&localState)*banksize)+num_src;
-#endif
+  int nid = unique*id+(!unique)*int(curand_uniform_double(&localState)*banksize);
+  nid = nid+num_src;
   //if(100>id) {printf("  id=%d,nid=%d,rnd=%.5f\n",id,nid,curand_uniform_double(&localState));}
   //extern __shared__ unsigned blockTerminated[];
 
@@ -132,13 +115,6 @@ __global__ void history(MemStruct DeviceMem, unsigned num_src,int shift,unsigned
   float z = DeviceMem.nInfo.pos_z[nid];
   float mu,phi; 
 
-#if defined(__MTALLY)
-  DeviceMem.nInfo.imat[id] =  ((int)floorf(x/wdspp[1]) + 
-			       (int)floorf(y/wdspp[1])*(int)wdspp[5] + 
-			       (int)floorf(z/wdspp[1])*(int)(wdspp[5]*wdspp[5]) + 
-			       DeviceMem.nInfo.imat[nid]);
-  //Note: wdspp[5] is num_bin in each dimension 
-#endif
 #if defined(__FTALLY)
   DeviceMem.nInfo.imat[id] = ((int)floorf(x/wdspp[1]) + 
 			      (int)floorf(y/wdspp[1])*(int)wdspp[5] + 
@@ -315,35 +291,9 @@ __global__ void history(MemStruct DeviceMem, unsigned num_src,unsigned active,un
   //blockTerminated[idl] =1;// !live;
   
   /*Note: from now on, live does not indicate neutron but thread active */
-  //blockActive[threadIdx.x] = (((terminated*2)*blockDim.x*gridDim.x + atomicAdd(Info.num_terminated_neutrons, terminated)) < num_src);
-  //atomicAdd(Info.num_terminated_neutrons,!live);
-  //Info.thread_active[id] =  blockDim.x*gridDim.x + *Info.num_terminated_neutrons < num_src;
   /* Copy state back to global memory */ 
   DeviceMem.nInfo.rndState[id] = localState; 
 
-  /*
-  else{
-    blockTerminated[idl] = active;//0;
-    //those old unlive neutrons must not be counted again
-    //so, 0 instead of !live is used 
-    //it was incorrect, above senario forgot to count leak neutron as terminated
-  }
-
-  //TODO: no need of such within block reduction for remaining()
-  __syncthreads();
-  live = blockDim.x>>1;
-  while(live){
-    if(idl<live)
-      blockTerminated[idl] += blockTerminated[idl+live];
-    __syncthreads();
-    live>>=1;
-  }
-  if(0==idl){
-    //reduction scheme depends on tally type
-    //following is to count moderation times
-    DeviceMem.block_terminated_neutrons[blockIdx.x] = blockTerminated[0];
-  }
-  */
 }
 #else
 //_1D_Reflective
