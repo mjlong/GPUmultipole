@@ -25,6 +25,22 @@ typedef struct {
 }TallyStruct;
 
 typedef struct {
+  float *x;
+  float *y;
+  float *z;
+  int *generation_of_birth;
+  int *time_of_use;
+  //one element array, pointer type easies value assignment
+  unsigned int *size;
+  unsigned int *cursor_start;
+  unsigned int *cursor_end;
+  unsigned int *cursor_reuse;
+  unsigned int *cursor_available;
+  unsigned int *delta_safe;
+  unsigned int *cursor_safe;
+}DelayedBankStruct;
+
+typedef struct {
   unsigned *id;
   int *imat;
   int *live;
@@ -66,6 +82,7 @@ typedef struct {
   int     *cnt2_t;
   CMPTYPE *tallybins;
   TallyStruct tally;
+  DelayedBankStruct bank;
 }MemStruct;
 
 
