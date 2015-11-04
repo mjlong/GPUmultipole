@@ -5,6 +5,7 @@
 void printdevice();
 void initialize_neutrons(unsigned gridx, unsigned blockx,MemStruct DeviceMem,float, int banksize,int num_src, int seed);
 void initialize_neutrons_active(MemStruct DeviceMem, MemStruct HostMem, unsigned num_src);
+void initialize_neutrons_active_not_src(unsigned gridx, unsigned blockx,MemStruct DeviceMem, int num_seg, int seed);
 void initialize_neutrons_fix(unsigned gridx, unsigned blockx,MemStruct DeviceMem,float width,int ubat);
 #if defined(__SCATTERPLOT)
 void copyinitial(MemStruct DeviceMem, MemStruct HostMem, unsigned gridsize);
