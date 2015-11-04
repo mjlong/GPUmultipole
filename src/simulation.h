@@ -11,6 +11,7 @@
 #define MAXENERGY 30000.0
 __device__ void neutron_sample(NeutronInfoStruct nInfo, unsigned id,unsigned idr,float width);
 __global__ void initialize(MemStruct,float,int,int, int);
+__global__ void initialize_without_src(MemStruct pInfo, int shift, int seed);
 __global__ void fixsrc_sample(MemStruct pInfo, float width, int shift);
 __global__ void reduce_sum_plus(int *threadcnt, int* cnt);
 __global__ void reduce_sum_equal(int* thread_active, int* active);

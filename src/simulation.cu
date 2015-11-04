@@ -28,6 +28,19 @@ __global__ void initialize(MemStruct pInfo,float width, int banksize,int shift, 
   pInfo.nInfo.live[id] = 1*(id<banksize);
 }
 
+__global__ void initialize_without_src(MemStruct pInfo, int shift, int seed){
+  int id = blockDim.x * blockIdx.x + threadIdx.x + shift;
+  curand_init(9798+seed*2, id, 0, &(pInfo.nInfo.rndState[id-shift]));
+#if defined(__CTALLY)
+  pInfo.tally.cnt[id-shift] = 0;
+#if defined(__CTALLY2)
+  pInfo.tally.cnt2[id-shift] = 0;
+#endif
+#endif 
+  pInfo.nInfo.live[id] = 1;
+}
+
+
 __device__ void neutron_sample(NeutronInfoStruct nInfo, unsigned id,unsigned idr, float width){
   nInfo.live[id] = 1u;
   curandState state = nInfo.rndState[idr];
