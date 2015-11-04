@@ -59,20 +59,15 @@ int main(int argc, char **argv){
   sprintf(name2,"_%d",num_seg);
   sprintf(name3,"_%d",num_bat);
   sprintf(name4,"_%d",num_bin);
-#if defined(__1D)&&defined(__MTALLY)
-  strcepy(name,"R1dTmacnt"); 
-#endif
 #if defined(__1D)&&defined(__FTALLY)
   strcpy(name,"R1dRawsrc"); 
 #endif
 #if defined(__1D)&&defined(__CTALLY)
   strcpy(name,"R1dRawcnt"); 
 #endif
-#if defined(__3D)&&defined(__MTALLY)
-  strcepy(name,"R3dTmacnt"); 
-#endif
+
 #if defined(__3D)&&(defined(__FTALLY)||defined(__FTALLY2))
-  strcpy(name,"R3dRawsrc"); 
+  strcpy(name,"R3duRawsrc"); 
 #endif
 #if defined(__3D)&&defined(__CTALLY)
   strcpy(name,"R3d2Rawcnt_debug"); 
@@ -152,6 +147,8 @@ int main(int argc, char **argv){
   unsigned delaysize = unsigned(delta_prep*gridx*blockx*num_seg_XL*(1-Pf));
   initialize_memory_bank(&HostMem, delaysize);
   HostMem.bank.delta_safe[0] = delta_safe; 
+  for(int iii; iii<delaysize; iii++)
+    HostMem.bank.generation_of_birth[iii] = -delta_prep-1; 
   for(ibat=0;ibat<delta_prep;ibat++){
     start_neutrons(gridx, blockx, DeviceMem, num_seg_XL,num_src,banksize,tnum_bin);
     banksize=setbank_prepbank(DeviceMem, HostMem, num_src, ibat-delta_prep);
@@ -176,7 +173,6 @@ int main(int argc, char **argv){
     printf("%d[Active tallying .....][%3d/%d]%4d-->%4d: \n", -1,ibat,num_bat,num_src,banksize);
   }
   release_memory_active(DeviceMem, HostMem);
-
   clock_end   = clock();
   time_elapsed = (float)(clock_end-clock_start)/CLOCKS_PER_SEC*1000.f;
   printdone();
