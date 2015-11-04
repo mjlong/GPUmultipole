@@ -28,7 +28,7 @@ void setbank_active_out(unsigned ibat, MemStruct DeviceMem, MemStruct HostMem, i
 void bank_push(unsigned ibat, MemStruct HostMem,float* x2, float* y2, float* z2, unsigned num_new_neutron);
 void bank_pull(unsigned ibat, MemStruct HostMem, float *x2, float *y2, float* z2, unsigned num_required_neutrons);
 void set_cursor_safe(MemStruct HostMem, unsigned ibat);
-
+void bank_print(MemStruct HostMem);
 
 #if defined(__MTALLY)||(__FTALLY)||(__FTALLY2)
 #if defined(FTALLY2)
