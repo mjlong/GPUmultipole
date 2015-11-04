@@ -171,6 +171,9 @@ int main(int argc, char **argv){
   for(ibat=0;ibat<num_bat;ibat++){
     set_cursor_safe(HostMem, ibat);
     banksize=start_neutrons_active(ibat, gridx, blockx, DeviceMem, num_seg,banksize,tnum_bin, HostMem);
+    sprintf(name1,"%d",ibat);strcpy(name2,"BatcntA");strcat(name2,name1);
+    writeh5_nxm_(name, "tally",name2, HostMem.batcnt, &intone, &inttwo);
+    memset((HostMem).batcnt, 0, sizeof(CMPTYPE)*tnum_bin);
     printf("%d[Active tallying .....][%3d/%d]%4d-->%4d: \n", -1,ibat,num_bat,num_src,banksize);
   }
   release_memory_active(DeviceMem, HostMem);
