@@ -165,6 +165,7 @@ int main(int argc, char **argv){
   banksize = gridx*blockx*num_seg;
   num_src=gridx*blockx*num_seg;
   allocate_memory_active(&DeviceMem, &HostMem, tnum_bin, gridx,blockx,num_seg);
+  initialize_neutrons_active_not_src(gridx,blockx, DeviceMem,num_seg,atoi(argv[10]));
   initialize_neutrons_active(DeviceMem, HostMem, num_src);
   //
   for(ibat=0;ibat<num_bat;ibat++){
