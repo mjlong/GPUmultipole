@@ -149,6 +149,7 @@ void initialize_memory_bank(MemStruct *HostMem, unsigned banksize){
   (*HostMem).bank.cursor_safe      = (unsigned*)malloc(2*sizeof(unsigned));
   (*HostMem).bank.delta_safe       = (unsigned*)malloc(sizeof(unsigned));
   ((*HostMem).bank.size)[0]    = banksize;
+  ((*HostMem).bank.cursor_start)[0] = 0; 
   ((*HostMem).bank.cursor_end)[0] = 0; 
 }
 
