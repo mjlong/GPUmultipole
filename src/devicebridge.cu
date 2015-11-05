@@ -403,7 +403,7 @@ void bank_push(unsigned ibat, MemStruct HostMem,float* x2, float* y2, float* z2,
 void set_cursor_safe(MemStruct HostMem, unsigned ibat){
   unsigned i = HostMem.bank.cursor_start[0]; 
   unsigned j=0; 
-  while(   ((ibat-HostMem.bank.generation_of_birth[i])>=HostMem.bank.delta_safe[0]) && (j<HostMem.bank.size[0])  ){
+  while(   ((ibat-HostMem.bank.generation_of_birth[i])>=HostMem.bank.delta_safe[0]) && (j<min(HostMem.bank.size[0],HostMem.bank.cursor_end[0]))  ){
     i++;
     i = i%HostMem.bank.size[0];
     j++;
@@ -412,7 +412,7 @@ void set_cursor_safe(MemStruct HostMem, unsigned ibat){
 
   i = HostMem.bank.cursor_start[0]; 
   j = 0; 
-  while(   ((ibat-1-HostMem.bank.generation_of_birth[i])>=HostMem.bank.delta_safe[0]) && (j<HostMem.bank.size[0])  ){
+  while(   ((ibat-1-HostMem.bank.generation_of_birth[i])>=HostMem.bank.delta_safe[0]) && (j<min(HostMem.bank.size[0],HostMem.bank.cursor_end[0]))  ){
     i++;
     i = i%HostMem.bank.size[0];
     j++;
