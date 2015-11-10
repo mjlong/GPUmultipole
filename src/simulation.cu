@@ -1,5 +1,6 @@
 #include "simulation.h" 
 #define CHOP 0.7
+#define NU2 0.5  //0.5<-->2.5; 0.55<-->2.45
 extern __constant__ float wdspp[];
 
 __global__ void fixsrc_sample(MemStruct pInfo, float width, int shift){
@@ -213,7 +214,7 @@ __global__ void history(MemStruct DeviceMem, unsigned num_src,int shift,unsigned
 	live = 0;
 	if(rnd>(1-wdspp[3])){ //fission
 	  rnd = curand_uniform_double(&localState);
-	  DeviceMem.nInfo.live[id] = 2*(rnd<=0.55)+3*(rnd>0.55);
+	  DeviceMem.nInfo.live[id] = 2*(rnd<=NU2)+3*(rnd>NU2);
 	  //if(34217==id) printf("  id=%d, live[%d]= %d\n", id, id,DeviceMem.nInfo.live[id]);
 	  //if(3<DeviceMem.nInfo.live[id]) printf("  id=%d, live[%d]= %d\n", id, id,DeviceMem.nInfo.live[id]);
           #if defined(__FTALLY2)
@@ -303,8 +304,8 @@ __global__ void history(MemStruct DeviceMem, unsigned num_src,unsigned active,un
 	live = 0;
 	if(rnd>Pc){ //fission
 	  rnd = curand_uniform_double(&localState);
-	  //newneu = 2*(rnd<=0.55)+3*(rand>0.55);
-	  newneu = 1-2*(rnd<=0.55); //-1 --> 2 fission; +1 --> 3 fission
+	  //newneu = 2*(rnd<=NU2)+3*(rand>NU2);
+	  newneu = 1-2*(rnd<=NU2); //-1 --> 2 fission; +1 --> 3 fission
 	  DeviceMem.nInfo.pos_y[id] = x*newneu;
 	}
 	else{  //rnd<Pc, capture, nothing to do
@@ -410,7 +411,7 @@ __global__ void history(MemStruct DeviceMem, unsigned num_src,int shift,unsigned
       live = 0;
       if(rnd>Pc){ //fission
 	rnd = curand_uniform_double(&localState);
-	//newneu = 2*(rnd<=0.55)+3*(rand>0.55);
+	//newneu = 2*(rnd<=NU2)+3*(rand>NU2);
 	newneu = 1-2*(rnd<=wdspp[6]); //-1 --> 2 fission; +1 --> 3 fission
 	DeviceMem.nInfo.pos_y[id] = x*newneu;
       }
