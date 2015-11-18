@@ -31,16 +31,7 @@ void bank_pull(unsigned ibat, MemStruct HostMem, float *x2, float *y2, float* z2
 void set_cursor_safe(MemStruct HostMem, unsigned ibat);
 void bank_print(MemStruct HostMem);
 
-#if defined(__MTALLY)||(__FTALLY)||(__FTALLY2)
-#if defined(FTALLY2)
-unsigned setbank(MemStruct DeviceMem, MemStruct HostMem, int gridsize, int banksize, unsigned jstart, int shift);
-void setbank2(MemStruct DeviceMem, MemStruct HostMem, int banksize, unsigned jstart);
-#else
-unsigned setbank(MemStruct DeviceMem, MemStruct HostMem, int gridsize, int tnum_bins);
-#endif
-#else
-unsigned setbank(MemStruct DeviceMem, MemStruct HostMem, int gridsize);
-#endif
+
 void check(unsigned gridx, unsigned blockx, MemStruct DeviceMem, unsigned ubat);
 
 int flushbank(MemStruct DeviceMem, MemStruct HostMem, unsigned lastpop,float a,unsigned gridsize,int ibat,int nbat);
