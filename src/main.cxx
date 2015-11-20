@@ -46,8 +46,8 @@ int main(int argc, char **argv){
   ubat  = atoi(argv[9]);
 
   int num_ubat = 2;
-  int delta_safe = 3;
-  int delta_extra = 0; 
+  int delta_safe = 30;
+  int delta_extra = 2; 
   double Pf = pf/(pf+pc);
   printf("pf=%g,Pf=%g\n",pf,Pf);
   int delta_prep = (delta_safe+delta_extra); //(int)(delta_safe*(1-Pf)/Pf); 
@@ -67,7 +67,7 @@ int main(int argc, char **argv){
 #endif
 
 #if defined(__3D)&&(defined(__FTALLY)||defined(__FTALLY2))
-  strcpy(name,"R3duRawsrc"); 
+  strcpy(name,"R3dURawsrc"); 
 #endif
 #if defined(__3D)&&defined(__CTALLY)
   strcpy(name,"R3d2Rawcnt_debug"); 
