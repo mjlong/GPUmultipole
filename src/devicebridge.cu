@@ -345,7 +345,6 @@ unsigned setbank_active_in(unsigned ibat, MemStruct DeviceMem, MemStruct HostMem
 }
 
 void bank_push(unsigned ibat, MemStruct HostMem,float* x2, float* y2, float* z2, unsigned num_new_neutron){
-  unsigned passed = 0;
   int ix=0; 
   int i_end = HostMem.bank.cursor_end[0];
   int i_limit;
@@ -361,23 +360,14 @@ void bank_push(unsigned ibat, MemStruct HostMem,float* x2, float* y2, float* z2,
   }
   HostMem.bank.cursor_end[0]=i_end;
   //Once the bank is full, cursor_end==cursor_size
-  //num_new_neutron neutrons are filled into the position interval [cursor_start,cursor_safe]
-  //1.The 1st reached limit is |cursor_available|, if time_of_use[cursor_avaialbe+1]==0, stop
-  //2.The 2nd reached limit is |cursor_safe1|, must stop here no matter whether num_new_neutron neutrons have been pushed
-  //If cursor_available '>' cursor_safe1, stop at cursor_safe1
-  //If cursor_available '<' cursor_safe1, follow rule 1 and 2
-  i_end = (0==HostMem.bank.time_of_use[HostMem.bank.cursor_available[0]]); //i_end temporarily denotes whether 
-                                                                           //delayed neutrons after cursor_available has been used
-  unsigned is = (HostMem.bank.cursor_safe[1]     -HostMem.bank.cursor_start[0]+HostMem.bank.size[0])%HostMem.bank.size[0]; 
-  unsigned ia = (HostMem.bank.cursor_available[0]-HostMem.bank.cursor_start[0]+HostMem.bank.size[0])%HostMem.bank.size[0];
+  //num_new_neutron neutrons are filled into the position interval [cursor_start,cursor_available]
+  //Even if the pull process was looped, neutrons are pushed most to cursor_available because the bank needs old neutrons
 
-  i_limit = HostMem.bank.cursor_safe[1]*(ia>=is) + (ia<is)*( i_end*HostMem.bank.cursor_available[0] +(!i_end)*HostMem.bank.cursor_safe[1]  );
-  //if(28<=ibat){printf("discard=%d, limit=%d\n",i_end,i_limit);}
-  //i_end = (HostMem.bank.cursor_start[0]+HostMem.bank.size[0])%(HostMem.bank.size[0]);
+  i_limit =  HostMem.bank.cursor_available[0] ;
+
   i_end = HostMem.bank.cursor_start[0];
   //if(28<=ibat){    printf("push starting point=%d\n",i_end);  }
   while(  (ix<num_new_neutron)  &&  (i_end!=i_limit)   ){
-    passed = (passed||(i_end==HostMem.bank.cursor_available[0]));
     HostMem.bank.x[i_end] = x2[ix];
     HostMem.bank.y[i_end] = y2[ix];
     HostMem.bank.z[i_end] = z2[ix];
@@ -386,13 +376,8 @@ void bank_push(unsigned ibat, MemStruct HostMem,float* x2, float* y2, float* z2,
     ix++; 
     i_end=(i_end+1)%HostMem.bank.size[0]; 
   }
-  //if(28<=ibat){    printf("push ending point=%d,passed i_avai=%d\n",i_end,passed);  }
   
   HostMem.bank.cursor_start[0] = i_end;
-  //HostMem.bank.cursor_available[0] = (i_end>i_limit)*i_limit + (i_end<=i_limit)*HostMem.bank.cursor_available[0];
-  //HostMem.bank.cursor_available[0] = ((i_end==i_limit)*i_limit + (i_end!=i_limit)*(  HostMem.bank.cursor_available[0]  ))*(!passed) + passed*i_end;
-
-  HostMem.bank.cursor_available[0] = (HostMem.bank.cursor_available[0])*(!passed) + i_end * passed; 
 }
 
 
