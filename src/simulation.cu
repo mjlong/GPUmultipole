@@ -1,6 +1,6 @@
 #include "simulation.h" 
 #define CHOP 0.7
-#define NU2 0.5  //0.5<-->2.5; 0.55<-->2.45
+#define NU2 0.55  //0.5<-->2.5; 0.55<-->2.45
 extern __constant__ float wdspp[];
 
 __global__ void fixsrc_sample(MemStruct pInfo, float width, int shift){
