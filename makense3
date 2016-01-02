@@ -72,26 +72,26 @@ endif
 
 ifeq ($(ctally),true)
 ifeq ($(dim),1d)
-EXENAME=$(DIR_BIN)/box1drm
+EXENAME=$(DIR_BIN)/box1drm_o
 else
 ifeq ($(ctally2),true)
-EXENAME=$(DIR_BIN)/box3d2rm_debug
+EXENAME=$(DIR_BIN)/box3d2rm_o_debug
 else
-EXENAME=$(DIR_BIN)/box3drm
+EXENAME=$(DIR_BIN)/box3drm_o
 endif
 endif
 endif
 
 ifeq ($(ftally),true)
 ifeq ($(dim),1d)
-EXENAME=$(DIR_BIN)/boxf1drm
+EXENAME=$(DIR_BIN)/boxf1drm_o
 else
-EXENAME=$(DIR_BIN)/boxf3drm
+EXENAME=$(DIR_BIN)/boxf3drm_o
 endif
 endif
 
 ifeq ($(ftally2),true)
-EXENAME=$(DIR_BIN)/boxf3d2rm
+EXENAME=$(DIR_BIN)/boxf3d2rm_o
 endif
 
 
