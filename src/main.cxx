@@ -30,7 +30,7 @@ int main(int argc, char **argv){
   int gridx, blockx, gridsize,num_src;
   int num_bin, tnum_bin;
   int num_bat;
-  int ubat,upto;
+  int ubat;
   int ibat=0;
   double width, sigt, pf,pc,v1;
   char name[60];
@@ -45,8 +45,9 @@ int main(int argc, char **argv){
   pc    = atof(argv[8]);
   ubat  = atoi(argv[9]);
 
-  int num_ubat = 2;
-  int delta_safe = 3;
+  int num_ubat = num_bat%10000;
+  num_bat = num_bat/10000;
+  int delta_safe = atoi(argv[10])%1000;
   int delta_extra = 0; 
   double Pf = pf/(pf+pc);
   printf("pf=%g,Pf=%g\n",pf,Pf);
@@ -78,7 +79,10 @@ int main(int argc, char **argv){
   
   int intone=1; 
   int inttwo=1;
+  writeh5_nxm_(name,"/","num_conv",   &(num_ubat),&intone, &intone);
+  writeh5_nxm_(name,"/","num_prep", &(delta_prep),&intone, &intone);
   writeh5_nxm_(name,"/","num_batch",  &(num_bat),  &intone, &intone);
+  writeh5_nxm_(name,"/","del_safe",&(delta_safe),  &intone, &intone);
   writeh5_nxm_(name,"/","num_cells",   &(num_bin),  &intone, &intone);
   writeh5_nxm_(name,"/","width",   &(width),  &intone, &intone);
   writeh5_nxm_(name,"/","sigma",   &(sigt),   &intone, &intone);
