@@ -67,7 +67,7 @@ int main(int argc, char **argv){
 #endif
 
 #if defined(__3D)&&(defined(__FTALLY)||defined(__FTALLY2))
-  strcpy(name,"R3duRawsrc"); 
+  strcpy(name,"R3duoRawsrc"); 
 #endif
 #if defined(__3D)&&defined(__CTALLY)
   strcpy(name,"R3d2Rawcnt_debug"); 
