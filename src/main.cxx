@@ -68,7 +68,7 @@ int main(int argc, char **argv){
 #endif
 
 #if defined(__3D)&&(defined(__FTALLY)||defined(__FTALLY2))
-  strcpy(name,"R3dURawsrc"); 
+  strcpy(name,"R3dUaRawsrc"); 
 #endif
 #if defined(__3D)&&defined(__CTALLY)
   strcpy(name,"R3d2Rawcnt_debug"); 
@@ -138,7 +138,7 @@ int main(int argc, char **argv){
   for(ibat=0;ibat<num_ubat;ibat++){
     start_neutrons(gridx, blockx, DeviceMem, num_seg_XL,num_src,banksize,tnum_bin);
     banksize=setbank_converge(DeviceMem, HostMem, num_src);
-    printf("%d[Converging source ...][%3d/%4d]%4d-->%4d: \n", -1,ibat,num_ubat,num_src,banksize);
+    //printf("%d[Converging source ...][%3d/%4d]%4d-->%4d: \n", -1,ibat,num_ubat,num_src,banksize);
   }
   //====================End of the phase to converge source: =====================
   //Note: the phase of convergence uses frame of size = gridsize*num_seg_XL, which is also used by the bank preparation phase
@@ -156,7 +156,7 @@ int main(int argc, char **argv){
   for(ibat=0;ibat<delta_prep;ibat++){
     start_neutrons(gridx, blockx, DeviceMem, num_seg_XL,num_src,banksize,tnum_bin);
     banksize=setbank_prepbank(DeviceMem, HostMem, num_src, ibat-delta_prep);
-    printf("%d[Filling delay bank...][%3d/%4d]%4d-->%4d, cursor-->%d/%d: \n", -1,ibat,delta_prep,num_src,banksize, HostMem.bank.cursor_end[0],delaysize);
+    //printf("%d[Filling delay bank...][%3d/%4d]%4d-->%4d, cursor-->%d/%d: \n", -1,ibat,delta_prep,num_src,banksize, HostMem.bank.cursor_end[0],delaysize);
   }
 
   release_memory_converge(DeviceMem, HostMem);
@@ -173,12 +173,12 @@ int main(int argc, char **argv){
   initialize_neutrons_active(DeviceMem, HostMem, num_src);
   //
   for(ibat=0;ibat<num_bat;ibat++){
-    set_cursor_safe(HostMem, ibat);
+    //set_cursor_safe(HostMem, ibat);
     banksize=start_neutrons_active(ibat, gridx, blockx, DeviceMem, num_seg,banksize,tnum_bin, HostMem);
     sprintf(name1,"%d",ibat);strcpy(name2,"BatcntA");strcat(name2,name1);
     writeh5_nxm_(name, "tally",name2, HostMem.batcnt, &intone, &inttwo);
     memset((HostMem).batcnt, 0, sizeof(CMPTYPE)*tnum_bin);
-    printf("%d[Active tallying .....][%3d/%d]%4d-->%4d: \n", -1,ibat,num_bat,num_src,banksize);
+    //printf("%d[Active tallying .....][%3d/%d]%4d-->%4d: \n", -1,ibat,num_bat,num_src,banksize);
   }
   release_memory_active(DeviceMem, HostMem);
   clock_end   = clock();
