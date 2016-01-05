@@ -289,7 +289,7 @@ void setbank_active_out(unsigned ibat, MemStruct DeviceMem, MemStruct HostMem, i
 void bank_pull(unsigned ibat, MemStruct HostMem, float *x2, float *y2, float* z2, unsigned num_required_neutrons){
   //count is the count of so far pulled neutrons
   unsigned count = 0; 
-  unsigned i0=HostMem.bank.cursor_start[0];
+  unsigned i0=HostMem.bank.cursor_available[0];
   unsigned range = HostMem.bank.size[0]*(HostMem.bank.size[0]==HostMem.bank.cursor_end[0]) + HostMem.bank.cursor_end[0]*(HostMem.bank.size[0]!=HostMem.bank.cursor_end[0]); 
   
   //if(28<=ibat){printf("i_ava=%d,i_s=%d,range=%d\n",i,HostMem.bank.cursor_safe[0], range);}
