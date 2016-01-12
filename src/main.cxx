@@ -148,7 +148,7 @@ int main(int argc, char **argv){
   //==============================================================================
   //==========Start from the converged source; fill the delayed bank =============
   //==============================================================================
-  unsigned delaysize = unsigned(delta_prep*gridx*blockx*num_seg_XL*(1-Pf));
+  unsigned delaysize = unsigned(delta_prep*gridx*blockx*num_seg_XL);
   initialize_memory_bank(&HostMem, delaysize);
   HostMem.bank.delta_safe[0] = delta_safe; 
   for(int iii; iii<delaysize; iii++)
