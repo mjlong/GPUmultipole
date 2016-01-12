@@ -74,7 +74,7 @@ int main(int argc, char **argv){
   strcpy(name,"R3d2Rawcnt_debug"); 
 #endif
   strcat(name,name1); strcat(name,name2); strcat(name,name3); strcat(name,name4); 
-  sprintf(name4,"_s%d",atoi(argv[10]));   strcat(name,name4); strcat(name,".h5");
+  sprintf(name4,"_s%d",atoi(argv[10])/1000);   strcat(name,name4); strcat(name,".h5");
   createmptyh5(name); //create empty file for future add dataset
   
   int intone=1; 
@@ -133,7 +133,7 @@ int main(int argc, char **argv){
   banksize = gridx*blockx*num_seg_XL;
   num_src=gridx*blockx*num_seg_XL;
   allocate_memory_converge(&DeviceMem, &HostMem, tnum_bin, gridx,blockx,num_seg_XL);
-  initialize_neutrons(gridx, blockx, DeviceMem,width,banksize,num_seg_XL,atoi(argv[10])); 
+  initialize_neutrons(gridx, blockx, DeviceMem,width,banksize,num_seg_XL,atoi(argv[10])/1000); 
 
   for(ibat=0;ibat<num_ubat;ibat++){
     start_neutrons(gridx, blockx, DeviceMem, num_seg_XL,num_src,banksize,tnum_bin);
@@ -169,7 +169,7 @@ int main(int argc, char **argv){
   banksize = gridx*blockx*num_seg;
   num_src=gridx*blockx*num_seg;
   allocate_memory_active(&DeviceMem, &HostMem, tnum_bin, gridx,blockx,num_seg);
-  initialize_neutrons_active_not_src(gridx,blockx, DeviceMem,num_seg,atoi(argv[10]));
+  initialize_neutrons_active_not_src(gridx,blockx, DeviceMem,num_seg,atoi(argv[10])/1000+1);
   initialize_neutrons_active(DeviceMem, HostMem, num_src);
   //
   for(ibat=0;ibat<num_bat;ibat++){
