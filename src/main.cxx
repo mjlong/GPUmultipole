@@ -74,7 +74,7 @@ int main(int argc, char **argv){
   strcpy(name,"R3d2Rawcnt_debug"); 
 #endif
   strcat(name,name1); strcat(name,name2); strcat(name,name3); strcat(name,name4); 
-  sprintf(name4,"_s%d",atoi(argv[10])/1000);   strcat(name,name4); strcat(name,".h5");
+  sprintf(name4,"_%d_s%d",atoi(argv[10])%1000,atoi(argv[10])/1000);   strcat(name,name4); strcat(name,".h5");
   createmptyh5(name); //create empty file for future add dataset
   
   int intone=1; 
