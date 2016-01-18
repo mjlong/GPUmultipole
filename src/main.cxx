@@ -159,7 +159,12 @@ int main(int argc, char **argv){
     strcpy(name2,"z");    strcat(name2,name1); writeh5_nxm_(name, "scatterplot",name2,HostMem.nInfo.pos_z,  &intone, &gridsize);
     strcpy(name2,"color");strcat(name2,name1); writeh5_nxm_(name, "scatterplot",name2,HostMem.nInfo.energy, &intone, &gridsize);
 #endif
+    clock_end   = clock();
+    time_elapsed = (float)(clock_end-clock_start)/CLOCKS_PER_SEC*1000.f;
+    strcpy(name2,"timeprint0");
+    writeh5_nxm_(name, "tally",name2, &(time_elapsed), &intone, &intone);
     for(ibat=0;ibat<num_bat;ibat++){
+      clock_start = clock();
 #if !defined(__FTALLY2)
       start_neutrons(gridx, blockx, DeviceMem, ubat,num_src,banksize,tnum_bin);
 #endif
@@ -172,6 +177,10 @@ int main(int argc, char **argv){
 #else
       banksize = start_neutrons(gridx, blockx, DeviceMem, ubat,num_src,banksize,tnum_bin,HostMem);
 #endif
+      clock_end = clock();   time_elapsed += (float)(clock_end-clock_start)/CLOCKS_PER_SEC*1000.f;
+      sprintf(name1,"%d",ibat+1);strcpy(name2,"timeprint");strcat(name2,name1);
+      writeh5_nxm_(name, "tally",name2, &(time_elapsed), &intone, &intone);
+
       sprintf(name1,"%d",ibat);strcpy(name2,"Tmatrix");strcat(name2,name1);
       writeh5_nxm_(name, "tally",name2, HostMem.batcnt, &intone, &inttwo);
 #if defined(__MTALLY)
@@ -203,8 +212,6 @@ int main(int argc, char **argv){
 #endif
       }
 
-    clock_end   = clock();
-    time_elapsed = (float)(clock_end-clock_start)/CLOCKS_PER_SEC*1000.f;
     printdone();
     printf("[time]  %d batches (*%d neutrons/batch) costs %f ms\n", num_bat,gridsize, time_elapsed);
 
