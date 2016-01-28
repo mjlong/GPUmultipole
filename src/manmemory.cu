@@ -27,8 +27,7 @@ void release_memory_data(MemStruct DeviceMem, MemStruct HostMem){
 }
 //==============================================================================
 //=====memory_converge() allocates memory for the phase of source convergence===
-//1. memory_converge() takes num_seg_XL as parameter, which varies with phases==
-//2. memory_converge() need not have tally arrays, which exist current for debug
+//1. memory_converge() need not have tally arrays, which exist current for debug
 //==============================================================================
 void allocate_memory_converge(MemStruct *DeviceMem, MemStruct *HostMem, unsigned numbins, unsigned gridx, unsigned blockx,unsigned num_seg){
   unsigned gridsize,banksize;
@@ -137,19 +136,13 @@ void initialize_memory_bank(MemStruct *HostMem, unsigned banksize){
   (*HostMem).bank.x = (float*)malloc(sizeof(float)*banksize);
   (*HostMem).bank.y = (float*)malloc(sizeof(float)*banksize);
   (*HostMem).bank.z = (float*)malloc(sizeof(float)*banksize);
-  (*HostMem).bank.generation_of_birth = (int*)malloc(sizeof(int)*banksize);
-  (*HostMem).bank.time_of_use = (int*)malloc(sizeof(int)*banksize);
-  memset((*HostMem).bank.time_of_use, 0xff, sizeof(int)*banksize);
+  (*HostMem).bank.available = (unsigned*)malloc(sizeof(unsigned)*banksize);
 
   (*HostMem).bank.size   = (unsigned*)malloc(sizeof(unsigned));
-  (*HostMem).bank.cursor_start     = (unsigned*)malloc(sizeof(unsigned));
   (*HostMem).bank.cursor_end       = (unsigned*)malloc(sizeof(unsigned));
-  (*HostMem).bank.cursor_reuse     = (unsigned*)malloc(sizeof(unsigned));
-  (*HostMem).bank.cursor_available = (unsigned*)malloc(sizeof(unsigned));
-  (*HostMem).bank.cursor_safe      = (unsigned*)malloc(2*sizeof(unsigned));
-  (*HostMem).bank.delta_safe       = (unsigned*)malloc(sizeof(unsigned));
+
+  memset((*HostMem).bank.cursor_available, 0, sizeof(unsigned)*banksize);
   ((*HostMem).bank.size)[0]    = banksize;
-  ((*HostMem).bank.cursor_start)[0] = 0; 
   ((*HostMem).bank.cursor_end)[0] = 0; 
 }
 
@@ -157,16 +150,10 @@ void release_memory_bank(MemStruct HostMem){
   free(HostMem.bank.x);
   free(HostMem.bank.y);
   free(HostMem.bank.z);
-  free(HostMem.bank.generation_of_birth);
-  free(HostMem.bank.time_of_use);
 
   free(HostMem.bank.size);
-  free(HostMem.bank.cursor_start);
   free(HostMem.bank.cursor_end);
-  free(HostMem.bank.cursor_reuse);
   free(HostMem.bank.cursor_available);
-  free(HostMem.bank.delta_safe);
-  free(HostMem.bank.cursor_safe);
 }
 
 
