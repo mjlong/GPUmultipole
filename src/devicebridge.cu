@@ -193,7 +193,6 @@ unsigned setbank_converge(MemStruct DeviceMem, MemStruct HostMem, int gridsize){
 //================setbank_prepbank() ===========================================
 //1. Update fission sites in the phase of preparing delayed fission bank =======
 //2. The update follows traditional method, multiplicity is not treated ========
-//3. But only the unique neutrons are stored into the bank =====================
 unsigned setbank_prepbank(MemStruct DeviceMem, MemStruct HostMem, int gridsize, unsigned ibat){
   float* x2 = (float*)malloc(sizeof(float)*gridsize*2);
   float* y2 = (float*)malloc(sizeof(float)*gridsize*2);
@@ -208,23 +207,22 @@ unsigned setbank_prepbank(MemStruct DeviceMem, MemStruct HostMem, int gridsize, 
   for(int i=0;i<gridsize;i++){
     live = HostMem.nInfo.live[i];
     //==========If fissioned, fission site generates neutrons for the next generation ==============
+    //======================= fission site also generates neutrons into the delay bank =============
     for(k=0;k<live;k++){//live=2 or 3
       if(j>(gridsize*2)) {printf("live=%d,j=%d,i=%d/%d,overflow\n",live,j,i,gridsize);exit(-1);}
       //else{
       x2[j]=HostMem.nInfo.pos_x[i];
       y2[j]=HostMem.nInfo.pos_y[i];
       z2[j]=HostMem.nInfo.pos_z[i];
-      j++;
-      //}
-    }
-    //==========If fissioned, fission site also generates neutrons into the delay bank =============
-    if(0<live){
+      if(HostMem.bank.cursor_end[0]<HostMem.bank.size[0]){
       HostMem.bank.x[cursor] = HostMem.nInfo.pos_x[i];
       HostMem.bank.y[cursor] = HostMem.nInfo.pos_y[i];
       HostMem.bank.z[cursor] = HostMem.nInfo.pos_z[i];
-      HostMem.bank.generation_of_birth[cursor] = ibat;
-      HostMem.bank.time_of_use[cursor] = 0; 
-      cursor++; 
+      HostMem.bank.available[cursor] = 1; 
+      cursor++;
+      }
+      j++;
+      //}
     }
   }
   HostMem.bank.cursor_end[0] = cursor;

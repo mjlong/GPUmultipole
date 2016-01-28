@@ -48,12 +48,10 @@ int main(int argc, char **argv){
   int num_ubat = num_bat%10000;
   num_bat = num_bat/10000;
   int delta_safe = atoi(argv[10])%1000;
-  int delta_extra = 0; 
   double Pf = pf/(pf+pc);
   printf("pf=%g,Pf=%g\n",pf,Pf);
-  int delta_prep = (delta_safe+delta_extra); //(int)(delta_safe*(1-Pf)/Pf); 
+  int delta_prep = (delta_safe); 
   int num_seg = ubat;
-  int num_seg_XL = (int)(num_seg/Pf);
 
   char name1[10];  char name2[10];  char name3[10]; char name4[10];
   sprintf(name1,"_%d",gridsize);
@@ -68,7 +66,7 @@ int main(int argc, char **argv){
 #endif
 
 #if defined(__3D)&&(defined(__FTALLY)||defined(__FTALLY2))
-  strcpy(name,"R3dUaRawsrc"); 
+  strcpy(name,"R3dUnRawsrc"); 
 #endif
 #if defined(__3D)&&defined(__CTALLY)
   strcpy(name,"R3d2Rawcnt_debug"); 
@@ -130,13 +128,13 @@ int main(int argc, char **argv){
   //==========================================================================
   //========== Converged source ==============================================
   //==========================================================================
-  banksize = gridx*blockx*num_seg_XL;
-  num_src=gridx*blockx*num_seg_XL;
-  allocate_memory_converge(&DeviceMem, &HostMem, tnum_bin, gridx,blockx,num_seg_XL);
-  initialize_neutrons(gridx, blockx, DeviceMem,width,banksize,num_seg_XL,atoi(argv[10])/1000); 
+  banksize = gridx*blockx*num_seg;
+  num_src=gridx*blockx*num_seg;
+  allocate_memory_converge(&DeviceMem, &HostMem, tnum_bin, gridx,blockx,num_seg);
+  initialize_neutrons(gridx, blockx, DeviceMem,width,banksize,num_seg,atoi(argv[10])/1000); 
 
   for(ibat=0;ibat<num_ubat;ibat++){
-    start_neutrons(gridx, blockx, DeviceMem, num_seg_XL,num_src,banksize,tnum_bin);
+    start_neutrons(gridx, blockx, DeviceMem, num_seg,num_src,banksize,tnum_bin);
     banksize=setbank_converge(DeviceMem, HostMem, num_src);
     //printf("%d[Converging source ...][%3d/%4d]%4d-->%4d: \n", -1,ibat,num_ubat,num_src,banksize);
   }
@@ -148,13 +146,11 @@ int main(int argc, char **argv){
   //==============================================================================
   //==========Start from the converged source; fill the delayed bank =============
   //==============================================================================
-  unsigned delaysize = unsigned(delta_prep*gridx*blockx*num_seg_XL);
+  unsigned delaysize = (delta_prep*gridx*blockx*num_seg);
   initialize_memory_bank(&HostMem, delaysize);
-  HostMem.bank.delta_safe[0] = delta_safe; 
-  for(int iii; iii<delaysize; iii++)
-    HostMem.bank.generation_of_birth[iii] = -delta_prep-1; 
+
   for(ibat=0;ibat<delta_prep;ibat++){
-    start_neutrons(gridx, blockx, DeviceMem, num_seg_XL,num_src,banksize,tnum_bin);
+    start_neutrons(gridx, blockx, DeviceMem, num_seg,num_src,banksize,tnum_bin);
     banksize=setbank_prepbank(DeviceMem, HostMem, num_src, ibat-delta_prep);
     //printf("%d[Filling delay bank...][%3d/%4d]%4d-->%4d, cursor-->%d/%d: \n", -1,ibat,delta_prep,num_src,banksize, HostMem.bank.cursor_end[0],delaysize);
   }
