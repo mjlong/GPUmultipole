@@ -13,7 +13,7 @@ typedef int Status;
 template<class QType>
 class CQueue{
 public:
-	CQueue(unsigned size);
+        CQueue(unsigned size);
 	CQueue();
 	~CQueue();
 	void EnQueue(QType e); //element will enter queue even if it is full
@@ -46,7 +46,7 @@ CQueue<QType>::CQueue(){
 }
 
 template<class QType>
-CQueue<QType>::InitQueue(unsigned size){
+void CQueue<QType>::InitQueue(unsigned size){
   queue = new QType [size];
   num   = size;
 }
