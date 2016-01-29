@@ -14,8 +14,10 @@ template<class QType>
 class CQueue{
 public:
 	CQueue(unsigned size);
+	CQueue();
 	~CQueue();
 	void EnQueue(QType e); //element will enter queue even if it is full
+	void InitQueue(unsigned size);
 	void DeQueue_();
 	QType DeQueue();       //element will enter queue even if it is empty
 	bool IsEmpty();
@@ -34,6 +36,21 @@ CQueue<QType>::CQueue(unsigned size){
   rear  = 0; 
   num   = size;
 }
+
+template<class QType>
+CQueue<QType>::CQueue(){
+  queue = NULL;
+  front = 0; 
+  rear  = 0; 
+  num   = 0;
+}
+
+template<class QType>
+CQueue<QType>::InitQueue(unsigned size){
+  queue = new QType [size];
+  num   = size;
+}
+
 
 template<class QType>
 CQueue<QType>::~CQueue(){
