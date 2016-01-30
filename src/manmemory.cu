@@ -138,10 +138,10 @@ void initialize_memory_bank(MemStruct *HostMem, unsigned banksize){
   (*HostMem).bank.z = (float*)malloc(sizeof(float)*banksize);
   (*HostMem).bank.available = (unsigned*)malloc(sizeof(unsigned)*banksize);
 
-  (*HostMem).bank.size   = (unsigned*)malloc(sizeof(unsigned));
+  (*HostMem).bank.size             = (unsigned*)malloc(sizeof(unsigned));
   (*HostMem).bank.cursor_end       = (unsigned*)malloc(sizeof(unsigned));
 
-  memset((*HostMem).bank.cursor_available, 0, sizeof(unsigned)*banksize);
+  memset((*HostMem).bank.available, 0, sizeof(unsigned)*banksize);
   ((*HostMem).bank.size)[0]    = banksize;
   ((*HostMem).bank.cursor_end)[0] = 0; 
 }
@@ -150,10 +150,10 @@ void release_memory_bank(MemStruct HostMem){
   free(HostMem.bank.x);
   free(HostMem.bank.y);
   free(HostMem.bank.z);
-
+  
   free(HostMem.bank.size);
   free(HostMem.bank.cursor_end);
-  free(HostMem.bank.cursor_available);
+  free(HostMem.bank.available);
 }
 
 
