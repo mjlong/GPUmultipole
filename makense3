@@ -77,7 +77,7 @@ else
 ifeq ($(ctally2),true)
 EXENAME=$(DIR_BIN)/box3d2rm_debug
 else
-EXENAME=$(DIR_BIN)/box3drm
+EXENAME=$(DIR_BIN)/box3drm_std
 endif
 endif
 endif
