@@ -5,8 +5,6 @@
 #include <manmemory.h>
 #include "devicebridge.h"
 
-#include "Queue.h"
-
 #include <time.h>
 extern void createmptyh5(char *filename);
 extern void writeh5_nxm_(const char *filename, const char *groupname, const char *dsetname, double *vec1, int *num_vec, int *length);
@@ -114,7 +112,7 @@ int main(int argc, char **argv){
   double ref = 1.0/(HostMem.wdspp[3]+HostMem.wdspp[4])/width;
   // note this only works for flat
   copydata(DeviceMem,HostMem);
-  printf("[]nhis=%-6d,num_seg_XL=%3d,num_seg=%d,nbat=%-6d,meshes=%-6d,box width=%.2f\n",gridsize,num_seg_XL, num_seg,num_bat,num_bin,width);
+  printf("[]nhis=%-6d,num_seg=%d,nbat=%-6d,meshes=%-6d,box width=%.2f\n",gridsize, num_seg,num_bat,num_bin,width);
   printf("[]mfp=%.5f, pf=%.5f, pc=%.5f, ps=%.5f\n",HostMem.wdspp[2], HostMem.wdspp[3], HostMem.wdspp[4],1-(HostMem.wdspp[3]+HostMem.wdspp[4]));
 
 //============================================================ 
@@ -146,17 +144,19 @@ int main(int argc, char **argv){
   //==============================================================================
   //==========Start from the converged source; fill the delayed bank =============
   //==============================================================================
-  unsigned delaysize = (delta_prep*gridx*blockx*num_seg);
+  unsigned delaysize = ((delta_prep+2)*gridx*blockx*num_seg);
   initialize_memory_bank(&HostMem, delaysize);
+  HostMem.pull_list = new CQueue<int>; 
+  HostMem.pull_list->InitQueue(num_src*2);
 
   for(ibat=0;ibat<delta_prep;ibat++){
     start_neutrons(gridx, blockx, DeviceMem, num_seg,num_src,banksize,tnum_bin);
     banksize=setbank_prepbank(DeviceMem, HostMem, num_src, ibat-delta_prep);
-    //printf("%d[Filling delay bank...][%3d/%4d]%4d-->%4d, cursor-->%d/%d: \n", -1,ibat,delta_prep,num_src,banksize, HostMem.bank.cursor_end[0],delaysize);
+    printf("%d[Filling delay bank...][%3d/%4d]%4d-->%4d, cursor-->%d/%d: \n", -1,ibat,delta_prep,num_src,banksize, HostMem.bank.cursor_end[0],delaysize);
   }
 
   release_memory_converge(DeviceMem, HostMem);
-  
+
   //==============================================================================
   //=========== Active generations ===============================================
   //==============================================================================
@@ -166,24 +166,29 @@ int main(int argc, char **argv){
   num_src=gridx*blockx*num_seg;
   allocate_memory_active(&DeviceMem, &HostMem, tnum_bin, gridx,blockx,num_seg);
   initialize_neutrons_active_not_src(gridx,blockx, DeviceMem,num_seg,atoi(argv[10])/1000+1);
-  initialize_neutrons_active(DeviceMem, HostMem, num_src);
+
+  setbank_active_out(DeviceMem, HostMem, num_src);
+  //printf("======After             , queue: ");  HostMem.pull_list->ViewQueue();
+
   clock_end   = clock();
   time_elapsed = (float)(clock_end-clock_start)/CLOCKS_PER_SEC*1000.f;
   strcpy(name2,"timeprint0");
   writeh5_nxm_(name, "tally",name2, &(time_elapsed), &intone, &intone);
-  //
+
   for(ibat=0;ibat<num_bat;ibat++){
-    //set_cursor_safe(HostMem, ibat);
     clock_start = clock();
-    banksize=start_neutrons_active(ibat, gridx, blockx, DeviceMem, num_seg,banksize,tnum_bin, HostMem);
+    start_neutrons_active(ibat, gridx, blockx, DeviceMem, num_seg,banksize,tnum_bin, HostMem);
     clock_end = clock();   time_elapsed += (float)(clock_end-clock_start)/CLOCKS_PER_SEC*1000.f;
     sprintf(name1,"%d",ibat+1);strcpy(name2,"timeprint");strcat(name2,name1);
     writeh5_nxm_(name, "tally",name2, &(time_elapsed), &intone, &intone);
     sprintf(name1,"%d",ibat);strcpy(name2,"BatcntA");strcat(name2,name1);
     writeh5_nxm_(name, "tally",name2, HostMem.batcnt, &intone, &inttwo);
     memset((HostMem).batcnt, 0, sizeof(CMPTYPE)*tnum_bin);
-    //printf("%d[Active tallying .....][%3d/%d]%4d-->%4d: \n", -1,ibat,num_bat,num_src,banksize);
+    printf("%d[Active tallying .....][%3d/%d]: \n", -1,ibat,num_bat);
   }
+
+  HostMem.pull_list->DeleQueue();
+  delete HostMem.pull_list;
   release_memory_active(DeviceMem, HostMem);
   printdone();
   printf("[time]  %d batches (*%d neutrons/batch) costs %f ms\n", num_bat,gridsize, time_elapsed);
@@ -196,6 +201,7 @@ int main(int argc, char **argv){
 //============================================================ 
 //=============simulation shut down===========================
 //============================================================
+
   release_memory_data(DeviceMem,HostMem);
   release_memory_bank(HostMem);
 
