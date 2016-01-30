@@ -2,6 +2,9 @@
 #define __NEUTRON_H__
 
 #include <curand_kernel.h>
+#include <Queue.h>
+//#include <queue>
+//using namespace std;
 
 #if defined(__CFLOAT)
 #define CMPTYPE float
@@ -77,6 +80,8 @@ typedef struct {
   CMPTYPE *tallybins;
   TallyStruct tally;
   DelayedBankStruct bank;
+  CQueue<int> *pull_list;
+  
 }MemStruct;
 
 
