@@ -238,10 +238,10 @@ void bank_pull(MemStruct HostMem, float *x2, float *y2, float* z2, unsigned bank
     z2[i] = HostMem.bank.z[index];
     //printf("-------------------------------pull %d to %d\n", index, i);
     HostMem.bank.available[index] = 0;
-    HostMem.pull_list->EnQueue(index); //HostMem.pull_list->ViewQueue();
-    if(HostMem.pull_list->IsFull()){
-      printf("Warning: pull_list is full, there are bank positions that will never be used\n"); exit(-1);
-    }
+    HostMem.pull_list->push(index); //EnQueue(index); //HostMem.pull_list->ViewQueue();
+    //if(HostMem.pull_list->IsFull()){
+    //  printf("Warning: pull_list is full, there are bank positions that will never be used\n"); exit(-1);
+    //}
 
   }
 }
@@ -270,8 +270,8 @@ void setbank_active_in(MemStruct DeviceMem, MemStruct HostMem, int gridsize, int
 
 void bank_push(MemStruct HostMem, unsigned index){
   int j;
-  if(!(HostMem.pull_list->IsEmpty()) ){
-    j = HostMem.pull_list->DeQueue(); //HostMem.pull_list->ViewQueue();
+  if(!(HostMem.pull_list->empty()) ){
+    j = HostMem.pull_list->front(); HostMem.pull_list->pop();//DeQueue(); //HostMem.pull_list->ViewQueue();
     //printf("=======================pushing back to %d\n", j);
     HostMem.bank.x[j]=HostMem.nInfo.pos_x[index];
     HostMem.bank.y[j]=HostMem.nInfo.pos_y[index];

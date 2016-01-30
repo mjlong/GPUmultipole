@@ -146,8 +146,9 @@ int main(int argc, char **argv){
   //==============================================================================
   unsigned delaysize = ((delta_prep+2)*gridx*blockx*num_seg);
   initialize_memory_bank(&HostMem, delaysize);
-  HostMem.pull_list = new CQueue<int>; 
-  HostMem.pull_list->InitQueue(num_src*2);
+  //HostMem.pull_list = new CQueue<int>; 
+  //HostMem.pull_list->InitQueue(num_src*2);
+  HostMem.pull_list = new queue<int>; 
 
   for(ibat=0;ibat<delta_prep;ibat++){
     start_neutrons(gridx, blockx, DeviceMem, num_seg,num_src,banksize,tnum_bin);
@@ -187,7 +188,7 @@ int main(int argc, char **argv){
     printf("%d[Active tallying .....][%3d/%d]: \n", -1,ibat,num_bat);
   }
 
-  HostMem.pull_list->DeleQueue();
+  //HostMem.pull_list->DeleQueue();
   delete HostMem.pull_list;
   release_memory_active(DeviceMem, HostMem);
   printdone();
