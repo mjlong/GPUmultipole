@@ -1,6 +1,8 @@
 # if !defined ___template___CQueue_h___
 # define ___template___CQueue_h___
 
+#include <stdio.h>
+
 #define TRUE 1
 #define FALSE 0
 #define OK 1
@@ -18,9 +20,12 @@ public:
 	~CQueue();
 	void EnQueue(QType e); //element will enter queue even if it is full
 	void InitQueue(unsigned size);
+	void DeleQueue();
 	void DeQueue_();
 	QType DeQueue();       //element will enter queue even if it is empty
 	bool IsEmpty();
+	bool IsFull();
+	void ViewQueue();
 private:
 	QType *queue; 
 	unsigned front;
@@ -48,13 +53,18 @@ CQueue<QType>::CQueue(){
 template<class QType>
 void CQueue<QType>::InitQueue(unsigned size){
   queue = new QType [size];
+  front = 0;
+  rear  = 0;
   num   = size;
 }
 
+template<class QType>
+void CQueue<QType>::DeleQueue(){
+  delete[] queue;
+}
 
 template<class QType>
 CQueue<QType>::~CQueue(){
-  delete[] queue; 
 }
 
 
@@ -82,6 +92,23 @@ QType CQueue<QType>::DeQueue(){
 template <class QType>
 bool CQueue<QType>::IsEmpty(){
 	return front==rear;
+}
+
+template <class QType>
+bool CQueue<QType>::IsFull(){
+	return front==rear;
+}
+
+template<class QType>
+void CQueue<QType>::ViewQueue(){
+  if(0==num)
+    return;
+  int i=front;
+  while(i!=rear){
+    printf("%4d ",queue[i]);
+    i=(i+1)%num;
+  }
+  printf("\n");
 }
 
 #endif
