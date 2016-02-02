@@ -53,7 +53,6 @@ int main(int argc, char **argv){
   printf("pf=%g,Pf=%g\n",pf,Pf);
   int delta_prep = (delta_safe+delta_extra); //(int)(delta_safe*(1-Pf)/Pf); 
   int num_seg = ubat;
-  int num_seg_XL = (int)(num_seg/Pf);
 
   char name1[10];  char name2[10];  char name3[10]; char name4[10];
   sprintf(name1,"_%d",gridsize);
@@ -68,7 +67,7 @@ int main(int argc, char **argv){
 #endif
 
 #if defined(__3D)&&(defined(__FTALLY)||defined(__FTALLY2))
-  strcpy(name,"R3dUaRawsrc"); 
+  strcpy(name,"R3dUsRawsrc"); 
 #endif
 #if defined(__3D)&&defined(__CTALLY)
   strcpy(name,"R3d2Rawcnt_debug"); 
@@ -116,7 +115,7 @@ int main(int argc, char **argv){
   double ref = 1.0/(HostMem.wdspp[3]+HostMem.wdspp[4])/width;
   // note this only works for flat
   copydata(DeviceMem,HostMem);
-  printf("[]nhis=%-6d,num_seg_XL=%3d,num_seg=%d,nbat=%-6d,meshes=%-6d,box width=%.2f\n",gridsize,num_seg_XL, num_seg,num_bat,num_bin,width);
+  printf("[]nhis=%-6d,num_seg=%d,nbat=%-6d,meshes=%-6d,box width=%.2f\n",gridsize, num_seg,num_bat,num_bin,width);
   printf("[]mfp=%.5f, pf=%.5f, pc=%.5f, ps=%.5f\n",HostMem.wdspp[2], HostMem.wdspp[3], HostMem.wdspp[4],1-(HostMem.wdspp[3]+HostMem.wdspp[4]));
 
 //============================================================ 
@@ -130,33 +129,33 @@ int main(int argc, char **argv){
   //==========================================================================
   //========== Converged source ==============================================
   //==========================================================================
-  banksize = gridx*blockx*num_seg_XL;
-  num_src=gridx*blockx*num_seg_XL;
-  allocate_memory_converge(&DeviceMem, &HostMem, tnum_bin, gridx,blockx,num_seg_XL);
-  initialize_neutrons(gridx, blockx, DeviceMem,width,banksize,num_seg_XL,atoi(argv[10])/1000); 
+  banksize = gridx*blockx*num_seg;
+  num_src=gridx*blockx*num_seg;
+  allocate_memory_converge(&DeviceMem, &HostMem, tnum_bin, gridx,blockx,num_seg);
+  initialize_neutrons(gridx, blockx, DeviceMem,width,banksize,num_seg,atoi(argv[10])/1000); 
 
   for(ibat=0;ibat<num_ubat;ibat++){
-    start_neutrons(gridx, blockx, DeviceMem, num_seg_XL,num_src,banksize,tnum_bin);
+    start_neutrons(gridx, blockx, DeviceMem, num_seg,num_src,banksize,tnum_bin);
     banksize=setbank_converge(DeviceMem, HostMem, num_src);
     //printf("%d[Converging source ...][%3d/%4d]%4d-->%4d: \n", -1,ibat,num_ubat,num_src,banksize);
   }
   //====================End of the phase to converge source: =====================
-  //Note: the phase of convergence uses frame of size = gridsize*num_seg_XL, which is also used by the bank preparation phase
+  //Note: the phase of convergence uses frame of size = gridsize*num_seg, which is also used by the bank preparation phase
   //      and the last execution of setbank_convergence() has initialized the source for the next generation
   //      therefore, transition here is smooth
 
   //==============================================================================
   //==========Start from the converged source; fill the delayed bank =============
   //==============================================================================
-  unsigned delaysize = unsigned(delta_prep*gridx*blockx*num_seg_XL);
+  unsigned delaysize = unsigned((delta_prep+1)*gridx*blockx*num_seg);
   initialize_memory_bank(&HostMem, delaysize);
   HostMem.bank.delta_safe[0] = delta_safe; 
   for(int iii; iii<delaysize; iii++)
     HostMem.bank.generation_of_birth[iii] = -delta_prep-1; 
   for(ibat=0;ibat<delta_prep;ibat++){
-    start_neutrons(gridx, blockx, DeviceMem, num_seg_XL,num_src,banksize,tnum_bin);
+    start_neutrons(gridx, blockx, DeviceMem, num_seg,num_src,banksize,tnum_bin);
     banksize=setbank_prepbank(DeviceMem, HostMem, num_src, ibat-delta_prep);
-    //printf("%d[Filling delay bank...][%3d/%4d]%4d-->%4d, cursor-->%d/%d: \n", -1,ibat,delta_prep,num_src,banksize, HostMem.bank.cursor_end[0],delaysize);
+    printf("%d[Filling delay bank...][%3d/%4d]%4d-->%4d, cursor-->%d/%d: \n", -1,ibat,delta_prep,num_src,banksize, HostMem.bank.cursor_end[0],delaysize);
   }
 
   release_memory_converge(DeviceMem, HostMem);
@@ -179,14 +178,14 @@ int main(int argc, char **argv){
   for(ibat=0;ibat<num_bat;ibat++){
     //set_cursor_safe(HostMem, ibat);
     clock_start = clock();
-    banksize=start_neutrons_active(ibat, gridx, blockx, DeviceMem, num_seg,banksize,tnum_bin, HostMem);
+    start_neutrons_active(ibat, gridx, blockx, DeviceMem, num_seg,banksize,tnum_bin, HostMem);
     clock_end = clock();   time_elapsed += (float)(clock_end-clock_start)/CLOCKS_PER_SEC*1000.f;
     sprintf(name1,"%d",ibat+1);strcpy(name2,"timeprint");strcat(name2,name1);
     writeh5_nxm_(name, "tally",name2, &(time_elapsed), &intone, &intone);
     sprintf(name1,"%d",ibat);strcpy(name2,"BatcntA");strcat(name2,name1);
     writeh5_nxm_(name, "tally",name2, HostMem.batcnt, &intone, &inttwo);
     memset((HostMem).batcnt, 0, sizeof(CMPTYPE)*tnum_bin);
-    //printf("%d[Active tallying .....][%3d/%d]%4d-->%4d: \n", -1,ibat,num_bat,num_src,banksize);
+    printf("%d[Active tallying .....][%3d/%d]-----[%4d---%4d]: \n", -1,ibat,num_bat,HostMem.bank.cursor_start[0],HostMem.bank.cursor_available[0]);
   }
   release_memory_active(DeviceMem, HostMem);
   printdone();

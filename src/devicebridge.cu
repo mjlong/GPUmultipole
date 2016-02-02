@@ -20,23 +20,13 @@ void initialize_neutrons_fix(unsigned gridx, unsigned blockx,MemStruct DeviceMem
 }
 
 void initialize_neutrons_active(MemStruct DeviceMem, MemStruct HostMem, unsigned num_src){
-  int i = HostMem.bank.cursor_end[0]-1;
-  int j;
-  //find the boundary of generation -1 in the delayed bank
-  while(-1==HostMem.bank.generation_of_birth[i]){    i--;  }
-  i++; 
-  //use source in delayed bank with generation_of_birth=-1 as initial source for 1st active generation
-  gpuErrchk(cudaMemcpy(DeviceMem.nInfo.pos_x+num_src,HostMem.bank.x+i,sizeof(float)*(HostMem.bank.cursor_end[0]-i), cudaMemcpyHostToDevice)); 
-  gpuErrchk(cudaMemcpy(DeviceMem.nInfo.pos_y+num_src,HostMem.bank.y+i,sizeof(float)*(HostMem.bank.cursor_end[0]-i), cudaMemcpyHostToDevice));  
-  gpuErrchk(cudaMemcpy(DeviceMem.nInfo.pos_z+num_src,HostMem.bank.z+i,sizeof(float)*(HostMem.bank.cursor_end[0]-i), cudaMemcpyHostToDevice));  
   //pull from start of the delayed bank to fill the 1st active generation
-  j = num_src-(HostMem.bank.cursor_end[0]-i);  // j=number of first few neutrons to be pulled to 1st generation
-  j = (j>0)*j + (j<=0)*0; 
-  gpuErrchk(cudaMemcpy(DeviceMem.nInfo.pos_x+num_src+(HostMem.bank.cursor_end[0]-i),HostMem.bank.x,sizeof(float)*j, cudaMemcpyHostToDevice));  
-  gpuErrchk(cudaMemcpy(DeviceMem.nInfo.pos_y+num_src+(HostMem.bank.cursor_end[0]-i),HostMem.bank.y,sizeof(float)*j, cudaMemcpyHostToDevice));  
-  gpuErrchk(cudaMemcpy(DeviceMem.nInfo.pos_z+num_src+(HostMem.bank.cursor_end[0]-i),HostMem.bank.z,sizeof(float)*j, cudaMemcpyHostToDevice));  
-  HostMem.bank.cursor_available[0]=j; 
-  //since the first j neutrons has been pulled, their time_of_use level must be increased
+  gpuErrchk(cudaMemcpy(DeviceMem.nInfo.pos_x+num_src,HostMem.bank.x,sizeof(float)*num_src, cudaMemcpyHostToDevice));  
+  gpuErrchk(cudaMemcpy(DeviceMem.nInfo.pos_y+num_src,HostMem.bank.y,sizeof(float)*num_src, cudaMemcpyHostToDevice));  
+  gpuErrchk(cudaMemcpy(DeviceMem.nInfo.pos_z+num_src,HostMem.bank.z,sizeof(float)*num_src, cudaMemcpyHostToDevice));  
+  HostMem.bank.cursor_available[0]=num_src; 
+  //since the first num_src neutrons has been pulled, their time_of_use level must be increased
+  int j=num_src;
   while(j>0){
     (HostMem.bank.time_of_use[--j])++;
   }
@@ -215,16 +205,14 @@ unsigned setbank_prepbank(MemStruct DeviceMem, MemStruct HostMem, int gridsize, 
       y2[j]=HostMem.nInfo.pos_y[i];
       z2[j]=HostMem.nInfo.pos_z[i];
       j++;
-      //}
-    }
     //==========If fissioned, fission site also generates neutrons into the delay bank =============
-    if(0<live){
       HostMem.bank.x[cursor] = HostMem.nInfo.pos_x[i];
       HostMem.bank.y[cursor] = HostMem.nInfo.pos_y[i];
       HostMem.bank.z[cursor] = HostMem.nInfo.pos_z[i];
       HostMem.bank.generation_of_birth[cursor] = ibat;
       HostMem.bank.time_of_use[cursor] = 0; 
       cursor++; 
+      //}
     }
   }
   HostMem.bank.cursor_end[0] = cursor;
@@ -265,24 +253,18 @@ void bank_print(MemStruct HostMem){
   }
   printf("\n");
 }
-void setbank_active_out(unsigned ibat, MemStruct DeviceMem, MemStruct HostMem, int banksize, unsigned jstart){
-  jstart = (jstart>=banksize)*banksize + (jstart<banksize)*jstart;
-  gpuErrchk(cudaMemcpy(DeviceMem.nInfo.pos_x+banksize,DeviceMem.nInfo.pos_x+2*banksize,sizeof(float)*(jstart), cudaMemcpyDeviceToDevice));  
-  gpuErrchk(cudaMemcpy(DeviceMem.nInfo.pos_y+banksize,DeviceMem.nInfo.pos_y+2*banksize,sizeof(float)*(jstart), cudaMemcpyDeviceToDevice));  
-  gpuErrchk(cudaMemcpy(DeviceMem.nInfo.pos_z+banksize,DeviceMem.nInfo.pos_z+2*banksize,sizeof(float)*(jstart), cudaMemcpyDeviceToDevice));  
-  if(jstart>=banksize) return;
-
-  float* x2 = (float*)malloc(sizeof(float)*(banksize-jstart));
-  float* y2 = (float*)malloc(sizeof(float)*(banksize-jstart));
-  float* z2 = (float*)malloc(sizeof(float)*(banksize-jstart));
+void setbank_active_out(unsigned ibat, MemStruct DeviceMem, MemStruct HostMem, int banksize){
+  float* x2 = (float*)malloc(sizeof(float)*(banksize));
+  float* y2 = (float*)malloc(sizeof(float)*(banksize));
+  float* z2 = (float*)malloc(sizeof(float)*(banksize));
 
   //========== sources of delayed fission bank contribute to next generation =======================
   //j-jstart is the number of newly fissioned neutrons of the current segment
-  bank_pull(ibat,HostMem,x2,y2,z2,banksize-jstart); 
+  bank_pull(ibat,HostMem,x2,y2,z2,banksize); 
 
-  gpuErrchk(cudaMemcpy(DeviceMem.nInfo.pos_x+banksize+jstart,x2,sizeof(float)*(banksize-jstart), cudaMemcpyHostToDevice));  
-  gpuErrchk(cudaMemcpy(DeviceMem.nInfo.pos_y+banksize+jstart,y2,sizeof(float)*(banksize-jstart), cudaMemcpyHostToDevice));  
-  gpuErrchk(cudaMemcpy(DeviceMem.nInfo.pos_z+banksize+jstart,z2,sizeof(float)*(banksize-jstart), cudaMemcpyHostToDevice));  
+  gpuErrchk(cudaMemcpy(DeviceMem.nInfo.pos_x+banksize,x2,sizeof(float)*(banksize), cudaMemcpyHostToDevice));  
+  gpuErrchk(cudaMemcpy(DeviceMem.nInfo.pos_y+banksize,y2,sizeof(float)*(banksize), cudaMemcpyHostToDevice));  
+  gpuErrchk(cudaMemcpy(DeviceMem.nInfo.pos_z+banksize,z2,sizeof(float)*(banksize), cudaMemcpyHostToDevice));  
   free(x2);  free(y2);  free(z2);
 }
 
@@ -305,7 +287,7 @@ void bank_pull(unsigned ibat, MemStruct HostMem, float *x2, float *y2, float* z2
 }
 
 
-unsigned setbank_active_in(unsigned ibat, MemStruct DeviceMem, MemStruct HostMem, int gridsize, int banksize, unsigned jstart, int shift){
+void setbank_active_in(unsigned ibat, MemStruct DeviceMem, MemStruct HostMem, int gridsize, int shift){
   float* x2 = (float*)malloc(sizeof(float)*gridsize);
   float* y2 = (float*)malloc(sizeof(float)*gridsize);
   float* z2 = (float*)malloc(sizeof(float)*gridsize);
@@ -316,43 +298,30 @@ unsigned setbank_active_in(unsigned ibat, MemStruct DeviceMem, MemStruct HostMem
   gpuErrchk(cudaMemcpy(HostMem.nInfo.pos_z,DeviceMem.nInfo.pos_z+shift,sizeof(float)*gridsize, cudaMemcpyDeviceToHost));  
   memset(HostMem.nInfo.live,0,sizeof(int)*gridsize);
   gpuErrchk(cudaMemcpy(HostMem.nInfo.live, DeviceMem.nInfo.live +shift,sizeof(int)*gridsize,   cudaMemcpyDeviceToHost));  
-  int live;  unsigned j=jstart;int k=0; int fission_site;
+  int live;  int fission_site;
   for(int i=0;i<gridsize;i++){
     live = HostMem.nInfo.live[i];
     fission_site = fission_sites[i];
     HostMem.batcnt[fission_site]+= (1*(0!=live));
     if(live>1){
-    //========== sources of last generation constribute to next generation =========================
-    x2[j-jstart]=HostMem.nInfo.pos_x[i];
-    y2[j-jstart]=HostMem.nInfo.pos_y[i];
-    z2[j-jstart]=HostMem.nInfo.pos_z[i];
-    j++;
+      //========== sources of last generation constribute to delayed fission bank ====================
+      bank_push(ibat, HostMem, live, HostMem.nInfo.pos_x[i], HostMem.nInfo.pos_y[i], HostMem.nInfo.pos_z[i]);
     }
   }
-  //========== sources of last generation constribute to delayed fission bank ====================
-  bank_push(ibat, HostMem,x2,y2,z2,j-jstart);
-
-
-  k = (j>banksize)*banksize + (j<=banksize)*j;
-  gpuErrchk(cudaMemcpy(DeviceMem.nInfo.pos_x+2*banksize+jstart,x2,sizeof(float)*(k-jstart), cudaMemcpyHostToDevice));  
-  gpuErrchk(cudaMemcpy(DeviceMem.nInfo.pos_y+2*banksize+jstart,y2,sizeof(float)*(k-jstart), cudaMemcpyHostToDevice));  
-  gpuErrchk(cudaMemcpy(DeviceMem.nInfo.pos_z+2*banksize+jstart,z2,sizeof(float)*(k-jstart), cudaMemcpyHostToDevice));  
-  gpuErrchk(cudaDeviceSynchronize());  
 
   free(fission_sites);
   free(x2);  free(y2);  free(z2);
-  return j;
 }
 
-void bank_push(unsigned ibat, MemStruct HostMem,float* x2, float* y2, float* z2, unsigned num_new_neutron){
+void bank_push(unsigned ibat, MemStruct HostMem,unsigned num_new_neutron, float x, float y, float z){
   int ix=0; 
   int i_end = HostMem.bank.cursor_end[0];
   int i_limit;
   //If the bank has not been filled yet, fill it from cursor_end[0]
   while( (i_end<HostMem.bank.size[0]) && (ix<num_new_neutron)  ){
-    HostMem.bank.x[i_end] = x2[ix];
-    HostMem.bank.y[i_end] = y2[ix];
-    HostMem.bank.z[i_end] = z2[ix];
+    HostMem.bank.x[i_end] = x;
+    HostMem.bank.y[i_end] = y;
+    HostMem.bank.z[i_end] = z;
     HostMem.bank.generation_of_birth[i_end] = ibat;
     HostMem.bank.time_of_use[i_end] = 0; 
     ix++; 
@@ -368,9 +337,9 @@ void bank_push(unsigned ibat, MemStruct HostMem,float* x2, float* y2, float* z2,
   i_end = HostMem.bank.cursor_start[0];
   //if(28<=ibat){    printf("push starting point=%d\n",i_end);  }
   while(  (ix<num_new_neutron)  &&  (i_end!=i_limit)   ){
-    HostMem.bank.x[i_end] = x2[ix];
-    HostMem.bank.y[i_end] = y2[ix];
-    HostMem.bank.z[i_end] = z2[ix];
+    HostMem.bank.x[i_end] = x;
+    HostMem.bank.y[i_end] = y;
+    HostMem.bank.z[i_end] = z;
     HostMem.bank.generation_of_birth[i_end] = ibat;
     HostMem.bank.time_of_use[i_end] = 0; 
     ix++; 
@@ -509,19 +478,18 @@ void start_neutrons(unsigned gridx, unsigned blockx, MemStruct DeviceMem, unsign
 //==============================================================================
 //=========start_neutrons_active() launches kernels for active generations =====
 //1. At least for __FTALLY2, source and delay bank can be performed segment-wise
-unsigned start_neutrons_active(unsigned ibat, unsigned gridx, unsigned blockx, MemStruct DeviceMem, unsigned num_seg, unsigned banksize, unsigned tnum_bin, MemStruct HostMem){
-  int i=0; int j=0; 
+void start_neutrons_active(unsigned ibat, unsigned gridx, unsigned blockx, MemStruct DeviceMem, unsigned num_seg, unsigned banksize, unsigned tnum_bin, MemStruct HostMem){
+  int i=0;  
   for(i=0;i<num_seg;i++){
     gpuErrchk(cudaMemset(DeviceMem.nInfo.imat, 0, gridx*blockx*sizeof(int)));
     history<<<gridx, blockx/*, blockx*sizeof(unsigned)*/>>>(DeviceMem, gridx*blockx*num_seg,i*gridx*blockx,banksize,1);
     gpuErrchk(cudaDeviceSynchronize()); 
     //printf("before %dth setbank_in,j=%d:\n",i,j);    bank_print(HostMem);
-    j = setbank_active_in(ibat, DeviceMem, HostMem, gridx*blockx,gridx*blockx*num_seg,j,i*gridx*blockx); 
+    setbank_active_in(ibat, DeviceMem, HostMem, gridx*blockx, i*gridx*blockx); 
     //printf("after  %dth setbank_in,j=%d:\n",i,j);    bank_print(HostMem);
   }
-  setbank_active_out(ibat, DeviceMem, HostMem, gridx*blockx*num_seg, j);
+  setbank_active_out(ibat, DeviceMem, HostMem, gridx*blockx*num_seg);
   //printf("after setbank_out:\n");    bank_print(HostMem);  
-  return j;
 }
 
 
