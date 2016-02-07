@@ -20,7 +20,6 @@ void initialize_neutrons_fix(unsigned gridx, unsigned blockx,MemStruct DeviceMem
 }
 
 void setbank_active_out(MemStruct DeviceMem, MemStruct HostMem, unsigned num_src, unsigned idelta){
-  //pull from start of the delayed bank to fill the 1st active generation
   gpuErrchk(cudaMemcpy(DeviceMem.nInfo.pos_x+num_src,HostMem.bank.x+idelta*num_src,sizeof(float)*num_src, cudaMemcpyHostToDevice));  
   gpuErrchk(cudaMemcpy(DeviceMem.nInfo.pos_y+num_src,HostMem.bank.y+idelta*num_src,sizeof(float)*num_src, cudaMemcpyHostToDevice));  
   gpuErrchk(cudaMemcpy(DeviceMem.nInfo.pos_z+num_src,HostMem.bank.z+idelta*num_src,sizeof(float)*num_src, cudaMemcpyHostToDevice));  
@@ -177,7 +176,7 @@ unsigned setbank_converge(MemStruct DeviceMem, MemStruct HostMem, int gridsize){
 //1. Update fission sites in the phase of preparing delayed fission bank =======
 //2. The update follows traditional method, multiplicity is not treated ========
 //3. But only the unique neutrons are stored into the bank =====================
-void setbank_prepbank(MemStruct DeviceMem, MemStruct HostMem, int gridsize, unsigned ibat){
+unsigned setbank_prepbank(MemStruct DeviceMem, MemStruct HostMem, int gridsize, unsigned ibat){
   float* x2 = (float*)malloc(sizeof(float)*gridsize*2);
   float* y2 = (float*)malloc(sizeof(float)*gridsize*2);
   float* z2 = (float*)malloc(sizeof(float)*gridsize*2);
@@ -213,14 +212,37 @@ void setbank_prepbank(MemStruct DeviceMem, MemStruct HostMem, int gridsize, unsi
     HostMem.bank.x[cursor+j] = HostMem.bank.x[k];
     HostMem.bank.y[cursor+j] = HostMem.bank.y[k];
     HostMem.bank.z[cursor+j] = HostMem.bank.z[k];
-    j ++; 
+    j ++;
+  //for(int i=0;i<gridsize;i++){
+  //  k = rand()%live;
+  //  HostMem.bank.x[cursor+i] = x2[k];
+  //  HostMem.bank.y[cursor+i] = y2[k];
+  //  HostMem.bank.z[cursor+i] = z2[k];
   }
+  //printf("ibat=%d, writing up to %d\n", ibat, cursor+j);
+  
   gpuErrchk(cudaMemcpy(DeviceMem.nInfo.pos_x+gridsize,x2,sizeof(float)*gridsize*2, cudaMemcpyHostToDevice));  
   gpuErrchk(cudaMemcpy(DeviceMem.nInfo.pos_y+gridsize,y2,sizeof(float)*gridsize*2, cudaMemcpyHostToDevice));  
   gpuErrchk(cudaMemcpy(DeviceMem.nInfo.pos_z+gridsize,z2,sizeof(float)*gridsize*2, cudaMemcpyHostToDevice));  
   free(x2);    free(y2);    free(z2);
+  return live;
 }
 //=====================end function setbank_prepbank() =========================
+
+void setbank_active_balance(MemStruct HostMem, unsigned num_src){
+  unsigned cursor = HostMem.bank.cursor_start[0]; 
+  unsigned    end = HostMem.bank.cursor_end[0]; 
+  int       range = cursor + num_src - end ; 
+  int k; 
+  while(cursor<end){
+    k = rand()%range + end - num_src;
+    HostMem.bank.x[cursor] = HostMem.bank.x[k];
+    HostMem.bank.y[cursor] = HostMem.bank.y[k];
+    HostMem.bank.z[cursor] = HostMem.bank.z[k];
+    cursor++;
+  }
+}
+
 
 void bank_print(MemStruct HostMem){
   printf("[==TOU==]");
@@ -252,7 +274,7 @@ void bank_print(MemStruct HostMem){
   printf("\n");
 }
 
-void setbank_active_in(unsigned idelta, MemStruct DeviceMem, MemStruct HostMem, int gridsize, int shift, int num_src){
+void setbank_active_in(MemStruct DeviceMem, MemStruct HostMem, int gridsize, int shift){
   int* fission_sites = (int*)malloc(sizeof(int)*gridsize);
   gpuErrchk(cudaMemcpy(fission_sites,DeviceMem.nInfo.imat+shift,sizeof(int )*gridsize, cudaMemcpyDeviceToHost));  
   gpuErrchk(cudaMemcpy(HostMem.nInfo.pos_x,DeviceMem.nInfo.pos_x+shift,sizeof(float)*gridsize, cudaMemcpyDeviceToHost));  
@@ -260,8 +282,9 @@ void setbank_active_in(unsigned idelta, MemStruct DeviceMem, MemStruct HostMem, 
   gpuErrchk(cudaMemcpy(HostMem.nInfo.pos_z,DeviceMem.nInfo.pos_z+shift,sizeof(float)*gridsize, cudaMemcpyDeviceToHost));  
   memset(HostMem.nInfo.live,0,sizeof(int)*gridsize);
   gpuErrchk(cudaMemcpy(HostMem.nInfo.live, DeviceMem.nInfo.live +shift,sizeof(int)*gridsize,   cudaMemcpyDeviceToHost));  
-  int live;  int fission_site;  int j=0;
-  int cursor = idelta*num_src + shift; 
+  int live;  int fission_site;   int j = 0;
+  int cursor = HostMem.bank.cursor_start[0];
+  int end    = HostMem.bank.cursor_end[0]; 
   for(int i=0;i<gridsize;i++){
     live = HostMem.nInfo.live[i];
     fission_site = fission_sites[i];
@@ -269,7 +292,7 @@ void setbank_active_in(unsigned idelta, MemStruct DeviceMem, MemStruct HostMem, 
     for(int k=0;k<live;k++){
       if(j>(gridsize*2)) {printf("live=%d,j=%d,i=%d/%d,overflow\n",live,j,i,gridsize);exit(-1);}
       //==========If fissioned, fission site also generates neutrons into the delay bank =============
-      if( (shift+j)<num_src ){
+      if( (cursor+j)<end ){
       HostMem.bank.x[cursor+j] = HostMem.nInfo.pos_x[i];
       HostMem.bank.y[cursor+j] = HostMem.nInfo.pos_y[i];
       HostMem.bank.z[cursor+j] = HostMem.nInfo.pos_z[i];
@@ -278,7 +301,7 @@ void setbank_active_in(unsigned idelta, MemStruct DeviceMem, MemStruct HostMem, 
       //}
     }
   }
-
+  HostMem.bank.cursor_start[0] = cursor+j; 
   free(fission_sites);
 }
 
@@ -417,7 +440,7 @@ void start_neutrons_active(unsigned idelta, unsigned gridx, unsigned blockx, Mem
     history<<<gridx, blockx/*, blockx*sizeof(unsigned)*/>>>(DeviceMem, gridx*blockx*num_seg,i*gridx*blockx,banksize,1);
     gpuErrchk(cudaDeviceSynchronize()); 
     //printf("before %dth setbank_in,j=%d:\n",i,j);    bank_print(HostMem);
-    setbank_active_in(idelta, DeviceMem, HostMem, gridx*blockx, i*gridx*blockx, gridx*blockx*num_seg); 
+    setbank_active_in(DeviceMem, HostMem, gridx*blockx, i*gridx*blockx); 
     //printf("after  %dth setbank_in,j=%d:\n",i,j);    bank_print(HostMem);
   }
   //printf("after setbank_out:\n");    bank_print(HostMem);  

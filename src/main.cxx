@@ -49,7 +49,7 @@ int main(int argc, char **argv){
   num_bat = num_bat/10000;
   int delta_prep = atoi(argv[10])%1000;
   double Pf = pf/(pf+pc);
-  printf("pf=%g,Pf=%g\n",pf,Pf);
+  printf("[]pf=%g,Pf=%g\n",pf,Pf);
   int num_seg = ubat;
 
   char name1[10];  char name2[10];  char name3[10]; char name4[10];
@@ -149,8 +149,8 @@ int main(int argc, char **argv){
 
   for(ibat=0;ibat<delta_prep;ibat++){
     start_neutrons(gridx, blockx, DeviceMem, num_seg,num_src,banksize,tnum_bin);
-    setbank_prepbank(DeviceMem, HostMem, num_src, ibat);
-    printf("%d[Filling delay bank...][%3d/%4d]: \n", -1,ibat,delta_prep);
+    banksize = setbank_prepbank(DeviceMem, HostMem, num_src, ibat);
+    printf("[Filling delay bank...][%3d/%4d]:%d-->%d \n", ibat,delta_prep, num_src, banksize);
   }
 
   release_memory_converge(DeviceMem, HostMem);
@@ -170,16 +170,19 @@ int main(int argc, char **argv){
   writeh5_nxm_(name, "tally",name2, &(time_elapsed), &intone, &intone);
   //
   for(ibat=0;ibat<num_bat;ibat++){
+    HostMem.bank.cursor_start[0] = (ibat%delta_prep)*num_src;
+    HostMem.bank.cursor_end[0]   = (ibat%delta_prep+1)*num_src;
     setbank_active_out(DeviceMem, HostMem, num_src, ibat%delta_prep);
     clock_start = clock();
     start_neutrons_active(ibat%delta_prep, gridx, blockx, DeviceMem, num_seg,banksize,tnum_bin, HostMem);
+    setbank_active_balance(HostMem, num_src);
     clock_end = clock();   time_elapsed += (float)(clock_end-clock_start)/CLOCKS_PER_SEC*1000.f;
     sprintf(name1,"%d",ibat+1);strcpy(name2,"timeprint");strcat(name2,name1);
     writeh5_nxm_(name, "tally",name2, &(time_elapsed), &intone, &intone);
     sprintf(name1,"%d",ibat);strcpy(name2,"BatcntA");strcat(name2,name1);
     writeh5_nxm_(name, "tally",name2, HostMem.batcnt, &intone, &inttwo);
     memset((HostMem).batcnt, 0, sizeof(CMPTYPE)*tnum_bin);
-    printf("%d[Active tallying .....][%3d/%d]: \n", -1,ibat,num_bat);
+    printf("[Active tallying .....][%3d/%d]: \n", ibat,num_bat);
   }
   release_memory_active(DeviceMem, HostMem);
   printdone();

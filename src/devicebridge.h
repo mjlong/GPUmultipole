@@ -23,10 +23,11 @@ void save_results(unsigned ibat, unsigned gridx, unsigned blockx, unsigned num_b
 void print_results(unsigned meshes, unsigned nbat, double *tally);
 
 unsigned setbank_converge(MemStruct DeviceMem, MemStruct HostMem, int gridsize);
-void setbank_prepbank(MemStruct DeviceMem, MemStruct HostMem, int gridsize, unsigned ibat);
+unsigned setbank_prepbank(MemStruct DeviceMem, MemStruct HostMem, int gridsize, unsigned ibat);
 
-void setbank_active_in(unsigned idelta, MemStruct DeviceMem, MemStruct HostMem, int gridsize, int shift, int num_src);
+void setbank_active_in(MemStruct DeviceMem, MemStruct HostMem, int gridsize, int shift);
 void setbank_active_out(MemStruct DeviceMem, MemStruct HostMem, unsigned num_src, unsigned idelta);
+void setbank_active_balance(MemStruct HostMem, unsigned num_src);
 void set_cursor_safe(MemStruct HostMem, unsigned ibat);
 void bank_print(MemStruct HostMem);
 
