@@ -8,6 +8,7 @@
 #include "process.h"
 
 #include <time.h>
+extern void createfixsrch5(char *filename);
 extern void createmptyh5(char *filename);
 extern void writeh5_nxm_(const char *filename, const char *groupname, const char *dsetname, double *vec1, int *num_vec, int *length);
 extern void writeh5_nxm_(const char *filename, const char *groupname, const char *dsetname, float  *vec1, int *num_vec, int *length);
@@ -16,6 +17,7 @@ extern void readh5_(char* filename, int* gridsize, int* nbat,
 	     int* meshes, double* width, 
 	     double* sigt, double* pf, double* pc);
 extern void readh5_(char* filename, int* cnt);
+extern void readh5_(char* filename, float* x, float* y, float* z);
 
 void printbless();
 void printdone();
@@ -121,7 +123,7 @@ int main(int argc, char **argv){
 //===============main simulation body=========================
 //============================================================
   printf("[Info] Running main simulation body ... \n");
-  unsigned banksize;
+  int banksize;
 
   clock_start = clock();
     
@@ -138,6 +140,34 @@ int main(int argc, char **argv){
     banksize=setbank_converge(DeviceMem, HostMem, num_src);
     printf("[Converging source ...][%3d/%4d]%4d-->%4d: \n", ibat,num_ubat,num_src,banksize);
   }
+  char srcname[20];
+  if( 0!=num_ubat ){
+    sprintf(srcname,"srcpnts_%d",banksize);
+    createfixsrch5(srcname);
+
+    float* x2 = (float*)malloc(sizeof(float)*num_src*2);
+    float* y2 = (float*)malloc(sizeof(float)*num_src*2);
+    float* z2 = (float*)malloc(sizeof(float)*num_src*2);
+    copysrcforwrite(HostMem, num_src, x2, y2, z2);
+    writeh5_nxm_(srcname,"/","x",       x2, &intone,&banksize);
+    writeh5_nxm_(srcname,"/","y",       y2, &intone,&banksize);
+    writeh5_nxm_(srcname,"/","z",       z2, &intone,&banksize);
+    writeh5_nxm_(srcname,"/","banksize",&banksize,           &intone,&intone);
+    free(x2);  free(y2);  free(z2);
+
+  }
+  else{ //read
+    int tempsize;readh5_(argv[12], &tempsize);
+    printf("[Info] Reading fixed bank ...%d \n",tempsize);    
+    float* x2 = (float*)malloc(sizeof(float)*tempsize);
+    float* y2 = (float*)malloc(sizeof(float)*tempsize);
+    float* z2 = (float*)malloc(sizeof(float)*tempsize);
+    readh5_(argv[12], x2,y2,z2);
+    gpuErrchk(cudaMemcpy(DeviceMem.nInfo.pos_x+num_src,x2,sizeof(float)*tempsize, cudaMemcpyHostToDevice));  
+    gpuErrchk(cudaMemcpy(DeviceMem.nInfo.pos_y+num_src,y2,sizeof(float)*tempsize, cudaMemcpyHostToDevice));  
+    gpuErrchk(cudaMemcpy(DeviceMem.nInfo.pos_z+num_src,z2,sizeof(float)*tempsize, cudaMemcpyHostToDevice));  
+    free(x2);  free(y2);  free(z2);
+  }
   //====================End of the phase to converge source: =====================
   //Note: the phase of convergence uses frame of size = gridsize*num_seg, which is also used by the bank preparation phase
   //      and the last execution of setbank_convergence() has initialized the source for the next generation
@@ -149,6 +179,7 @@ int main(int argc, char **argv){
   unsigned delaysize = unsigned((delta_prep)*gridx*blockx*num_seg);
   initialize_memory_bank(&HostMem, delaysize);
   int idist;
+
   for(ibat=0;ibat<delta_prep;ibat++){
     for(idist=0; idist<delta_dist; idist++){
       start_neutrons(gridx, blockx, DeviceMem, num_seg,num_src,banksize,tnum_bin);
