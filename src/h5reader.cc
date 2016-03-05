@@ -7,7 +7,7 @@ void readh5_(char* filename, int* cnt){
   herr_t      status;
 
   file_id = H5Fopen(filename, H5F_ACC_RDONLY, H5P_DEFAULT);
-  dataset_id = H5Dopen(file_id, "batch_cnt", H5P_DEFAULT);
+  dataset_id = H5Dopen(file_id, "banksize", H5P_DEFAULT);
   status = H5Dread(dataset_id, H5T_NATIVE_INT, H5S_ALL, H5S_ALL, H5P_DEFAULT, (int*)cnt);
   status = H5Dclose(dataset_id);
   status = H5Fclose(file_id);
@@ -49,6 +49,29 @@ void readh5_(char* filename, int* gridsize, int* nbat,
 
   dataset_id = H5Dopen(file_id, "pc", H5P_DEFAULT);
   status = H5Dread(dataset_id, H5T_NATIVE_DOUBLE, H5S_ALL, H5S_ALL, H5P_DEFAULT, (double*)pc);
+  status = H5Dclose(dataset_id);
+
+  status = H5Fclose(file_id);
+}
+
+
+void readh5_(char* filename, float* x, float* y, float* z){
+
+  hid_t       file_id, dataset_id;  /* identifiers */
+  herr_t      status;
+
+  file_id = H5Fopen(filename, H5F_ACC_RDONLY, H5P_DEFAULT);
+
+  dataset_id = H5Dopen(file_id, "x", H5P_DEFAULT);
+  status = H5Dread(dataset_id, H5T_NATIVE_FLOAT, H5S_ALL, H5S_ALL, H5P_DEFAULT, (float*)x);
+  status = H5Dclose(dataset_id);
+
+  dataset_id = H5Dopen(file_id, "y", H5P_DEFAULT);
+  status = H5Dread(dataset_id, H5T_NATIVE_FLOAT, H5S_ALL, H5S_ALL, H5P_DEFAULT, (float*)y);
+  status = H5Dclose(dataset_id);
+
+  dataset_id = H5Dopen(file_id, "z", H5P_DEFAULT);
+  status = H5Dread(dataset_id, H5T_NATIVE_FLOAT, H5S_ALL, H5S_ALL, H5P_DEFAULT, (float*)z);
   status = H5Dclose(dataset_id);
 
   status = H5Fclose(file_id);
