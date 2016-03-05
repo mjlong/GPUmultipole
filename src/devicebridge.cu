@@ -165,10 +165,28 @@ unsigned setbank_converge(MemStruct DeviceMem, MemStruct HostMem, int gridsize){
   gpuErrchk(cudaMemcpy(DeviceMem.nInfo.pos_x+gridsize,x2,sizeof(float)*gridsize*2, cudaMemcpyHostToDevice));  
   gpuErrchk(cudaMemcpy(DeviceMem.nInfo.pos_y+gridsize,y2,sizeof(float)*gridsize*2, cudaMemcpyHostToDevice));  
   gpuErrchk(cudaMemcpy(DeviceMem.nInfo.pos_z+gridsize,z2,sizeof(float)*gridsize*2, cudaMemcpyHostToDevice));  
+
   free(x2);  free(y2);  free(z2);
   return j;
 }
 //=====================end function setbank_converge() =========================
+void copysrcforwrite(MemStruct HostMem, int num_src, float* x2, float* y2, float* z2){
+  int live;  unsigned j=0;int k=0;
+  for(int i=0;i<num_src;i++){
+    live = HostMem.nInfo.live[i];
+    //if(live<4){
+    for(k=0;k<live;k++){//live=2 or 3
+      if(j>(num_src*2)) {printf("live=%d,j=%d,i=%d/%d,overflow\n",live,j,i,num_src);exit(-1);}
+      //else{
+      x2[j]=HostMem.nInfo.pos_x[i];
+      y2[j]=HostMem.nInfo.pos_y[i];
+      z2[j]=HostMem.nInfo.pos_z[i];
+      j++;
+      //}
+    }
+    //}
+  }
+}
 
 
 //==============================================================================

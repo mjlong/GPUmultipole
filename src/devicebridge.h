@@ -23,6 +23,7 @@ void save_results(unsigned ibat, unsigned gridx, unsigned blockx, unsigned num_b
 void print_results(unsigned meshes, unsigned nbat, double *tally);
 
 unsigned setbank_converge(MemStruct DeviceMem, MemStruct HostMem, int gridsize);
+void copysrcforwrite(MemStruct HostMem, int num_src, float* x2, float* y2, float* z2);
 unsigned setbank_prepbank(MemStruct DeviceMem, MemStruct HostMem, int gridsize, unsigned ibat, bool write);
 
 void setbank_active_in(MemStruct DeviceMem, MemStruct HostMem, int gridsize, int shift);
