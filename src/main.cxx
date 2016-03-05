@@ -48,6 +48,7 @@ int main(int argc, char **argv){
   int num_ubat = num_bat%10000;
   num_bat = num_bat/10000;
   int delta_prep = atoi(argv[10])%1000;
+  int delta_dist = atoi(argv[11]);
   double Pf = pf/(pf+pc);
   printf("[]pf=%g,Pf=%g\n",pf,Pf);
   int num_seg = ubat;
@@ -71,13 +72,14 @@ int main(int argc, char **argv){
   strcpy(name,"R3d2Rawcnt_debug"); 
 #endif
   strcat(name,name1); strcat(name,name2); strcat(name,name3); strcat(name,name4); 
-  sprintf(name4,"_%d_s%d",atoi(argv[10])%1000,atoi(argv[10])/1000);   strcat(name,name4); strcat(name,".h5");
+  sprintf(name4,"_%dx%d_+%d_s%d",delta_dist, atoi(argv[10])%1000, num_ubat, atoi(argv[10])/1000);   strcat(name,name4); strcat(name,".h5");
   createmptyh5(name); //create empty file for future add dataset
   
   int intone=1; 
   int inttwo=1;
   writeh5_nxm_(name,"/","num_conv",   &(num_ubat),&intone, &intone);
   writeh5_nxm_(name,"/","num_prep", &(delta_prep),&intone, &intone);
+  writeh5_nxm_(name,"/","del_dist", &(delta_dist),&intone, &intone);
   writeh5_nxm_(name,"/","num_batch",  &(num_bat),  &intone, &intone);
   writeh5_nxm_(name,"/","num_cells",   &(num_bin),  &intone, &intone);
   writeh5_nxm_(name,"/","width",   &(width),  &intone, &intone);
@@ -134,7 +136,7 @@ int main(int argc, char **argv){
   for(ibat=0;ibat<num_ubat;ibat++){
     start_neutrons(gridx, blockx, DeviceMem, num_seg,num_src,banksize,tnum_bin);
     banksize=setbank_converge(DeviceMem, HostMem, num_src);
-    //printf("%d[Converging source ...][%3d/%4d]%4d-->%4d: \n", -1,ibat,num_ubat,num_src,banksize);
+    printf("[Converging source ...][%3d/%4d]%4d-->%4d: \n", ibat,num_ubat,num_src,banksize);
   }
   //====================End of the phase to converge source: =====================
   //Note: the phase of convergence uses frame of size = gridsize*num_seg, which is also used by the bank preparation phase
@@ -146,10 +148,12 @@ int main(int argc, char **argv){
   //==============================================================================
   unsigned delaysize = unsigned((delta_prep)*gridx*blockx*num_seg);
   initialize_memory_bank(&HostMem, delaysize);
-
+  int idist;
   for(ibat=0;ibat<delta_prep;ibat++){
-    start_neutrons(gridx, blockx, DeviceMem, num_seg,num_src,banksize,tnum_bin);
-    banksize = setbank_prepbank(DeviceMem, HostMem, num_src, ibat);
+    for(idist=0; idist<delta_dist; idist++){
+      start_neutrons(gridx, blockx, DeviceMem, num_seg,num_src,banksize,tnum_bin);
+      banksize = setbank_prepbank(DeviceMem, HostMem, num_src, ibat, 0==idist);
+    }
     printf("[Filling delay bank...][%3d/%4d]:%d-->%d \n", ibat,delta_prep, num_src, banksize);
   }
 
