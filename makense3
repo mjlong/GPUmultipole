@@ -77,7 +77,7 @@ else
 ifeq ($(ctally2),true)
 EXENAME=$(DIR_BIN)/box3d2rm_debug
 else
-EXENAME=$(DIR_BIN)/box3drm_std
+EXENAME=$(DIR_BIN)/box3drm
 endif
 endif
 endif
@@ -86,7 +86,7 @@ ifeq ($(ftally),true)
 ifeq ($(dim),1d)
 EXENAME=$(DIR_BIN)/boxf1drm
 else
-EXENAME=$(DIR_BIN)/boxf3drm
+EXENAME=$(DIR_BIN)/boxf3drm_std
 endif
 endif
 
