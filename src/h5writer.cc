@@ -10,6 +10,14 @@ long vector with size length X num_vec;
 
 allocating "num_vec" vectors with length length will NOT work
  */
+
+void createfixsrch5(char *filename){
+  hid_t file;
+  herr_t status;
+  file = H5Fcreate(filename, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
+  status = H5Fclose(file);
+}
+
 void createmptyh5(char *filename){
   hid_t file, group;
   herr_t status;
