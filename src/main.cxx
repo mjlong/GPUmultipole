@@ -6,6 +6,7 @@
 #include "devicebridge.h"
 
 #include <time.h>
+extern void createfixsrch5(char *filename);
 extern void createmptyh5(char *filename);
 extern void writeh5_nxm_(const char *filename, const char *groupname, const char *dsetname, double *vec1, int *num_vec, int *length);
 extern void writeh5_nxm_(const char *filename, const char *groupname, const char *dsetname, float  *vec1, int *num_vec, int *length);
@@ -14,6 +15,7 @@ extern void readh5_(char* filename, int* gridsize, int* nbat,
 	     int* meshes, double* width, 
 	     double* sigt, double* pf, double* pc);
 extern void readh5_(char* filename, int* cnt);
+extern void readh5_(char* filename, float* x, float* y, float* z);
 
 void printbless();
 void printdone();
@@ -49,6 +51,7 @@ int main(int argc, char **argv){
   double Pf = pf/(pf+pc);
   printf("pf=%g,Pf=%g\n",pf,Pf);
   int delta_prep = (delta_safe); 
+  int delta_dist = atoi(argv[11]);
   int num_seg = ubat;
 
   char name1[10];  char name2[10];  char name3[10]; char name4[10];
@@ -70,13 +73,14 @@ int main(int argc, char **argv){
   strcpy(name,"R3d2Rawcnt_debug"); 
 #endif
   strcat(name,name1); strcat(name,name2); strcat(name,name3); strcat(name,name4); 
-  sprintf(name4,"_%d_s%d",atoi(argv[10])%1000,atoi(argv[10])/1000);   strcat(name,name4); strcat(name,".h5");
+  sprintf(name4,"_%dx%d_+%d_s%d",delta_dist,atoi(argv[10])%1000,num_ubat,atoi(argv[10])/1000);   strcat(name,name4); strcat(name,".h5");
   createmptyh5(name); //create empty file for future add dataset
   
   int intone=1; 
   int inttwo=1;
   writeh5_nxm_(name,"/","num_conv",   &(num_ubat),&intone, &intone);
   writeh5_nxm_(name,"/","num_prep", &(delta_prep),&intone, &intone);
+
   writeh5_nxm_(name,"/","num_batch",  &(num_bat),  &intone, &intone);
   writeh5_nxm_(name,"/","del_safe",&(delta_safe),  &intone, &intone);
   writeh5_nxm_(name,"/","num_cells",   &(num_bin),  &intone, &intone);
@@ -119,7 +123,7 @@ int main(int argc, char **argv){
 //===============main simulation body=========================
 //============================================================
   printf("[Info] Running main simulation body ... \n");
-  unsigned banksize;
+  int banksize;
 
   clock_start = clock();
     
@@ -140,7 +144,34 @@ int main(int argc, char **argv){
   //Note: the phase of convergence uses frame of size = gridsize*num_seg_XL, which is also used by the bank preparation phase
   //      and the last execution of setbank_convergence() has initialized the source for the next generation
   //      therefore, transition here is smooth
+  char srcname[20];
+  if( 0!=num_ubat ){
+    sprintf(srcname,"srcpnts_%d",banksize);
+    createfixsrch5(srcname);
 
+    float* x2 = (float*)malloc(sizeof(float)*num_src*2);
+    float* y2 = (float*)malloc(sizeof(float)*num_src*2);
+    float* z2 = (float*)malloc(sizeof(float)*num_src*2);
+    copysrcforwrite(HostMem, num_src, x2, y2, z2);
+    writeh5_nxm_(srcname,"/","x",       x2, &intone,&banksize);
+    writeh5_nxm_(srcname,"/","y",       y2, &intone,&banksize);
+    writeh5_nxm_(srcname,"/","z",       z2, &intone,&banksize);
+    writeh5_nxm_(srcname,"/","banksize",&banksize,           &intone,&intone);
+    free(x2);  free(y2);  free(z2);
+
+  }
+  else{ //read
+    int tempsize;readh5_(argv[12], &tempsize);
+    printf("[Info] Reading fixed bank ...%d \n",tempsize);    
+    float* x2 = (float*)malloc(sizeof(float)*tempsize);
+    float* y2 = (float*)malloc(sizeof(float)*tempsize);
+    float* z2 = (float*)malloc(sizeof(float)*tempsize);
+    readh5_(argv[12], x2,y2,z2);
+    gpuErrchk(cudaMemcpy(DeviceMem.nInfo.pos_x+num_src,x2,sizeof(float)*tempsize, cudaMemcpyHostToDevice));  
+    gpuErrchk(cudaMemcpy(DeviceMem.nInfo.pos_y+num_src,y2,sizeof(float)*tempsize, cudaMemcpyHostToDevice));  
+    gpuErrchk(cudaMemcpy(DeviceMem.nInfo.pos_z+num_src,z2,sizeof(float)*tempsize, cudaMemcpyHostToDevice));  
+    free(x2);  free(y2);  free(z2);
+  }
   //==============================================================================
   //==========Start from the converged source; fill the delayed bank =============
   //==============================================================================
