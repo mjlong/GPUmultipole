@@ -73,7 +73,7 @@ unsigned setbank(MemStruct DeviceMem, MemStruct HostMem, int gridsize, int tnum_
     HostMem.batcnt[sid]++;
     if(0!=y){
 #if defined(__MTALLY)
-      sid = sid/tnum_bins;
+      sid = mod(sid,tnum_bins);
       if(y>0){sid2[j]=sid; x2[j++]=y;sid2[j]=sid;x2[j++]=y;sid2[j]=sid;x2[j++]=y;}
       else{sid2[j]=sid; x2[j++]=0-y;sid2[j]=sid; x2[j++]=0-y;}
 #else
@@ -228,7 +228,7 @@ unsigned setbank(MemStruct DeviceMem, MemStruct HostMem, int gridsize, int tnum_
   for(int i=0;i<gridsize;i++){
     live = HostMem.nInfo.live[i];
     sid = sid1[i];
-    HostMem.batcnt[sid]+= (1*(0!=live));
+    HostMem.batcnt[sid]+= 1;
     //if(live<4){
     for(k=0;k<live;k++){//live=2 or 3
       if(j>(gridsize*2)) {printf("live=%d,j=%d,i=%d/%d,overflow\n",live,j,i,gridsize);exit(-1);}
@@ -237,7 +237,7 @@ unsigned setbank(MemStruct DeviceMem, MemStruct HostMem, int gridsize, int tnum_
       y2[j]=HostMem.nInfo.pos_y[i];
       z2[j]=HostMem.nInfo.pos_z[i];
 #if defined(__MTALLY)
-      sid2[j]=sid/tnum_bins;
+      sid2[j]=mod(sid,tnum_bins);
 #endif
       j++;
       //}

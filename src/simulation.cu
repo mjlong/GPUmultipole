@@ -54,12 +54,12 @@ __device__ void neutron_sample(NeutronInfoStruct nInfo, unsigned id,unsigned idr
   //nInfo.pos_x[id] =width/PI*acos(1-2*curand_uniform_double(&state));//width*curand_uniform_double(&state);// 
   //nInfo.pos_y[id] =width/PI*acos(1-2*curand_uniform_double(&state));//width*curand_uniform_double(&state);// 
   //nInfo.pos_z[id] =width/PI*acos(1-2*curand_uniform_double(&state));//width*curand_uniform_double(&state);// 
-  nInfo.pos_x[id] =width*curand_uniform_double(&state);//width/(CHOP*PI)*asin(sin(PI*0.5*CHOP)*(1-2*curand_uniform_double(&state)))+width*0.5;// 
-  nInfo.pos_y[id] =width*curand_uniform_double(&state);//width/(CHOP*PI)*asin(sin(PI*0.5*CHOP)*(1-2*curand_uniform_double(&state)))+width*0.5;// 
-  nInfo.pos_z[id] =width*curand_uniform_double(&state);//width/(CHOP*PI)*asin(sin(PI*0.5*CHOP)*(1-2*curand_uniform_double(&state)))+width*0.5;// 
-  //nInfo.pos_x[id] =width*0.5;
-  //nInfo.pos_y[id] =width*0.5;
-  //nInfo.pos_z[id] =width*0.5;
+  //nInfo.pos_x[id] =width*curand_uniform_double(&state);//width/(CHOP*PI)*asin(sin(PI*0.5*CHOP)*(1-2*curand_uniform_double(&state)))+width*0.5; 
+  //nInfo.pos_y[id] =width*curand_uniform_double(&state);//width/(CHOP*PI)*asin(sin(PI*0.5*CHOP)*(1-2*curand_uniform_double(&state)))+width*0.5; 
+  //nInfo.pos_z[id] =width*curand_uniform_double(&state);//width/(CHOP*PI)*asin(sin(PI*0.5*CHOP)*(1-2*curand_uniform_double(&state)))+width*0.5; 
+  nInfo.pos_x[id] =width*0.5;
+  nInfo.pos_y[id] =width*0.5;
+  nInfo.pos_z[id] =width*0.5;
 #endif
   nInfo.rndState[idr] = state;
 #if defined(__WASTE)
@@ -136,13 +136,6 @@ __global__ void history(MemStruct DeviceMem, unsigned num_src,int shift,unsigned
   float z = DeviceMem.nInfo.pos_z[nid];
   float mu,phi; 
 
-#if defined(__MTALLY)
-  DeviceMem.nInfo.imat[id] =  ((int)floorf(x/wdspp[1]) + 
-			       (int)floorf(y/wdspp[1])*(int)wdspp[5] + 
-			       (int)floorf(z/wdspp[1])*(int)(wdspp[5]*wdspp[5]) + 
-			       DeviceMem.nInfo.imat[nid]);
-  //Note: wdspp[5] is num_bin in each dimension 
-#endif
 #if defined(__FTALLY)
   DeviceMem.nInfo.imat[id] = ((int)floorf(x/wdspp[1]) + 
 			      (int)floorf(y/wdspp[1])*(int)wdspp[5] + 
@@ -247,6 +240,14 @@ __global__ void history(MemStruct DeviceMem, unsigned num_src,int shift,unsigned
   DeviceMem.nInfo.pos_x[id] = x;
   DeviceMem.nInfo.pos_y[id] = y;
   DeviceMem.nInfo.pos_z[id] = z;
+#if defined(__MTALLY)
+  DeviceMem.nInfo.imat[id] =  ((int)floorf(x/wdspp[1]) + 
+			       (int)floorf(y/wdspp[1])*(int)wdspp[5] + 
+			       (int)floorf(z/wdspp[1])*(int)(wdspp[5]*wdspp[5]) + 
+			       DeviceMem.nInfo.imat[nid]*(int)(wdspp[5]*wdspp[5]*wdspp[5]) );
+  //Note: wdspp[5] is num_bin in each dimension 
+#endif
+
   DeviceMem.nInfo.rndState[id-shift] = localState; 
   //if(3<DeviceMem.nInfo.live[id]) printf("  id=%d, live[%d]= %d\n", id, id,DeviceMem);
   //if(34217==id) printf("  id=%d, live[%d]= %d, x=%.2f,y=%.2f,z=%.2f\n", id, id,DeviceMem.nInfo.live[id],x,y,z);
@@ -371,10 +372,6 @@ __global__ void history(MemStruct DeviceMem, unsigned num_src,int shift,unsigned
 
   CMPTYPE rnd;
   float x = DeviceMem.nInfo.pos_x[nid];
-#if defined(__MTALLY)
-  DeviceMem.nInfo.imat[id]= ( int(floorf(x/dx))  *(int)(wdspp[5])+DeviceMem.nInfo.imat[nid]);
-  //Note: wdspp[5] is num_bin in each dimension 
-#endif
 #if defined(__FTALLY)
   DeviceMem.nInfo.imat[id] = int(floorf(x/dx));  
 #endif  
@@ -421,6 +418,10 @@ __global__ void history(MemStruct DeviceMem, unsigned num_src,int shift,unsigned
     }//end collision type
     }//end else reflect
   }//end one history
+#if defined(__MTALLY)
+  DeviceMem.nInfo.imat[id]= ( int(floorf(x/dx))  +DeviceMem.nInfo.imat[nid]*(int)(wdspp[5]));
+  //Note: wdspp[5] is num_bin in each dimension 
+#endif
   //}
   //blockTerminated[idl] =1;// !live;
   DeviceMem.nInfo.rndState[id-shift] = localState; 
