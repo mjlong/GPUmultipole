@@ -24,6 +24,8 @@ void save_results(unsigned ibat, unsigned gridx, unsigned blockx, unsigned num_b
 void print_results(unsigned meshes, unsigned nbat, double *tally);
 
 #if defined(__MTALLY)||(__FTALLY)||(__FTALLY2)
+unsigned setbank_converge(MemStruct DeviceMem, MemStruct HostMem, int gridsize);
+void copysrcforwrite(MemStruct HostMem, int num_src, float* x2, float* y2, float* z2);
 #if defined(FTALLY2)
 unsigned setbank(MemStruct DeviceMem, MemStruct HostMem, int gridsize, int banksize, unsigned jstart, int shift);
 void setbank2(MemStruct DeviceMem, MemStruct HostMem, int banksize, unsigned jstart);
