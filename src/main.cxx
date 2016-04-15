@@ -8,14 +8,19 @@
 #include "process.h"
 
 #include <time.h>
+extern void createfixsrch5(char *filename);
 extern void createmptyh5(char *filename);
-extern void writeh5_nxm_(const char *filename, const char *groupname, const char *dsetname, double *vec1, int *num_vec, int *length);
-extern void writeh5_nxm_(const char *filename, const char *groupname, const char *dsetname, float  *vec1, int *num_vec, int *length);
-extern void writeh5_nxm_(const char *filename, const char *groupname, const char *dsetname, int    *vec1, int *num_vec, int *length);
+extern void writeh5_nxm_(const char *filename, const char *groupname, const char
+			 *dsetname, double *vec1, int *num_vec, int *length);
+extern void writeh5_nxm_(const char *filename, const char *groupname, const char
+			 *dsetname, float  *vec1, int *num_vec, int *length);
+extern void writeh5_nxm_(const char *filename, const char *groupname, const char
+			 *dsetname, int    *vec1, int *num_vec, int *length);
 extern void readh5_(char* filename, int* gridsize, int* nbat, 
-	     int* meshes, double* width, 
-	     double* sigt, double* pf, double* pc);
+		    int* meshes, double* width, 
+		    double* sigt, double* pf, double* pc);
 extern void readh5_(char* filename, int* cnt);
+extern void readh5_(char* filename, float* x, float* y, float* z);
 
 void printbless();
 void printdone();
@@ -30,48 +35,35 @@ int main(int argc, char **argv){
   int gridx, blockx, gridsize,num_src;
   int num_bin, tnum_bin;
   int num_bat;
-  int ubat,upto;
+  int num_seg,upto;
   int ibat=0;
   double width, sigt, pf,pc,v1;
   char name[60];
   int mode; //0=run only; 1=process only; 2=run & process
   int isSteady=0;
 
-  if(argc>=8+1){//run or run+process
-    gridx = atoi(argv[1]);
-    blockx = atoi(argv[2]);
-    gridsize = gridx*blockx;
-    num_bat = atoi(argv[3]);    
-    num_bin = atoi(argv[4]);
-    width = atof(argv[5]);
-    sigt  = atof(argv[6]);
-    pf    = atof(argv[7]);
-    pc    = atof(argv[8]);
-    ubat  = atoi(argv[9]);
-    mode = 0;   //run only
-    /*if(argc>=11+1){
-      ubat = atoi(argv[9]);
-      upto = atoi(argv[10]);
-      print = atoi(argv[11]);
-      mode = 2; //run+process
-      }*/
-  }
-  else{
-    mode = 1; //process only
-    ubat = atoi(argv[2]);
-    upto = atoi(argv[3]);
-    print = atoi(argv[4]);
-    readh5_(argv[1],&gridsize,&num_bat,&num_bin,&width,&sigt,&pf,&pc);
+  gridx = atoi(argv[1]);
+  blockx = atoi(argv[2]);
+  gridsize = gridx*blockx;
+  num_bat = atoi(argv[3]);    
+  num_bin = atoi(argv[4]);
+  width = atof(argv[5]);
+  sigt  = atof(argv[6]);
+  pf    = atof(argv[7]);
+  pc    = atof(argv[8]);
+  num_seg  = atoi(argv[9]);
 
-  }
-  num_src=gridx*blockx*ubat;
+  int num_ubat = num_bat%10000;
+  num_bat = num_bat/10000;
+
+  num_src=gridx*blockx*num_seg;
   char name1[10];  char name2[10];  char name3[10]; char name4[10];
   sprintf(name1,"_%d",gridsize);
-  sprintf(name2,"_%d",ubat);
+  sprintf(name2,"_%d",num_seg);
   sprintf(name3,"_%d",num_bat);
   sprintf(name4,"_%d",num_bin);
 #if defined(__1D)&&defined(__MTALLY)
-  strcepy(name,"R1dTmacnt"); 
+  strcpy(name,"R1dTmacnt"); 
 #endif
 #if defined(__1D)&&defined(__FTALLY)
   strcpy(name,"R1dRawsrc"); 
@@ -80,7 +72,7 @@ int main(int argc, char **argv){
   strcpy(name,"R1dRawcnt"); 
 #endif
 #if defined(__3D)&&defined(__MTALLY)
-  strcepy(name,"R3dTmacnt"); 
+  strcpy(name,"R3dTmacnt"); 
 #endif
 #if defined(__3D)&&(defined(__FTALLY)||defined(__FTALLY2))
   strcpy(name,"R3dRawsrc"); 
@@ -89,7 +81,7 @@ int main(int argc, char **argv){
   strcpy(name,"R3d2Rawcnt_debug"); 
 #endif
   strcat(name,name1); strcat(name,name2); strcat(name,name3); strcat(name,name4); 
-  sprintf(name4,"_s%d",atoi(argv[10]));   strcat(name,name4); strcat(name,".h5");
+  sprintf(name4,"_i%d_s%d",num_ubat,atoi(argv[10]));   strcat(name,name4); strcat(name,".h5");
   createmptyh5(name); //create empty file for future add dataset
   
   int intone=1; 
@@ -117,11 +109,7 @@ int main(int argc, char **argv){
 #if defined(__FTALLY)||defined(__FTALLY2)
   inttwo = tnum_bin;
 #endif
-  initialize_memory(&DeviceMem, &HostMem, tnum_bin, gridx,blockx,num_bat,ubat);
-#if defined(__PROCESS)
-  if(1==mode)//process only, need to access the raw collision count
-    readh5_(argv[1], HostMem.batcnt);
-#endif    
+  initialize_memory(&DeviceMem, &HostMem, tnum_bin, gridx,blockx,num_bat,num_seg);
 
   HostMem.wdspp[0] = width;
   HostMem.wdspp[1] = width/num_bin;
@@ -133,84 +121,132 @@ int main(int argc, char **argv){
   double ref = 1.0/(HostMem.wdspp[3]+HostMem.wdspp[4])/width;
   // note this only works for flat
   copydata(DeviceMem,HostMem);
-  printf("[]nhis=%-6d,ubat=%3d,nbat=%-6d,meshes=%-6d,box width=%.2f\n",gridsize,ubat,num_bat,num_bin,width);
+  printf("[]nhis=%-6d,num_seg=%3d,nbat=%-6d,meshes=%-6d,box width=%.2f\n",
+	 gridsize,num_seg,num_bat,num_bin,width);
   printf("[]mfp=%.5f, pf=%.5f, pc=%.5f, ps=%.5f\n",HostMem.wdspp[2], HostMem.wdspp[3], HostMem.wdspp[4],1-(HostMem.wdspp[3]+HostMem.wdspp[4]));
 
 //============================================================ 
 //===============main simulation body=========================
 //============================================================
   printf("[Info] Running main simulation body ... \n");
-  unsigned active,banksize;
-  if(1!=mode){//run simulation except 'process only' mode
-    active = 1;
-
-    clock_start = clock();
-    //==============================================================================
-    //======================Steady State ===========================================
-    //==============================================================================
-    banksize = gridx*blockx*ubat;
-    initialize_neutrons(gridx, blockx, DeviceMem,width,banksize,ubat,atoi(argv[10])); 
-    // plot initial distribution
+  int banksize;
+  clock_start = clock();
+  //==============================================================================
+  //======================Steady State ===========================================
+  //==============================================================================
+  banksize = gridx*blockx*num_seg;
+  initialize_neutrons(gridx, blockx, DeviceMem,width,banksize,num_seg,
+		      atoi(argv[10])); 
+  // plot initial distribution
 #if defined(__SCATTERPLOT)
-    copyinitial(DeviceMem, HostMem, gridsize);
-    sprintf(name1,"%d",ibat);
+  copyinitial(DeviceMem, HostMem, gridsize);
+  sprintf(name1,"%d",ibat);
+  strcpy(name2,"x");    strcat(name2,name1); 
+  writeh5_nxm_(name, "scatterplot",name2,HostMem.nInfo.pos_x,  &intone, &gridsize);
+  strcpy(name2,"y");    strcat(name2,name1); 
+  writeh5_nxm_(name, "scatterplot",name2,HostMem.nInfo.pos_y,  &intone, &gridsize);
+  strcpy(name2,"z");    strcat(name2,name1); 
+  writeh5_nxm_(name, "scatterplot",name2,HostMem.nInfo.pos_z,  &intone, &gridsize);
+  strcpy(name2,"color");strcat(name2,name1); 
+  writeh5_nxm_(name, "scatterplot",name2,HostMem.nInfo.energy, &intone, &gridsize);
+#endif
+
+  //==========================================================================
+  //========== Converged source ==============================================
+  //==========================================================================
+  for(ibat=0;ibat<num_ubat;ibat++){
+    start_neutrons(gridx, blockx, DeviceMem, num_seg,num_src,banksize,tnum_bin);
+    banksize=setbank_converge(DeviceMem, HostMem, num_src);
+    printf("[Converging source ...][%3d/%4d]%4d-->%4d: \n",
+	   ibat,num_ubat,num_src,banksize);
+  }
+
+  char srcname[20];
+  if( 0!=num_ubat ){
+    sprintf(srcname,"srcpntM_%d",banksize);
+    createfixsrch5(srcname);
+
+    float* x2 = (float*)malloc(sizeof(float)*num_src*2);
+    float* y2 = (float*)malloc(sizeof(float)*num_src*2);
+    float* z2 = (float*)malloc(sizeof(float)*num_src*2);
+    copysrcforwrite(HostMem, num_src, x2, y2, z2);
+    writeh5_nxm_(srcname,"/","x",       x2, &intone,&banksize);
+    writeh5_nxm_(srcname,"/","y",       y2, &intone,&banksize);
+    writeh5_nxm_(srcname,"/","z",       z2, &intone,&banksize);
+    writeh5_nxm_(srcname,"/","banksize",&banksize,           &intone,&intone);
+    free(x2);  free(y2);  free(z2);
+
+  }
+  else{ //read
+    int tempsize;readh5_(argv[11], &tempsize);
+    printf("[Info] Reading fixed bank ...%d \n",tempsize);    
+    float* x2 = (float*)malloc(sizeof(float)*tempsize);
+    float* y2 = (float*)malloc(sizeof(float)*tempsize);
+    float* z2 = (float*)malloc(sizeof(float)*tempsize);
+    readh5_(argv[11], x2,y2,z2);
+    gpuErrchk(cudaMemcpy(DeviceMem.nInfo.pos_x+num_src,x2,sizeof(float)
+			 *tempsize, cudaMemcpyHostToDevice));  
+    gpuErrchk(cudaMemcpy(DeviceMem.nInfo.pos_y+num_src,y2,sizeof(float)
+			 *tempsize, cudaMemcpyHostToDevice));  
+    gpuErrchk(cudaMemcpy(DeviceMem.nInfo.pos_z+num_src,z2,sizeof(float)
+			 *tempsize, cudaMemcpyHostToDevice));  
+    free(x2);  free(y2);  free(z2);
+  }
+
+  //====================End of the phase to converge source ===================
+  
+  clock_end   = clock();
+  time_elapsed = (float)(clock_end-clock_start)/CLOCKS_PER_SEC*1000.f;
+  strcpy(name2,"timeprint0");
+  writeh5_nxm_(name, "tally",name2, &(time_elapsed), &intone, &intone);
+  for(ibat=0;ibat<num_bat;ibat++){
+    clock_start = clock();
+#if !defined(__FTALLY2)
+    start_neutrons(gridx, blockx, DeviceMem, num_seg,num_src,banksize,tnum_bin);
+#endif
+    //check(gridx,blockx,DeviceMem,ubat);
+    //active = count_neutrons(gridx, blockx, DeviceMem, HostMem,num_src);
+#if defined(__TALLY)
+#if defined(__MTALLY)||(__FTALLY)||(__FTALLY2)
+#if !defined(__FTALLY2)
+    banksize = setbank(DeviceMem, HostMem, num_src,tnum_bin);
+#else
+    banksize = start_neutrons(gridx, blockx, DeviceMem, num_seg,num_src,banksize,tnum_bin,HostMem);
+#endif
+    clock_end = clock();   time_elapsed += (float)(clock_end-clock_start)/CLOCKS_PER_SEC*1000.f;
+    sprintf(name1,"%d",ibat+1);strcpy(name2,"timeprint");strcat(name2,name1);
+    writeh5_nxm_(name, "tally",name2, &(time_elapsed), &intone, &intone);
+
+    sprintf(name1,"%d",ibat);strcpy(name2,"Tmatrix");strcat(name2,name1);
+    writeh5_nxm_(name, "tally",name2, HostMem.batcnt, &intone, &inttwo);
+#if defined(__MTALLY)
+    memset((HostMem).batcnt, 0, sizeof(CMPTYPE)*tnum_bin*tnum_bin);
+#else
+    memset((HostMem).batcnt, 0, sizeof(CMPTYPE)*tnum_bin);
+#endif //end M or F
+#else  //else C
+    banksize = setbank(DeviceMem, HostMem, num_src);
+    //initialize_neutrons_fix(gridx,blockx,DeviceMem,width,num_seg); 
+    save_results(ibat,gridx, blockx, tnum_bin, DeviceMem, HostMem);
+    sprintf(name1,"%d",ibat);strcpy(name2,"batch_cnt");strcat(name2,name1);
+    writeh5_nxm_(name, "tally",name2, HostMem.batcnt, &intone, &tnum_bin);
+    resettally(DeviceMem.tally.cnt, tnum_bin*gridsize);
+#if defined(__CTALLY2)
+    sprintf(name1,"%d",ibat);strcpy(name2,"batch_cnts");strcat(name2,name1);
+    writeh5_nxm_(name, "tally",name2, HostMem.batcnt2, &intone, &tnum_bin);
+    resettally(DeviceMem.tally.cnt2, tnum_bin*gridsize);
+#endif
+#endif //end  TALLY types
+    printf("%d[%3d]%4d-->%4d: \n", -1,ibat,num_src,banksize);
+#endif //end TALLY
+#if defined(__SCATTERPLOT)
+    sprintf(name1,"%d",ibat+1);
     strcpy(name2,"x");    strcat(name2,name1); writeh5_nxm_(name, "scatterplot",name2,HostMem.nInfo.pos_x,  &intone, &gridsize);
     strcpy(name2,"y");    strcat(name2,name1); writeh5_nxm_(name, "scatterplot",name2,HostMem.nInfo.pos_y,  &intone, &gridsize);
     strcpy(name2,"z");    strcat(name2,name1); writeh5_nxm_(name, "scatterplot",name2,HostMem.nInfo.pos_z,  &intone, &gridsize);
     strcpy(name2,"color");strcat(name2,name1); writeh5_nxm_(name, "scatterplot",name2,HostMem.nInfo.energy, &intone, &gridsize);
 #endif
-    clock_end   = clock();
-    time_elapsed = (float)(clock_end-clock_start)/CLOCKS_PER_SEC*1000.f;
-    strcpy(name2,"timeprint0");
-    writeh5_nxm_(name, "tally",name2, &(time_elapsed), &intone, &intone);
-    for(ibat=0;ibat<num_bat;ibat++){
-      clock_start = clock();
-#if !defined(__FTALLY2)
-      start_neutrons(gridx, blockx, DeviceMem, ubat,num_src,banksize,tnum_bin);
-#endif
-      //check(gridx,blockx,DeviceMem,ubat);
-      //active = count_neutrons(gridx, blockx, DeviceMem, HostMem,num_src);
-#if defined(__TALLY)
-#if defined(__MTALLY)||(__FTALLY)||(__FTALLY2)
-#if !defined(__FTALLY2)
-      banksize = setbank(DeviceMem, HostMem, num_src,tnum_bin);
-#else
-      banksize = start_neutrons(gridx, blockx, DeviceMem, ubat,num_src,banksize,tnum_bin,HostMem);
-#endif
-      clock_end = clock();   time_elapsed += (float)(clock_end-clock_start)/CLOCKS_PER_SEC*1000.f;
-      sprintf(name1,"%d",ibat+1);strcpy(name2,"timeprint");strcat(name2,name1);
-      writeh5_nxm_(name, "tally",name2, &(time_elapsed), &intone, &intone);
-
-      sprintf(name1,"%d",ibat);strcpy(name2,"Tmatrix");strcat(name2,name1);
-      writeh5_nxm_(name, "tally",name2, HostMem.batcnt, &intone, &inttwo);
-#if defined(__MTALLY)
-      memset((HostMem).batcnt, 0, sizeof(CMPTYPE)*tnum_bin*tnum_bin);
-#else
-      memset((HostMem).batcnt, 0, sizeof(CMPTYPE)*tnum_bin);
-#endif //end M or F
-#else  //else C
-      banksize = setbank(DeviceMem, HostMem, num_src);
-      //initialize_neutrons_fix(gridx,blockx,DeviceMem,width,ubat); 
-      save_results(ibat,gridx, blockx, tnum_bin, DeviceMem, HostMem);
-      sprintf(name1,"%d",ibat);strcpy(name2,"batch_cnt");strcat(name2,name1);
-      writeh5_nxm_(name, "tally",name2, HostMem.batcnt, &intone, &tnum_bin);
-      resettally(DeviceMem.tally.cnt, tnum_bin*gridsize);
-#if defined(__CTALLY2)
-      sprintf(name1,"%d",ibat);strcpy(name2,"batch_cnts");strcat(name2,name1);
-      writeh5_nxm_(name, "tally",name2, HostMem.batcnt2, &intone, &tnum_bin);
-      resettally(DeviceMem.tally.cnt2, tnum_bin*gridsize);
-#endif
-#endif //end  TALLY types
-      printf("%d[%3d]%4d-->%4d: \n", -1,ibat,num_src,banksize);
-#endif //end TALLY
-#if defined(__SCATTERPLOT)
-      sprintf(name1,"%d",ibat+1);
-      strcpy(name2,"x");    strcat(name2,name1); writeh5_nxm_(name, "scatterplot",name2,HostMem.nInfo.pos_x,  &intone, &gridsize);
-      strcpy(name2,"y");    strcat(name2,name1); writeh5_nxm_(name, "scatterplot",name2,HostMem.nInfo.pos_y,  &intone, &gridsize);
-      strcpy(name2,"z");    strcat(name2,name1); writeh5_nxm_(name, "scatterplot",name2,HostMem.nInfo.pos_z,  &intone, &gridsize);
-      strcpy(name2,"color");strcat(name2,name1); writeh5_nxm_(name, "scatterplot",name2,HostMem.nInfo.energy, &intone, &gridsize);
-#endif
-      }
+  }
 
     printdone();
     printf("[time]  %d batches (*%d neutrons/batch) costs %f ms\n", num_bat,gridsize, time_elapsed);
@@ -220,119 +256,7 @@ int main(int argc, char **argv){
     //============================================================================
     writeh5_nxm_(name, "/","num_history",&(num_src),  &intone, &intone);
 
-  }//end if (1!=mode) 
 
-  //============================================================================
-  //=========================process the results ===============================
-  //============================================================================
-#if defined(__PROCESS)
-  if(0!=mode){//do process except 'run only' mode
-    printf("[Info] Processing ... \n");
-    strcpy(name,"RResult"); strcat(name,name1); strcat(name,name2); strcat(name,name3); strcat(name,".h5");
-    createmptyh5(name); //create empty file for future add dataset
-    writeh5_nxm_(name,"num_batch",   &(num_bat),  &intone, &intone);
-    writeh5_nxm_(name,"num_cells",   &(num_bin),  &intone, &intone);
-    writeh5_nxm_(name,"width",   &(width),  &intone, &intone);
-    writeh5_nxm_(name,"sigma",   &(sigt),   &intone, &intone);
-    writeh5_nxm_(name,"pf",      &(pf),     &intone, &intone);
-    writeh5_nxm_(name,"pc",      &(pc),     &intone, &intone);
-    writeh5_nxm_(name,"num_ubat",&(ubat),   &intone, &intone);
-    writeh5_nxm_(name,"num_acc", &(upto),   &intone, &intone);
-
-    clock_start = clock();
-    //========================collison count to density ==========================
-    printf("[Stat] Batch means and batch accmeans .... ");
-    cnt2flux(HostMem,gridsize,width/num_bin,num_bin,num_bat,ubat);
-    printdone();
-    if(0==print)
-      print_results(num_bin,num_bat,HostMem.batchmeans);
-    //----------------------------------------------------------------------------
-    printf("[Save] Writing means to hdf5... ");
-    writeh5_nxm_(name,"batchmeans", HostMem.batchmeans, &num_bat, &num_bin);
-    printf("... writing acc means to hdf5... ");
-    intone=num_bat-ubat; writeh5_nxm_(name,"batchaccumu", HostMem.accmeans, &intone, &num_bin);
-    printdone();
-    //========================Average Square Error================================
-    printf("[Stat] Average Square Error ... ");
-    double *ASE = (double*)malloc(sizeof(double)*(num_bat-ubat));
-    getASE(HostMem.accmeans, num_bin, num_bat,ubat, ref, ASE);
-    printdone();
-    if(0==print)
-      print_results(num_bat-ubat,1,ASE);
-    //----------------------------------------------------------------------------
-    printf("[Save] Writing ASE to hdf5... ");
-    inttwo=num_bat-ubat; intone=1; writeh5_nxm_(name,"ASE", ASE, &intone, &inttwo);
-    printdone();
-    //=====================Auto-Correlation Coefficients==========================
-    printf("[Stat] Auto-correlation coefficients ... ");
-    double *COR = (double*)malloc(sizeof(double)*upto*num_bin);
-    getCOR(HostMem.batchmeans,num_bin,num_bat,ubat,upto,COR);
-    printdone();
-    if(0==print)
-      print_results(upto,num_bin, COR);
-    //----------------------------------------------------------------------------
-    printf("[Save] Writing ACC to hdf5... ");
-    writeh5_nxm_(name,"ACC", COR, &num_bin, &upto);
-    printdone();
-
-    //==================== ACC fit ===============================================
-    printf("[Stat] ACC fit...");
-    double *rho0s = (double*)malloc(sizeof(double)*num_bin);
-    double *qs    = (double*)malloc(sizeof(double)*num_bin);
-    fitall(COR,upto,num_bin,rho0s,qs);
-    printdone();
-    //fitall1(COR,upto,num_bin,rho0s,qs);
-    //printf("ACC fit done:\n");
-    //print_results(num_bin,1,rho0s);
-    //print_results(num_bin,1,qs);
-    if(0==print){
-      print_results(num_bin,1,rho0s);
-      print_results(num_bin,1,qs);
-    }
-    //----------------------------------------------------------------------------
-    printf("[Save] Writing ACC fit result to hdf5... ");
-    intone=1;
-    writeh5_nxm_(name,"rho0s", rho0s, &intone, &num_bin);
-    writeh5_nxm_(name,"qs",    rho0s, &intone, &num_bin);
-    printdone();
-  
-    //=========================cell variance =====================================
-    printf("[Stat] Variance ....");
-    double *vars = (double*)malloc(sizeof(double)*num_bin);
-    for(int im=0;im<num_bin;im++)
-      vars[im] = variance(HostMem.batchmeans,num_bat,ubat,num_bin,im);
-    printdone();
-    if(0==print)
-      print_results(num_bin,1,vars);
-    //----------------------------------------------------------------------------
-    printf("[Save] Writing mesh variances to hdf5... ");
-    intone=1; writeh5_nxm_(name,"var", vars, &intone, &num_bin);
-    printdone();
-
-    //================= MASE (Mean average square error) =========================  
-    printf("[Stat] Expected Average Square Error ....");
-    double *EASE = (double*)malloc(sizeof(double)*(num_bat-ubat));
-    getEASE(vars,num_bin,ubat,num_bat-ubat,rho0s,qs,EASE);
-    printdone();
-    if(0==print)
-      print_results(num_bat-ubat,1,EASE);
-    printf("[Save] Writing EASE to hdf5 ... ");
-    intone=1; inttwo=num_bat-ubat; writeh5_nxm_(name,"EASE", EASE, &intone, &inttwo);
-    printdone();
-
-    free(EASE);
-    free(vars);
-    free(rho0s);
-    free(qs);
-    free(COR);
-    free(ASE);
-
-    clock_end   = clock();
-    time_elapsed = (float)(clock_end-clock_start)/CLOCKS_PER_SEC*1000.f;
-    printf("[time]  statistics costs %f ms\n", time_elapsed);
-
-  }//end if(0!=mode) //end process
-#endif
   /*
 
   FILE *fp=NULL;
