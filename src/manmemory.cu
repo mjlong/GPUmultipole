@@ -13,10 +13,14 @@ void copymeans(int *h_cnt, int *batcnt, unsigned meshes, unsigned offset){
 }
 
 void copydata(MemStruct DeviceMem, MemStruct HostMem){
-  gpuErrchk(cudaMemcpy(DeviceMem.wdspp,  HostMem.wdspp,   sizeof(float)*9, cudaMemcpyHostToDevice));
-  gpuErrchk(cudaMemcpyToSymbol(wdspp, DeviceMem.wdspp, 9*sizeof(float), 0, cudaMemcpyDeviceToDevice));
+  gpuErrchk(cudaMemcpy(DeviceMem.wdspp,  HostMem.wdspp,   sizeof(float)*9,
+		       cudaMemcpyHostToDevice));
+  gpuErrchk(cudaMemcpyToSymbol(wdspp, DeviceMem.wdspp, 9*sizeof(float), 0,
+			       cudaMemcpyDeviceToDevice));
 }
-void initialize_memory(MemStruct *DeviceMem, MemStruct *HostMem, unsigned numbins, unsigned gridx, unsigned blockx,unsigned nbat,unsigned ubat){
+void initialize_memory(MemStruct *DeviceMem, MemStruct *HostMem,
+		       unsigned numbins, unsigned gridx, unsigned blockx,
+		       unsigned nbat,unsigned ubat){
   unsigned gridsize,banksize;
   gridsize = gridx*blockx;
   banksize = gridx*blockx*ubat;
@@ -27,6 +31,7 @@ void initialize_memory(MemStruct *DeviceMem, MemStruct *HostMem, unsigned numbin
   gpuErrchk(cudaMalloc((void**)&((*DeviceMem).nInfo.imat),  banksize*3*sizeof(int)));
   (*HostMem).batcnt     = (CMPTYPE*)malloc(sizeof(CMPTYPE)*numbins*numbins);
   memset((*HostMem).batcnt, 0, sizeof(CMPTYPE)*numbins*numbins);
+  (*HostMem).nInfo.live  = (int*)malloc(sizeof(int)*banksize);
 #endif
 #if defined(__FTALLY)||(__FTALLY2) //Fission source tally
 #if defined(__FTALLY)
