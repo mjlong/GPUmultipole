@@ -122,7 +122,7 @@ __global__ void history(MemStruct DeviceMem, unsigned num_src,int shift,unsigned
 
   int id = blockDim.x * blockIdx.x + threadIdx.x + shift;
   curandState localState = DeviceMem.nInfo.rndState[id-shift];
-#if defined(__CTALLY2)||(__FTALLY2)
+#if defined(__CTALLY2)||(__FTALLY2)||(__MTALLY)
   int nid = id+num_src;
 #else
   int nid = int(curand_uniform_double(&localState)*banksize)+num_src;
