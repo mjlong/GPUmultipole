@@ -28,7 +28,7 @@ void initialize_memory(MemStruct *DeviceMem, MemStruct *HostMem,
 
 #if defined(__TALLY)
 #if defined(__MTALLY) //Fission Matrix Tally
-  gpuErrchk(cudaMalloc((void**)&((*DeviceMem).nInfo.imat),  banksize*3*sizeof(int)));
+  gpuErrchk(cudaMalloc((void**)&((*DeviceMem).nInfo.imat),  banksize*2*sizeof(int)));
   (*HostMem).batcnt     = (CMPTYPE*)malloc(sizeof(CMPTYPE)*numbins*numbins);
   memset((*HostMem).batcnt, 0, sizeof(CMPTYPE)*numbins*numbins);
   (*HostMem).nInfo.live  = (int*)malloc(sizeof(int)*banksize);

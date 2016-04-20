@@ -28,15 +28,25 @@ void initialize_neutrons(unsigned gridx, unsigned blockx,MemStruct DeviceMem,flo
   }
   //gpuErrchk(cudaDeviceSynchronize());  
 #if defined(__3D)
-  gpuErrchk(cudaMemcpy(DeviceMem.nInfo.pos_x+gridx*blockx*ubat,DeviceMem.nInfo.pos_x,sizeof(float)*gridx*blockx*ubat, cudaMemcpyDeviceToDevice));    
-  gpuErrchk(cudaMemcpy(DeviceMem.nInfo.pos_y+gridx*blockx*ubat,DeviceMem.nInfo.pos_y,sizeof(float)*gridx*blockx*ubat, cudaMemcpyDeviceToDevice));    
-  gpuErrchk(cudaMemcpy(DeviceMem.nInfo.pos_z+gridx*blockx*ubat,DeviceMem.nInfo.pos_z,sizeof(float)*gridx*blockx*ubat, cudaMemcpyDeviceToDevice));    
+  gpuErrchk(cudaMemcpy(DeviceMem.nInfo.pos_x+gridx*blockx*ubat,
+		       DeviceMem.nInfo.pos_x,sizeof(float)*gridx*blockx*ubat,
+		       cudaMemcpyDeviceToDevice));    
+  gpuErrchk(cudaMemcpy(DeviceMem.nInfo.pos_y+gridx*blockx*ubat,
+		       DeviceMem.nInfo.pos_y,sizeof(float)*gridx*blockx*ubat,
+		       cudaMemcpyDeviceToDevice));    
+  gpuErrchk(cudaMemcpy(DeviceMem.nInfo.pos_z+gridx*blockx*ubat,
+		       DeviceMem.nInfo.pos_z,sizeof(float)*gridx*blockx*ubat,
+		       cudaMemcpyDeviceToDevice));    
 #endif
 #if defined(__1D)
-  gpuErrchk(cudaMemcpy(DeviceMem.nInfo.pos_x+gridx*blockx*ubat,DeviceMem.nInfo.pos_x,sizeof(float)*gridx*blockx*ubat, cudaMemcpyDeviceToDevice));    
+  gpuErrchk(cudaMemcpy(DeviceMem.nInfo.pos_x+gridx*blockx*ubat,
+		       DeviceMem.nInfo.pos_x,sizeof(float)*gridx*blockx*ubat,
+		       cudaMemcpyDeviceToDevice));    
 #endif
 #if defined(__MTALLY)
-  gpuErrchk(cudaMemcpy(DeviceMem.nInfo.imat +gridx*blockx*ubat,DeviceMem.nInfo.imat ,sizeof(int  )*gridx*blockx*ubat, cudaMemcpyDeviceToDevice));    
+  gpuErrchk(cudaMemcpy(DeviceMem.nInfo.imat +gridx*blockx*ubat,
+		       DeviceMem.nInfo.imat ,sizeof(int  )*gridx*blockx*ubat,
+		       cudaMemcpyDeviceToDevice));    
 #endif
 }
 
@@ -281,17 +291,26 @@ void setbank2(MemStruct DeviceMem, MemStruct HostMem, int banksize, unsigned jst
 
 #endif
 
-
 #if defined(__MTALLY)||(__FTALLY)
+#if defined(__MTALLY)
+unsigned setbank(MemStruct DeviceMem, MemStruct HostMem, int gridsize,
+		 int oldbanksize, int tnum_bins){
+  float* x2 = (float*)malloc(sizeof(float)*gridsize);
+  float* y2 = (float*)malloc(sizeof(float)*gridsize);
+  float* z2 = (float*)malloc(sizeof(float)*gridsize);
+  int* sid1 = (int*)malloc(sizeof(int)*gridsize);
+  int* sid2 = (int*)malloc(sizeof(int)*gridsize);
+  memset(sid2, 0xff, sizeof(int)*gridsize);
+#else
 unsigned setbank(MemStruct DeviceMem, MemStruct HostMem, int gridsize,
 		 int tnum_bins){
   float* x2 = (float*)malloc(sizeof(float)*gridsize*2);
   float* y2 = (float*)malloc(sizeof(float)*gridsize*2);
   float* z2 = (float*)malloc(sizeof(float)*gridsize*2);
   int* sid1 = (int*)malloc(sizeof(int)*gridsize);
-#if defined(__MTALLY)
-  int* sid2 = (int*)malloc(sizeof(int)*gridsize*2);
 #endif
+
+
   gpuErrchk(cudaMemcpy(sid1,DeviceMem.nInfo.imat,sizeof(int )*gridsize,
 		       cudaMemcpyDeviceToHost));  
   gpuErrchk(cudaMemcpy(HostMem.nInfo.pos_x,DeviceMem.nInfo.pos_x,sizeof(float)
@@ -311,14 +330,19 @@ unsigned setbank(MemStruct DeviceMem, MemStruct HostMem, int gridsize,
   }
   printf("\n");
   */
-  for(int i=0;i<gridsize;i++){
+  for(int i=0;i<oldbanksize;i++){
     live = HostMem.nInfo.live[i];
     sid = sid1[i];
     HostMem.batcnt[sid]+= 1;
     //if(live<4){
     for(k=0;k<live;k++){//live=2 or 3
-      if(j>(gridsize*2)) {printf("live=%d,j=%d,i=%d/%d,overflow\n",
-				 live,j,i,gridsize);exit(-1);}
+#if !defined(__MTALLY)
+      if(j>(gridsize*2)) 
+#else
+      if(j>(gridsize)) 
+#endif
+	{printf("live=%d,j=%d,i=%d/%d,overflow\n",
+		live,j,i,gridsize);exit(-1);}
       //else{
       x2[j]=HostMem.nInfo.pos_x[i];
       y2[j]=HostMem.nInfo.pos_y[i];
@@ -331,26 +355,22 @@ unsigned setbank(MemStruct DeviceMem, MemStruct HostMem, int gridsize,
     }
     //}
   }
-#if defined(__MTALLY)
-  live = j;
-  while(j<gridsize){
-    k = rand()%live;
-    x2[j] = x2[k];
-    y2[j] = y2[k];
-    z2[j] = z2[k];
-    sid2[j] = sid2[k];
-    j++;
-  }
-#endif  
+#if !defined(__MTALLY)
   gpuErrchk(cudaMemcpy(DeviceMem.nInfo.pos_x+gridsize,x2,sizeof(float)
 		       *gridsize*2, cudaMemcpyHostToDevice));  
   gpuErrchk(cudaMemcpy(DeviceMem.nInfo.pos_y+gridsize,y2,sizeof(float)
 		       *gridsize*2, cudaMemcpyHostToDevice));  
   gpuErrchk(cudaMemcpy(DeviceMem.nInfo.pos_z+gridsize,z2,sizeof(float)
 		       *gridsize*2, cudaMemcpyHostToDevice));  
-#if defined(__MTALLY)
-  gpuErrchk(cudaMemcpy(DeviceMem.nInfo.imat+gridsize,sid2,sizeof(int)
-		       *gridsize*2, cudaMemcpyHostToDevice));  
+#else
+  gpuErrchk(cudaMemcpy(DeviceMem.nInfo.pos_x+gridsize,x2,sizeof(float)
+		       *gridsize, cudaMemcpyHostToDevice));  
+  gpuErrchk(cudaMemcpy(DeviceMem.nInfo.pos_y+gridsize,y2,sizeof(float)
+		       *gridsize, cudaMemcpyHostToDevice));  
+  gpuErrchk(cudaMemcpy(DeviceMem.nInfo.pos_z+gridsize,z2,sizeof(float)
+		       *gridsize, cudaMemcpyHostToDevice));  
+  gpuErrchk(cudaMemcpy(DeviceMem.nInfo.imat +gridsize,sid2,sizeof(int)
+		       *gridsize, cudaMemcpyHostToDevice));  
   free(sid2);
 #endif
   free(sid1);
@@ -465,7 +485,7 @@ void     start_neutrons(unsigned gridx, unsigned blockx, MemStruct DeviceMem, un
 #if defined(__FTALLY2)
     gpuErrchk(cudaMemset(DeviceMem.nInfo.imat, 0, gridx*blockx*sizeof(int)));
 #endif
-    history<<<gridx, blockx/*, blockx*sizeof(unsigned)*/>>>(DeviceMem, num_src,i*gridx*blockx,banksize);
+    history<<<gridx, blockx>>>(DeviceMem, num_src,i*gridx*blockx,banksize);
     gpuErrchk(cudaDeviceSynchronize()); 
     //printf("%d/%d done\n",i,ubat);
 #if defined(__FTALLY2)

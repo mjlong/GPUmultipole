@@ -27,12 +27,18 @@ void print_results(unsigned meshes, unsigned nbat, double *tally);
 unsigned setbank_converge(MemStruct DeviceMem, MemStruct HostMem, int gridsize);
 void copysrcforwrite(MemStruct HostMem, int num_src, float* x2, float* y2, float* z2);
 #if defined(FTALLY2)
-unsigned setbank(MemStruct DeviceMem, MemStruct HostMem, int gridsize, int banksize, unsigned jstart, int shift);
+unsigned setbank(MemStruct DeviceMem, MemStruct HostMem, int gridsize,
+		 int banksize, unsigned jstart, int shift);
 void setbank2(MemStruct DeviceMem, MemStruct HostMem, int banksize, unsigned jstart);
+#else// MTALLY or FTALLY
+#if defined(__MTALLY)
+unsigned setbank(MemStruct DeviceMem, MemStruct HostMem, int gridsize,
+		 int oldbanksize, int tnum_bins);
 #else
 unsigned setbank(MemStruct DeviceMem, MemStruct HostMem, int gridsize, int tnum_bins);
 #endif
-#else
+#endif
+#else//CTALLY
 unsigned setbank(MemStruct DeviceMem, MemStruct HostMem, int gridsize);
 #endif
 void check(unsigned gridx, unsigned blockx, MemStruct DeviceMem, unsigned ubat);

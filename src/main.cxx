@@ -129,12 +129,15 @@ int main(int argc, char **argv){
 //===============main simulation body=========================
 //============================================================
   printf("[Info] Running main simulation body ... \n");
-  int banksize;
+  int banksize, oldbanksize;
   clock_start = clock();
   //==============================================================================
   //======================Steady State ===========================================
   //==============================================================================
   banksize = gridx*blockx*num_seg;
+#if defined(__MTALLY)
+  banksize = banksize/2;
+#endif
   initialize_neutrons(gridx, blockx, DeviceMem,width,banksize,num_seg,
 		      atoi(argv[10])); 
   // plot initial distribution
@@ -151,6 +154,7 @@ int main(int argc, char **argv){
   writeh5_nxm_(name, "scatterplot",name2,HostMem.nInfo.energy, &intone, &gridsize);
 #endif
 
+#if !defined(__MTALLY)
   //==========================================================================
   //========== Converged source ==============================================
   //==========================================================================
@@ -194,14 +198,15 @@ int main(int argc, char **argv){
   }
 
   //====================End of the phase to converge source ===================
-  
+#endif //not defined __MTALLY  
   clock_end   = clock();
   time_elapsed = (float)(clock_end-clock_start)/CLOCKS_PER_SEC*1000.f;
   strcpy(name2,"timeprint0");
   writeh5_nxm_(name, "tally",name2, &(time_elapsed), &intone, &intone);
   for(ibat=0;ibat<num_bat;ibat++){
+    oldbanksize = banksize;
     clock_start = clock();
-#if !defined(__FTALLY2)
+#if (!defined(__FTALLY2))
     start_neutrons(gridx, blockx, DeviceMem, num_seg,num_src,banksize,tnum_bin);
 #endif
     //check(gridx,blockx,DeviceMem,ubat);
@@ -209,8 +214,12 @@ int main(int argc, char **argv){
 #if defined(__TALLY)
 #if defined(__MTALLY)||(__FTALLY)||(__FTALLY2)
 #if !defined(__FTALLY2)
-    banksize = setbank(DeviceMem, HostMem, num_src,tnum_bin);
+#if defined(__MTALLY)
+    banksize = setbank(DeviceMem, HostMem, num_src,oldbanksize,tnum_bin);
 #else
+    banksize = setbank(DeviceMem, HostMem, num_src,tnum_bin);
+#endif//end MTALLY
+#else //else = defined FTALLY2
     banksize = start_neutrons(gridx, blockx, DeviceMem, num_seg,num_src,banksize,tnum_bin,HostMem);
 #endif
     clock_end = clock();   time_elapsed += (float)(clock_end-clock_start)/CLOCKS_PER_SEC*1000.f;
@@ -237,7 +246,7 @@ int main(int argc, char **argv){
     resettally(DeviceMem.tally.cnt2, tnum_bin*gridsize);
 #endif
 #endif //end  TALLY types
-    printf("%d[%3d]%4d-->%4d: \n", -1,ibat,num_src,banksize);
+    printf("%d[%3d]%4d-->%4d: \n", -1,ibat,oldbanksize,banksize);
 #endif //end TALLY
 #if defined(__SCATTERPLOT)
     sprintf(name1,"%d",ibat+1);

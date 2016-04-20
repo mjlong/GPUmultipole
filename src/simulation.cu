@@ -29,12 +29,13 @@ __global__ void initialize(MemStruct pInfo,float width, int banksize,int shift, 
 #if defined(__MTALLY)
 #if defined(__1D)
   pInfo.nInfo.imat[id] = int(floorf(pInfo.nInfo.pos_x[id]/wdspp[1]));
-#endif
+#endif //end 1D
 #if defined(__3D)
   pInfo.nInfo.imat[id] = ((int)floorf(pInfo.nInfo.pos_x[id]/wdspp[1]) + 
 			  (int)floorf(pInfo.nInfo.pos_y[id]/wdspp[1])*(int)wdspp[5] + 
 			  (int)floorf(pInfo.nInfo.pos_z[id]/wdspp[1])*(int)(wdspp[5]*wdspp[5]));
-#endif
+#endif //end 3D
+  pInfo.nInfo.imat[id] =-1*(id>=banksize);
 #endif
   pInfo.nInfo.live[id] = 1*(id<banksize);
 }
@@ -130,6 +131,12 @@ __global__ void history(MemStruct DeviceMem, unsigned num_src,int shift,unsigned
   curandState localState = DeviceMem.nInfo.rndState[id-shift];
 #if defined(__CTALLY2)||(__FTALLY2)||(__MTALLY)
   int nid = id+num_src;
+#if defined(__MTALLY)
+  if( -1 == DeviceMem.nInfo.imat[nid] ){
+    DeviceMem.nInfo.live[id] = 0;
+    return;
+  }
+#endif
 #else
   int nid = int(curand_uniform_double(&localState)*banksize)+num_src;
 #endif
