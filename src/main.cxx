@@ -72,7 +72,7 @@ int main(int argc, char **argv){
   strcpy(name,"R1dRawcnt"); 
 #endif
 #if defined(__3D)&&defined(__MTALLY)
-  strcpy(name,"R3dTmacnt"); 
+  strcpy(name,"R3d_UN_Tmacnt"); 
 #endif
 #if defined(__3D)&&(defined(__FTALLY)||defined(__FTALLY2))
   strcpy(name,"R3dRawsrc"); 
@@ -81,7 +81,7 @@ int main(int argc, char **argv){
   strcpy(name,"R3d2Rawcnt_debug"); 
 #endif
   strcat(name,name1); strcat(name,name2); strcat(name,name3); strcat(name,name4); 
-  sprintf(name4,"_i%d_s%d",num_ubat,atoi(argv[10]));   strcat(name,name4); strcat(name,".h5");
+  sprintf(name4,"_s%d",atoi(argv[10]));   strcat(name,name4); strcat(name,".h5");
   createmptyh5(name); //create empty file for future add dataset
   
   int intone=1; 
