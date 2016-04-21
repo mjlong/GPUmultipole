@@ -63,7 +63,7 @@ int main(int argc, char **argv){
   sprintf(name3,"_%d",num_bat);
   sprintf(name4,"_%d",num_bin);
 #if defined(__1D)&&defined(__MTALLY)
-  strcpy(name,"R1dTmacnt"); 
+  strcpy(name,"R1d_UN_Tmacnt"); 
 #endif
 #if defined(__1D)&&defined(__FTALLY)
   strcpy(name,"R1dRawsrc"); 
@@ -81,7 +81,14 @@ int main(int argc, char **argv){
   strcpy(name,"R3d2Rawcnt_debug"); 
 #endif
   strcat(name,name1); strcat(name,name2); strcat(name,name3); strcat(name,name4); 
-  sprintf(name4,"_s%d",atoi(argv[10]));   strcat(name,name4); strcat(name,".h5");
+
+#if defined(__MTALLY)
+  sprintf(name4,"_s%d",atoi(argv[10]));
+#else
+  sprintf(name4,"_i%d_s%d",num_ubat,atoi(argv[10])); 
+#endif
+  
+  strcat(name,name4); strcat(name,".h5");
   createmptyh5(name); //create empty file for future add dataset
   
   int intone=1; 
@@ -117,7 +124,7 @@ int main(int argc, char **argv){
   HostMem.wdspp[3] = pf;
   HostMem.wdspp[4] = pc;
   HostMem.wdspp[5] = num_bin;
-  HostMem.wdspp[6] = 3-2.0;  
+  HostMem.wdspp[6] = 3-2.45;  
   double ref = 1.0/(HostMem.wdspp[3]+HostMem.wdspp[4])/width;
   // note this only works for flat
   copydata(DeviceMem,HostMem);

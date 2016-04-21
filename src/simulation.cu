@@ -45,11 +45,9 @@ __device__ void neutron_sample(NeutronInfoStruct nInfo, unsigned id,unsigned idr
   curandState state = nInfo.rndState[idr];
   //TODO: source sampling should take settings dependent on geometry
 #if defined(__1D)
-#if defined(__MTALLY)
-  nInfo.pos_x[id] =width*curand_uniform_double(&state);
-#else
-  nInfo.pos_x[id] =width/(CHOP*PI)*asin(sin(PI*0.5*CHOP)*(1-2*curand_uniform_double(&state)))+width*0.5;//width*curand_uniform_double(&state);
-#endif
+  nInfo.pos_x[id] =width*0.5;
+  //nInfo.pos_x[id] =width*curand_uniform_double(&state);
+  //width/(CHOP*PI)*asin(sin(PI*0.5*CHOP)*(1-2*curand_uniform_double(&state)))+width*0.5;
 #endif
 #if defined(__3D)
   //nInfo.pos_x[id] =width/PI*acos(1-2*curand_uniform_double(&state));
@@ -380,7 +378,18 @@ __global__ void history(MemStruct DeviceMem, unsigned num_src,int shift,unsigned
   //select gridsize neutrons from banksize neutrons
   int id = blockDim.x * blockIdx.x + threadIdx.x + shift;
   curandState localState = DeviceMem.nInfo.rndState[id-shift];
+
+#if defined(__CTALLY2)||(__FTALLY2)||(__MTALLY)
+  int nid = id+num_src;
+#if defined(__MTALLY)
+  if( -1 == DeviceMem.nInfo.imat[nid] ){
+    DeviceMem.nInfo.live[id] = 0;
+    return;
+  }
+#endif
+#else
   int nid = int(curand_uniform_double(&localState)*banksize)+num_src;
+#endif
   //extern __shared__ unsigned blockTerminated[];
 
   CMPTYPE rnd;

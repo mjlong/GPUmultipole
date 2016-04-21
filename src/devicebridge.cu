@@ -66,43 +66,61 @@ void resetcount(MemStruct DeviceMem){
 }
 #if defined(__1D)
 #if defined(__MTALLY)||(__FTALLY)
+#if defined(__MTALLY)
+unsigned setbank(MemStruct DeviceMem, MemStruct HostMem, int gridsize,
+		 int oldbanksize, int tnum_bins){
+  float* y2 = (float*)malloc(sizeof(float)*gridsize);
+  float* x2 = (float*)malloc(sizeof(float)*gridsize);
+  int* sid1 = (int*)malloc(sizeof(int)*gridsize);
+  int* sid2 = (int*)malloc(sizeof(int)*gridsize);
+  memset(sid2, 0xff, sizeof(int)*gridsize);
+#else //__FTALLY
 unsigned setbank(MemStruct DeviceMem, MemStruct HostMem, int gridsize, int tnum_bins){
   float* y2 = (float*)malloc(sizeof(float)*gridsize);
   float* x2 = (float*)malloc(sizeof(float)*gridsize*2);
   int* sid1 = (int*)malloc(sizeof(int)*gridsize);
-#if defined(__MTALLY)
-  int* sid2 = (int*)malloc(sizeof(int)*gridsize*2);
 #endif
   gpuErrchk(cudaMemcpy(y2,DeviceMem.nInfo.pos_y,sizeof(float)*gridsize, cudaMemcpyDeviceToHost));  
   gpuErrchk(cudaMemcpy(sid1,DeviceMem.nInfo.imat,sizeof(int )*gridsize, cudaMemcpyDeviceToHost));  
   int sid;
   float y; 
   unsigned j=0;
+#if defined(__MTALLY)
+  for(int i=0;i<oldbanksize;i++){  
+#else
   for(int i=0;i<gridsize;i++){
+#endif
     y = y2[i]; sid = sid1[i];
     HostMem.batcnt[sid]++;
     if(0!=y){
 #if defined(__MTALLY)
       sid = sid%tnum_bins;
-      if(y>0){sid2[j]=sid; x2[j++]=y;sid2[j]=sid;x2[j++]=y;sid2[j]=sid;x2[j++]=y;}
-      else{sid2[j]=sid; x2[j++]=0-y;sid2[j]=sid; x2[j++]=0-y;}
+      if(y>0){sid2[j]=sid; x2[j++]=y;  sid2[j]=sid; x2[j++]=y;
+	      sid2[j]=sid; x2[j++]=y;}
+      else{   sid2[j]=sid; x2[j++]=0-y;sid2[j]=sid; x2[j++]=0-y;}
 #else
-      if(y>0){x2[j++]=y;x2[j++]=y;x2[j++]=y;}
-      else{x2[j++]=0-y;x2[j++]=0-y;}
+      if(y>0){x2[j++]=y;  x2[j++]=y;  x2[j++]=y;}
+      else{   x2[j++]=0-y;x2[j++]=0-y;}
 #endif
     }
   }
-  gpuErrchk(cudaMemcpy(DeviceMem.nInfo.pos_x+gridsize,x2,sizeof(float)*gridsize*2, cudaMemcpyHostToDevice));  
-  free(x2);
-  free(y2);
-#if defined(__MTALLY)
-  gpuErrchk(cudaMemcpy(DeviceMem.nInfo.imat+gridsize,sid2,sizeof(int)*gridsize*2, cudaMemcpyHostToDevice));  
+
+#if !defined(__MTALLY)
+  gpuErrchk(cudaMemcpy(DeviceMem.nInfo.pos_x+gridsize,x2,sizeof(float)
+		       *gridsize*2, cudaMemcpyHostToDevice));  
+#else
+  gpuErrchk(cudaMemcpy(DeviceMem.nInfo.pos_x+gridsize,x2,sizeof(float)
+		       *gridsize, cudaMemcpyHostToDevice));  
+  gpuErrchk(cudaMemcpy(DeviceMem.nInfo.imat +gridsize,sid2,sizeof(int)
+		       *gridsize, cudaMemcpyHostToDevice));  
   free(sid2);
 #endif
+  free(x2);
+  free(y2);
   free(sid1);
   return j;
 }
-#else
+#else //below must be __1D and __CTALLY
 unsigned setbank(MemStruct DeviceMem, MemStruct HostMem, int gridsize){
   float* y2 = (float*)malloc(sizeof(float)*gridsize);
   float* x2 = (float*)malloc(sizeof(float)*gridsize*2);
@@ -330,7 +348,11 @@ unsigned setbank(MemStruct DeviceMem, MemStruct HostMem, int gridsize,
   }
   printf("\n");
   */
+#if defined(__MTALLY)
   for(int i=0;i<oldbanksize;i++){
+#else
+  for(int i=0;i<gridsize;i++){
+#endif
     live = HostMem.nInfo.live[i];
     sid = sid1[i];
     HostMem.batcnt[sid]+= 1;
@@ -457,16 +479,9 @@ int count_pop(int *live, int gridsize){
 void start_neutrons(unsigned gridx, unsigned blockx, MemStruct DeviceMem, unsigned ubat,unsigned num_src,unsigned banksize, unsigned tnum_bin){
   int i=0;
   for(i=0;i<ubat;i++){//num_src is important as loop index, but useless in history<<<>>>
-#if defined(__MTALLY)
-    //printf("i=(%d/%d)",i,ubat);
-#endif
     history<<<gridx, blockx/*, blockx*sizeof(unsigned)*/>>>(DeviceMem, num_src,i*gridx*blockx,banksize);
   }
   gpuErrchk(cudaDeviceSynchronize());  
-
-#if defined(__MTALLY)
-  //printf("\n");
-#endif
 }
 #endif
 
