@@ -35,7 +35,7 @@ __global__ void initialize(MemStruct pInfo,float width, int banksize,int shift, 
 			  (int)floorf(pInfo.nInfo.pos_y[id]/wdspp[1])*(int)wdspp[5] + 
 			  (int)floorf(pInfo.nInfo.pos_z[id]/wdspp[1])*(int)(wdspp[5]*wdspp[5]));
 #endif //end 3D
-  pInfo.nInfo.imat[id] =-1*(id>=banksize);
+  pInfo.nInfo.imat[id] =-1*(id>=banksize) + pInfo.nInfo.imat[id]*(id<banksize);
 #endif
   pInfo.nInfo.live[id] = 1*(id<banksize);
 }
@@ -45,8 +45,8 @@ __device__ void neutron_sample(NeutronInfoStruct nInfo, unsigned id,unsigned idr
   curandState state = nInfo.rndState[idr];
   //TODO: source sampling should take settings dependent on geometry
 #if defined(__1D)
-  nInfo.pos_x[id] =width*0.5;
-  //nInfo.pos_x[id] =width*curand_uniform_double(&state);
+  //nInfo.pos_x[id] =width*0.5;
+  nInfo.pos_x[id] =width*curand_uniform_double(&state);
   //width/(CHOP*PI)*asin(sin(PI*0.5*CHOP)*(1-2*curand_uniform_double(&state)))+width*0.5;
 #endif
 #if defined(__3D)
