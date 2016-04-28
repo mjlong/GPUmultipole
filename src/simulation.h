@@ -15,13 +15,13 @@ __global__ void fixsrc_sample(MemStruct pInfo, float width, int shift);
 __global__ void reduce_sum_plus(int *threadcnt, int* cnt);
 __global__ void reduce_sum_equal(int* thread_active, int* active);
 __global__ void reduce_sum_equal(CMPTYPE* thread_active, CMPTYPE* active);
-__device__ unsigned notleak(float x,float a);
+__device__ int notleak(float x,float a);
 //__1D only has steady state solver
 //__3D only has reflective BC solver
 __global__ void history(MemStruct DeviceMem, unsigned num_src,int shift,unsigned banksize);
 #if defined(__3D)
-__global__ void preview_live(MemStruct DeviceMem, int shift);
 #endif
+__global__ void preview_live(MemStruct DeviceMem, int shift);
 
 #define TEPSILON 1.0e-4
 #endif
