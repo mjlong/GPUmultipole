@@ -28,9 +28,19 @@ CIDEN += -D __TALLY
 CIDEN += -D __FTALLY
 endif
 
+ifeq ($(ftally_un),true)
+CIDEN += -D __TALLY
+CIDEN += -D __FTALLY_UN
+endif
+
+
 ifeq ($(ftally2),true)
 CIDEN += -D __TALLY
 CIDEN += -D __FTALLY2
+endif
+
+ifeq ($(1dvac),true)
+CIDEN += -D __1D_VAC
 endif
 
 ifeq ($(scatterplt),true)
@@ -64,7 +74,11 @@ LDFLAGS=-L${DIR_HDF5}/lib/ -L${DIR_CUDA6}/lib64  -lcudart -lhdf5 -lstdc++
 GSOURCES=$(wildcard ${DIR_SRC}/*.cu)
 ifeq ($(mtally),true)
 ifeq ($(dim),1d)
-EXENAME=$(DIR_BIN)/box1d_Tmat
+ifeq ($(1dvac),true)
+EXENAME=$(DIR_BIN)/box1d_Tmat_vac
+else
+EXENAME=$(DIR_BIN)/box1d_Tmat_ref
+endif
 else
 EXENAME=$(DIR_BIN)/box3d_Tmat
 endif
@@ -89,6 +103,19 @@ else
 EXENAME=$(DIR_BIN)/boxf3d
 endif
 endif
+
+ifeq ($(ftally_un),true)
+ifeq ($(dim),1d)
+ifeq ($(1dvac),true)
+EXENAME=$(DIR_BIN)/boxf1d_un_vac
+else
+EXENAME=$(DIR_BIN)/boxf1d_un_ref
+endif
+else
+EXENAME=$(DIR_BIN)/boxf3d_un
+endif
+endif
+
 
 ifeq ($(ftally2),true)
 EXENAME=$(DIR_BIN)/boxf3d2
