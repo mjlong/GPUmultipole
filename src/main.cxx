@@ -64,9 +64,22 @@ int main(int argc, char **argv){
   sprintf(name4,"_%d",num_bin);
 #if defined(__1D)&&defined(__MTALLY)
   strcpy(name,"R1d_UN_Tmacnt"); 
+#if defined(__1D__VAC)
+  strcat(name,"_vac");
+#else
+  strcat(name,"_ref");
 #endif
-#if defined(__1D)&&defined(__FTALLY)
+#endif
+#if defined(__1D)&&(defined(__FTALLY)||defined(__FTALLY_UN))
   strcpy(name,"R1dRawsrc"); 
+#if defined(__FTALLY_UN)
+  strcat(name,"_UN");
+#endif
+#if defined(__1D__VAC)
+  strcat(name,"_vac");
+#else
+  strcat(name,"_ref");
+#endif
 #endif
 #if defined(__1D)&&defined(__CTALLY)
   strcpy(name,"R1dRawcnt"); 
