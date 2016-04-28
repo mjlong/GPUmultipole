@@ -142,7 +142,7 @@ int main(int argc, char **argv){
   //======================Steady State ===========================================
   //==============================================================================
   banksize = gridx*blockx*num_seg;
-#if defined(__MTALLY)
+#if defined(__MTALLY)||(__FTALLY_UN)
   banksize = banksize/2;
 #endif
   initialize_neutrons(gridx, blockx, DeviceMem,width,banksize,num_seg,
@@ -161,7 +161,7 @@ int main(int argc, char **argv){
   writeh5_nxm_(name, "scatterplot",name2,HostMem.nInfo.energy, &intone, &gridsize);
 #endif
 
-#if !defined(__MTALLY)
+#if !defined(__MTALLY)&&!defined(__FTALLY_UN)
   //==========================================================================
   //========== Converged source ==============================================
   //==========================================================================
@@ -205,7 +205,7 @@ int main(int argc, char **argv){
   }
 
   //====================End of the phase to converge source ===================
-#endif //not defined __MTALLY  
+#endif //not defined __MTALLY  and not defined __FTALLY
   clock_end   = clock();
   time_elapsed = (float)(clock_end-clock_start)/CLOCKS_PER_SEC*1000.f;
   strcpy(name2,"timeprint0");
@@ -216,12 +216,12 @@ int main(int argc, char **argv){
 #if (!defined(__FTALLY2))
     start_neutrons(gridx, blockx, DeviceMem, num_seg,num_src,banksize,tnum_bin);
 #endif
-    //check(gridx,blockx,DeviceMem,ubat);
+    //check(gridx,blockx,DeviceMem,num_seg);
     //active = count_neutrons(gridx, blockx, DeviceMem, HostMem,num_src);
 #if defined(__TALLY)
-#if defined(__MTALLY)||(__FTALLY)||(__FTALLY2)
+#if defined(__MTALLY)||(__FTALLY)||(__FTALLY_UN)||(__FTALLY2)
 #if !defined(__FTALLY2)
-#if defined(__MTALLY)
+#if defined(__MTALLY)||(__FTALLY_UN)
     banksize = setbank(DeviceMem, HostMem, num_src,oldbanksize,tnum_bin);
 #else
     banksize = setbank(DeviceMem, HostMem, num_src,tnum_bin);
@@ -233,8 +233,13 @@ int main(int argc, char **argv){
     sprintf(name1,"%d",ibat+1);strcpy(name2,"timeprint");strcat(name2,name1);
     writeh5_nxm_(name, "tally",name2, &(time_elapsed), &intone, &intone);
 
-    sprintf(name1,"%d",ibat);strcpy(name2,"Tmatrix");strcat(name2,name1);
+    sprintf(name1,"%d",ibat); strcpy(name2,"Tmatrix");strcat(name2,name1);
     writeh5_nxm_(name, "tally",name2, HostMem.batcnt, &intone, &inttwo);
+#if defined(__MTALLY)||(__FTALLY_UN)
+    sprintf(name1,"%d",ibat);strcpy(name2,"sizeprint");strcat(name2,name1);
+    writeh5_nxm_(name, "tally",name2, &(banksize), &intone, &intone);
+#endif
+
 #if defined(__MTALLY)
     memset((HostMem).batcnt, 0, sizeof(CMPTYPE)*tnum_bin*tnum_bin);
 #else
