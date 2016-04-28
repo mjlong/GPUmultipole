@@ -33,8 +33,8 @@ void initialize_memory(MemStruct *DeviceMem, MemStruct *HostMem,
   memset((*HostMem).batcnt, 0, sizeof(CMPTYPE)*numbins*numbins);
   (*HostMem).nInfo.live  = (int*)malloc(sizeof(int)*banksize);
 #endif
-#if defined(__FTALLY)||(__FTALLY2) //Fission source tally
-#if defined(__FTALLY)
+#if defined(__FTALLY)||(__FTALLY2)||(__FTALLY_UN) //Fission source tally
+#if defined(__FTALLY)||(__FTALLY_UN)
   gpuErrchk(cudaMalloc((void**)&((*DeviceMem).nInfo.imat),  banksize*3*sizeof(int)));
   (*HostMem).nInfo.live  = (int*)malloc(sizeof(int)*banksize);
 #else //(__FTALLY2)
@@ -138,7 +138,7 @@ void resettally(int *cnt, unsigned totbins){
 
 void release_memory(MemStruct DeviceMem, MemStruct HostMem){
 #if defined(__TALLY)
-#if defined(__MTALLY)||(__FTALLY)||(__FTALLY2)
+#if defined(__MTALLY)||(__FTALLY)||(__FTALLY2)||(__FTALLY_UN)
   gpuErrchk(cudaFree(DeviceMem.nInfo.imat));
 #else
   free(HostMem.spectrum);
