@@ -45,8 +45,11 @@ __device__ void neutron_sample(NeutronInfoStruct nInfo, unsigned id,unsigned idr
   curandState state = nInfo.rndState[idr];
   //TODO: source sampling should take settings dependent on geometry
 #if defined(__1D)
-  //nInfo.pos_x[id] =width*0.5;
+#if defined(__MTALLY)
   nInfo.pos_x[id] =width*curand_uniform_double(&state);
+#else
+  nInfo.pos_x[id] =width*0.5;
+#endif
   //width/(CHOP*PI)*asin(sin(PI*0.5*CHOP)*(1-2*curand_uniform_double(&state)))+width*0.5;
 #endif
 #if defined(__3D)
@@ -286,7 +289,7 @@ __global__ void history(MemStruct DeviceMem, unsigned num_src,int shift,unsigned
   //in this scheme, normalization is realized by forcefully 
   //select gridsize neutrons from banksize neutrons
   int id = blockDim.x * blockIdx.x + threadIdx.x + shift;
-  curandState localState = DeviceMem.nInfo.rndState[id];
+  curandState localState = DeviceMem.nInfo.rndState[id-shift];
 
 #if defined(__CTALLY2)||(__FTALLY2)||(__MTALLY)||(__FTALLY_UN)
   int nid = id+num_src;
