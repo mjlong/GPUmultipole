@@ -64,7 +64,7 @@ int main(int argc, char **argv){
   sprintf(name4,"_%d",num_bin);
 #if defined(__1D)&&defined(__MTALLY)
   strcpy(name,"R1d_UN_Tmacnt"); 
-#if defined(__1D__VAC)
+#if defined(__1D_VAC)
   strcat(name,"_vac");
 #else
   strcat(name,"_ref");
@@ -75,7 +75,7 @@ int main(int argc, char **argv){
 #if defined(__FTALLY_UN)
   strcat(name,"_UN");
 #endif
-#if defined(__1D__VAC)
+#if defined(__1D_VAC)
   strcat(name,"_vac");
 #else
   strcat(name,"_ref");
@@ -226,6 +226,7 @@ int main(int argc, char **argv){
   for(ibat=0;ibat<num_bat;ibat++){
     oldbanksize = banksize;
     clock_start = clock();
+    memset((HostMem).leaked, 0, sizeof(int)*tnum_bin);
 #if (!defined(__FTALLY2))
     start_neutrons(gridx, blockx, DeviceMem, num_seg,num_src,banksize,tnum_bin);
 #endif
@@ -248,6 +249,9 @@ int main(int argc, char **argv){
 
     sprintf(name1,"%d",ibat); strcpy(name2,"Tmatrix");strcat(name2,name1);
     writeh5_nxm_(name, "tally",name2, HostMem.batcnt, &intone, &inttwo);
+
+    sprintf(name1,"%d",ibat); strcpy(name2,"leakprint");strcat(name2,name1);
+    writeh5_nxm_(name, "tally",name2, HostMem.leaked, &intone, &inttwo);
 #if defined(__MTALLY)||(__FTALLY_UN)
     sprintf(name1,"%d",ibat);strcpy(name2,"sizeprint");strcat(name2,name1);
     writeh5_nxm_(name, "tally",name2, &(banksize), &intone, &intone);

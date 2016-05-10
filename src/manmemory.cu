@@ -27,6 +27,7 @@ void initialize_memory(MemStruct *DeviceMem, MemStruct *HostMem,
   //for __TALLY, ubat is used as tranfac
 
 #if defined(__TALLY)
+  (*HostMem).leaked     = (int*)malloc(sizeof(int)*numbins);
 #if defined(__MTALLY) //Fission Matrix Tally
   gpuErrchk(cudaMalloc((void**)&((*DeviceMem).nInfo.imat),  banksize*2*sizeof(int)));
   (*HostMem).batcnt     = (CMPTYPE*)malloc(sizeof(CMPTYPE)*numbins*numbins);
@@ -138,6 +139,7 @@ void resettally(int *cnt, unsigned totbins){
 
 void release_memory(MemStruct DeviceMem, MemStruct HostMem){
 #if defined(__TALLY)
+  free(HostMem.leaked);
 #if defined(__MTALLY)||(__FTALLY)||(__FTALLY2)||(__FTALLY_UN)
   gpuErrchk(cudaFree(DeviceMem.nInfo.imat));
 #else

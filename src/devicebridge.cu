@@ -101,6 +101,9 @@ unsigned setbank(MemStruct DeviceMem, MemStruct HostMem, int gridsize, int tnum_
     y = y2[i]; sid = sid1[i];
     if(live>=0)
       HostMem.batcnt[sid]++;
+    //live<0, leaked, the 'imat' was set online to be (-1)*source_pos
+    if(/*(sid<0)&&*/(live<0 ))
+	HostMem.leaked[(sid*(-1))]++;
     if((0!=y)&&(live>=0)){
 #if defined(__MTALLY)||(__FTALLY_UN)
       sid = sid%tnum_bins;

@@ -63,6 +63,7 @@ typedef struct {
   double *accmeans;
   CMPTYPE *batcnt;
   CMPTYPE *batcnt2;
+  int     *leaked;
   int     *cnt2_t;
   CMPTYPE *tallybins;
   TallyStruct tally;
