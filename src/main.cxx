@@ -137,7 +137,11 @@ int main(int argc, char **argv){
   HostMem.wdspp[3] = pf;
   HostMem.wdspp[4] = pc;
   HostMem.wdspp[5] = num_bin;
-  HostMem.wdspp[6] = 3-2.45;  
+#if defined(__1D_VAC)
+  HostMem.wdspp[6] = 3-2.45049718596; 
+#else
+  HostMem.wdspp[6] = 3-2.45; 
+#endif
   double ref = 1.0/(HostMem.wdspp[3]+HostMem.wdspp[4])/width;
   // note this only works for flat
   copydata(DeviceMem,HostMem);
@@ -250,9 +254,9 @@ int main(int argc, char **argv){
     sprintf(name1,"%d",ibat); strcpy(name2,"Tmatrix");strcat(name2,name1);
     writeh5_nxm_(name, "tally",name2, HostMem.batcnt, &intone, &inttwo);
 
+#if defined(__MTALLY)||(__FTALLY_UN)
     sprintf(name1,"%d",ibat); strcpy(name2,"leakprint");strcat(name2,name1);
     writeh5_nxm_(name, "tally",name2, HostMem.leaked, &intone, &inttwo);
-#if defined(__MTALLY)||(__FTALLY_UN)
     sprintf(name1,"%d",ibat);strcpy(name2,"sizeprint");strcat(name2,name1);
     writeh5_nxm_(name, "tally",name2, &(banksize), &intone, &intone);
 #endif
