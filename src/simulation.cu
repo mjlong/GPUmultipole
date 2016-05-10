@@ -346,10 +346,11 @@ __global__ void history(MemStruct DeviceMem, unsigned num_src,int shift,unsigned
     }//end not leak
   }//end one history
 #if defined(__MTALLY)
-  DeviceMem.nInfo.imat[id]= ( int(floorf(x/dx))  +
-			      DeviceMem.nInfo.imat[nid]*
-			      (int)(wdspp[5]))*(-1==live)+
-    (0==live)*(-1);
+  DeviceMem.nInfo.imat[id]=
+    (-1==live) * ( int(floorf(x/dx)) +
+		   DeviceMem.nInfo.imat[nid]* (int)(wdspp[5]))
+    +
+    (0==live)*(  (DeviceMem.nInfo.imat[nid]) *(-1));
   //Note: wdspp[5] is num_bin in each dimension 
 #endif
   //}
