@@ -66,37 +66,33 @@ void resetcount(MemStruct DeviceMem){
 }
 #if defined(__1D)
 #if defined(__MTALLY)||(__FTALLY)||(__FTALLY_UN)
-#if defined(__MTALLY)||(__FTALLY_UN)
+
+//==============================================================================
+//====================MTALLY ===================================================
+  //(live,imat) = (0, *): absorption
+  //              (0,-1): didn't run //won't encourter for i<oldbanksize
+  //             (-1, *): leaked
+#if defined(__MTALLY)
 unsigned setbank(MemStruct DeviceMem, MemStruct HostMem, int gridsize,
 		 int oldbanksize, int tnum_bins){
-#else 
-unsigned setbank(MemStruct DeviceMem, MemStruct HostMem, int gridsize, int tnum_bins){
-#endif
 
-#if defined(__MTALLY)||(__FTALLY_UN)
   float* y2 = (float*)malloc(sizeof(float)*gridsize);
   float* x2 = (float*)malloc(sizeof(float)*gridsize);
   int* sid1 = (int*)malloc(sizeof(int)*gridsize);
   int* sid2 = (int*)malloc(sizeof(int)*gridsize);
   memset(sid2, 0xff, sizeof(int)*gridsize);
-#else
-  float* y2 = (float*)malloc(sizeof(float)*gridsize);
-  float* x2 = (float*)malloc(sizeof(float)*gridsize*2);
-  int* sid1 = (int*)malloc(sizeof(int)*gridsize);
-#endif
+
   gpuErrchk(cudaMemcpy(y2,DeviceMem.nInfo.pos_y,sizeof(float)*gridsize, cudaMemcpyDeviceToHost));  
   gpuErrchk(cudaMemcpy(sid1,DeviceMem.nInfo.imat,sizeof(int )*gridsize, cudaMemcpyDeviceToHost));  
   gpuErrchk(cudaMemcpy(HostMem.nInfo.live,DeviceMem.nInfo.live,
 		       sizeof(int )*gridsize, cudaMemcpyDeviceToHost));  
+
   int sid;
   float y; 
   int live;
   unsigned j=0;
-#if defined(__MTALLY)||(__FTALLY_UN)
+
   for(int i=0;i<oldbanksize;i++){  
-#else
-  for(int i=0;i<gridsize;i++){
-#endif
     live = HostMem.nInfo.live[i];
     y = y2[i]; sid = sid1[i];
     if(live>=0)
@@ -105,34 +101,120 @@ unsigned setbank(MemStruct DeviceMem, MemStruct HostMem, int gridsize, int tnum_
     if(/*(sid<0)&&*/(live<0 ))
 	HostMem.leaked[(sid*(-1))]++;
     if((0!=y)&&(live>=0)){
-#if defined(__MTALLY)||(__FTALLY_UN)
       sid = sid%tnum_bins;
       if(y>0){sid2[j]=sid; x2[j++]=y;  sid2[j]=sid; x2[j++]=y;
 	      sid2[j]=sid; x2[j++]=y;}
       else{   sid2[j]=sid; x2[j++]=0-y;sid2[j]=sid; x2[j++]=0-y;}
-#else
-      if(y>0){x2[j++]=y;  x2[j++]=y;  x2[j++]=y;}
-      else{   x2[j++]=0-y;x2[j++]=0-y;}
-#endif
     }
+    if(j>(gridsize)) {printf("live=%d,j=%d,i=%d/%d,overflow\n",
+			       live,j,i,gridsize);exit(-1);}
+    
   }
 
-#if !(defined(__MTALLY)||defined(__FTALLY_UN))
-  gpuErrchk(cudaMemcpy(DeviceMem.nInfo.pos_x+gridsize,x2,sizeof(float)
-		       *gridsize*2, cudaMemcpyHostToDevice));  
-#else
+
   gpuErrchk(cudaMemcpy(DeviceMem.nInfo.pos_x+gridsize,x2,sizeof(float)
 		       *gridsize, cudaMemcpyHostToDevice));  
   gpuErrchk(cudaMemcpy(DeviceMem.nInfo.imat +gridsize,sid2,sizeof(int)
 		       *gridsize, cudaMemcpyHostToDevice));  
   free(sid2);
-#endif
   free(x2);
   free(y2);
   free(sid1);
   return j;
 }
-#else //below must be __1D and __CTALLY
+#endif
+//==============================================================================
+//====================FTALLY_UN=================================================
+#if defined(__FTALLY_UN)
+unsigned setbank(MemStruct DeviceMem, MemStruct HostMem, int gridsize,
+		 int oldbanksize, int tnum_bins){
+  float* y2 = (float*)malloc(sizeof(float)*gridsize);
+  float* x2 = (float*)malloc(sizeof(float)*gridsize);
+  int* sid1 = (int*)malloc(sizeof(int)*gridsize);
+  int* sid2 = (int*)malloc(sizeof(int)*gridsize);
+  memset(sid2, 0xff, sizeof(int)*gridsize);
+
+  gpuErrchk(cudaMemcpy(y2,DeviceMem.nInfo.pos_y,sizeof(float)*gridsize, cudaMemcpyDeviceToHost));  
+  gpuErrchk(cudaMemcpy(sid1,DeviceMem.nInfo.imat,sizeof(int )*gridsize, cudaMemcpyDeviceToHost));  
+  gpuErrchk(cudaMemcpy(HostMem.nInfo.live,DeviceMem.nInfo.live,
+		       sizeof(int )*gridsize, cudaMemcpyDeviceToHost));  
+  int sid;
+  float y; 
+  int live;
+  unsigned j=0;
+  for(int i=0;i<oldbanksize;i++){  
+    live = HostMem.nInfo.live[i];
+    y = y2[i]; sid = sid1[i];
+    HostMem.batcnt[sid]++;
+    //live<0, leaked, the 'imat' was set online to be (-1)*source_pos
+    if((0!=y)&&(live>=0)){
+      if(y>0){sid2[j]=sid; x2[j++]=y;  sid2[j]=sid; x2[j++]=y;
+	      sid2[j]=sid; x2[j++]=y;}
+      else{   sid2[j]=sid; x2[j++]=0-y;sid2[j]=sid; x2[j++]=0-y;}
+    }
+    if(j>(gridsize)) {printf("live=%d,j=%d,i=%d/%d,overflow\n",
+			     live,j,i,gridsize);exit(-1);}
+
+  }
+
+
+  gpuErrchk(cudaMemcpy(DeviceMem.nInfo.pos_x+gridsize,x2,sizeof(float)
+		       *gridsize, cudaMemcpyHostToDevice));  
+  gpuErrchk(cudaMemcpy(DeviceMem.nInfo.imat +gridsize,sid2,sizeof(int)
+		       *gridsize, cudaMemcpyHostToDevice));  
+  free(sid2);
+  free(x2);
+  free(y2);
+  free(sid1);
+  return j;
+}
+#endif
+
+
+//==============================================================================
+//====================FTALLY   =================================================
+#if defined(__FTALLY)
+unsigned setbank(MemStruct DeviceMem, MemStruct HostMem, int gridsize, int tnum_bins){
+
+  float* y2 = (float*)malloc(sizeof(float)*gridsize);
+  float* x2 = (float*)malloc(sizeof(float)*gridsize*2);
+  int* sid1 = (int*)malloc(sizeof(int)*gridsize);
+
+  gpuErrchk(cudaMemcpy(y2,DeviceMem.nInfo.pos_y,sizeof(float)*gridsize, cudaMemcpyDeviceToHost));  
+  gpuErrchk(cudaMemcpy(sid1,DeviceMem.nInfo.imat,sizeof(int )*gridsize, cudaMemcpyDeviceToHost));  
+  gpuErrchk(cudaMemcpy(HostMem.nInfo.live,DeviceMem.nInfo.live,
+		       sizeof(int )*gridsize, cudaMemcpyDeviceToHost));  
+  int sid;
+  float y; 
+  int live;
+  unsigned j=0;
+  for(int i=0;i<gridsize;i++){
+    live = HostMem.nInfo.live[i];
+    y = y2[i]; sid = sid1[i];
+
+    if((0!=y)&&(live>=0)){
+      if(y>0){x2[j++]=y;  x2[j++]=y;  x2[j++]=y;}
+      else{   x2[j++]=0-y;x2[j++]=0-y;}
+    }
+  }
+
+  gpuErrchk(cudaMemcpy(DeviceMem.nInfo.pos_x+gridsize,x2,sizeof(float)
+		       *gridsize*2, cudaMemcpyHostToDevice));  
+  free(x2);
+  free(y2);
+  free(sid1);
+  return j;
+}
+#endif
+
+
+
+
+#endif //__MTALLY or __FTALLY or __FTALLY_UN
+
+
+
+#if defined(__CTALLY)
 unsigned setbank(MemStruct DeviceMem, MemStruct HostMem, int gridsize){
   float* y2 = (float*)malloc(sizeof(float)*gridsize);
   float* x2 = (float*)malloc(sizeof(float)*gridsize*2);
@@ -160,7 +242,8 @@ unsigned setbank(MemStruct DeviceMem, MemStruct HostMem, int gridsize){
   free(y2);
   return j;
 }
-#endif//__MTALLY
+#endif//__CTALLY
+
 #endif//__1D
 #if defined(__3D)
 //==============================================================================
