@@ -126,7 +126,7 @@ int main(int argc, char **argv){
 #if defined(__MTALLY)
   inttwo = tnum_bin*tnum_bin;
 #endif
-#if defined(__FTALLY)||defined(__FTALLY2)
+#if defined(__FTALLY)||defined(__FTALLY_UN)||defined(__FTALLY2)
   inttwo = tnum_bin;
 #endif
   initialize_memory(&DeviceMem, &HostMem, tnum_bin, gridx,blockx,num_bat,num_seg);
