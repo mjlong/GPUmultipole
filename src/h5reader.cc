@@ -64,15 +64,34 @@ void readh5_(char* filename, float* x, float* y, float* z){
   file_id = H5Fopen(filename, H5F_ACC_RDONLY, H5P_DEFAULT);
 
   dataset_id = H5Dopen(file_id, "x", H5P_DEFAULT);
-  status = H5Dread(dataset_id, H5T_NATIVE_FLOAT, H5S_ALL, H5S_ALL, H5P_DEFAULT, (float*)x);
+  status = H5Dread(dataset_id, H5T_NATIVE_FLOAT, H5S_ALL, H5S_ALL, H5P_DEFAULT,
+		   (float*)x);
   status = H5Dclose(dataset_id);
 
   dataset_id = H5Dopen(file_id, "y", H5P_DEFAULT);
-  status = H5Dread(dataset_id, H5T_NATIVE_FLOAT, H5S_ALL, H5S_ALL, H5P_DEFAULT, (float*)y);
+  status = H5Dread(dataset_id, H5T_NATIVE_FLOAT, H5S_ALL, H5S_ALL, H5P_DEFAULT,
+		   (float*)y);
   status = H5Dclose(dataset_id);
 
   dataset_id = H5Dopen(file_id, "z", H5P_DEFAULT);
-  status = H5Dread(dataset_id, H5T_NATIVE_FLOAT, H5S_ALL, H5S_ALL, H5P_DEFAULT, (float*)z);
+  status = H5Dread(dataset_id, H5T_NATIVE_FLOAT, H5S_ALL, H5S_ALL, H5P_DEFAULT,
+		   (float*)z);
+  status = H5Dclose(dataset_id);
+
+  status = H5Fclose(file_id);
+}
+
+
+void readh5_(char* filename, float* x){
+
+  hid_t       file_id, dataset_id;  /* identifiers */
+  herr_t      status;
+
+  file_id = H5Fopen(filename, H5F_ACC_RDONLY, H5P_DEFAULT);
+
+  dataset_id = H5Dopen(file_id, "x", H5P_DEFAULT);
+  status = H5Dread(dataset_id, H5T_NATIVE_FLOAT, H5S_ALL, H5S_ALL, H5P_DEFAULT,
+		   (float*)x);
   status = H5Dclose(dataset_id);
 
   status = H5Fclose(file_id);
