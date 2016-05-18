@@ -20,6 +20,7 @@ extern void readh5_(char* filename, int* gridsize, int* nbat,
 		    int* meshes, double* width, 
 		    double* sigt, double* pf, double* pc);
 extern void readh5_(char* filename, int* cnt);
+extern void readh5_(char* filename, float* x);
 extern void readh5_(char* filename, float* x, float* y, float* z);
 
 void printbless();
@@ -37,7 +38,7 @@ int main(int argc, char **argv){
   int num_bat;
   int num_seg,upto;
   int ibat=0;
-  double width, sigt, pf,pc,v1;
+  double width, sigt, pf,pc,nu_bar;
   char name[60];
   int mode; //0=run only; 1=process only; 2=run & process
   int isSteady=0;
@@ -52,6 +53,7 @@ int main(int argc, char **argv){
   pf    = atof(argv[7]);
   pc    = atof(argv[8]);
   num_seg  = atoi(argv[9]);
+  nu_bar   = atof(argv[12]);
 
   int num_ubat = num_bat%10000;
   num_bat = num_bat/10000;
@@ -112,6 +114,8 @@ int main(int argc, char **argv){
   writeh5_nxm_(name,"/","sigma",   &(sigt),   &intone, &intone);
   writeh5_nxm_(name,"/","pf",      &(pf),     &intone, &intone);
   writeh5_nxm_(name,"/","pc",      &(pc),     &intone, &intone);
+  writeh5_nxm_(name,"/","nu_bar",  &(nu_bar), &intone, &intone);
+
 //============================================================ 
 //=============simulation memory allocation===================
 //============================================================
@@ -138,7 +142,7 @@ int main(int argc, char **argv){
   HostMem.wdspp[4] = pc;
   HostMem.wdspp[5] = num_bin;
 #if defined(__1D_VAC)
-  HostMem.wdspp[6] = 3-2.45049718596; 
+  HostMem.wdspp[6] = 3-nu_bar;//2.45049718596; 
 #else
   HostMem.wdspp[6] = 3-2.45; 
 #endif
@@ -159,7 +163,7 @@ int main(int argc, char **argv){
   //======================Steady State ===========================================
   //==============================================================================
   banksize = gridx*blockx*num_seg;
-#if defined(__MTALLY)||(__FTALLY_UN)
+#if defined(__MTALLY)
   banksize = banksize/2;
 #endif
   initialize_neutrons(gridx, blockx, DeviceMem,width,banksize,num_seg,
@@ -178,7 +182,7 @@ int main(int argc, char **argv){
   writeh5_nxm_(name, "scatterplot",name2,HostMem.nInfo.energy, &intone, &gridsize);
 #endif
 
-#if !defined(__MTALLY)&&!defined(__FTALLY_UN)
+#if !defined(__MTALLY)
   //==========================================================================
   //========== Converged source ==============================================
   //==========================================================================
@@ -189,11 +193,19 @@ int main(int argc, char **argv){
 	   ibat,num_ubat,num_src,banksize);
   }
 
+  //TODO: reset imat -1 for __FTALLY_UN
   char srcname[20];
   if( 0!=num_ubat ){
     sprintf(srcname,"srcpntM_%d",banksize);
     createfixsrch5(srcname);
 
+#if defined(__1D)
+    float* x2 = (float*)malloc(sizeof(float)*num_src*2);
+    copysrcforwrite(DeviceMem, HostMem, num_src, x2);
+    writeh5_nxm_(srcname,"/","x",       x2, &intone,&banksize);
+    writeh5_nxm_(srcname,"/","banksize",&banksize,           &intone,&intone);
+    free(x2); 
+#else
     float* x2 = (float*)malloc(sizeof(float)*num_src*2);
     float* y2 = (float*)malloc(sizeof(float)*num_src*2);
     float* z2 = (float*)malloc(sizeof(float)*num_src*2);
@@ -203,11 +215,19 @@ int main(int argc, char **argv){
     writeh5_nxm_(srcname,"/","z",       z2, &intone,&banksize);
     writeh5_nxm_(srcname,"/","banksize",&banksize,           &intone,&intone);
     free(x2);  free(y2);  free(z2);
+#endif
 
   }
   else{ //read
     int tempsize;readh5_(argv[11], &tempsize);
     printf("[Info] Reading fixed bank ...%d \n",tempsize);    
+#if defined(__1D)
+    float* x2 = (float*)malloc(sizeof(float)*tempsize);
+    readh5_(argv[11], x2);
+    gpuErrchk(cudaMemcpy(DeviceMem.nInfo.pos_x+num_src,x2,sizeof(float)
+			 *tempsize, cudaMemcpyHostToDevice));  
+    free(x2); 
+#else
     float* x2 = (float*)malloc(sizeof(float)*tempsize);
     float* y2 = (float*)malloc(sizeof(float)*tempsize);
     float* z2 = (float*)malloc(sizeof(float)*tempsize);
@@ -219,16 +239,25 @@ int main(int argc, char **argv){
     gpuErrchk(cudaMemcpy(DeviceMem.nInfo.pos_z+num_src,z2,sizeof(float)
 			 *tempsize, cudaMemcpyHostToDevice));  
     free(x2);  free(y2);  free(z2);
+#endif
+
   }
 
   //====================End of the phase to converge source ===================
-#endif //not defined __MTALLY  and not defined __FTALLY
+  banksize = gridx*blockx*num_seg;
+#endif //not defined __MTALLY
+
+#if defined(__FTALLY_UN)
+  reset_label(DeviceMem,   gridx*blockx*num_seg);
+  banksize = banksize/2;
+#endif
+
   clock_end   = clock();
   time_elapsed = (float)(clock_end-clock_start)/CLOCKS_PER_SEC*1000.f;
   strcpy(name2,"timeprint0");
   writeh5_nxm_(name, "tally",name2, &(time_elapsed), &intone, &intone);
   for(ibat=0;ibat<num_bat;ibat++){
-    oldbanksize = banksize;
+    oldbanksize = banksize*(banksize<num_src) + num_src*(banksize>=num_src) ;
     clock_start = clock();
     memset((HostMem).leaked, 0, sizeof(int)*tnum_bin);
 #if (!defined(__FTALLY2))
@@ -255,8 +284,10 @@ int main(int argc, char **argv){
     writeh5_nxm_(name, "tally",name2, HostMem.batcnt, &intone, &inttwo);
 
 #if defined(__MTALLY)||(__FTALLY_UN)
+#if defined(__MTALLY)
     sprintf(name1,"%d",ibat); strcpy(name2,"leakprint");strcat(name2,name1);
     writeh5_nxm_(name, "tally",name2, HostMem.leaked, &intone, &inttwo);
+#endif
     sprintf(name1,"%d",ibat);strcpy(name2,"sizeprint");strcat(name2,name1);
     writeh5_nxm_(name, "tally",name2, &(banksize), &intone, &intone);
 #endif
