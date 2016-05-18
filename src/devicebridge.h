@@ -25,7 +25,13 @@ void print_results(unsigned meshes, unsigned nbat, double *tally);
 
 #if defined(__MTALLY)||(__FTALLY)||(__FTALLY2)||(__FTALLY_UN)
 unsigned setbank_converge(MemStruct DeviceMem, MemStruct HostMem, int gridsize);
-void copysrcforwrite(MemStruct HostMem, int num_src, float* x2, float* y2, float* z2);
+#if defined(__3D)
+void copysrcforwrite(MemStruct HostMem, int num_src, float* x2,
+		     float* y2, float* z2);
+#else
+void copysrcforwrite(MemStruct DeviceMem, MemStruct HostMem, int num_src,
+		     float* x2);
+#endif
 #if defined(FTALLY2)
 unsigned setbank(MemStruct DeviceMem, MemStruct HostMem, int gridsize,
 		 int banksize, unsigned jstart, int shift);
@@ -47,3 +53,7 @@ int count_pop(int *live, int gridsize);
 void resetcount(MemStruct DeviceMem);
 #endif
 void check(unsigned gridx, unsigned blockx, MemStruct DeviceMem, int ubat);
+
+#if defined(__FTALLY_UN)
+void reset_label(MemStruct DeviceMem, int banksize);
+#endif
